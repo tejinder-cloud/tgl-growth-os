@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Growth Lab — Explainer Video Storyboard (Six Frames)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-cream: #F5F0E8;
+      --bg-cream-deep: #EDE8DD;
+      --bg-card: #FAF6F0;
+      --ink: #2C2118;
+      --ink-card: #3A3028;
+      --text-secondary: #6B625B;
+      --border-hairline: #DDD6CA;
+      --accent-terracotta: #C75B3B;
+      --accent-coral: #E8846B;
+      --accent-green: #3D6B2C;
+      --accent-amber: #E8B44C;
+      --accent-teal: #2E6F65;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-cream);
+      color: var(--ink);
+      font-family: 'DM Sans', -apple-system, sans-serif;
+      padding: 32px 20px 80px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 40px;
+      border-bottom: 1.5px solid var(--border-hairline);
+      padding-bottom: 24px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent-terracotta);
+      background: #FBECE8;
+      padding: 6px 14px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      border: 1px solid var(--accent-coral);
+    }
+
+    h1 {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 34px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+    }
+
+    .meta-lead {
+      color: var(--text-secondary);
+      font-size: 15px;
+      max-width: 780px;
+    }
+
+    .rainbow-bar {
+      display: flex;
+      gap: 4px;
+      width: 120px;
+      height: 4px;
+      margin: 18px 0;
+    }
+    .rainbow-bar span:nth-child(1) { flex: 1; background: var(--accent-coral); border-radius: 2px; }
+    .rainbow-bar span:nth-child(2) { flex: 1; background: var(--accent-terracotta); border-radius: 2px; }
+    .rainbow-bar span:nth-child(3) { flex: 1; background: var(--accent-green); border-radius: 2px; }
+    .rainbow-bar span:nth-child(4) { flex: 1; background: var(--accent-teal); border-radius: 2px; }
+
+    .storyboard-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 48px;
+    }
+
+    .frame-card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border-hairline);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 4px 18px rgba(44, 33, 24, 0.04);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .frame-card:hover {
+      box-shadow: 0 8px 24px rgba(44, 33, 24, 0.07);
+    }
+
+    .frame-svg-wrapper {
+      background: var(--bg-cream);
+      border-bottom: 1.5px solid var(--border-hairline);
+      padding: 12px;
+    }
+
+    .frame-svg-wrapper img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 12px;
+    }
+
+    .frame-info {
+      padding: 24px 28px;
+    }
+
+    .frame-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .pill-badge {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 12px;
+    }
+
+    .pill-scene {
+      background: #FBECE8;
+      color: var(--accent-terracotta);
+      border: 1px solid var(--accent-coral);
+    }
+
+    .pill-timing {
+      background: var(--bg-cream-deep);
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .frame-title {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .info-grid { grid-template-columns: 1fr; }
+    }
+
+    .info-block {
+      background: var(--bg-cream-deep);
+      border-radius: 12px;
+      padding: 14px 16px;
+      border: 1px solid var(--border-hairline);
+    }
+
+    .info-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .vo-quote {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 14px;
+      font-style: italic;
+      color: var(--ink);
+      line-height: 1.45;
+    }
+
+    .spec-list {
+      font-size: 12px;
+      color: var(--ink);
+      line-height: 1.6;
+    }
+
+    .spec-list span {
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    footer {
+      margin-top: 60px;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 13px;
+      border-top: 1.5px solid var(--border-hairline);
+      padding-top: 24px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="eyebrow">VIDEO POD · STORYBOARD SPECIFICATION</div>
+      <h1>Explainer Film: "What Happens to One Enquiry"</h1>
+      <div class="rainbow-bar"><span></span><span></span><span></span><span></span></div>
+      <p class="meta-lead">
+        Six-frame static storyboard generated strictly in the TGL paper-and-ink design system, using the shared SVG object library from <code>design-system/objects/</code>. Runtime: 90 seconds (15s per frame). Master line: <em>"We don't generate leads. We generate clients."</em>
+      </p>
+    </header>
+
+    <div class="storyboard-grid">
+
+      <!-- FRAME 1 -->
+      <div class="frame-card" id="frame-1">
+        <div class="frame-svg-wrapper">
+          <img src="agents/video-team/storyboard/frame-1.svg" alt="Frame 1: The Flooded Desk">
+        </div>
+        <div class="frame-info">
+          <div class="frame-header">
+            <span class="pill-badge pill-scene">THE PROBLEM</span>
+            <span class="pill-badge pill-timing">FRAME 1 · 0:00 – 0:15</span>
+            <h2 class="frame-title">The Flooded Desk</h2>
+          </div>
+          <div class="info-grid">
+            <div class="info-block">
+              <div class="info-label">VOICEOVER (0:00 – 0:15)</div>
+              <p class="vo-quote">"Say, three hundred enquiries a month. Maybe twenty are worth calling. Your counsellors don't know which twenty, so they dial from the top. By noon, they're burned out. By evening, the best students have already enrolled somewhere else."</p>
+            </div>
+            <div class="info-block">
+              <div class="info-label">CRAFT &amp; MOTION DESIGN</div>
+              <div class="spec-list">
+                <p><span>Shared Objects:</span> <code>ad-poster.svg</code> · <code>enquiry-slip.svg</code> · <code>counsellor-handset.svg</code></p>
+                <p><span>Palette:</span> Cream #F5F0E8, Ink #2C2118, Terracotta offset #C75B3B.</p>
+                <p><span>Action:</span> Single tap pulse on ad → slip shoots to desk across dotted trajectory → disorganized pile of 300 slips wobbles. Handset sits idle.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FRAME 2 -->
+      <div class="frame-card" id="frame-2">
+        <div class="frame-svg-wrapper">
+          <img src="agents/video-team/storyboard/frame-2.svg" alt="Frame 2: The Mechanical Verdict">
+        </div>
+        <div class="frame-info">
+          <div class="frame-header">
+            <span class="pill-badge pill-scene">TRUELEAD ENGINE</span>
+            <span class="pill-badge pill-timing">FRAME 2 · 0:15 – 0:30</span>
+            <h2 class="frame-title">The Mechanical Verdict</h2>
+          </div>
+          <div class="info-grid">
+            <div class="info-block">
+              <div class="info-label">VOICEOVER (0:15 – 0:30)</div>
+              <p class="vo-quote">"Here is what should happen instead. The second an enquiry lands, TrueLead reads it. Not just name and number. Course, intake, qualification, budget. It stamps each one hot, warm, or cold—and sorts them into trays before anyone touches a phone."</p>
+            </div>
+            <div class="info-block">
+              <div class="info-label">CRAFT &amp; MOTION DESIGN</div>
+              <div class="spec-list">
+                <p><span>Shared Objects:</span> <code>truelead-stamp.svg</code> · <code>enquiry-slip.svg</code> · <code>sorting-trays.svg</code></p>
+                <p><span>Palette:</span> Terracotta #C75B3B [HOT 84], Amber #E8B44C [WARM 52], Hairline [COLD 18].</p>
+                <p><span>Action:</span> Heavy stamp drops (300ms) leaving terracotta mark with 2px coral offset shadow. Simran's slip glides cleanly into the top HOT tray (450ms).</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FRAME 3 -->
+      <div class="frame-card" id="frame-3">
+        <div class="frame-svg-wrapper">
+          <img src="agents/video-team/storyboard/frame-3.svg" alt="Frame 3: The 48-Second WhatsApp">
+        </div>
+        <div class="frame-info">
+          <div class="frame-header">
+            <span class="pill-badge pill-scene">SPEED &amp; QUALIFICATION</span>
+            <span class="pill-badge pill-timing">FRAME 3 · 0:30 – 0:45</span>
+            <h2 class="frame-title">The 48-Second WhatsApp</h2>
+          </div>
+          <div class="info-grid">
+            <div class="info-block">
+              <div class="info-label">VOICEOVER (0:30 – 0:45)</div>
+              <p class="vo-quote">"At forty-eight seconds, the student's phone lights up. A WhatsApp reply in their language, answering the exact course they asked about. Not a blast campaign. A calm, two-way conversation that qualifies them while your competitors are still waiting for office hours."</p>
+            </div>
+            <div class="info-block">
+              <div class="info-label">CRAFT &amp; MOTION DESIGN</div>
+              <div class="spec-list">
+                <p><span>Shared Objects:</span> <code>phone-whatsapp.svg</code> · <code>enquiry-slip.svg</code></p>
+                <p><span>Palette:</span> Cream, Sage Green #3D6B2C, Coral badge #E8846B.</p>
+                <p><span>Action:</span> Stopwatch hand sweeps 0 to 48s → verified bubble expands (300ms) → student reply unfolds and syncs intake preferences live back onto enquiry card.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FRAME 4 -->
+      <div class="frame-card" id="frame-4">
+        <div class="frame-svg-wrapper">
+          <img src="agents/video-team/storyboard/frame-4.svg" alt="Frame 4: Only the Hot Tray">
+        </div>
+        <div class="frame-info">
+          <div class="frame-header">
+            <span class="pill-badge pill-scene">FOCUS</span>
+            <span class="pill-badge pill-timing">FRAME 4 · 0:45 – 1:00</span>
+            <h2 class="frame-title">Only the Hot Tray</h2>
+          </div>
+          <div class="info-grid">
+            <div class="info-block">
+              <div class="info-label">VOICEOVER (0:45 – 1:00)</div>
+              <p class="vo-quote">"Your counsellor sits down at nine. She doesn't dial through a stack of cold leads. She picks up the hot tray: the students who actually qualify, who already replied on WhatsApp, and who are waiting for her call. The conversation isn't a pitch. It's an appointment."</p>
+            </div>
+            <div class="info-block">
+              <div class="info-label">CRAFT &amp; MOTION DESIGN</div>
+              <div class="spec-list">
+                <p><span>Shared Objects:</span> <code>sorting-trays.svg</code> · <code>enquiry-slip.svg</code> · <code>counsellor-handset.svg</code></p>
+                <p><span>Palette:</span> Terracotta #C75B3B, Amber #E8B44C, Teal #2E6F65.</p>
+                <p><span>Action:</span> Cold &amp; warm trays dimmed. Hand picks top hot slip. Handset lifted with acoustic transmission rings. Fountain pen draws ink circle around Thursday appointment.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FRAME 5 -->
+      <div class="frame-card" id="frame-5">
+        <div class="frame-svg-wrapper">
+          <img src="agents/video-team/storyboard/frame-5.svg" alt="Frame 5: The Truth in the Register">
+        </div>
+        <div class="frame-info">
+          <div class="frame-header">
+            <span class="pill-badge pill-scene">THE ONLY METRIC</span>
+            <span class="pill-badge pill-timing">FRAME 5 · 1:00 – 1:15</span>
+            <h2 class="frame-title">The Truth in the Register</h2>
+          </div>
+          <div class="info-grid">
+            <div class="info-block">
+              <div class="info-label">VOICEOVER (1:00 – 1:15)</div>
+              <p class="vo-quote">"Thursday morning. Simran walks into the branch. Documents verified. Fees deposited. Admission entered in the register. That is the only number that matters. Not clicks. Not cost per lead. Enrolled students."</p>
+            </div>
+            <div class="info-block">
+              <div class="info-label">CRAFT &amp; MOTION DESIGN</div>
+              <div class="spec-list">
+                <p><span>Shared Objects:</span> <code>admissions-register.svg</code> · <code>enquiry-slip.svg</code></p>
+                <p><span>Palette:</span> Teal ruled headers #2E6F65, Sage Green [ENROLLED ✓] #3D6B2C, Terracotta ribbon.</p>
+                <p><span>Action:</span> Hardbound ledger page settles. Brass paperclip fastens fee voucher to slip. Solid green stamp presses down [ENROLLED ✓]. Attribution column connects to Meta ad ID.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FRAME 6 -->
+      <div class="frame-card" id="frame-6">
+        <div class="frame-svg-wrapper">
+          <img src="agents/video-team/storyboard/frame-6.svg" alt="Frame 6: Feedback to Meta & Master Close">
+        </div>
+        <div class="frame-info">
+          <div class="frame-header">
+            <span class="pill-badge pill-scene">THE CLOSED LOOP</span>
+            <span class="pill-badge pill-timing">FRAME 6 · 1:15 – 1:30</span>
+            <h2 class="frame-title">Feedback to Meta &amp; Master Close</h2>
+          </div>
+          <div class="info-grid">
+            <div class="info-block">
+              <div class="info-label">VOICEOVER (1:15 – 1:30)</div>
+              <p class="vo-quote">"Then comes the step agencies skip. That admission feeds directly back to Meta. The algorithm learns what an enrolling student looks like, so next month's budget finds more of them. We don't generate leads. We generate clients."</p>
+            </div>
+            <div class="info-block">
+              <div class="info-label">CRAFT &amp; MOTION DESIGN</div>
+              <div class="spec-list">
+                <p><span>Shared Objects:</span> <code>loop-arrow.svg</code> · <code>ad-poster.svg</code></p>
+                <p><span>Palette:</span> 4-bar rainbow rule (Coral, Terracotta, Sage, Teal), Fraunces display typography.</p>
+                <p><span>Action:</span> Dotted terracotta loop arrow draws backward path (800ms) into Meta ad poster. Screen transitions to quiet cream card holding the master line and primary conversion CTA for 5s.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <footer>
+      <p>The Growth Lab · Video Pod · TASK-V01 Static Storyboard Delivery · Version 1.0 (18 Oct 2026)</p>
+    </footer>
+  </div>
+
+</body>
+</html>

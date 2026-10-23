@@ -1,0 +1,28 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Offset Shadow Layer (Teal/Coral) -->
+  <rect x="22" y="16" width="76" height="92" rx="6" fill="#2E6F65" opacity="0.3"/>
+  <!-- Ad Card Frame (Ink border, Cream face) -->
+  <rect x="20" y="14" width="76" height="92" rx="6" fill="#FFFFFF" stroke="#2C2118" stroke-width="1.75"/>
+
+  <!-- Sponsor Header (Meta format) -->
+  <circle cx="32" cy="26" r="5" fill="#C75B3B"/>
+  <text x="32" y="28" fill="#FFFFFF" font-family="'DM Sans', sans-serif" font-size="6" font-weight="900" text-anchor="middle">⚡</text>
+  <rect x="41" y="23" width="30" height="3" rx="1.5" fill="#2C2118"/>
+  <text x="41" y="31" fill="#6B625B" font-family="'DM Sans', sans-serif" font-size="4.2" font-weight="500">Sponsored · Meta</text>
+
+  <!-- Ad Creative Banner (16:9 Screen-print poster graphic) -->
+  <rect x="25" y="36" width="66" height="38" rx="3" fill="#FAF6F0" stroke="#DDD6CA" stroke-width="1"/>
+  <rect x="28" y="40" width="32" height="18" rx="2" fill="#E8846B" opacity="0.3"/>
+  <circle cx="74" cy="52" r="10" fill="#E8B44C" opacity="0.4"/>
+  <path d="M36 58L46 46L54 55L64 42L78 58H36Z" fill="#3D6B2C" opacity="0.45"/>
+  <rect x="28" y="62" width="44" height="4" rx="2" fill="#2C2118"/>
+  <rect x="28" y="68" width="28" height="3" rx="1.5" fill="#6B625B"/>
+
+  <!-- Bottom CTA Row (Apply / Tap Button) -->
+  <rect x="25" y="80" width="66" height="18" rx="3" fill="#FAF6F0"/>
+  <text x="30" y="89" fill="#2C2118" font-family="'DM Sans', sans-serif" font-size="4.5" font-weight="700">NCLEX-RN Batch '26</text>
+  <text x="30" y="94" fill="#6B625B" font-family="'DM Sans', sans-serif" font-size="3.5">thegrowthlab.co.in</text>
+  <!-- Tap button with terracotta accent -->
+  <rect x="67" y="85" width="20" height="9" rx="2.5" fill="#C75B3B"/>
+  <text x="77" y="91" fill="#FFFFFF" font-family="'DM Sans', sans-serif" font-size="4" font-weight="800" text-anchor="middle">APPLY</text>
+</svg>

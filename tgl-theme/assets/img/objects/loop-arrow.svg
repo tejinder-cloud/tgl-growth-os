@@ -1,0 +1,18 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Offset Shadow Arc (Coral misregistration layer) -->
+  <path d="M96 62C96 82 78 98 58 98C38 98 22 82 22 62C22 42 38 26 58 26C72 26 84 34 90 46" stroke="#E8846B" stroke-width="4.5" stroke-linecap="round" fill="none" opacity="0.35" transform="translate(2, 2)"/>
+  
+  <!-- Main Loop Arc (Terracotta) -->
+  <path d="M96 62C96 82 78 98 58 98C38 98 22 82 22 62C22 42 38 26 58 26C72 26 84 34 90 46" stroke="#C75B3B" stroke-width="4" stroke-linecap="round" stroke-dasharray="7 3" fill="none"/>
+  
+  <!-- Arrow Head (Terracotta with ink core) -->
+  <path d="M82 46H92V36" stroke="#C75B3B" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <polygon points="92,46 80,48 88,36" fill="#C75B3B"/>
+
+  <!-- Center Mechanism Stamp: "CLOSED LOOP" -->
+  <circle cx="58" cy="62" r="22" fill="#FAF6F0" stroke="#2C2118" stroke-width="1.5"/>
+  <circle cx="58" cy="62" r="18" stroke="#DDD6CA" stroke-width="1" stroke-dasharray="3 2"/>
+  <text x="58" y="58" fill="#C75B3B" font-family="'DM Sans', sans-serif" font-size="5.5" font-weight="900" letter-spacing="0.8" text-anchor="middle">REAL DATA</text>
+  <text x="58" y="67" fill="#2C2118" font-family="'DM Sans', sans-serif" font-size="4.8" font-weight="700" letter-spacing="0.4" text-anchor="middle">BACK TO META</text>
+  <text x="58" y="74" fill="#3D6B2C" font-family="'DM Sans', sans-serif" font-size="5" font-weight="900" text-anchor="middle">↺</text>
+</svg>

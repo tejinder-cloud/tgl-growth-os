@@ -1,0 +1,48 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Offset Shadow Layer (Amber/Terracotta) -->
+  <rect x="22" y="38" width="76" height="66" rx="8" fill="#E8B44C" opacity="0.3"/>
+  <!-- Phone Console Base (Ink body) -->
+  <rect x="20" y="36" width="76" height="66" rx="8" fill="#FAF6F0" stroke="#2C2118" stroke-width="1.75"/>
+
+  <!-- Screen / Display on console -->
+  <rect x="28" y="44" width="34" height="16" rx="3" fill="#2C2118"/>
+  <text x="32" y="52" fill="#E8846B" font-family="'DM Sans', sans-serif" font-size="4" font-weight="700">CALL: Simran K.</text>
+  <text x="32" y="57" fill="#FFFFFF" font-family="'DM Sans', sans-serif" font-size="3.2">HOT · 94 · NCLEX</text>
+
+  <!-- Number Keypad 3x3 -->
+  <g transform="translate(28, 66)">
+    <circle cx="5" cy="5" r="3.5" fill="#DDD6CA"/>
+    <circle cx="15" cy="5" r="3.5" fill="#DDD6CA"/>
+    <circle cx="25" cy="5" r="3.5" fill="#DDD6CA"/>
+    <circle cx="5" cy="15" r="3.5" fill="#DDD6CA"/>
+    <circle cx="15" cy="15" r="3.5" fill="#DDD6CA"/>
+    <circle cx="25" cy="15" r="3.5" fill="#DDD6CA"/>
+    <circle cx="5" cy="25" r="3.5" fill="#DDD6CA"/>
+    <circle cx="15" cy="25" r="3.5" fill="#DDD6CA"/>
+    <circle cx="25" cy="25" r="3.5" fill="#DDD6CA"/>
+  </g>
+
+  <!-- Handset Cradle Well -->
+  <rect x="68" y="44" width="20" height="48" rx="4" fill="#DDD6CA" opacity="0.5"/>
+
+  <!-- Telephone Handset (Lifted off console with audio waves) -->
+  <g transform="translate(62, 14) rotate(-12 18 36)">
+    <!-- Offset shadow -->
+    <path d="M4 8C4 4 8 2 14 2H22C28 2 32 4 32 8V18C32 22 28 24 24 24H12C8 24 4 22 4 18V8Z" fill="#C75B3B" opacity="0.3"/>
+    <!-- Earpiece -->
+    <rect x="2" y="0" width="28" height="16" rx="6" fill="#2C2118"/>
+    <!-- Central Handle Grip -->
+    <rect x="10" y="14" width="12" height="38" rx="3" fill="#2C2118"/>
+    <!-- Mouthpiece -->
+    <rect x="2" y="50" width="28" height="16" rx="6" fill="#2C2118"/>
+    <circle cx="16" cy="58" r="4" fill="#3A3028"/>
+    <circle cx="16" cy="8" r="4" fill="#3A3028"/>
+  </g>
+
+  <!-- Audio Wave Rings (Terracotta accent) -->
+  <path d="M96 20C100 24 102 28 102 34" stroke="#C75B3B" stroke-width="1.75" stroke-linecap="round"/>
+  <path d="M102 16C108 22 110 28 110 36" stroke="#E8846B" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Curly Cord from Console to Handset -->
+  <path d="M78 88C84 94 88 94 92 88C96 82 100 82 104 88" stroke="#2C2118" stroke-width="1.75" stroke-linecap="round" fill="none"/>
+</svg>

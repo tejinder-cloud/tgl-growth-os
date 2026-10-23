@@ -1,0 +1,170 @@
+<svg width="960" height="540" viewBox="0 0 960 540" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&amp;family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&amp;display=swap');
+      .text-title { font-family: 'Fraunces', Georgia, serif; }
+      .text-ui { font-family: 'DM Sans', -apple-system, sans-serif; }
+    </style>
+    <filter id="paper-grain" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" result="noise" />
+      <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.035 0" />
+      <feComposite in2="SourceGraphic" in="glitch" operator="in" />
+    </filter>
+  </defs>
+
+  <!-- 1. Canvas Base: Cream Paper (#F5F0E8) -->
+  <rect width="960" height="540" fill="#F5F0E8"/>
+  <rect width="960" height="540" fill="#2C2118" opacity="0.02" filter="url(#paper-grain)"/>
+
+  <!-- 2. Storyboard Outer Stage Panel -->
+  <rect x="24" y="24" width="912" height="492" rx="20" fill="#FAF6F0" stroke="#DDD6CA" stroke-width="1.5"/>
+
+  <!-- 3. Header Metabar -->
+  <g transform="translate(48, 44)">
+    <!-- Scene Pill: SPEED & QUALIFICATION -->
+    <rect x="0" y="0" width="206" height="28" rx="14" fill="#FBECE8" stroke="#E8846B" stroke-width="1"/>
+    <text x="103" y="18" fill="#C75B3B" class="text-ui" font-size="11" font-weight="800" letter-spacing="1" text-anchor="middle">SPEED &amp; QUALIFICATION</text>
+
+    <!-- Timing & Scene Index Pill -->
+    <rect x="216" y="0" width="154" height="28" rx="14" fill="#EDE8DD"/>
+    <text x="293" y="18" fill="#6B625B" class="text-ui" font-size="11" font-weight="600" text-anchor="middle">FRAME 3 · 0:30 – 0:45</text>
+
+    <!-- Scene Headline -->
+    <text x="386" y="19" fill="#2C2118" class="text-title" font-size="17" font-weight="600">The 48-Second WhatsApp</text>
+  </g>
+
+  <!-- 4. Left Dial: Precision Stopwatch Mechanism -->
+  <g transform="translate(80, 150)">
+    <!-- Dial Shadow -->
+    <circle cx="70" cy="70" r="66" fill="#EDE8DD" opacity="0.7"/>
+    <!-- Outer Dial Rim -->
+    <circle cx="68" cy="68" r="66" fill="#FFFFFF" stroke="#2C2118" stroke-width="2"/>
+    <circle cx="68" cy="68" r="58" stroke="#DDD6CA" stroke-width="1" stroke-dasharray="3 3"/>
+
+    <!-- Ticks -->
+    <line x1="68" y1="12" x2="68" y2="18" stroke="#2C2118" stroke-width="2"/>
+    <line x1="124" y1="68" x2="118" y2="68" stroke="#2C2118" stroke-width="2"/>
+    <line x1="68" y1="124" x2="68" y2="118" stroke="#2C2118" stroke-width="2"/>
+    <line x1="12" y1="68" x2="18" y2="68" stroke="#2C2118" stroke-width="2"/>
+
+    <!-- Sweep Arc (Coral / Terracotta from 0 to 48s) -->
+    <path d="M 68 12 A 56 56 0 1 1 24 96" fill="none" stroke="#E8846B" stroke-width="5" stroke-linecap="round"/>
+    <!-- Hand pointing at 48 seconds -->
+    <line x1="68" y1="68" x2="26" y2="94" stroke="#C75B3B" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="68" cy="68" r="5" fill="#2C2118"/>
+
+    <!-- Badge below stopwatch -->
+    <rect x="18" y="152" width="100" height="26" rx="13" fill="#FBECE8" stroke="#C75B3B" stroke-width="1"/>
+    <text x="68" y="169" fill="#C75B3B" class="text-ui" font-size="11" font-weight="800" text-anchor="middle">⚡ 48 SECONDS</text>
+    <text x="68" y="194" fill="#6B625B" class="text-ui" font-size="8.5" text-anchor="middle">Automated 24/7</text>
+  </g>
+
+  <!-- 5. Center Hero Station: Cut-Paper Smartphone (phone-whatsapp.svg composited) -->
+  <g transform="translate(290, 100) rotate(-2 110 150)">
+    <!-- Offset Shadow Layer (Green Misregistration) -->
+    <rect x="6" y="6" width="220" height="310" rx="24" fill="#3D6B2C" opacity="0.25"/>
+    <!-- Phone Chassis (Ink frame, cream body) -->
+    <rect x="0" y="0" width="220" height="310" rx="24" fill="#2C2118" stroke="#2C2118" stroke-width="2"/>
+    <rect x="6" y="6" width="208" height="298" rx="20" fill="#FAF6F0"/>
+
+    <!-- Speaker Bar & Camera -->
+    <line x1="90" y1="18" x2="130" y2="18" stroke="#6B625B" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="78" cy="18" r="2.5" fill="#6B625B"/>
+
+    <!-- WhatsApp Header Bar (Sage / Green) -->
+    <rect x="6" y="30" width="208" height="42" fill="#3D6B2C"/>
+    <circle cx="30" cy="51" r="12" fill="#FAF6F0"/>
+    <text x="30" y="56" fill="#3D6B2C" class="text-ui" font-size="13" font-weight="900" text-anchor="middle">⚡</text>
+    <text x="50" y="47" fill="#FFFFFF" class="text-ui" font-size="10.5" font-weight="700">The Growth Lab · NCLEX</text>
+    <text x="50" y="60" fill="#FAF6F0" class="text-ui" font-size="8" opacity="0.85">Verified Business · Replies &lt; 1 min</text>
+
+    <!-- Message Bubble 1: Incoming System Greeting (< 60s) -->
+    <g transform="translate(18, 86)">
+      <!-- Bubble Card with Green Outline -->
+      <rect x="0" y="0" width="184" height="66" rx="8" fill="#FFFFFF" stroke="#3D6B2C" stroke-width="1.25"/>
+      <!-- Fast reply badge -->
+      <rect x="8" y="8" width="68" height="14" rx="4" fill="#E8F2E4"/>
+      <text x="42" y="18" fill="#3D6B2C" class="text-ui" font-size="7.5" font-weight="800" text-anchor="middle">&lt; 60s VERIFIED REPLY</text>
+      <!-- Message text -->
+      <text x="8" y="34" fill="#2C2118" class="text-ui" font-size="9" font-weight="600">Sat Sri Akal Simran.</text>
+      <text x="8" y="46" fill="#6B625B" class="text-ui" font-size="8">NCLEX-RN '26 batch details attached.</text>
+      <text x="8" y="58" fill="#2C2118" class="text-ui" font-size="8" font-weight="600">Are you aiming for Canada or the US intake?</text>
+      <text x="160" y="60" fill="#6B625B" class="text-ui" font-size="7">9:15 PM</text>
+    </g>
+
+    <!-- Message Bubble 2: Student Reply (Simran) -->
+    <g transform="translate(36, 164)">
+      <rect x="0" y="0" width="166" height="48" rx="8" fill="#E8F2E4" stroke="#3D6B2C" stroke-width="1.5"/>
+      <text x="10" y="18" fill="#2C2118" class="text-ui" font-size="9" font-weight="600">Canada. BSc Nursing done.</text>
+      <text x="10" y="32" fill="#2C2118" class="text-ui" font-size="8.5">Need night batch timings and fees.</text>
+      <text x="136" y="42" fill="#3D6B2C" class="text-ui" font-size="7" font-weight="700">9:16 PM</text>
+      <text x="154" y="42" fill="#3D6B2C" class="text-ui" font-size="8" font-weight="900">✓✓</text>
+    </g>
+
+    <!-- Message Bubble 3: Smart Confirmation & Appointment Lead-in -->
+    <g transform="translate(18, 224)">
+      <rect x="0" y="0" width="184" height="44" rx="8" fill="#FFFFFF" stroke="#DDD6CA" stroke-width="1"/>
+      <text x="8" y="16" fill="#2C2118" class="text-ui" font-size="8.5" font-weight="600">Perfect. Night batch has 4 seats left.</text>
+      <text x="8" y="28" fill="#6B625B" class="text-ui" font-size="8">Our senior counsellor Harpreet calls at 9:30 AM.</text>
+      <text x="160" y="38" fill="#6B625B" class="text-ui" font-size="7">9:16 PM</text>
+    </g>
+
+    <!-- Phone Home Indicator Bar -->
+    <rect x="80" y="292" width="60" height="4" rx="2" fill="#2C2118"/>
+  </g>
+
+  <!-- 6. Sync Connector from Phone to Enquiry Card -->
+  <g>
+    <path d="M540 230 C600 230, 620 180, 680 180" stroke="#3D6B2C" stroke-width="2.5" stroke-dasharray="6 3" fill="none"/>
+    <polygon points="686,180 676,175 676,185" fill="#3D6B2C"/>
+    <rect x="580" y="196" width="76" height="18" rx="9" fill="#E8F2E4" stroke="#3D6B2C" stroke-width="1"/>
+    <text x="618" y="208" fill="#3D6B2C" class="text-ui" font-size="8" font-weight="800" text-anchor="middle">LIVE SYNC</text>
+  </g>
+
+  <!-- 7. Right Station: Live Updated Enquiry Card -->
+  <g transform="translate(680, 110)">
+    <!-- Misregistration Shadow -->
+    <rect x="4" y="4" width="200" height="260" rx="8" fill="#E8846B" opacity="0.3"/>
+    <!-- Card Face -->
+    <rect x="0" y="0" width="200" height="260" rx="8" fill="#FFFFFF" stroke="#2C2118" stroke-width="2"/>
+    <rect x="16" y="16" width="70" height="6" rx="2" fill="#2C2118"/>
+    <text x="16" y="38" fill="#2C2118" class="text-ui" font-size="11" font-weight="700">Simran K. · Card #301</text>
+    <text x="16" y="52" fill="#6B625B" class="text-ui" font-size="8.5">Verified via WhatsApp in 48s</text>
+
+    <!-- Divider -->
+    <line x1="16" y1="62" x2="184" y2="62" stroke="#DDD6CA" stroke-width="1" stroke-dasharray="3 2"/>
+
+    <!-- Auto-Updated Qualification Data -->
+    <g transform="translate(16, 74)">
+      <rect x="0" y="0" width="168" height="34" rx="4" fill="#FAF6F0" stroke="#DDD6CA" stroke-width="1"/>
+      <text x="8" y="14" fill="#6B625B" class="text-ui" font-size="7.5" font-weight="700">DESTINATION / INTAKE:</text>
+      <text x="8" y="26" fill="#2C2118" class="text-ui" font-size="9" font-weight="800">Canada · 2026 Night Batch</text>
+    </g>
+
+    <g transform="translate(16, 116)">
+      <rect x="0" y="0" width="168" height="34" rx="4" fill="#FAF6F0" stroke="#DDD6CA" stroke-width="1"/>
+      <text x="8" y="14" fill="#6B625B" class="text-ui" font-size="7.5" font-weight="700">CURRENT STATUS:</text>
+      <text x="8" y="26" fill="#2C2118" class="text-ui" font-size="9" font-weight="800">BSc Nursing Completed</text>
+    </g>
+
+    <!-- Priority Badge -->
+    <g transform="translate(16, 160)">
+      <rect x="0" y="0" width="168" height="42" rx="4" fill="#FBECE8" stroke="#C75B3B" stroke-width="1.5"/>
+      <text x="84" y="18" fill="#C75B3B" class="text-ui" font-size="9" font-weight="900" letter-spacing="0.5" text-anchor="middle">QUALIFIED FOR CALL</text>
+      <text x="84" y="32" fill="#2C2118" class="text-ui" font-size="8" font-weight="700" text-anchor="middle">Assigned to Hot Tray</text>
+    </g>
+
+    <!-- Stamp Stamp -->
+    <g transform="translate(30, 212)">
+      <rect x="0" y="0" width="140" height="26" rx="4" fill="#E8F2E4" stroke="#3D6B2C" stroke-width="1.25"/>
+      <text x="70" y="17" fill="#3D6B2C" class="text-ui" font-size="8" font-weight="800" text-anchor="middle">WHATSAPP RESPONDED ✓✓</text>
+    </g>
+  </g>
+
+  <!-- 8. Bottom Voiceover / Subtitle Card -->
+  <g transform="translate(48, 436)">
+    <rect x="0" y="0" width="864" height="54" rx="12" fill="#EDE8DD" stroke="#DDD6CA" stroke-width="1"/>
+    <text x="24" y="24" fill="#6B625B" class="text-ui" font-size="9" font-weight="700" letter-spacing="0.5">VOICEOVER (0:30 – 0:45)</text>
+    <text x="24" y="42" fill="#2C2118" class="text-title" font-size="13" font-style="italic">"At forty-eight seconds, the student's phone lights up. A WhatsApp reply in their language, answering the exact course they asked about. Not a blast campaign. A calm, two-way conversation that qualifies them while your competitors are still waiting for office hours."</text>
+  </g>
+</svg>

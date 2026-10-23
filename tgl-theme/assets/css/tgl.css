@@ -1,0 +1,2244 @@
+/**
+ * TGL Theme - Core Stylesheet
+ * Fully self-hosted fonts, mobile-first tokens (390px baseline).
+ * Generated from verified tokens.json.
+ */
+
+/* ==========================================================================
+   Self-Hosted Font Faces (OFL Licensed)
+   ========================================================================== */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: optional;
+  src: url('../fonts/dm-sans-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 600 800;
+  font-display: optional;
+  src: url('../fonts/fraunces-latin-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Fraunces';
+  font-style: italic;
+  font-weight: 600 800;
+  font-display: optional;
+  src: url('../fonts/fraunces-latin-italic.woff2') format('woff2');
+}
+
+:root {
+  --tgl-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --tgl-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --tgl-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --tgl-max-w: 1200px;
+}
+
+/* Global Smoothness */
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--wp--preset--color--cream, #F5F0E8);
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  font-family: var(--wp--preset--font-family--body, 'DM Sans', sans-serif);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+::selection {
+  background-color: var(--wp--preset--color--terracotta, #C75B3B);
+  color: var(--wp--preset--color--cream, #F5F0E8);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Base Container */
+.tgl-container {
+  width: 100%;
+  max-width: var(--tgl-max-w);
+  margin: 0 auto;
+  padding: 0 clamp(20px, 4vw, 48px);
+  box-sizing: border-box;
+}
+
+/* Section Wrapper */
+.tgl-section {
+  padding: clamp(4rem, 7vw, 7rem) 0;
+  position: relative;
+}
+
+.tgl-section--alt {
+  background-color: var(--wp--preset--color--cream-deep, #EDE8DD);
+}
+
+/* Eyebrow Label: Plain uppercase tracked text, NO pill background (Architect fix) */
+.tgl-eyebrow {
+  display: inline-block;
+  font-family: var(--wp--preset--font-family--body, 'DM Sans', sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--wp--preset--color--coral, #E8846B);
+  margin-bottom: 16px;
+  background: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+/* Section Header Typography */
+.tgl-section-header {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 48px;
+}
+
+.tgl-section-title {
+  font-family: var(--wp--preset--font-family--display, 'Fraunces', Georgia, serif);
+  font-size: clamp(1.8rem, 3.5vw, 3rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  margin: 0 0 16px;
+}
+
+.tgl-section-title em {
+  font-style: italic;
+  font-weight: 600;
+  color: var(--wp--preset--color--terracotta, #C75B3B);
+}
+
+.tgl-section-subhead {
+  font-size: clamp(1rem, 1.4vw, 1.15rem);
+  color: var(--wp--preset--color--secondary, #6B625B);
+  line-height: 1.7;
+  margin: 0 auto;
+}
+
+/* ==========================================================================
+   1. Hero Pattern
+   ========================================================================== */
+.tgl-hero {
+  position: relative;
+  min-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(70px, 10vw, 120px) 0 clamp(40px, 6vw, 80px);
+  overflow: hidden;
+  background: var(--wp--preset--color--cream, #F5F0E8);
+}
+
+.tgl-hero-content {
+  max-width: 880px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.tgl-hero-title {
+  font-family: var(--wp--preset--font-family--display, 'Fraunces', Georgia, serif);
+  font-size: clamp(2.4rem, 6.5vw, 4.8rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  margin: 0 auto 24px;
+}
+
+.tgl-hero-title em {
+  font-style: italic;
+  font-weight: 600;
+  color: var(--wp--preset--color--terracotta, #C75B3B);
+  padding: 0 4px;
+}
+
+.tgl-hero-subhead {
+  font-family: var(--wp--preset--font-family--body, 'DM Sans', sans-serif);
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  line-height: 1.7;
+  color: var(--wp--preset--color--secondary, #6B625B);
+  max-width: 640px;
+  margin: 0 auto 32px;
+}
+
+.tgl-hero-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+}
+
+@media (min-width: 600px) {
+  .tgl-hero-actions {
+    flex-direction: row;
+    gap: 16px;
+  }
+}
+
+/* Microline under buttons */
+.tgl-microline {
+  font-size: 13px;
+  color: var(--wp--preset--color--secondary, #6B625B);
+  margin-top: 18px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* Primary Button (Terracotta base, never coral) */
+.tgl-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: var(--wp--preset--font-family--body, 'DM Sans', sans-serif);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 16px 36px;
+  background: linear-gradient(160deg, #E06840 0%, var(--wp--preset--color--terracotta, #C75B3B) 50%, #B04A2A 100%);
+  color: var(--wp--preset--color--cream, #F5F0E8) !important;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  box-shadow:
+    0 8px 20px rgba(199, 91, 59, 0.4),
+    0 3px 6px rgba(199, 91, 59, 0.25),
+    inset 0 2px 4px rgba(255, 200, 180, 0.35);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  transition: all 0.35s var(--tgl-spring);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (min-width: 600px) {
+  .tgl-btn-primary {
+    width: auto;
+  }
+}
+
+.tgl-btn-primary:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow:
+    0 14px 28px rgba(199, 91, 59, 0.45),
+    0 6px 10px rgba(199, 91, 59, 0.3),
+    inset 0 3px 6px rgba(255, 200, 180, 0.4);
+}
+
+.tgl-btn-primary:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow: 0 2px 6px rgba(199, 91, 59, 0.3);
+}
+
+.tgl-btn-primary svg {
+  transition: transform 0.25s var(--tgl-ease);
+}
+
+.tgl-btn-primary:hover svg {
+  transform: translateX(3px);
+}
+
+/* Secondary Button */
+.tgl-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--wp--preset--font-family--body, 'DM Sans', sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 15px 32px;
+  background: transparent;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.25s var(--tgl-ease);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (min-width: 600px) {
+  .tgl-btn-secondary {
+    width: auto;
+  }
+}
+
+.tgl-btn-secondary:hover {
+  background: var(--wp--preset--color--card, #F0EBE2);
+  border-color: rgba(44, 33, 24, 0.2);
+  transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   2. Problem Trio
+   ========================================================================== */
+.tgl-problem-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .tgl-problem-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.tgl-problem-card {
+  background: var(--wp--preset--color--card, #F0EBE2);
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  border-radius: 16px;
+  padding: clamp(24px, 3vw, 36px);
+  transition: all 0.35s var(--tgl-ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.tgl-problem-card:hover {
+  transform: translateY(-4px);
+  background: var(--wp--preset--color--card-hover, #EAE4D9);
+  box-shadow: 0 12px 32px rgba(44, 33, 24, 0.08);
+}
+
+.tgl-problem-num {
+  font-family: var(--wp--preset--font-family--display, 'Fraunces', Georgia, serif);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--wp--preset--color--coral, #E8846B);
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+.tgl-problem-heading {
+  font-family: var(--wp--preset--font-family--body, 'DM Sans', sans-serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  margin-bottom: 10px;
+}
+
+.tgl-problem-desc {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--wp--preset--color--secondary, #6B625B);
+  margin: 0;
+}
+
+/* ==========================================================================
+   3. System Four
+   ========================================================================== */
+.tgl-system-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .tgl-system-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.tgl-system-card {
+  background: #FFFFFF;
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  border-radius: 16px;
+  padding: 28px 24px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  transition: all 0.3s var(--tgl-ease);
+}
+
+.tgl-system-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(44, 33, 24, 0.06);
+}
+
+.tgl-system-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(123, 166, 104, 0.15);
+  color: var(--wp--preset--color--green, #7BA668);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.tgl-system-text {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  margin: 0;
+}
+
+/* ==========================================================================
+   4. Proof Case (Navkiran)
+   ========================================================================== */
+.tgl-proof-card {
+  background: #FFFFFF;
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  border-radius: 20px;
+  padding: clamp(24px, 4vw, 48px);
+  box-shadow: 0 12px 40px rgba(44, 33, 24, 0.06);
+}
+
+.tgl-proof-intro {
+  font-size: 16px;
+  color: var(--wp--preset--color--secondary, #6B625B);
+  line-height: 1.7;
+  max-width: 780px;
+  margin: 0 0 32px;
+}
+
+.tgl-proof-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 32px;
+}
+
+.tgl-proof-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.tgl-proof-table th {
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--wp--preset--color--hairline, #DDD6CA);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--wp--preset--color--secondary, #6B625B);
+}
+
+.tgl-proof-table td {
+  padding: 16px;
+  border-bottom: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  color: var(--wp--preset--color--text-primary, #2C2118);
+}
+
+.tgl-metric-before {
+  font-family: var(--wp--preset--font-family--display, 'Fraunces', Georgia, serif);
+  color: var(--wp--preset--color--secondary, #6B625B);
+  text-decoration: line-through;
+  text-decoration-color: rgba(199, 91, 59, 0.5);
+  font-weight: 600;
+}
+
+.tgl-metric-after {
+  font-family: var(--wp--preset--font-family--display, 'Fraunces', Georgia, serif);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--wp--preset--color--terracotta, #C75B3B);
+}
+
+.tgl-proof-quote {
+  border-left: 3px solid var(--wp--preset--color--terracotta, #C75B3B);
+  padding: 12px 20px;
+  margin: 24px 0 0;
+  background: var(--wp--preset--color--card, #F0EBE2);
+  border-radius: 0 12px 12px 0;
+}
+
+.tgl-quote-punjabi {
+  font-family: var(--wp--preset--font-family--display, 'Fraunces', Georgia, serif);
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 600;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  margin-bottom: 6px;
+}
+
+.tgl-quote-english {
+  font-size: 14px;
+  color: var(--wp--preset--color--secondary, #6B625B);
+  margin: 0;
+}
+
+/* ==========================================================================
+   4b. Running Today (What's running today)
+   ========================================================================== */
+.tgl-running-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  max-width: 960px;
+  margin: 40px auto 32px;
+}
+
+@media (min-width: 768px) {
+  .tgl-running-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+}
+
+.tgl-running-card {
+  background: #FFFFFF;
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  border-radius: 16px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.3s var(--tgl-ease);
+}
+
+.tgl-running-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(44, 33, 24, 0.06);
+}
+
+.tgl-running-card-title {
+  font-family: var(--wp--preset--font-family--display, 'Fraunces', Georgia, serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  margin: 0;
+}
+
+.tgl-running-card-text {
+  font-family: var(--wp--preset--font-family--body, 'DM Sans', sans-serif);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--wp--preset--color--secondary, #6B625B);
+  margin: 0;
+}
+
+.tgl-running-footer {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.tgl-running-closing {
+  font-family: var(--wp--preset--font-family--body, 'DM Sans', sans-serif);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--wp--preset--color--secondary, #6B625B);
+  margin: 0 0 20px;
+}
+
+.tgl-running-closing em {
+  font-style: italic;
+}
+
+/* ==========================================================================
+   5. Roadmap Steps
+   ========================================================================== */
+.tgl-roadmap-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .tgl-roadmap-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.tgl-roadmap-step {
+  background: var(--wp--preset--color--card, #F0EBE2);
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  border-radius: 16px;
+  padding: 32px 24px;
+  position: relative;
+  transition: all 0.3s var(--tgl-ease);
+}
+
+.tgl-roadmap-step:hover {
+  transform: translateY(-4px);
+  background: var(--wp--preset--color--card-hover, #EAE4D9);
+}
+
+.tgl-step-number {
+  font-family: var(--wp--preset--font-family--display, 'Fraunces', Georgia, serif);
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--wp--preset--color--terracotta, #C75B3B);
+  margin-bottom: 12px;
+  line-height: 1;
+}
+
+.tgl-step-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  margin-bottom: 10px;
+}
+
+.tgl-step-desc {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--wp--preset--color--secondary, #6B625B);
+  margin: 0;
+}
+
+/* ==========================================================================
+   6. Fit / Not Fit
+   ========================================================================== */
+.tgl-fit-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 28px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .tgl-fit-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.tgl-fit-col {
+  border-radius: 20px;
+  padding: clamp(28px, 4vw, 40px);
+}
+
+.tgl-fit-col--yes {
+  background: var(--wp--preset--color--card, #F0EBE2);
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+}
+
+.tgl-fit-col--no {
+  background: var(--wp--preset--color--ink, #2C2118);
+  color: var(--wp--preset--color--on-dark, #F5F0E8);
+}
+
+.tgl-fit-title {
+  font-family: var(--wp--preset--font-family--display, 'Fraunces', Georgia, serif);
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0 0 24px;
+}
+
+.tgl-fit-col--yes .tgl-fit-title { color: var(--wp--preset--color--green, #7BA668); }
+.tgl-fit-col--no .tgl-fit-title { color: var(--wp--preset--color--coral, #E8846B); }
+
+.tgl-fit-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tgl-fit-item {
+  font-size: 15px;
+  line-height: 1.6;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.tgl-fit-col--yes .tgl-fit-item::before {
+  content: '✓';
+  color: var(--wp--preset--color--green, #7BA668);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.tgl-fit-col--no .tgl-fit-item::before {
+  content: '✕';
+  color: var(--wp--preset--color--coral, #E8846B);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.tgl-fit-col--no .tgl-fit-item {
+  color: rgba(245, 240, 232, 0.85);
+}
+
+/* ==========================================================================
+   7. FAQ (Details Blocks)
+   ========================================================================== */
+.tgl-faq-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.tgl-faq-item {
+  border-bottom: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  padding: 20px 0;
+}
+
+.tgl-faq-item summary {
+  font-family: var(--wp--preset--font-family--body, 'DM Sans', sans-serif);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: color 0.2s var(--tgl-ease);
+}
+
+.tgl-faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.tgl-faq-item summary::after {
+  content: '+';
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--wp--preset--color--terracotta, #C75B3B);
+  transition: transform 0.25s var(--tgl-ease);
+}
+
+.tgl-faq-item[open] summary::after {
+  content: '−';
+  transform: rotate(180deg);
+}
+
+.tgl-faq-item summary:hover {
+  color: var(--wp--preset--color--terracotta, #C75B3B);
+}
+
+.tgl-faq-content {
+  padding-top: 14px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--wp--preset--color--secondary, #6B625B);
+}
+
+/* ==========================================================================
+   8. CTA Band
+   ========================================================================== */
+.tgl-cta-band {
+  background: var(--wp--preset--color--cream-deep, #EDE8DD);
+  border-top: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  border-bottom: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  padding: clamp(5rem, 8vw, 7.5rem) 0;
+  text-align: center;
+}
+
+.tgl-cta-content {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.tgl-cta-band h2 {
+  font-family: var(--wp--preset--font-family--display, 'Fraunces', Georgia, serif);
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 16px;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+}
+
+.tgl-cta-band h2 em {
+  font-style: italic;
+  font-weight: 600;
+  color: var(--wp--preset--color--terracotta, #C75B3B);
+}
+
+.tgl-cta-band p {
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  color: var(--wp--preset--color--secondary, #6B625B);
+  line-height: 1.7;
+  margin: 0 auto 36px;
+}
+
+/* ==========================================================================
+   Rainbow Divider Motif
+   ========================================================================== */
+.tgl-rainbow-bar {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin: 32px auto;
+  overflow: hidden;
+}
+
+.tgl-rainbow-bar span {
+  width: 48px;
+  height: 3px;
+}
+
+.tgl-rainbow-bar span:nth-child(1) { background-color: var(--wp--preset--color--coral, #E8846B); }
+.tgl-rainbow-bar span:nth-child(2) { background-color: var(--wp--preset--color--amber, #E8B44C); }
+.tgl-rainbow-bar span:nth-child(3) { background-color: var(--wp--preset--color--green, #7BA668); }
+.tgl-rainbow-bar span:nth-child(4) { background-color: var(--wp--preset--color--teal, #4A9B8E); }
+
+/* ==========================================================================
+   Header & Landing Header
+   ========================================================================== */
+.tgl-site-header {
+  position: sticky;
+  top: 16px;
+  z-index: 100;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+@media (max-width: 767px) {
+  .tgl-site-header {
+    position: relative;
+    top: auto;
+  }
+}
+
+.tgl-header-nav {
+  background: #FFFFFF;
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  border-radius: 100px;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 20px rgba(44, 33, 24, 0.05);
+}
+
+.tgl-header-logo {
+  font-family: var(--wp--preset--font-family--display, 'Fraunces', Georgia, serif);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  letter-spacing: -0.02em;
+}
+
+.tgl-header-links {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 20px;
+}
+
+@media (min-width: 820px) {
+  .tgl-header-links {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.tgl-header-links a {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--wp--preset--color--secondary, #6B625B);
+  transition: color 0.2s var(--tgl-ease);
+}
+
+.tgl-header-links a:hover {
+  color: var(--wp--preset--color--terracotta, #C75B3B);
+}
+
+.tgl-header-cta {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 22px;
+  border-radius: 100px;
+  background: linear-gradient(145deg, #3A3028, var(--wp--preset--color--text-primary, #2C2118));
+  color: #FFFFFF !important;
+  transition: all 0.3s var(--tgl-spring);
+}
+
+.tgl-header-cta:hover {
+  background: linear-gradient(145deg, #D4502F, var(--wp--preset--color--terracotta, #C75B3B));
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+.tgl-site-footer {
+  max-width: 1120px;
+  margin: 64px auto 32px;
+  padding: 48px 24px 32px;
+  background: #FFFFFF;
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  border-radius: 16px;
+}
+
+.tgl-footer-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  margin-bottom: 40px;
+}
+
+@media (min-width: 768px) {
+  .tgl-footer-grid {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
+}
+
+.tgl-footer-bottom {
+  border-top: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  padding-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--wp--preset--color--secondary, #6B625B);
+}
+
+@media (min-width: 600px) {
+  .tgl-footer-bottom {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+/* ==========================================================================
+   TASK-004: Visual Layer Components
+   ========================================================================== */
+
+/* 1. Problem Trio Top with 24px Line Icons */
+.tgl-problem-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.tgl-problem-icon {
+  width: 24px;
+  height: 24px;
+  stroke: var(--wp--preset--color--text-primary, #2C2118);
+  flex-shrink: 0;
+}
+
+/* 2. Video Explainer Poster Frame */
+.tgl-video-section {
+  padding-top: 0;
+}
+
+.tgl-video-frame {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.tgl-video-poster {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--wp--preset--color--card, #F0EBE2);
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 36px rgba(44, 33, 24, 0.05);
+  padding: 24px;
+  text-align: center;
+}
+
+.tgl-video-poster-illustration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.tgl-video-illus-svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tgl-video-poster-overlay {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(245, 240, 232, 0.9);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  padding: 20px 28px;
+  border-radius: 16px;
+  border: 1px solid rgba(221, 214, 202, 0.7);
+  box-shadow: 0 8px 24px rgba(44, 33, 24, 0.08);
+}
+
+.tgl-video-play-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--wp--preset--color--terracotta, #C75B3B);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(199, 91, 59, 0.4);
+  cursor: pointer;
+  transition: transform 0.25s var(--tgl-spring);
+}
+
+.tgl-video-play-btn:hover {
+  transform: scale(1.08);
+}
+
+.tgl-video-caption {
+  font-family: var(--wp--preset--font-family--body, 'DM Sans', sans-serif);
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--wp--preset--color--secondary, #6B625B);
+  margin: 0;
+}
+
+/* 3. Mechanism Diagram */
+.tgl-mechanism-wrap {
+  margin: 32px auto 44px;
+  max-width: 980px;
+  width: 100%;
+}
+
+.tgl-mechanism-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.tgl-mechanism-desktop {
+  display: block;
+}
+
+.tgl-mechanism-mobile {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .tgl-mechanism-desktop {
+    display: none !important;
+  }
+  .tgl-mechanism-mobile {
+    display: block !important;
+    max-width: 340px;
+    margin: 0 auto;
+  }
+}
+
+.tgl-system-lines {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .tgl-system-lines {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+.tgl-system-line-item {
+  background: #FFFFFF;
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  border-radius: 14px;
+  padding: 22px 20px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  box-shadow: 0 4px 16px rgba(44, 33, 24, 0.03);
+}
+
+.tgl-system-line-num {
+  font-family: var(--wp--preset--font-family--display, 'Fraunces', Georgia, serif);
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--wp--preset--color--terracotta, #C75B3B);
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.tgl-system-line-text {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  margin: 0;
+}
+
+/* 4. Product Mockups inside Running-Today Cards */
+/* Mockup 1: Scored-lead card */
+.tgl-mockup-lead {
+  background: #FAF7F2;
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 18px;
+  text-align: left;
+}
+
+.tgl-mockup-lead-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.tgl-mockup-lead-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tgl-mockup-lead-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--wp--preset--color--cream-deep, #EDE8DD);
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  font-weight: 700;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+}
+
+.tgl-mockup-lead-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  line-height: 1.2;
+}
+
+.tgl-mockup-lead-sub {
+  font-size: 11px;
+  color: var(--wp--preset--color--secondary, #6B625B);
+}
+
+.tgl-mockup-badge--hot {
+  background: #EBF3E8;
+  color: #4D783B;
+  border: 1px solid #B8DBAB;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.04em;
+}
+
+.tgl-mockup-lead-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.tgl-tag {
+  background: #FFFFFF;
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  color: var(--wp--preset--color--ink-card, #3A3028);
+}
+
+.tgl-mockup-lead-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  border-top: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  padding-top: 10px;
+}
+
+.tgl-mockup-lead-reason {
+  color: var(--wp--preset--color--secondary, #6B625B);
+}
+
+.tgl-mockup-action {
+  font-weight: 600;
+  color: var(--wp--preset--color--terracotta, #C75B3B);
+}
+
+/* Mockup 2: WhatsApp Thread */
+.tgl-mockup-whatsapp {
+  background: #F8F6F0;
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 18px;
+  text-align: left;
+}
+
+.tgl-mockup-wa-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  margin-bottom: 10px;
+}
+
+.tgl-mockup-wa-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #25D366;
+  color: #FFFFFF;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tgl-mockup-wa-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  line-height: 1.2;
+}
+
+.tgl-mockup-wa-status {
+  font-size: 10px;
+  color: var(--wp--preset--color--green, #7BA668);
+  font-weight: 500;
+}
+
+.tgl-mockup-wa-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tgl-wa-bubble {
+  max-width: 88%;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.tgl-wa-bubble--in {
+  background: #FFFFFF;
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+}
+
+.tgl-wa-bubble--out {
+  background: #E7F7DF;
+  border: 1px solid #CFECC4;
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+}
+
+.tgl-wa-bubble p {
+  margin: 0 0 2px;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+}
+
+.tgl-wa-time {
+  font-size: 9.5px;
+  color: #8A827B;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+}
+
+.tgl-wa-ticks {
+  color: var(--wp--preset--color--teal, #4A9B8E);
+  font-weight: bold;
+}
+
+/* Mockup 3: Attribution block in Card 3 */
+.tgl-mockup-attribution {
+  background: #FAF7F2;
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+}
+
+.tgl-attribution-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #FBECE8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tgl-attribution-text strong {
+  display: block;
+  font-size: 12.5px;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  margin-bottom: 2px;
+}
+
+.tgl-attribution-text span {
+  font-size: 11px;
+  color: var(--wp--preset--color--secondary, #6B625B);
+  line-height: 1.4;
+  display: block;
+}
+
+/* Mockup 4: Tracker Row in Card 4 */
+.tgl-mockup-tracker {
+  background: #FFFFFF;
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 18px;
+  text-align: left;
+  font-size: 11.5px;
+}
+
+.tgl-tracker-header {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr 1fr;
+  gap: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  font-weight: 700;
+  font-size: 9.5px;
+  color: #8A827B;
+  letter-spacing: 0.05em;
+}
+
+.tgl-tracker-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr 1fr;
+  gap: 6px;
+  padding: 8px 0;
+  border-bottom: 1px solid #F0EBE2;
+  align-items: center;
+}
+
+.tgl-tracker-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.tgl-tracker-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tgl-tracker-name {
+  font-weight: 600;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+}
+
+.tgl-tracker-pill--hot {
+  background: #EBF3E8;
+  color: #4D783B;
+  font-weight: 700;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.tgl-tracker-pill--warm {
+  background: #FEF7E6;
+  color: #996B00;
+  font-weight: 700;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.tgl-tracker-badge {
+  background: var(--wp--preset--color--card, #F0EBE2);
+  color: var(--wp--preset--color--secondary, #6B625B);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.tgl-tracker-badge--enrolled {
+  background: #FBECE8;
+  color: var(--wp--preset--color--terracotta, #C75B3B);
+  font-weight: 700;
+}
+
+/* 5. Founder Block */
+/* 5. Founder Block */
+.tgl-founder-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin: 44px auto 0;
+  padding: 24px 32px;
+  background: #FFFFFF;
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  border-radius: 20px;
+  max-width: 640px;
+  box-shadow: 0 4px 24px rgba(44, 33, 24, 0.05);
+}
+
+.tgl-founder-photo-slot {
+  width: 140px;
+  height: 140px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  background: var(--wp--preset--color--cream, #F5F0E8);
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(44, 33, 24, 0.06);
+}
+
+.tgl-founder-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tgl-founder-info {
+  text-align: left;
+}
+
+.tgl-founder-name {
+  font-family: var(--wp--preset--font-family--display, 'Fraunces', Georgia, serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  margin: 0 0 6px;
+}
+
+.tgl-founder-title {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--wp--preset--color--secondary, #6B625B);
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .tgl-founder-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px 20px;
+  }
+  .tgl-founder-info {
+    text-align: center;
+  }
+  .tgl-founder-photo-slot {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+/* Audit Graphic in Step 2 */
+.tgl-step-audit-diagram {
+  margin-top: 18px;
+  background: #FAF7F2;
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tgl-audit-svg {
+  width: 100%;
+  max-width: 284px;
+  height: auto;
+  display: block;
+}
+
+/* 6. From Thinking Section (6 Posts: 3x2 desktop, 2x3 tablet, horizontal snap-scroll mobile) */
+.tgl-thinking-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 1140px;
+  margin: 36px auto 28px;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .tgl-thinking-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .tgl-thinking-grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 16px;
+    padding: 8px 16px 20px;
+    margin: 28px -16px 0;
+    scrollbar-width: none;
+  }
+  .tgl-thinking-grid::-webkit-scrollbar {
+    display: none;
+  }
+  .tgl-thinking-card {
+    flex: 0 0 80vw;
+    width: 80vw;
+    max-width: 330px;
+    scroll-snap-align: center;
+  }
+}
+
+.tgl-thinking-card {
+  background: #FFFFFF;
+  border: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s var(--tgl-ease), box-shadow 0.25s var(--tgl-ease);
+  text-align: left;
+}
+
+.tgl-thinking-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(44, 33, 24, 0.08);
+}
+
+.tgl-card-media {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--wp--preset--color--card, #F0EBE2);
+  border-bottom: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+  overflow: hidden;
+}
+
+.tgl-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tgl-card-body {
+  padding: 22px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.tgl-thinking-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.tgl-pillar-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--wp--preset--color--secondary, #6B625B);
+  background: var(--wp--preset--color--cream, #F5F0E8);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.tgl-pillar-tag--coral {
+  color: #A94224;
+  background: #FBECE8;
+  border: 1px solid #E8846B;
+}
+
+.tgl-pillar-tag--green {
+  color: #2D5220;
+  background: #EFF6EC;
+  border: 1px solid #7BA668;
+}
+
+.tgl-pillar-tag--teal {
+  color: #23564E;
+  background: #EBF5F3;
+  border: 1px solid #4A9B8E;
+}
+
+.tgl-pillar-tag--amber {
+  color: #7A540A;
+  background: #FEF8EA;
+  border: 1px solid #E8B44C;
+}
+
+.tgl-thinking-date {
+  font-size: 11.5px;
+  color: #5C534C;
+  font-weight: 500;
+}
+
+.tgl-thinking-title {
+  font-family: var(--wp--preset--font-family--display, 'Fraunces', Georgia, serif);
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  line-height: 1.35;
+  margin: 0 0 10px;
+}
+
+.tgl-thinking-excerpt {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--wp--preset--color--secondary, #6B625B);
+  margin: 0 0 16px;
+  flex: 1;
+}
+
+.tgl-thinking-status {
+  font-size: 11px;
+  font-style: italic;
+  color: #5C534C;
+  padding-top: 10px;
+  border-top: 1px solid var(--wp--preset--color--hairline, #DDD6CA);
+}
+
+.tgl-thinking-grid:focus-visible {
+  outline: 2px solid var(--wp--preset--color--terracotta, #C75B3B);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.tgl-thinking-footer {
+  text-align: center;
+  margin-top: 28px;
+}
+
+.tgl-link-all {
+  font-weight: 600;
+  font-size: 15px;
+  color: #A94224;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.tgl-link-all:hover {
+  text-decoration: underline;
+}
+
+/* 7. Sticky Mobile CTA Pill */
+.tgl-sticky-cta {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .tgl-sticky-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 999;
+    background: var(--wp--preset--color--terracotta, #C75B3B);
+    color: #FFFFFF;
+    font-family: var(--wp--preset--font-family--body, 'DM Sans', sans-serif);
+    font-size: 14.5px;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 13px 26px;
+    border-radius: 100px;
+    box-shadow: 0 6px 20px rgba(199, 91, 59, 0.45), 0 2px 6px rgba(44, 33, 24, 0.15);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+  }
+
+  .tgl-sticky-cta.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* ==========================================================================
+   TASK-007: Tinted Rounded Panels, Desk Scene, "What's Not Working", Collage
+   ========================================================================== */
+
+/* 1. Tinted Rounded Panels & Pill Labels */
+.tgl-panel {
+  border-radius: 24px;
+  padding: clamp(36px, 5vw, 64px) clamp(20px, 4vw, 48px);
+  margin: 0 auto;
+  position: relative;
+  box-sizing: border-box;
+}
+
+@media (max-width: 767px) {
+  .tgl-panel {
+    border-radius: 20px;
+    padding: 32px 18px;
+  }
+}
+
+.tgl-panel--cream-deep {
+  background-color: var(--wp--preset--color--cream-deep, #EDE8DD);
+}
+
+.tgl-panel--sage {
+  background-color: #EFF5EC; /* ~12% tint of sage on cream */
+}
+
+.tgl-panel--mustard {
+  background-color: #FAF6EC; /* ~12% tint of mustard on cream */
+}
+
+.tgl-panel--teal {
+  background-color: #EDF6F4; /* ~12% tint of teal on cream */
+}
+
+.tgl-panel--cta {
+  text-align: center;
+  padding: clamp(48px, 6vw, 72px) clamp(24px, 4vw, 48px);
+}
+
+.tgl-panel-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(44, 33, 24, 0.08);
+  font-family: var(--wp--preset--font-family--body, 'DM Sans', sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wp--preset--color--ink, #2C2118);
+  margin-bottom: 24px;
+}
+
+.tgl-section-header--panel {
+  margin-bottom: 36px;
+}
+
+/* 2. Hero Desk Scene (Video Stand-in) */
+.tgl-section--desk {
+  padding-top: 0;
+}
+
+.tgl-desk-stage {
+  margin-top: 16px;
+}
+
+.tgl-desk-track {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr auto 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+  max-width: 1060px;
+  margin: 0 auto;
+}
+
+@media (max-width: 980px) {
+  .tgl-desk-track {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px 16px;
+  }
+  .tgl-desk-arrow {
+    display: none !important;
+  }
+}
+
+@media (max-width: 580px) {
+  .tgl-desk-track {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px 12px;
+  }
+}
+
+.tgl-desk-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: transform 0.6s var(--tgl-spring), opacity 0.6s var(--tgl-ease);
+}
+
+.tgl-desk-obj-wrap {
+  width: 92px;
+  height: 92px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid rgba(44, 33, 24, 0.08);
+  box-shadow: 0 6px 16px rgba(44, 33, 24, 0.04);
+  margin-bottom: 12px;
+}
+
+.tgl-desk-obj {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  display: block;
+}
+
+.tgl-desk-node-step {
+  font-family: var(--wp--preset--font-family--display, 'Fraunces', Georgia, serif);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--wp--preset--color--coral, #E8846B);
+  margin-bottom: 2px;
+  display: block;
+}
+
+.tgl-desk-node-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  margin: 0 0 2px;
+}
+
+.tgl-desk-node-desc {
+  font-size: 11.5px;
+  color: var(--wp--preset--color--secondary, #6B625B);
+  margin: 0;
+  line-height: 1.35;
+}
+
+.tgl-desk-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+}
+
+/* Scroll-triggered cascade */
+.tgl-desk-stage.is-animated .tgl-desk-node {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tgl-desk-stage.is-animated .tgl-desk-node--slip { transition-delay: 0.05s; }
+.tgl-desk-stage.is-animated .tgl-desk-node--stamp { transition-delay: 0.2s; }
+.tgl-desk-stage.is-animated .tgl-desk-node--tray { transition-delay: 0.35s; }
+.tgl-desk-stage.is-animated .tgl-desk-node--phone { transition-delay: 0.5s; }
+.tgl-desk-stage.is-animated .tgl-desk-node--register { transition-delay: 0.65s; }
+.tgl-desk-stage.is-animated .tgl-desk-node--loop { transition-delay: 0.8s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tgl-desk-node {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+.tgl-desk-footnote {
+  margin-top: 32px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--wp--preset--color--secondary, #6B625B);
+  letter-spacing: 0.03em;
+}
+
+/* 3. "What's Not Working?" Widget */
+.tgl-wnw-widget {
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.tgl-wnw-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.tgl-wnw-chip {
+  background: #FFFFFF;
+  border: 1px solid rgba(44, 33, 24, 0.12);
+  border-radius: 9999px;
+  padding: 9px 18px;
+  font-family: var(--wp--preset--font-family--body, 'DM Sans', sans-serif);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tgl-wnw-chip:hover {
+  border-color: var(--wp--preset--color--terracotta, #C75B3B);
+  transform: translateY(-1px);
+}
+
+.tgl-wnw-chip.is-active {
+  background: var(--wp--preset--color--terracotta, #C75B3B);
+  color: #FFFFFF;
+  border-color: var(--wp--preset--color--terracotta, #C75B3B);
+  box-shadow: 0 4px 12px rgba(199, 91, 59, 0.25);
+}
+
+.tgl-wnw-search-wrap {
+  max-width: 540px;
+  margin: 0 auto 32px;
+  position: relative;
+}
+
+.tgl-wnw-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8A827B;
+  pointer-events: none;
+}
+
+.tgl-wnw-search {
+  width: 100%;
+  padding: 12px 18px 12px 46px;
+  border-radius: 9999px;
+  border: 1px solid rgba(44, 33, 24, 0.12);
+  background: #FFFFFF;
+  font-family: var(--wp--preset--font-family--body, 'DM Sans', sans-serif);
+  font-size: 13.5px;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tgl-wnw-search:focus {
+  border-color: var(--wp--preset--color--terracotta, #C75B3B);
+  box-shadow: 0 0 0 3px rgba(199, 91, 59, 0.15);
+}
+
+.tgl-wnw-cards {
+  position: relative;
+}
+
+.tgl-wnw-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid rgba(44, 33, 24, 0.08);
+  box-shadow: 0 8px 30px rgba(44, 33, 24, 0.05);
+  padding: clamp(28px, 4vw, 44px);
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 32px;
+  align-items: center;
+  text-align: left;
+}
+
+.tgl-wnw-card[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 767px) {
+  .tgl-wnw-card {
+    grid-template-columns: 1fr;
+    padding: 24px 20px;
+    gap: 24px;
+  }
+  .tgl-wnw-card-visual {
+    order: -1;
+  }
+}
+
+.tgl-wnw-mechanism-pill {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wp--preset--color--coral, #E8846B);
+  margin-bottom: 8px;
+}
+
+.tgl-wnw-card-title {
+  font-family: var(--wp--preset--font-family--display, 'Fraunces', Georgia, serif);
+  font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+  font-weight: 700;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  margin: 0 0 14px;
+  line-height: 1.25;
+}
+
+.tgl-wnw-card-copy {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--wp--preset--color--secondary, #5C534C);
+  margin: 0 0 24px;
+}
+
+.tgl-wnw-card-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  background: var(--wp--preset--color--cream, #F5F0E8);
+  border-radius: 16px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.tgl-wnw-visual-pair {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+
+.tgl-wnw-visual-single {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tgl-wnw-obj {
+  max-width: 100%;
+  height: auto;
+  filter: drop-shadow(0 4px 8px rgba(44, 33, 24, 0.06));
+}
+
+/* 4. Collage Treatment for Running-Today */
+.tgl-collage-wrap {
+  max-width: 1020px;
+  margin: 20px auto 44px;
+  padding: 10px 0;
+}
+
+.tgl-collage {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr 1.15fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.tgl-collage-item--lead {
+  transform: rotate(-1.5deg);
+  transition: transform 0.3s ease;
+}
+
+.tgl-collage-item--whatsapp {
+  transform: translateY(-6px) scale(1.02);
+  z-index: 2;
+  box-shadow: 0 12px 32px rgba(44, 33, 24, 0.08);
+  border-radius: 14px;
+}
+
+.tgl-collage-item--tracker {
+  transform: rotate(1deg);
+  transition: transform 0.3s ease;
+}
+
+.tgl-collage-item--lead:hover,
+.tgl-collage-item--tracker:hover {
+  transform: rotate(0deg) scale(1.02);
+  z-index: 3;
+}
+
+@media (max-width: 900px) {
+  .tgl-collage {
+    grid-template-columns: 1fr;
+    max-width: 440px;
+    margin: 0 auto;
+    gap: 20px;
+  }
+  .tgl-collage-item--lead,
+  .tgl-collage-item--tracker,
+  .tgl-collage-item--whatsapp {
+    transform: none !important;
+  }
+}
+
+.tgl-running-points-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  max-width: 920px;
+  margin: 0 auto 36px;
+  text-align: left;
+}
+
+@media (max-width: 640px) {
+  .tgl-running-points-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+.tgl-running-point {
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid rgba(44, 33, 24, 0.08);
+  padding: 24px;
+  position: relative;
+}
+
+.tgl-running-point-num {
+  font-family: var(--wp--preset--font-family--display, 'Fraunces', Georgia, serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--wp--preset--color--terracotta, #C75B3B);
+  margin-bottom: 6px;
+}
+
+.tgl-running-point-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  margin: 0 0 8px;
+}
+
+.tgl-running-point-text {
+  font-size: 13.5px;
+  color: var(--wp--preset--color--secondary, #5C534C);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* 5. Structured Founder Block */
+.tgl-founder-card {
+  max-width: 820px;
+  margin: 44px auto 0;
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid rgba(44, 33, 24, 0.08);
+  padding: 36px;
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  text-align: left;
+  box-shadow: 0 8px 24px rgba(44, 33, 24, 0.04);
+}
+
+.tgl-founder-photo-slot {
+  flex-shrink: 0;
+  width: 140px;
+  height: 140px;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 4px 12px rgba(44, 33, 24, 0.1);
+}
+
+.tgl-founder-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tgl-founder-info {
+  flex: 1;
+}
+
+.tgl-founder-header {
+  margin-bottom: 14px;
+}
+
+.tgl-founder-name {
+  font-family: var(--wp--preset--font-family--display, 'Fraunces', Georgia, serif);
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+  margin: 0 0 4px;
+}
+
+.tgl-founder-role {
+  font-size: 13.5px;
+  color: var(--wp--preset--color--terracotta, #C75B3B);
+  font-weight: 600;
+  display: block;
+}
+
+.tgl-founder-proof-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tgl-founder-proof-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--wp--preset--color--text-primary, #2C2118);
+}
+
+.tgl-founder-statement {
+  margin: 14px 0 18px;
+  padding-left: 14px;
+  border-left: 2px solid var(--wp--preset--color--terracotta, #C75B3B);
+  font-style: italic;
+  color: var(--wp--preset--color--secondary, #5C534C);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.tgl-founder-socials {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 14px;
+}
+
+.tgl-founder-social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--wp--preset--color--ink, #2C2118);
+  transition: color 0.2s ease;
+}
+
+.tgl-founder-social-link:hover {
+  color: var(--wp--preset--color--terracotta, #C75B3B);
+}
+
+@media (max-width: 680px) {
+  .tgl-founder-card {
+    flex-direction: column;
+    padding: 24px;
+    gap: 20px;
+  }
+  .tgl-founder-photo-slot {
+    width: 110px;
+    height: 110px;
+  }
+}
+

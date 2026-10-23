@@ -1,0 +1,41 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Offset Shadow Layer (Sage/Green) -->
+  <rect x="34" y="16" width="56" height="92" rx="10" fill="#3D6B2C" opacity="0.3"/>
+  <!-- Phone Body (Ink frame, Cream face) -->
+  <rect x="32" y="14" width="56" height="92" rx="10" fill="#2C2118" stroke="#2C2118" stroke-width="1.75"/>
+  <rect x="35" y="17" width="50" height="86" rx="7" fill="#FAF6F0"/>
+
+  <!-- Speaker & Camera -->
+  <line x1="54" y1="21" x2="66" y2="21" stroke="#6B625B" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="48" cy="21" r="1.5" fill="#6B625B"/>
+
+  <!-- WhatsApp Top Header Bar (Sage / Green) -->
+  <rect x="35" y="26" width="50" height="13" fill="#3D6B2C"/>
+  <circle cx="44" cy="32.5" r="3.5" fill="#FAF6F0"/>
+  <text x="44" y="34.5" fill="#3D6B2C" font-family="'DM Sans', sans-serif" font-size="5" font-weight="900" text-anchor="middle">⚡</text>
+  <rect x="50" y="30" width="22" height="2.5" rx="1" fill="#FFFFFF"/>
+  <rect x="50" y="34" width="14" height="2" rx="1" fill="#FFFFFF" opacity="0.75"/>
+
+  <!-- Message Bubble 1: Incoming Enquiry -->
+  <g transform="translate(38, 44)">
+    <rect x="0" y="0" width="34" height="13" rx="4" fill="#FFFFFF" stroke="#DDD6CA" stroke-width="0.75"/>
+    <rect x="3" y="3" width="24" height="2.5" rx="1" fill="#2C2118"/>
+    <rect x="3" y="7" width="18" height="2" rx="1" fill="#6B625B"/>
+    <text x="31" y="11" fill="#6B625B" font-family="'DM Sans', sans-serif" font-size="3" text-anchor="end">9:02</text>
+  </g>
+
+  <!-- Message Bubble 2: 60s Outgoing Reply (Green with double ticks) -->
+  <g transform="translate(47, 61)">
+    <rect x="0" y="0" width="35" height="17" rx="4" fill="#E8F2E4" stroke="#3D6B2C" stroke-width="1"/>
+    <!-- Speed Tag (under 60s) -->
+    <rect x="3" y="3" width="18" height="3" rx="1.5" fill="#3D6B2C"/>
+    <text x="12" y="5.5" fill="#FFFFFF" font-family="'DM Sans', sans-serif" font-size="2.6" font-weight="800" text-anchor="middle">&lt; 60s REPLY</text>
+    <rect x="3" y="8" width="26" height="2" rx="1" fill="#2C2118"/>
+    <rect x="3" y="11.5" width="20" height="2" rx="1" fill="#2C2118"/>
+    <text x="25" y="15" fill="#3D6B2C" font-family="'DM Sans', sans-serif" font-size="3.2" font-weight="700">9:02</text>
+    <text x="32" y="15" fill="#3D6B2C" font-family="'DM Sans', sans-serif" font-size="3.5" font-weight="900">✓✓</text>
+  </g>
+
+  <!-- Home Indicator Bar -->
+  <rect x="52" y="99" width="16" height="2" rx="1" fill="#2C2118"/>
+</svg>

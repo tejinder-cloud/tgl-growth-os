@@ -1,0 +1,46 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bottom Tray: COLD -->
+  <g transform="translate(16, 74)">
+    <!-- Shadow offset -->
+    <path d="M4 14L16 28H76L88 14H4Z" fill="#DDD6CA" opacity="0.6"/>
+    <!-- Tray Wire Basket -->
+    <path d="M2 12L14 26H74L86 12H2Z" fill="#FAF6F0" stroke="#2C2118" stroke-width="1.75"/>
+    <line x1="14" y1="26" x2="14" y2="12" stroke="#2C2118" stroke-width="1.25"/>
+    <line x1="74" y1="26" x2="74" y2="12" stroke="#2C2118" stroke-width="1.25"/>
+    <rect x="36" y="20" width="16" height="5" rx="1.5" fill="#DDD6CA"/>
+    <text x="44" y="24" fill="#6B625B" font-family="'DM Sans', sans-serif" font-size="3.8" font-weight="700" text-anchor="middle">COLD</text>
+  </g>
+
+  <!-- Middle Tray: WARM with amber slip -->
+  <g transform="translate(16, 44)">
+    <!-- Tray Wire Basket -->
+    <path d="M2 12L14 26H74L86 12H2Z" fill="#FAF6F0" stroke="#2C2118" stroke-width="1.75"/>
+    <!-- Paper slip peeking out (Amber) -->
+    <rect x="22" y="10" width="46" height="8" rx="2" fill="#E8B44C" opacity="0.35"/>
+    <rect x="20" y="8" width="46" height="8" rx="2" fill="#FFFFFF" stroke="#E8B44C" stroke-width="1.25"/>
+    <line x1="14" y1="26" x2="14" y2="12" stroke="#2C2118" stroke-width="1.25"/>
+    <line x1="74" y1="26" x2="74" y2="12" stroke="#2C2118" stroke-width="1.25"/>
+    <rect x="36" y="20" width="16" height="5" rx="1.5" fill="#E8B44C"/>
+    <text x="44" y="24" fill="#2C2118" font-family="'DM Sans', sans-serif" font-size="3.8" font-weight="800" text-anchor="middle">WARM</text>
+  </g>
+
+  <!-- Top Tray: HOT with terracotta/coral slips prioritized -->
+  <g transform="translate(16, 14)">
+    <!-- Tray Wire Basket with misregistration shadow -->
+    <path d="M4 14L16 28H76L88 14H4Z" fill="#E8846B" opacity="0.3"/>
+    <path d="M2 12L14 26H74L86 12H2Z" fill="#FFFFFF" stroke="#2C2118" stroke-width="1.75"/>
+    <!-- Stack of Hot Slips with Red/Coral Accents -->
+    <rect x="20" y="4" width="50" height="10" rx="2" fill="#E8846B" opacity="0.4"/>
+    <rect x="18" y="2" width="50" height="10" rx="2" fill="#FFFFFF" stroke="#C75B3B" stroke-width="1.5"/>
+    <rect x="24" y="6" width="18" height="3" rx="1.5" fill="#C75B3B"/>
+    <line x1="14" y1="26" x2="14" y2="12" stroke="#2C2118" stroke-width="1.25"/>
+    <line x1="74" y1="26" x2="74" y2="12" stroke="#2C2118" stroke-width="1.25"/>
+    <!-- Tray Label -->
+    <rect x="36" y="20" width="16" height="5" rx="1.5" fill="#C75B3B"/>
+    <text x="44" y="24" fill="#FFFFFF" font-family="'DM Sans', sans-serif" font-size="4" font-weight="800" text-anchor="middle">HOT</text>
+  </g>
+
+  <!-- Wire Risers connecting the 3 trays -->
+  <line x1="22" y1="24" x2="22" y2="86" stroke="#2C2118" stroke-width="2" stroke-linecap="round"/>
+  <line x1="98" y1="24" x2="98" y2="86" stroke="#2C2118" stroke-width="2" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,29 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Stamped Ink Impression on Paper (Bottom Layer) -->
+  <g transform="translate(18, 68)">
+    <!-- Offset misregistration ring (Coral) -->
+    <rect x="2" y="2" width="76" height="34" rx="4" stroke="#E8846B" stroke-width="1.5" stroke-dasharray="8 3" opacity="0.45" fill="#FAF6F0"/>
+    <!-- Primary Stamped Ring (Terracotta) -->
+    <rect x="0" y="0" width="76" height="34" rx="4" stroke="#C75B3B" stroke-width="2"/>
+    <rect x="3" y="3" width="70" height="28" rx="2" stroke="#C75B3B" stroke-width="0.75" stroke-dasharray="4 2"/>
+    <text x="38" y="17" fill="#C75B3B" font-family="'DM Sans', sans-serif" font-size="9" font-weight="800" letter-spacing="1" text-anchor="middle">TRUELEAD</text>
+    <text x="38" y="27" fill="#2C2118" font-family="'DM Sans', sans-serif" font-size="7" font-weight="700" letter-spacing="0.5" text-anchor="middle">QUALIFIED ✓</text>
+  </g>
+
+  <!-- Physical Stamp Device (Hovering above the impression) -->
+  <g transform="translate(14, 8)">
+    <!-- Stamp Handle Wooden Knob (Turned wood / Ink) -->
+    <ellipse cx="46" cy="12" rx="10" ry="7" fill="#2C2118"/>
+    <!-- Stem -->
+    <path d="M42 16H50V36H42V16Z" fill="#2C2118"/>
+    <path d="M38 36H54L58 46H34L38 36Z" fill="#3A3028"/>
+    <!-- Brass Collar / Mount Layer with offset shadow -->
+    <rect x="23" y="47" width="50" height="6" rx="2" fill="#E8B44C" opacity="0.35"/>
+    <rect x="21" y="45" width="50" height="6" rx="2" fill="#E8B44C" stroke="#2C2118" stroke-width="1.5"/>
+    <!-- Heavy Metal/Rubber Cushion Block -->
+    <rect x="15" y="52" width="62" height="12" rx="3" fill="#E8846B" opacity="0.35"/>
+    <rect x="13" y="50" width="62" height="12" rx="3" fill="#2C2118" stroke="#2C2118" stroke-width="1.5"/>
+    <!-- Rubber Inking Plate Edge -->
+    <rect x="15" y="60" width="58" height="3" fill="#C75B3B"/>
+  </g>
+</svg>

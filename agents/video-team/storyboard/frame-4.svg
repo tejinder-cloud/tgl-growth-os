@@ -1,0 +1,203 @@
+<svg width="960" height="540" viewBox="0 0 960 540" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&amp;family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&amp;display=swap');
+      .text-title { font-family: 'Fraunces', Georgia, serif; }
+      .text-ui { font-family: 'DM Sans', -apple-system, sans-serif; }
+    </style>
+    <filter id="paper-grain" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" result="noise" />
+      <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.035 0" />
+      <feComposite in2="SourceGraphic" in="glitch" operator="in" />
+    </filter>
+  </defs>
+
+  <!-- 1. Canvas Base: Cream Paper (#F5F0E8) -->
+  <rect width="960" height="540" fill="#F5F0E8"/>
+  <rect width="960" height="540" fill="#2C2118" opacity="0.02" filter="url(#paper-grain)"/>
+
+  <!-- 2. Storyboard Outer Stage Panel -->
+  <rect x="24" y="24" width="912" height="492" rx="20" fill="#FAF6F0" stroke="#DDD6CA" stroke-width="1.5"/>
+
+  <!-- 3. Header Metabar -->
+  <g transform="translate(48, 44)">
+    <!-- Scene Pill: FOCUS -->
+    <rect x="0" y="0" width="96" height="28" rx="14" fill="#FBECE8" stroke="#E8846B" stroke-width="1"/>
+    <text x="48" y="18" fill="#C75B3B" class="text-ui" font-size="11" font-weight="800" letter-spacing="1" text-anchor="middle">FOCUS</text>
+
+    <!-- Timing & Scene Index Pill -->
+    <rect x="106" y="0" width="154" height="28" rx="14" fill="#EDE8DD"/>
+    <text x="183" y="18" fill="#6B625B" class="text-ui" font-size="11" font-weight="600" text-anchor="middle">FRAME 4 · 0:45 – 1:00</text>
+
+    <!-- Scene Headline -->
+    <text x="276" y="19" fill="#2C2118" class="text-title" font-size="17" font-weight="600">Only the Hot Tray</text>
+  </g>
+
+  <!-- 4. Left Station: Trays in Perspective (sorting-trays.svg composited) -->
+  <g transform="translate(68, 120)">
+    <!-- Background Dimmed Trays (COLD & WARM at 30% opacity) -->
+    <g opacity="0.35">
+      <!-- COLD Tray (Far Left / Low) -->
+      <g transform="translate(0, 150)">
+        <path d="M4 14L16 28H76L88 14H4Z" fill="#FAF6F0" stroke="#2C2118" stroke-width="1.5"/>
+        <text x="46" y="23" fill="#6B625B" class="text-ui" font-size="8" font-weight="700" text-anchor="middle">COLD (Bypassed)</text>
+      </g>
+      <!-- WARM Tray (Middle) -->
+      <g transform="translate(0, 90)">
+        <path d="M4 16L20 36H90L106 16H4Z" fill="#FAF6F0" stroke="#2C2118" stroke-width="1.5"/>
+        <text x="55" y="28" fill="#6B625B" class="text-ui" font-size="8" font-weight="700" text-anchor="middle">WARM</text>
+      </g>
+    </g>
+
+    <!-- Prominent Foreground HOT Tray -->
+    <g transform="translate(0, 0)">
+      <!-- Misregistration Shadow -->
+      <path d="M8 22L30 52H170L192 22H8Z" fill="#E8846B" opacity="0.35"/>
+      <!-- Tray Body -->
+      <path d="M4 18L26 48H166L188 18H4Z" fill="#FFFFFF" stroke="#2C2118" stroke-width="2"/>
+      <line x1="26" y1="48" x2="26" y2="18" stroke="#2C2118" stroke-width="1.5"/>
+      <line x1="166" y1="48" x2="166" y2="18" stroke="#2C2118" stroke-width="1.5"/>
+
+      <!-- Stack of Hot Slips in Tray -->
+      <rect x="42" y="4" width="108" height="20" rx="3" fill="#E8846B" opacity="0.3"/>
+      <rect x="38" y="0" width="108" height="20" rx="3" fill="#FFFFFF" stroke="#C75B3B" stroke-width="1.75"/>
+      <text x="92" y="14" fill="#C75B3B" class="text-ui" font-size="8.5" font-weight="800" text-anchor="middle">HOT SLIPS READY</text>
+
+      <!-- Label Badge -->
+      <rect x="74" y="34" width="46" height="16" rx="4" fill="#C75B3B"/>
+      <text x="97" y="46" fill="#FFFFFF" class="text-ui" font-size="9" font-weight="900" letter-spacing="1" text-anchor="middle">HOT</text>
+    </g>
+
+    <!-- Counsellor's Hand Lifting Top Slip (Stylized Screen-Print Silhouette) -->
+    <g transform="translate(110, -10)">
+      <!-- Motion Glide Arc -->
+      <path d="M40 50 C80 30, 110 50, 140 70" stroke="#C75B3B" stroke-width="2.5" stroke-dasharray="5 3" fill="none"/>
+      <polygon points="146,74 136,70 138,80" fill="#C75B3B"/>
+      
+      <!-- Lifted Slip: Simran K. -->
+      <g transform="translate(120, 40) rotate(8)">
+        <rect x="3" y="3" width="130" height="150" rx="6" fill="#E8846B" opacity="0.35"/>
+        <rect x="0" y="0" width="130" height="150" rx="6" fill="#FFFFFF" stroke="#2C2118" stroke-width="2"/>
+        <rect x="14" y="14" width="60" height="5" rx="2" fill="#2C2118"/>
+        <text x="14" y="34" fill="#2C2118" class="text-ui" font-size="9" font-weight="800">Simran K. · #301</text>
+        <text x="14" y="46" fill="#6B625B" class="text-ui" font-size="7.5">Canada · Night Batch</text>
+        <line x1="14" y1="54" x2="116" y2="54" stroke="#DDD6CA" stroke-width="1" stroke-dasharray="3 2"/>
+
+        <rect x="14" y="62" width="102" height="24" rx="4" fill="#FAF6F0" stroke="#DDD6CA" stroke-width="1"/>
+        <text x="20" y="74" fill="#6B625B" class="text-ui" font-size="7">Notes: Replied on WA</text>
+        <text x="20" y="83" fill="#2E6F65" class="text-ui" font-size="7" font-weight="700">Expects call at 9:30 AM</text>
+
+        <!-- Hot Stamp Badge -->
+        <g transform="translate(14, 94)">
+          <rect x="0" y="0" width="102" height="22" rx="3" fill="#FBECE8" stroke="#C75B3B" stroke-width="1.5"/>
+          <text x="51" y="15" fill="#C75B3B" class="text-ui" font-size="8.5" font-weight="900" text-anchor="middle">HOT · SCORE 84</text>
+        </g>
+      </g>
+    </g>
+  </g>
+
+  <!-- 5. Center-Right Station: Active Telephone Console & Handset (counsellor-handset.svg composited) -->
+  <g transform="translate(420, 130)">
+    <!-- Console Body -->
+    <rect x="6" y="6" width="170" height="160" rx="12" fill="#E8B44C" opacity="0.25"/>
+    <rect x="0" y="0" width="170" height="160" rx="12" fill="#FAF6F0" stroke="#2C2118" stroke-width="2"/>
+
+    <!-- Active Call Display Screen -->
+    <rect x="16" y="16" width="80" height="38" rx="4" fill="#2C2118"/>
+    <text x="24" y="32" fill="#E8846B" class="text-ui" font-size="7.5" font-weight="800">CONNECTING:</text>
+    <text x="24" y="44" fill="#FFFFFF" class="text-ui" font-size="8.5" font-weight="700">Simran K. (9:30 AM)</text>
+
+    <!-- Keypad -->
+    <g transform="translate(18, 64)">
+      <circle cx="8" cy="8" r="5" fill="#DDD6CA"/>
+      <circle cx="28" cy="8" r="5" fill="#DDD6CA"/>
+      <circle cx="48" cy="8" r="5" fill="#DDD6CA"/>
+      <circle cx="8" cy="26" r="5" fill="#DDD6CA"/>
+      <circle cx="28" cy="26" r="5" fill="#DDD6CA"/>
+      <circle cx="48" cy="26" r="5" fill="#DDD6CA"/>
+      <circle cx="8" cy="44" r="5" fill="#DDD6CA"/>
+      <circle cx="28" cy="44" r="5" fill="#DDD6CA"/>
+      <circle cx="48" cy="44" r="5" fill="#DDD6CA"/>
+    </g>
+
+    <!-- Empty Handset Cradle -->
+    <rect x="110" y="20" width="36" height="116" rx="6" fill="#DDD6CA" opacity="0.4"/>
+
+    <!-- Handset LIFTED in Air with Active Waves -->
+    <g transform="translate(118, -40) rotate(-18 20 40)">
+      <rect x="4" y="8" width="36" height="26" rx="8" fill="#C75B3B" opacity="0.3"/>
+      <!-- Earpiece -->
+      <rect x="0" y="0" width="36" height="24" rx="8" fill="#2C2118"/>
+      <!-- Handle -->
+      <rect x="10" y="20" width="16" height="56" rx="5" fill="#2C2118"/>
+      <!-- Mouthpiece -->
+      <rect x="0" y="72" width="36" height="24" rx="8" fill="#2C2118"/>
+      <circle cx="18" cy="12" r="6" fill="#3A3028"/>
+      <circle cx="18" cy="84" r="6" fill="#3A3028"/>
+    </g>
+
+    <!-- Audio Transmission Waves (Terracotta/Coral) -->
+    <path d="M148 10 C158 18, 162 26, 162 36" stroke="#C75B3B" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M156 4 C170 14, 176 26, 176 42" stroke="#E8846B" stroke-width="2" stroke-linecap="round" fill="none"/>
+
+    <!-- Cord to Console -->
+    <path d="M128 136 C138 156, 146 156, 154 136" stroke="#2C2118" stroke-width="2" fill="none"/>
+  </g>
+
+  <!-- 6. Far-Right Station: Appointment Calendar Slip (Appointment Booked) -->
+  <g transform="translate(680, 120)">
+    <!-- Misregistration Shadow -->
+    <rect x="4" y="4" width="190" height="230" rx="10" fill="#2E6F65" opacity="0.25"/>
+    <!-- Calendar Card Face -->
+    <rect x="0" y="0" width="190" height="230" rx="10" fill="#FFFFFF" stroke="#2C2118" stroke-width="2"/>
+    
+    <!-- Calendar Header -->
+    <rect x="0" y="0" width="190" height="38" rx="10" fill="#2E6F65"/>
+    <text x="95" y="24" fill="#FFFFFF" class="text-ui" font-size="10" font-weight="800" letter-spacing="1" text-anchor="middle">BRANCH DIAGNOSTIC SCHEDULE</text>
+
+    <!-- Calendar Grid Slots -->
+    <g transform="translate(14, 50)">
+      <!-- Slot 1 -->
+      <rect x="0" y="0" width="162" height="34" rx="4" fill="#FAF6F0" stroke="#DDD6CA" stroke-width="1"/>
+      <text x="10" y="14" fill="#6B625B" class="text-ui" font-size="7.5">Wednesday 4:00 PM</text>
+      <text x="10" y="26" fill="#6B625B" class="text-ui" font-size="8">Slot Complete · Enrolled</text>
+
+      <!-- Slot 2: Simran Kaur (HIGHLIGHTED & CIRCLED) -->
+      <g transform="translate(0, 42)">
+        <rect x="0" y="0" width="162" height="54" rx="4" fill="#FBECE8" stroke="#C75B3B" stroke-width="1.75"/>
+        <text x="10" y="16" fill="#C75B3B" class="text-ui" font-size="8.5" font-weight="800">THURSDAY 11:30 AM · VISIT</text>
+        <text x="10" y="30" fill="#2C2118" class="text-ui" font-size="9.5" font-weight="700">Simran Kaur · NCLEX-RN</text>
+        <text x="10" y="44" fill="#6B625B" class="text-ui" font-size="8">Diagnostic &amp; Batch Seat Reserved</text>
+
+        <!-- Ink Circle Drawn by Fountain Pen -->
+        <ellipse cx="81" cy="27" rx="74" ry="22" stroke="#C75B3B" stroke-width="2" stroke-linecap="round" fill="none" stroke-dasharray="80 10"/>
+      </g>
+
+      <!-- Fountain Pen Nib Drawing the Circle -->
+      <g transform="translate(140, 60) rotate(-45)">
+        <polygon points="0,0 8,24 -8,24" fill="#2C2118"/>
+        <line x1="0" y1="0" x2="0" y2="16" stroke="#FFFFFF" stroke-width="0.75"/>
+        <rect x="-8" y="24" width="16" height="36" fill="#3A3028"/>
+        <circle cx="0" cy="2" r="1.5" fill="#C75B3B"/>
+      </g>
+
+      <!-- Slot 3 -->
+      <g transform="translate(0, 104)">
+        <rect x="0" y="0" width="162" height="34" rx="4" fill="#FAF6F0" stroke="#DDD6CA" stroke-width="1"/>
+        <text x="10" y="14" fill="#6B625B" class="text-ui" font-size="7.5">Friday 10:00 AM</text>
+        <text x="10" y="26" fill="#6B625B" class="text-ui" font-size="8">Harman S. · Study Abroad</text>
+      </g>
+    </g>
+
+    <!-- Result Banner -->
+    <rect x="14" y="196" width="162" height="22" rx="4" fill="#FAF6F0" stroke="#DDD6CA" stroke-width="1"/>
+    <text x="95" y="211" fill="#2C2118" class="text-ui" font-size="8" font-weight="700" text-anchor="middle">Result: Diagnostic Appointment Booked</text>
+  </g>
+
+  <!-- 7. Bottom Voiceover / Subtitle Card -->
+  <g transform="translate(48, 436)">
+    <rect x="0" y="0" width="864" height="54" rx="12" fill="#EDE8DD" stroke="#DDD6CA" stroke-width="1"/>
+    <text x="24" y="24" fill="#6B625B" class="text-ui" font-size="9" font-weight="700" letter-spacing="0.5">VOICEOVER (0:45 – 1:00)</text>
+    <text x="24" y="42" fill="#2C2118" class="text-title" font-size="13" font-style="italic">"Your counsellor sits down at nine. She doesn't dial through a stack of cold leads. She picks up the hot tray: the students who actually qualify, who already replied on WhatsApp, and who are waiting for her call. The conversation isn't a pitch. It's an appointment."</text>
+  </g>
+</svg>

@@ -1,0 +1,51 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Offset Shadow Layer (Terracotta misregistration) -->
+  <path d="M16 32C16 30 20 28 32 28H58V96H32C20 96 16 98 16 100V32Z" fill="#C75B3B" opacity="0.25"/>
+  <path d="M104 32C104 30 100 28 88 28H62V96H88C100 96 104 98 104 100V32Z" fill="#C75B3B" opacity="0.25"/>
+
+  <!-- Left Page of Register (Hardbound Ledger) -->
+  <path d="M14 30C14 28 18 26 30 26H58V94H30C18 94 14 96 14 98V30Z" fill="#FAF6F0" stroke="#2C2118" stroke-width="1.75"/>
+  <!-- Right Page of Register -->
+  <path d="M106 30C106 28 102 26 90 26H62V94H90C102 94 106 96 106 98V30Z" fill="#FAF6F0" stroke="#2C2118" stroke-width="1.75"/>
+
+  <!-- Book Spine Stitching & Center Groove -->
+  <rect x="58" y="24" width="4" height="72" fill="#2C2118"/>
+  <line x1="60" y1="24" x2="60" y2="96" stroke="#FAF6F0" stroke-width="0.75" stroke-dasharray="3 2"/>
+
+  <!-- Left Page Ruled Lines & Entries -->
+  <rect x="20" y="34" width="32" height="3" rx="1.5" fill="#2C2118"/>
+  <line x1="20" y1="42" x2="52" y2="42" stroke="#DDD6CA" stroke-width="1"/>
+  <line x1="20" y1="52" x2="52" y2="52" stroke="#DDD6CA" stroke-width="1"/>
+  <line x1="20" y1="62" x2="52" y2="62" stroke="#DDD6CA" stroke-width="1"/>
+  <line x1="20" y1="72" x2="52" y2="72" stroke="#DDD6CA" stroke-width="1"/>
+  <line x1="20" y1="82" x2="52" y2="82" stroke="#DDD6CA" stroke-width="1"/>
+
+  <!-- Left Column Data Entries -->
+  <rect x="20" y="46" width="22" height="2.5" rx="1" fill="#6B625B"/>
+  <rect x="20" y="56" width="26" height="2.5" rx="1" fill="#6B625B"/>
+  <rect x="20" y="66" width="18" height="2.5" rx="1" fill="#6B625B"/>
+  <rect x="20" y="76" width="24" height="2.5" rx="1" fill="#6B625B"/>
+
+  <!-- Right Page Columns: Campaign Attribution & Admission Verified -->
+  <rect x="68" y="34" width="32" height="3" rx="1.5" fill="#2E6F65"/>
+  <line x1="68" y1="42" x2="100" y2="42" stroke="#DDD6CA" stroke-width="1"/>
+  <line x1="68" y1="52" x2="100" y2="52" stroke="#DDD6CA" stroke-width="1"/>
+  <line x1="68" y1="62" x2="100" y2="62" stroke="#DDD6CA" stroke-width="1"/>
+  <line x1="68" y1="72" x2="100" y2="72" stroke="#DDD6CA" stroke-width="1"/>
+  <line x1="68" y1="82" x2="100" y2="82" stroke="#DDD6CA" stroke-width="1"/>
+
+  <!-- Green Checkmark Ticks (Admissions Confirmed) -->
+  <path d="M92 46L94.5 49L99 44" stroke="#3D6B2C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M92 56L94.5 59L99 54" stroke="#3D6B2C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M92 66L94.5 69L99 64" stroke="#3D6B2C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M92 76L94.5 79L99 74" stroke="#3D6B2C" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Attribution Source Tags (Meta Ads) -->
+  <rect x="68" y="46" width="18" height="3" rx="1" fill="#2E6F65" opacity="0.3"/>
+  <rect x="68" y="56" width="16" height="3" rx="1" fill="#2E6F65" opacity="0.3"/>
+  <rect x="68" y="66" width="20" height="3" rx="1" fill="#2E6F65" opacity="0.3"/>
+  <rect x="68" y="76" width="18" height="3" rx="1" fill="#2E6F65" opacity="0.3"/>
+
+  <!-- Bookmark Ribbon (Terracotta) -->
+  <path d="M60 22V78L64 74L68 78V22H60Z" fill="#C75B3B"/>
+</svg>
