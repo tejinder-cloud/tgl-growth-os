@@ -7,12 +7,23 @@ import { getTodayDateString, getCurrentTimeIST } from "../lib/standup.js";
 
 export const eventsRouter = Router();
 
+// GET /slack/events - health check / mounting confirmation
+eventsRouter.get("/", (_req: Request, res: Response): void => {
+  res.status(200).json({
+    status: "ok",
+    endpoint: "/slack/events",
+    message: "Slack Events endpoint is mounted and active.",
+  });
+});
+
 eventsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
   const { type, challenge, event } = req.body || {};
 
   // 1. URL Verification Challenge
   if (type === "url_verification") {
-    console.log("[Slack Events] Responding 200 OK to url_verification challenge");
+    console.log("[Slack Events] Responding 200 OK to url_verification challenge", {
+      challengeLength: challenge ? String(challenge).length : 0,
+    });
     res.status(200).json({ challenge });
     return;
   }
@@ -21,8 +32,11 @@ eventsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
   res.status(200).send("OK");
 
   if (type !== "event_callback" || !event) {
+    console.log("[Slack Events] Non-callback event type received:", type);
     return;
   }
+
+  console.log(`[Slack Events] Processing event_callback: type=${event.type}, channel=${event.channel}`);
 
   try {
     // 2. Handle app_mention: "@TGL Ops @<agent> <text>"
