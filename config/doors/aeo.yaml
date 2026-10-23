@@ -1,0 +1,13 @@
+name: "TGL AEO / AI Visibility"
+icp: "Businesses whose customers ask AI before buying (hospitals, dental and cosmetic chains, hotels, real-estate developers, coaching, law and CA firms, D2C brands) with ₹50,000+ monthly marketing spend or active Meta/Google ad presence."
+audit_spec: "Full inbound engine: 10 prompts × 5 engines (ChatGPT, Gemini, Perplexity, Google AI Overviews, Copilot) scoring presence, position, sentiment, and citing sources, rendered into a 6-page paper-and-ink PDF. Short-form outreach engine: 5 prompts × 3 engines, 1-page PDF."
+sla_hours: 24
+ghl_pipeline: ""
+content_pillar: "AEO & AI Search (2 posts/week)"
+scorecard_lines:
+  - "Audits requested (inbound + outreach)"
+  - "Audits delivered within SLA (<24h / target 2h)"
+  - "Diagnostic calls booked"
+  - "Proposals sent within 4h SLA"
+  - "Managed AEO retainers won (MRR)"
+  - "Cost per audit (LLM/API spend)"
