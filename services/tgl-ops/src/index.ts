@@ -46,9 +46,9 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 // 17:50 IST: Compile digest
 cron.schedule(
   "50 17 * * *",
-  () => {
+  async () => {
     console.log("[Cron 17:50 IST] Pre-compiling daily standup digest...");
-    const digest = compileStandupDigest();
+    const digest = await compileStandupDigest();
     console.log(`[Cron 17:50 IST] Compiled digest: ${digest.loggedAgents.length} reported, ${digest.silentAgents.length} pending.`);
   },
   { timezone: config.timezone }
