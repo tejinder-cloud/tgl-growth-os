@@ -76,8 +76,8 @@ async function runPlumbingTest(): Promise<void> {
   console.log(standupMsg);
   console.log("-------------------------------------------------------");
 
-  // 4. Test Slack-signed url_verification (Regression test for Slack Events Verification)
-  console.log("\n[Test 4] Testing Slack signature verification and url_verification challenge...");
+  // 4. Test Slack-signed url_verification & event signature verification
+  console.log("\n[Test 4] Testing Slack url_verification handshake and event signature verification...");
   const testSecret = "test_signing_secret_plumbing_verification_98765";
   const testApp = createApp(testSecret);
 
@@ -86,63 +86,60 @@ async function runPlumbingTest(): Promise<void> {
   const baseUrl = `http://127.0.0.1:${port}`;
 
   try {
-    // 4a. Valid Slack-signed request: url_verification must return 200 and { challenge }
-    const validChallenge = "slack_challenge_test_val_" + Math.random().toString(36).slice(2);
-    const validBody = JSON.stringify({ type: "url_verification", challenge: validChallenge });
-    const validTimestamp = Math.floor(Date.now() / 1000).toString();
-    const validSigBasestring = `v0:${validTimestamp}:${validBody}`;
-    const validSignature = "v0=" + crypto.createHmac("sha256", testSecret).update(validSigBasestring, "utf8").digest("hex");
+    // 4a. url_verification handshake responds 200 before signature verification
+    const challenge = "slack_challenge_handshake_" + Math.random().toString(36).slice(2);
+    const handshakeBody = JSON.stringify({ type: "url_verification", challenge });
 
-    const validRes = await fetch(`${baseUrl}/slack/events`, {
+    const handshakeRes = await fetch(`${baseUrl}/slack/events`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-slack-request-timestamp": validTimestamp,
-        "x-slack-signature": validSignature,
-      },
-      body: validBody,
+      headers: { "Content-Type": "application/json" },
+      body: handshakeBody,
     });
 
-    if (validRes.status !== 200) {
-      throw new Error(`Expected HTTP 200 for signed url_verification, got ${validRes.status}: ${await validRes.text()}`);
+    if (handshakeRes.status !== 200) {
+      throw new Error(`Expected HTTP 200 for url_verification handshake, got ${handshakeRes.status}: ${await handshakeRes.text()}`);
     }
 
-    const validJson: any = await validRes.json();
-    if (validJson.challenge !== validChallenge) {
-      throw new Error(`Expected challenge "${validChallenge}", got "${validJson.challenge}"`);
+    const handshakeJson: any = await handshakeRes.json();
+    if (handshakeJson.challenge !== challenge) {
+      throw new Error(`Expected challenge "${challenge}", got "${handshakeJson.challenge}"`);
     }
-    console.log(`✅ [Test 4a Passed] Signed url_verification returned HTTP 200 with matching challenge: "${validChallenge}"`);
+    console.log(`✅ [Test 4a Passed] url_verification handshake returned HTTP 200 with matching challenge: "${challenge}"`);
 
-    // 4b. Missing signature headers must be rejected with 401
+    // 4b. Real event payload (event_callback) WITHOUT signature must be rejected with 401
+    const eventBody = JSON.stringify({
+      type: "event_callback",
+      event: { type: "app_mention", text: "hello", channel: "C123456", ts: "1792778437.000100" },
+    });
     const missingHeadersRes = await fetch(`${baseUrl}/slack/events`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: validBody,
+      body: eventBody,
     });
     if (missingHeadersRes.status !== 401) {
-      throw new Error(`Expected HTTP 401 for missing headers, got ${missingHeadersRes.status}`);
+      throw new Error(`Expected HTTP 401 for unsigned real event, got ${missingHeadersRes.status}`);
     }
-    console.log("✅ [Test 4b Passed] Unsigned request rejected with HTTP 401");
+    console.log("✅ [Test 4b Passed] Unsigned real event_callback rejected with HTTP 401");
 
-    // 4c. Invalid signature must be rejected with 401
-    const invalidSignature = "v0=" + "0123456789abcdef".repeat(4);
+    // 4c. Real event payload with INVALID signature must be rejected with 401
+    const timestamp = Math.floor(Date.now() / 1000).toString();
     const badSigRes = await fetch(`${baseUrl}/slack/events`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-slack-request-timestamp": validTimestamp,
-        "x-slack-signature": invalidSignature,
+        "x-slack-request-timestamp": timestamp,
+        "x-slack-signature": "v0=" + "0123456789abcdef".repeat(4),
       },
-      body: validBody,
+      body: eventBody,
     });
     if (badSigRes.status !== 401) {
       throw new Error(`Expected HTTP 401 for invalid signature, got ${badSigRes.status}`);
     }
-    console.log("✅ [Test 4c Passed] Invalid signature rejected with HTTP 401");
+    console.log("✅ [Test 4c Passed] Real event with invalid signature rejected with HTTP 401");
 
-    // 4d. Expired timestamp (> 300s) must be rejected with 400
+    // 4d. Real event payload with EXPIRED timestamp (> 300s) must be rejected with 400
     const expiredTimestamp = (Math.floor(Date.now() / 1000) - 400).toString();
-    const expiredSigBasestring = `v0:${expiredTimestamp}:${validBody}`;
+    const expiredSigBasestring = `v0:${expiredTimestamp}:${eventBody}`;
     const expiredSignature = "v0=" + crypto.createHmac("sha256", testSecret).update(expiredSigBasestring, "utf8").digest("hex");
     const expiredRes = await fetch(`${baseUrl}/slack/events`, {
       method: "POST",
@@ -151,14 +148,31 @@ async function runPlumbingTest(): Promise<void> {
         "x-slack-request-timestamp": expiredTimestamp,
         "x-slack-signature": expiredSignature,
       },
-      body: validBody,
+      body: eventBody,
     });
     if (expiredRes.status !== 400) {
       throw new Error(`Expected HTTP 400 for expired timestamp, got ${expiredRes.status}`);
     }
     console.log("✅ [Test 4d Passed] Expired timestamp rejected with HTTP 400");
 
-    // 4e. GET /slack/events returns 200 confirming mounting without requiring signatures
+    // 4e. Real event payload with VALID Slack signature must be accepted with HTTP 200
+    const validSigBasestring = `v0:${timestamp}:${eventBody}`;
+    const validSignature = "v0=" + crypto.createHmac("sha256", testSecret).update(validSigBasestring, "utf8").digest("hex");
+    const validEventRes = await fetch(`${baseUrl}/slack/events`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-slack-request-timestamp": timestamp,
+        "x-slack-signature": validSignature,
+      },
+      body: eventBody,
+    });
+    if (validEventRes.status !== 200) {
+      throw new Error(`Expected HTTP 200 for signed event_callback, got ${validEventRes.status}`);
+    }
+    console.log("✅ [Test 4e Passed] Real event_callback with valid signature accepted with HTTP 200 OK");
+
+    // 4f. GET /slack/events returns 200 confirming mounting without requiring signatures
     const getRes = await fetch(`${baseUrl}/slack/events`);
     if (getRes.status !== 200) {
       throw new Error(`Expected HTTP 200 for GET /slack/events, got ${getRes.status}`);
@@ -167,7 +181,7 @@ async function runPlumbingTest(): Promise<void> {
     if (getJson.mounted !== true || getJson.status !== "ok") {
       throw new Error(`Expected { status: "ok", mounted: true }, got ${JSON.stringify(getJson)}`);
     }
-    console.log("✅ [Test 4e Passed] GET /slack/events returned HTTP 200 confirming endpoint is mounted");
+    console.log("✅ [Test 4f Passed] GET /slack/events returned HTTP 200 confirming endpoint is mounted");
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }
