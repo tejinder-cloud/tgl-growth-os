@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TGL Ops — TASK-P02 Card & Decision Verification</title>
+  <style>
+    :root {
+      --slack-bg: #1A1D21;
+      --slack-sidebar: #19171D;
+      --slack-card-bg: #222529;
+      --slack-border: #383B40;
+      --slack-text: #D1D2D3;
+      --slack-muted: #ABACAE;
+      --slack-accent: #1264A3;
+      --slack-green: #007A5A;
+      --slack-red: #E01E5A;
+      --tgl-terracotta: #C75B3B;
+      --term-bg: #0D1117;
+      --term-border: #30363D;
+      --term-text: #C9D1D9;
+      --term-green: #3FB950;
+      --term-blue: #58A6FF;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #0f1115;
+      color: var(--slack-text);
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+    }
+    .container {
+      width: 100%;
+      max-width: 860px;
+    }
+    .panel-header {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #8A827B;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .badge {
+      background: #2a2019;
+      color: var(--tgl-terracotta);
+      border: 1px solid rgba(199, 91, 59, 0.3);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    /* Slack Card Window */
+    .slack-window {
+      background: var(--slack-bg);
+      border: 1px solid var(--slack-border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+    }
+    .slack-topbar {
+      background: var(--slack-sidebar);
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #FFF;
+      border-bottom: 1px solid var(--slack-border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .slack-body {
+      padding: 20px;
+    }
+    .slack-msg {
+      display: flex;
+      gap: 14px;
+    }
+    .bot-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: #1F2421;
+      border: 1px solid #383B40;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #FFF;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    .msg-content {
+      flex: 1;
+    }
+    .msg-header {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .bot-name {
+      font-weight: 700;
+      color: #FFF;
+      font-size: 15px;
+    }
+    .app-tag {
+      background: #35373B;
+      color: #ABACAE;
+      font-size: 10px;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .msg-time {
+      font-size: 12px;
+      color: var(--slack-muted);
+    }
+    /* Block Kit Card */
+    .block-card {
+      background: var(--slack-card-bg);
+      border: 1px solid var(--slack-border);
+      border-left: 4px solid var(--tgl-terracotta);
+      border-radius: 6px;
+      padding: 16px;
+      margin-top: 6px;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #FFF;
+      margin-bottom: 6px;
+    }
+    .card-meta {
+      font-size: 12px;
+      color: var(--slack-muted);
+      margin-bottom: 12px;
+    }
+    .card-meta code {
+      background: #1A1D21;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #E28743;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .card-meta a {
+      color: #58A6FF;
+      text-decoration: none;
+    }
+    .card-summary {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #D1D2D3;
+      margin-bottom: 14px;
+    }
+    .card-links {
+      font-size: 13px;
+      margin-bottom: 16px;
+      padding-top: 10px;
+      border-top: 1px dashed #383B40;
+    }
+    .card-links strong {
+      color: #FFF;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .card-links ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    .card-links li {
+      margin-bottom: 4px;
+    }
+    .card-links a {
+      color: #58A6FF;
+      text-decoration: none;
+    }
+    .card-actions {
+      display: flex;
+      gap: 10px;
+      padding-top: 12px;
+      border-top: 1px solid var(--slack-border);
+    }
+    .btn {
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-approve {
+      background: var(--slack-green);
+      color: #FFF;
+    }
+    .btn-reject {
+      background: var(--slack-red);
+      color: #FFF;
+    }
+    .btn-discuss {
+      background: #2E3136;
+      color: #D1D2D3;
+      border: 1px solid #484B51;
+    }
+    /* Card Thread Post-Approval */
+    .thread-confirmation {
+      margin-top: 16px;
+      padding: 10px 14px;
+      background: rgba(0, 122, 90, 0.15);
+      border: 1px solid rgba(0, 122, 90, 0.4);
+      border-radius: 6px;
+      font-size: 13px;
+      color: #2BAC76;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    /* Terminal View */
+    .terminal-window {
+      background: var(--term-bg);
+      border: 1px solid var(--term-border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 13px;
+    }
+    .terminal-topbar {
+      background: #161B22;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--term-border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .term-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #FF5F56; }
+    .dot-yellow { background: #FFBD2E; }
+    .dot-green { background: #27C93F; }
+    .term-title {
+      margin-left: 8px;
+      color: #8B949E;
+      font-size: 12px;
+    }
+    .terminal-body {
+      padding: 16px 20px;
+      color: var(--term-text);
+      line-height: 1.6;
+      overflow-x: auto;
+    }
+    .code-comment { color: #8B949E; }
+    .code-heading { color: var(--term-blue); font-weight: 700; }
+    .code-decision-line {
+      background: rgba(63, 185, 80, 0.15);
+      border-left: 3px solid var(--term-green);
+      padding: 4px 8px;
+      margin: 6px 0;
+      color: #7EE787;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="panel-header">
+      <span>Slack Interface · #approvals Channel</span>
+      <span class="badge">TASK-P02 Verification</span>
+    </div>
+
+    <div class="slack-window">
+      <div class="slack-topbar">
+        <span># approvals</span>
+        <span style="font-weight: normal; color: #ABACAE; font-size: 12px;">| Architecture & Scope Decision Queue</span>
+      </div>
+      <div class="slack-body">
+        <div class="slack-msg">
+          <div class="bot-avatar">TGL</div>
+          <div class="msg-content">
+            <div class="msg-header">
+              <span class="bot-name">TGL Ops</span>
+              <span class="app-tag">APP</span>
+              <span class="msg-time">17:57 IST</span>
+            </div>
+
+            <!-- Block Kit Card -->
+            <div class="block-card">
+              <div class="card-title">TASK-P02 plumbing test</div>
+              <div class="card-meta">
+                Agent: <code>web-builder</code> &nbsp;|&nbsp; Door: <code>core</code> &nbsp;|&nbsp; Issue/PR: <a href="https://github.com/tejinder-cloud/tgl-growth-os/issues/1">#1</a>
+              </div>
+              <div class="card-summary">
+                Plumbing verification for Slack events, interaction webhooks, and GitHub Contents API decision logging.
+              </div>
+              <div class="card-links">
+                <strong>Reference Links:</strong>
+                <ul>
+                  <li>• <a href="https://github.com/tejinder-cloud/tgl-growth-os/blob/main/ORG.md">ORG.md §3–4 (Communication Architecture)</a></li>
+                  <li>• <a href="https://github.com/tejinder-cloud/tgl-growth-os/blob/main/config/agents.yaml">config/agents.yaml (Roster Directory)</a></li>
+                </ul>
+              </div>
+
+              <div class="card-actions">
+                <button class="btn btn-approve">✔ Approve</button>
+                <button class="btn btn-reject">✖ Reject</button>
+                <button class="btn btn-discuss">💬 Discuss</button>
+              </div>
+            </div>
+
+            <!-- Thread Confirmation -->
+            <div class="thread-confirmation">
+              <span>✅ Decision recorded: Approved by @Architect at 17:57 IST. Appended to <code>decisions/2026-10-23.md</code>.</span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="panel-header">
+      <span>GitHub Contents API Destination · decisions/2026-10-23.md</span>
+      <span class="badge" style="background:#1c2d24; color:#3FB950; border-color:rgba(63,185,80,0.3)">Live File Verification</span>
+    </div>
+
+    <div class="terminal-window">
+      <div class="terminal-topbar">
+        <div class="term-dot dot-red"></div>
+        <div class="term-dot dot-yellow"></div>
+        <div class="term-dot dot-green"></div>
+        <span class="term-title">cat decisions/2026-10-23.md</span>
+      </div>
+      <div class="terminal-body">
+        <div class="code-heading"># Architectural & Product Decisions — 2026-10-23</div>
+        <div class="code-comment">**TrueVisible Product Decisions (from `products/truevisible/SPEC.md`)**</div>
+        <br>
+        <div class="code-heading">## 1. Plans and Pricing (SPEC.md §2)</div>
+        <div>- **Decision:** Establish a transparent multi-tier pricing structure...</div>
+        <br>
+        <div class="code-heading">## 2. Alerts and Communication Voice (SPEC.md §6)</div>
+        <div>- **Decision:** WhatsApp is restricted strictly to high-priority operational alerts...</div>
+        <br>
+        <div class="code-heading">## 3. Execution Paths (SPEC.md §7)</div>
+        <div>- **Decision:** Delivery execution branches automatically by site platform...</div>
+        <br>
+        <div class="code-heading">## 4. Agency White-Label & Billing Model (SPEC.md §9)</div>
+        <div>- **Decision:** The agency tier operates as a strict wholesale B2B2B white-label arrangement...</div>
+        <br>
+        <div class="code-comment"># --- Appended via Slack Approval Webhook (GitHub Contents API) ---</div>
+        <div class="code-decision-line">17:57 IST · Architect · APPROVE · web-builder · TASK-P02 plumbing test approval · https://github.com/tejinder-cloud/tgl-growth-os/issues/1</div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
