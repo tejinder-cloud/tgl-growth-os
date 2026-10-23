@@ -81,7 +81,22 @@ export function createApp(signingSecret?: string) {
     });
   });
 
-  // 5. Slack routes with signature verification middleware
+  // Handshake: Respond to type=url_verification BEFORE signature verification.
+  // Per Slack's documented behaviour, the handshake carries no payload worth protecting,
+  // ensuring seamless setup while all real event callbacks stay strictly verified.
+  app.post("/slack/events", (req: Request, res: Response, next: NextFunction) => {
+    if (req.body?.type === "url_verification") {
+      const challenge = req.body.challenge;
+      console.log("[Slack Events] Responding to url_verification handshake before signature verification", {
+        hasChallenge: Boolean(challenge),
+      });
+      res.status(200).json({ challenge });
+      return;
+    }
+    next();
+  });
+
+  // 5. Slack routes with signature verification middleware (all real events strictly verified)
   const verifier = verifySlackSignature(signingSecret ?? config.slackSigningSecret);
   app.use("/slack/events", verifier, eventsRouter);
   app.use("/slack/interactions", verifier, interactionsRouter);
