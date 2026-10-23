@@ -56,7 +56,7 @@ async function handleAppMention(event: any): Promise<void> {
   const agentMatch = textWithoutBot.match(/@([a-zA-Z0-9_-]+)/);
   let targetAgent = agentMatch ? agentMatch[1].toLowerCase() : "";
 
-  const registeredAgents = loadAgents();
+  const registeredAgents = await loadAgents();
   const matchedAgent = registeredAgents.find(
     (a) => a.name.toLowerCase() === targetAgent || targetAgent.includes(a.name.toLowerCase())
   );

@@ -18,7 +18,7 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
     const dateArg = text?.trim();
     const targetDate = /^\d{4}-\d{2}-\d{2}$/.test(dateArg) ? dateArg : getTodayDateString();
 
-    const digest = compileStandupDigest(targetDate);
+    const digest = await compileStandupDigest(targetDate);
     const message = formatStandupMessage(digest);
 
     res.json({
@@ -38,7 +38,7 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
       const agentName = agentMatch ? agentMatch[1].toLowerCase() : "web-builder";
       const taskTitle = trimmedText.replace(/@([a-zA-Z0-9_-]+)/, "").trim() || "Operational Task";
 
-      const registered = loadAgents();
+      const registered = await loadAgents();
       const matched = registered.find((a) => a.name.toLowerCase() === agentName);
 
       const issue = await createIssue({
@@ -75,7 +75,7 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
 });
 
 async function openTaskModal(triggerId: string, userName: string): Promise<void> {
-  const agents = loadAgents();
+  const agents = await loadAgents();
   const agentOptions = agents.map((a) => ({
     text: { type: "plain_text", text: `${a.name} (${a.department})` },
     value: a.name,

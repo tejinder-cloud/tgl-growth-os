@@ -43,10 +43,10 @@ export interface StandupDigest {
   pendingApprovals: { agent: string; need: string }[];
 }
 
-export function compileStandupDigest(targetDate?: string): StandupDigest {
+export async function compileStandupDigest(targetDate?: string): Promise<StandupDigest> {
   const dateStr = targetDate || getTodayDateString();
   const logsDir = path.join(config.repoRoot, "logs", dateStr);
-  const allAgents = loadAgents();
+  const allAgents = await loadAgents();
 
   const loggedAgents: AgentLogSummary[] = [];
   const blockers: { agent: string; issue: string }[] = [];
@@ -191,7 +191,7 @@ export function formatStandupMessage(digest: StandupDigest): string {
 
 export async function broadcast1800Standup(): Promise<void> {
   console.log("[Standup Scheduler] Compiling and broadcasting 18:00 IST standup...");
-  const digest = compileStandupDigest();
+  const digest = await compileStandupDigest();
   const text = formatStandupMessage(digest);
   await postLine({
     channel: config.standupChannelId,
@@ -201,7 +201,7 @@ export async function broadcast1800Standup(): Promise<void> {
 
 export async function broadcast1815SilenceFlag(): Promise<void> {
   console.log("[Standup Scheduler] Checking for silent agents at 18:15 IST...");
-  const digest = compileStandupDigest();
+  const digest = await compileStandupDigest();
   if (digest.silentAgents.length > 0) {
     const mentions = digest.silentAgents.map((a) => `\`@${a}\``).join(", ");
     const text = `*⚠️ Silence Flag — 18:15 IST (Chief of Staff)*\nNo daily standup logs recorded today in \`logs/${digest.date}/\` for: ${mentions}.\nPlease append your four standup lines before close of day.`;

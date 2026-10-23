@@ -66,7 +66,7 @@ async function runPlumbingTest(): Promise<void> {
 
   // 3. Test Standup compilation logic
   console.log("\n[Test 3] Testing standup digest compilation...");
-  const digest = compileStandupDigest();
+  const digest = await compileStandupDigest();
   const standupMsg = formatStandupMessage(digest);
   console.log("✅ [Test 3 Passed] Standup digest compiled cleanly:");
   console.log("-------------------------------------------------------");
