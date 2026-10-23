@@ -41,15 +41,15 @@ try {
 
 export const config: AppConfig = {
   port: Number(process.env.PORT) || 3000,
-  slackBotToken: process.env.SLACK_BOT_TOKEN || "",
-  slackSigningSecret: process.env.SLACK_SIGNING_SECRET || "",
-  githubToken: process.env.GITHUB_TOKEN || "",
-  githubOwner: process.env.GITHUB_OWNER || githubOwner,
-  githubRepo: process.env.GITHUB_REPO_NAME || githubRepo,
-  approvalsChannelId: process.env.APPROVALS_CHANNEL_ID || "#approvals",
-  standupChannelId: process.env.STANDUP_CHANNEL_ID || "#standup",
-  alertsChannelId: process.env.ALERTS_CHANNEL_ID || "#alerts",
-  timezone: process.env.TIMEZONE || "Asia/Kolkata",
+  slackBotToken: (process.env.SLACK_BOT_TOKEN || "").trim(),
+  slackSigningSecret: (process.env.SLACK_SIGNING_SECRET || "").trim().replace(/^["']|["']$/g, ""),
+  githubToken: (process.env.GITHUB_TOKEN || "").trim(),
+  githubOwner: (process.env.GITHUB_OWNER || githubOwner).trim(),
+  githubRepo: (process.env.GITHUB_REPO_NAME || githubRepo).trim(),
+  approvalsChannelId: (process.env.APPROVALS_CHANNEL_ID || "#approvals").trim(),
+  standupChannelId: (process.env.STANDUP_CHANNEL_ID || "#standup").trim(),
+  alertsChannelId: (process.env.ALERTS_CHANNEL_ID || "#alerts").trim(),
+  timezone: (process.env.TIMEZONE || "Asia/Kolkata").trim(),
   repoRoot: REPO_ROOT,
 };
 
