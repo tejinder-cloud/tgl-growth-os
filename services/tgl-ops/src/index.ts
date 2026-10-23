@@ -1,48 +1,11 @@
-import express, { type Request, type Response, type NextFunction } from "express";
 import cron from "node-cron";
 import { config, validateConfig } from "./config.js";
-import { verifySlackSignature, type SlackVerifiedRequest } from "./lib/slack-verify.js";
-import { eventsRouter } from "./routes/events.js";
-import { interactionsRouter } from "./routes/interactions.js";
-import { commandsRouter } from "./routes/commands.js";
-import { healthRouter } from "./routes/health.js";
+import { createApp } from "./app.js";
 import { broadcast1800Standup, broadcast1815SilenceFlag, compileStandupDigest } from "./lib/standup.js";
 
-const app = express();
+const app = createApp();
 
-// 1. Raw body capture middleware for Slack HMAC-SHA256 signature verification
-app.use(
-  express.json({
-    verify: (req: SlackVerifiedRequest, _res: Response, buf: Buffer) => {
-      req.rawBody = buf;
-    },
-  })
-);
-
-app.use(
-  express.urlencoded({
-    extended: true,
-    verify: (req: SlackVerifiedRequest, _res: Response, buf: Buffer) => {
-      req.rawBody = buf;
-    },
-  })
-);
-
-// 2. Health check route (unauthenticated for Railway / load balancer)
-app.use("/health", healthRouter);
-
-// 3. Slack routes with signature verification middleware
-app.use("/slack/events", verifySlackSignature(), eventsRouter);
-app.use("/slack/interactions", verifySlackSignature(), interactionsRouter);
-app.use("/slack/commands", verifySlackSignature(), commandsRouter);
-
-// 4. Global Error Handler
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  console.error("[Server Error]", err);
-  res.status(500).json({ error: "Internal Server Error" });
-});
-
-// 5. Scheduled Standup Jobs (node-cron configured for Asia/Kolkata)
+// Scheduled Standup Jobs (node-cron configured for Asia/Kolkata)
 // 17:50 IST: Compile digest
 cron.schedule(
   "50 17 * * *",
@@ -82,9 +45,10 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
-// 6. Start server
+// Validate environment configuration
 validateConfig();
 
+// Start HTTP server
 app.listen(config.port, () => {
   console.log(`=======================================================`);
   console.log(`🚀 TGL Ops service listening on port ${config.port}`);
@@ -94,3 +58,5 @@ app.listen(config.port, () => {
   console.log(`💬 Slack Standup Channel: ${config.standupChannelId}`);
   console.log(`=======================================================`);
 });
+
+export { app };

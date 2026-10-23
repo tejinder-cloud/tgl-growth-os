@@ -8,11 +8,12 @@ import { getTodayDateString, getCurrentTimeIST } from "../lib/standup.js";
 export const eventsRouter = Router();
 
 eventsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
-  const { type, challenge, event } = req.body;
+  const { type, challenge, event } = req.body || {};
 
   // 1. URL Verification Challenge
   if (type === "url_verification") {
-    res.json({ challenge });
+    console.log("[Slack Events] Responding 200 OK to url_verification challenge");
+    res.status(200).json({ challenge });
     return;
   }
 
