@@ -1,0 +1,6 @@
+# The Growth Lab — Organisation Configuration
+# Values left blank for the Architect to fill
+slack_url: "https://itsthegrowthlab.slack.com"
+github_repo: "https://github.com/tejinder-cloud/tgl-growth-os"
+railway_project: "tgl-growth-os"
+supabase_url: "https://rmrauejublipukulnjou.supabase.co"

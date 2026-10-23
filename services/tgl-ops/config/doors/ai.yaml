@@ -1,0 +1,13 @@
+name: "TGL AI / AI Readiness"
+icp: "SMEs and mid-market firms (10–200 staff) with heavy manual operational workflows across enquiries, booking, follow-up, fee collection, or client reporting, spending ₹50,000+ monthly on administrative overhead."
+audit_spec: "Intake questionnaire + site/technology stack scan scoring automation potential across five business functions (enquiries, follow-up, reporting, fee collection, ops) delivering a paper-and-ink PDF with three scoped build candidates, timelines, and price ranges."
+sla_hours: 24
+ghl_pipeline: ""
+content_pillar: "SME Automation & AI Operations (1 post/week)"
+scorecard_lines:
+  - "Readiness audits requested"
+  - "Audits delivered within 24h SLA"
+  - "Scoped build candidates presented"
+  - "Automation proposals sent"
+  - "Build contracts closed"
+  - "Average contract value"

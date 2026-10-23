@@ -12,9 +12,17 @@ export interface AgentRecord {
 }
 
 export function loadAgents(): AgentRecord[] {
-  const agentsPath = path.join(config.repoRoot, "config/agents.yaml");
-  if (!fs.existsSync(agentsPath)) {
-    console.warn(`[Agents] Config not found at ${agentsPath}`);
+  const candidatePaths = [
+    path.join(config.repoRoot, "config/agents.yaml"),
+    path.join(process.cwd(), "config/agents.yaml"),
+    path.join(__dirname, "../config/agents.yaml"),
+    path.join(__dirname, "../../config/agents.yaml"),
+    path.resolve("/app/config/agents.yaml"),
+  ];
+
+  const agentsPath = candidatePaths.find((p) => fs.existsSync(p));
+  if (!agentsPath) {
+    console.warn(`[Agents] Config not found in candidate paths: ${candidatePaths.join(", ")}`);
     return [];
   }
 
@@ -26,7 +34,7 @@ export function loadAgents(): AgentRecord[] {
     }
     return [];
   } catch (err) {
-    console.error("[Agents] Error parsing config/agents.yaml:", err);
+    console.error(`[Agents] Error parsing ${agentsPath}:`, err);
     return [];
   }
 }
