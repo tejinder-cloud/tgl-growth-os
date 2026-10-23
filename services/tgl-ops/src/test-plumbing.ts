@@ -157,6 +157,17 @@ async function runPlumbingTest(): Promise<void> {
       throw new Error(`Expected HTTP 400 for expired timestamp, got ${expiredRes.status}`);
     }
     console.log("✅ [Test 4d Passed] Expired timestamp rejected with HTTP 400");
+
+    // 4e. GET /slack/events returns 200 confirming mounting without requiring signatures
+    const getRes = await fetch(`${baseUrl}/slack/events`);
+    if (getRes.status !== 200) {
+      throw new Error(`Expected HTTP 200 for GET /slack/events, got ${getRes.status}`);
+    }
+    const getJson: any = await getRes.json();
+    if (getJson.mounted !== true || getJson.status !== "ok") {
+      throw new Error(`Expected { status: "ok", mounted: true }, got ${JSON.stringify(getJson)}`);
+    }
+    console.log("✅ [Test 4e Passed] GET /slack/events returned HTTP 200 confirming endpoint is mounted");
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }
