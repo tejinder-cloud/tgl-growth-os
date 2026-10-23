@@ -1,0 +1,124 @@
+import { Router, type Request, type Response } from "express";
+import { config } from "../config.js";
+import { loadAgents } from "../lib/agents.js";
+import { createIssue, addCommentToIssue, appendFileInRepo } from "../lib/github-client.js";
+import { postLine } from "../lib/post.js";
+import { getTodayDateString, getCurrentTimeIST } from "../lib/standup.js";
+
+export const eventsRouter = Router();
+
+eventsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
+  const { type, challenge, event } = req.body;
+
+  // 1. URL Verification Challenge
+  if (type === "url_verification") {
+    res.json({ challenge });
+    return;
+  }
+
+  // Acknowledge Slack request immediately
+  res.status(200).send("OK");
+
+  if (type !== "event_callback" || !event) {
+    return;
+  }
+
+  try {
+    // 2. Handle app_mention: "@TGL Ops @<agent> <text>"
+    if (event.type === "app_mention") {
+      await handleAppMention(event);
+      return;
+    }
+
+    // 3. Handle thread reply in #approvals
+    if (event.type === "message" && !event.bot_id && event.subtype !== "bot_message") {
+      if (event.thread_ts && (event.channel === config.approvalsChannelId || event.channel.startsWith("C"))) {
+        await handleApprovalsThreadReply(event);
+      }
+    }
+  } catch (err) {
+    console.error("[Events Route Error]", err);
+  }
+});
+
+async function handleAppMention(event: any): Promise<void> {
+  const rawText: string = event.text || "";
+  const channel: string = event.channel;
+  const thread_ts: string = event.thread_ts || event.ts;
+
+  console.log(`[app_mention received in ${channel}]`, rawText);
+
+  // Example: "<@U12345> @web-builder please fix mobile CTA spacing on /coaching"
+  // Remove the bot mention itself
+  const textWithoutBot = rawText.replace(/<@[A-Z0-9]+>/g, "").trim();
+
+  // Look for target agent: either "@agent-name" or "<@UAGENTID>"
+  const agentMatch = textWithoutBot.match(/@([a-zA-Z0-9_-]+)/);
+  let targetAgent = agentMatch ? agentMatch[1].toLowerCase() : "";
+
+  const registeredAgents = loadAgents();
+  const matchedAgent = registeredAgents.find(
+    (a) => a.name.toLowerCase() === targetAgent || targetAgent.includes(a.name.toLowerCase())
+  );
+
+  const finalAgentName = matchedAgent ? matchedAgent.name : (targetAgent || "web-builder");
+
+  // Extract clean instruction
+  const taskText = textWithoutBot.replace(`@${targetAgent}`, "").trim() || "Task requested via Slack mention";
+  const title = taskText.split("\n")[0].slice(0, 80);
+
+  const cleanSlackLink = `https://${config.slackBotToken.slice(0, 5)}.slack.com/archives/${channel}/p${event.ts.replace(".", "")}`;
+  const threadContext = event.thread_ts ? `\n\n*Thread Parent:* \`${event.thread_ts}\`` : "";
+
+  const body = `### for-agent
+${finalAgentName}
+
+### door
+core
+
+### context
+Created automatically from Slack mention in <#${channel}>:
+> "${taskText}"
+
+*Slack Reference:* ${cleanSlackLink}${threadContext}
+
+### deliverable
+Implement requested task per agent skill file specifications.
+
+### reviewer
+${matchedAgent?.reviewer || "Chief of Staff"}
+
+### due
+Immediate priority
+`;
+
+  const issue = await createIssue({
+    title: `[TASK]: ${title}`,
+    body,
+    labels: [`for:${finalAgentName}`, "type:build"],
+  });
+
+  await postLine({
+    channel,
+    text: `⚡ Task assigned to \`@${finalAgentName}\`:\n• *Issue:* <${issue.html_url}|#${issue.number} ${title}>\n• *Reviewer:* ${matchedAgent?.reviewer || "Chief of Staff"}`,
+    thread_ts,
+  });
+}
+
+async function handleApprovalsThreadReply(event: any): Promise<void> {
+  const actor = event.user || "architect";
+  const text = event.text || "";
+  const dateStr = getTodayDateString();
+  const timeStr = getCurrentTimeIST();
+  const thread_ts = event.thread_ts;
+
+  console.log(`[Approvals Thread Reply] User: ${actor} | Text: "${text}" | Thread: ${thread_ts}`);
+
+  const line = `${timeStr} IST · ${actor} · COMMENT · thread:${thread_ts} · "${text.replace(/\n/g, " ")}"`;
+
+  await appendFileInRepo(
+    `decisions/${dateStr}.md`,
+    line,
+    `chore(decisions): record discussion comment from ${actor}`
+  );
+}

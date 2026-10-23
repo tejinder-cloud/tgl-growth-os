@@ -1,0 +1,100 @@
+# .github/labels.yml — Standard GitHub labels for The Growth Lab
+
+# Doors
+- name: "door:aeo"
+  color: "2F5D62"
+  description: "Tasks pertaining to TGL AEO and AI Visibility door"
+
+- name: "door:ai"
+  color: "5B7065"
+  description: "Tasks pertaining to TGL AI and AI Readiness door"
+
+- name: "door:truelead"
+  color: "C75B3B"
+  description: "Tasks pertaining to TrueLead lead qualification door"
+
+- name: "door:core"
+  color: "8A827B"
+  description: "Cross-door foundations, branding, infrastructure, and core operating system"
+
+# Task Types
+- name: "type:change-request"
+  color: "E28743"
+  description: "Modifications to existing assets, pages, or workflows"
+
+- name: "type:content"
+  color: "D97D64"
+  description: "Editorial posts, articles, copy, and thought leadership"
+
+- name: "type:build"
+  color: "356859"
+  description: "Code, theme patterns, infrastructure, or technical implementations"
+
+- name: "type:review"
+  color: "7E8D85"
+  description: "Creative Director, QA, or peer verification gates"
+
+# Agents
+- name: "for:chief-of-staff"
+  color: "1F2421"
+  description: "Assigned to Chief of Staff"
+
+- name: "for:prospect-researcher"
+  color: "335C67"
+  description: "Assigned to Prospect Researcher"
+
+- name: "for:outreach-sequencer"
+  color: "3D5A80"
+  description: "Assigned to Outreach Sequencer"
+
+- name: "for:sales-desk"
+  color: "457B9D"
+  description: "Assigned to Sales Desk"
+
+- name: "for:aeo-audit-engine"
+  color: "2A9D8F"
+  description: "Assigned to AEO Audit Engine"
+
+- name: "for:aeo-strategist"
+  color: "264653"
+  description: "Assigned to AEO Strategist"
+
+- name: "for:content-writer"
+  color: "E76F51"
+  description: "Assigned to Content Writer"
+
+- name: "for:repurposer-publisher"
+  color: "F4A261"
+  description: "Assigned to Repurposer/Publisher"
+
+- name: "for:web-builder"
+  color: "C75B3B"
+  description: "Assigned to Web Builder"
+
+- name: "for:creative-director"
+  color: "9D0208"
+  description: "Assigned to Creative Director"
+
+- name: "for:video-team"
+  color: "6A040F"
+  description: "Assigned to Video Team"
+
+- name: "for:delivery-qa"
+  color: "005F73"
+  description: "Assigned to Delivery QA"
+
+- name: "for:customer-success"
+  color: "0A9396"
+  description: "Assigned to Customer Success"
+
+- name: "for:finance"
+  color: "6B705C"
+  description: "Assigned to Finance"
+
+- name: "for:people-ops"
+  color: "A5A58D"
+  description: "Assigned to People Ops"
+
+- name: "for:compliance"
+  color: "B7B7A4"
+  description: "Assigned to Compliance"

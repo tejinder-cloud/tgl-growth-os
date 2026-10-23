@@ -1,0 +1,80 @@
+# The Growth Lab — Agent Directory
+# Managed via scripts/new-agent.sh and People Ops
+
+- name: chief-of-staff
+  department: office-of-the-architect
+  channel: "#standup"
+  trigger: "Daily 17:50 IST compilation, Monday 07:00 scorecard, mention @chief-of-staff"
+  reviewer: "Architect"
+
+- name: prospect-researcher
+  department: revenue
+  channel: "#revenue"
+  trigger: "Weekly list manufacture schedule, mention @prospect-researcher"
+  reviewer: "Sales Desk"
+
+- name: outreach-sequencer
+  department: revenue
+  channel: "#revenue"
+  trigger: "New qualified prospects from Supabase, mention @outreach-sequencer"
+  reviewer: "Sales Desk"
+
+- name: sales-desk
+  department: revenue
+  channel: "#revenue"
+  trigger: "Inbound replies, calendar bookings, mention @sales-desk"
+  reviewer: "Chief of Staff"
+
+- name: aeo-audit-engine
+  department: doors-aeo
+  channel: "#doors-aeo"
+  trigger: "Audit form submission, mention @aeo-audit-engine"
+  reviewer: "Delivery QA"
+
+- name: aeo-strategist
+  department: aeo-delivery
+  channel: "#doors-aeo"
+  trigger: "Start managed AEO trigger, monthly review cycle, mention @aeo-strategist"
+  reviewer: "Creative Director"
+
+- name: content-writer
+  department: marketing
+  channel: "#marketing"
+  trigger: "Weekly editorial calendar, mention @content-writer"
+  reviewer: "Creative Director"
+
+- name: repurposer-publisher
+  department: marketing
+  channel: "#marketing"
+  trigger: "Approved blog post from Editor, mention @repurposer-publisher"
+  reviewer: "Creative Director"
+
+- name: web-builder
+  department: marketing
+  channel: "#marketing"
+  trigger: "Issue labeled for:web-builder, mention @web-builder"
+  reviewer: "Creative Director"
+
+- name: creative-director
+  department: marketing
+  channel: "#marketing"
+  trigger: "Review requests from Web Builder/Content Writer, mention @creative-director"
+  reviewer: "Architect"
+
+- name: video-team
+  department: marketing
+  channel: "#video"
+  trigger: "Issue labeled for:video-team, mention @video-team"
+  reviewer: "Creative Director"
+
+- name: finance
+  department: finance
+  channel: "#finance"
+  trigger: "Deal won event, monthly close cycle (3rd), mention @finance"
+  reviewer: "Architect"
+
+- name: people-ops
+  department: people
+  channel: "#people"
+  trigger: "Monthly review cycle (14th), new agent onboarding, mention @people-ops"
+  reviewer: "Chief of Staff"

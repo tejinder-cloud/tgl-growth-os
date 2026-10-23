@@ -1,0 +1,7 @@
+*.zip
+.env*
+node_modules/
+dist/
+lighthouse-*.json
+.DS_Store
+*.log
