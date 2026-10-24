@@ -19,24 +19,26 @@ interactionsRouter.post("/", async (req: Request, res: Response): Promise<void> 
 
   // 1. Handle Block Actions (Approve, Reject, Discuss button clicks)
   if (payload.type === "block_actions") {
-    res.status(200).send(""); // Acknowledge button click within 3 seconds
+    res.status(200).send(""); // Acknowledge button click immediately within 3 seconds
 
     const action = payload.actions?.[0];
     if (!action) return;
 
-    try {
-      if (action.action_id === "action_approve") {
-        await handleApproveAction(payload, action);
-      } else if (action.action_id === "action_discuss") {
-        await handleDiscussAction(payload, action);
-      } else if (action.action_id === "action_reject") {
-        await handleRejectModalOpen(payload, action);
-      } else if (action.action_id === "action_picked_up") {
-        await handlePickedUpAction(payload, action);
+    (async () => {
+      try {
+        if (action.action_id === "action_approve") {
+          await handleApproveAction(payload, action);
+        } else if (action.action_id === "action_discuss") {
+          await handleDiscussAction(payload, action);
+        } else if (action.action_id === "action_reject") {
+          await handleRejectModalOpen(payload, action);
+        } else if (action.action_id === "action_picked_up") {
+          await handlePickedUpAction(payload, action);
+        }
+      } catch (err) {
+        console.error("[Interaction Action Error]", err);
       }
-    } catch (err) {
-      console.error("[Interaction Action Error]", err);
-    }
+    })();
     return;
   }
 
@@ -44,11 +46,13 @@ interactionsRouter.post("/", async (req: Request, res: Response): Promise<void> 
   if (payload.type === "view_submission") {
     if (payload.view?.callback_id === "modal_reject_reason") {
       res.json({ response_action: "clear" });
-      try {
-        await handleRejectSubmission(payload);
-      } catch (err) {
-        console.error("[Modal Submission Error]", err);
-      }
+      (async () => {
+        try {
+          await handleRejectSubmission(payload);
+        } catch (err) {
+          console.error("[Modal Submission Error]", err);
+        }
+      })();
       return;
     }
   }

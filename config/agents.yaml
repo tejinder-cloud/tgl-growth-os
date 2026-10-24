@@ -51,13 +51,13 @@
 
 - name: web-builder
   department: marketing
-  channel: "#marketing"
+  channel: "#site-build"
   trigger: "Issue labeled for:web-builder, mention @web-builder"
   reviewer: "Creative Director"
 
 - name: creative-director
   department: marketing
-  channel: "#marketing"
+  channel: "#site-build"
   trigger: "Review requests from Web Builder/Content Writer, mention @creative-director"
   reviewer: "Architect"
 
