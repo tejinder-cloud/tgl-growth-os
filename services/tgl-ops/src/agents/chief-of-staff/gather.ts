@@ -59,7 +59,7 @@ export async function gatherStandupMaterial(
   options?: { testMode?: boolean }
 ): Promise<GatheredData> {
   const date = dateStr || getTodayDateString();
-  const isTest = options?.testMode || process.env.TGL_TEST_MODE === "1";
+  const isTest = options?.testMode === true || process.env.TGL_TEST_MODE === "1";
 
   // 1. Gather logs/<date>/*.md from main via Contents API, never local disk
   const logs: LogEntry[] = [];

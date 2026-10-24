@@ -61,7 +61,39 @@ export const config: AppConfig = {
   repoRoot: REPO_ROOT,
 };
 
+/**
+ * Test mode is strictly on ONLY when TGL_TEST_MODE is literally "1".
+ * Any other detection (NODE_ENV, missing env, default true) is forbidden.
+ */
+export function isTestMode(): boolean {
+  return process.env.TGL_TEST_MODE === "1";
+}
+
+/**
+ * Detects if the current process is running inside a Railway container.
+ * Railway automatically sets RAILWAY_ENVIRONMENT, RAILWAY_PROJECT_ID,
+ * RAILWAY_SERVICE_ID, RAILWAY_DEPLOYMENT_ID, or RAILWAY_STATIC_URL.
+ */
+export function isRailwayEnvironment(): boolean {
+  return Boolean(
+    process.env.RAILWAY_ENVIRONMENT ||
+    process.env.RAILWAY_PROJECT_ID ||
+    process.env.RAILWAY_SERVICE_ID ||
+    process.env.RAILWAY_DEPLOYMENT_ID ||
+    process.env.RAILWAY_STATIC_URL ||
+    process.env.RAILWAY_PUBLIC_DOMAIN ||
+    process.env.RAILWAY_GIT_COMMIT_SHA
+  );
+}
+
 export function validateConfig(): void {
+  // CRITICAL: Refuse to boot in test mode if RAILWAY_ENVIRONMENT is set
+  if (isTestMode() && (process.env.RAILWAY_ENVIRONMENT || isRailwayEnvironment())) {
+    const fatalMsg = `[FATAL] Refusing to boot: TGL_TEST_MODE is set in a Railway environment (${process.env.RAILWAY_ENVIRONMENT || "Railway detected"}). Test mode must never run in production.`;
+    console.error(fatalMsg);
+    throw new Error(fatalMsg);
+  }
+
   const missing: string[] = [];
   if (!config.slackSigningSecret) missing.push("SLACK_SIGNING_SECRET");
   if (!config.slackBotToken) missing.push("SLACK_BOT_TOKEN");
@@ -69,6 +101,8 @@ export function validateConfig(): void {
 
   if (missing.length > 0) {
     console.warn(`[TGL Ops WARNING] Missing environment variables: ${missing.join(", ")}`);
-    console.warn("[TGL Ops WARNING] Some GitHub / Slack webhook operations will run in mock/dry-run mode.");
+    if (isTestMode()) {
+      console.warn("[TGL Ops WARNING] Running in test mode with mocks.");
+    }
   }
 }

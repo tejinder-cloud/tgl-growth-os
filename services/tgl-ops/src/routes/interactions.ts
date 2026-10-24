@@ -312,10 +312,20 @@ async function handleRejectSubmission(payload: any): Promise<void> {
   if (decRes.success && rejRes.success) {
     if (messageTs && config.slackBotToken) {
       try {
+        const rejectText = `❌ *Proposal Rejected by ${actor} at ${timeStr} IST*\n*Reason:* ${reason}\n_Recorded in \`rejections/${dateStr}.md\` and \`decisions/${dateStr}.md\`._`;
         await slackClient.chat.postMessage({
           channel,
           thread_ts: messageTs,
-          text: `❌ *Proposal Rejected by ${actor} at ${timeStr} IST*\n*Reason:* ${reason}\n_Recorded in \`rejections/${dateStr}.md\` and \`decisions/${dateStr}.md\`._`,
+          text: rejectText,
+          blocks: [
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: rejectText,
+              },
+            },
+          ],
         });
       } catch (err) {
         console.warn("[Card Update Warning on Reject]", err);

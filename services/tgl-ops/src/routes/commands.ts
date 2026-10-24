@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { config } from "../config.js";
+import { config, isTestMode } from "../config.js";
 import { loadAgents } from "../lib/agents.js";
 import { getTodayDateString } from "../lib/standup.js";
 import { createIssue } from "../lib/github-client.js";
@@ -25,13 +25,14 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
 
     (async () => {
       try {
-        const isTest = process.env.TGL_TEST_MODE === "1";
+        const isTest = isTestMode();
         const dateArg = text?.trim();
         const targetDate = /^\d{4}-\d{2}-\d{2}$/.test(dateArg) ? dateArg : getTodayDateString();
 
+        // In test mode, target #ops; in live use, target channel_id where the command was typed (e.g. #standup), fallback to config
         const targetChannel = isTest
           ? (config.opsChannelId || "#ops")
-          : (channel_id === config.standupChannelId ? config.standupChannelId : (config.standupChannelId || channel_id));
+          : (channel_id || config.standupChannelId);
 
         console.log(`[Slash Command /standup] Invoking Chief of Staff standup run for ${targetDate} to ${targetChannel}...`);
 
@@ -43,13 +44,20 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
           testMode: isTest,
         });
 
+        if (!broadcastRes.standupTs) {
+          throw new Error("Standup broadcast completed without a message timestamp from Slack.");
+        }
+
+        const costLineText = broadcastRes.costLine ? `\n• *Cost:* ${broadcastRes.costLine}` : "";
+        const replyText = `✅ Chief of Staff standup broadcast complete to <#${broadcastRes.channel}> (ts: ${broadcastRes.standupTs})${costLineText}`;
+
         if (responseUrl) {
           await fetch(responseUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               response_type: "ephemeral",
-              text: `✅ Chief of Staff standup broadcast complete to <#${broadcastRes.channel}> (ts: ${broadcastRes.standupTs || "simulated"}).`,
+              text: replyText,
             }),
           });
         }
@@ -223,15 +231,23 @@ ${matchedAgent.reviewer}
               text: `⚡ Task for @${matchedAgent.name}: <${issue.html_url}|#${issue.number} ${titleSnippet}>`,
               blocks: cardBlocks,
             });
+            if (!postRes.ok || !postRes.ts) {
+              throw new Error(`Slack card post failed: ${postRes.error || "no ts returned"}`);
+            }
             cardTs = postRes.ts;
-          } catch (err) {
-            console.warn(`[Task Card Warning] Failed to post task card to ${targetChannel}:`, err);
+          } catch (err: any) {
+            if (!isTestMode()) {
+              throw new Error(`Failed to post task card to ${targetChannel}: ${err.message}`);
+            }
           }
+        } else if (isTestMode()) {
+          cardTs = `${(Date.now() / 1000).toFixed(6)}`;
+        } else {
+          throw new Error("SLACK_BOT_TOKEN is not configured; cannot post task card in production.");
         }
 
-        // In environments without a live Slack Bot token (or test mocks), assign synthetic timestamp
         if (!cardTs) {
-          cardTs = `${(Date.now() / 1000).toFixed(6)}`;
+          throw new Error(`Failed to post task card to ${targetChannel}: no message timestamp returned from Slack.`);
         }
 
         await recordIssueMapping(issue.number, {
