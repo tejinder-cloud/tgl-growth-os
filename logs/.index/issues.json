@@ -15,21 +15,13 @@
     "title": "Fix footer CTA spacing on mobile",
     "updatedAt": "2026-10-24T09:21:26.109Z"
   },
-  "16": {
-    "channel": "#marketing",
-    "ts": "1792834271.078109",
+  "18": {
+    "channel": "#site-build",
+    "ts": "1792834930.264000",
     "agent": "web-builder",
     "door": "core",
-    "title": "Day 3 routing test",
-    "updatedAt": "2026-10-24T09:31:11.384Z"
-  },
-  "17": {
-    "channel": "#marketing",
-    "ts": "1792834318.293689",
-    "agent": "web-builder",
-    "door": "core",
-    "title": "Day 3 routing test",
-    "updatedAt": "2026-10-24T09:31:58.593Z"
+    "title": "Fix footer CTA spacing on mobile",
+    "updatedAt": "2026-10-24T09:42:10.264Z"
   },
   "42": {
     "channel": "#marketing",
