@@ -67,27 +67,62 @@ async function runDay03Tests(): Promise<void> {
     console.log(`✅ [Test 2b Passed] Unknown door rejected with ephemeral valid list`);
 
     // -------------------------------------------------------------------------
-    // 3. /task Command Success: Create Issue & Post Card
+    // 3. /task Command Success: Immediate Acknowledgment & Async response_url Update
     // -------------------------------------------------------------------------
-    console.log("\n[Test 2c] Executing valid /task command...");
+    console.log("\n[Test 2c] Executing valid /task command with response_url...");
+    let responseUrlPayload: any = null;
+    const responseServer = (await import("node:http")).createServer((req, res) => {
+      let raw = "";
+      req.on("data", (chunk) => (raw += chunk));
+      req.on("end", () => {
+        try {
+          responseUrlPayload = JSON.parse(raw);
+        } catch {}
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ok: true }));
+      });
+    });
+    await new Promise<void>((resolve) => responseServer.listen(0, () => resolve()));
+    const responsePort = (responseServer.address() as AddressInfo).port;
+    const mockResponseUrl = `http://127.0.0.1:${responsePort}/mock_response_url`;
+
+    const startTaskTime = Date.now();
     const validTaskRes = await sendSlackCommand(baseUrl, testSecret, {
       command: "/task",
       text: "@web-builder | core | Fix footer CTA spacing on mobile",
       user_name: "Architect",
       channel_id: "C_MARKETING",
+      response_url: mockResponseUrl,
     });
+    const taskAckElapsed = Date.now() - startTaskTime;
 
     if (validTaskRes.status !== 200) {
       throw new Error(`Expected HTTP 200 for valid /task, got ${validTaskRes.status}`);
     }
     const validTaskJson = (await validTaskRes.json()) as any;
-    if (validTaskJson.response_type !== "ephemeral" || !validTaskJson.text.includes("Task created")) {
-      throw new Error(`Unexpected /task response: ${JSON.stringify(validTaskJson)}`);
+    if (validTaskJson.response_type !== "ephemeral" || !validTaskJson.text.includes("Creating task")) {
+      throw new Error(`Expected immediate "Creating task..." acknowledgment, got: ${JSON.stringify(validTaskJson)}`);
     }
-    console.log(`✅ [Test 2c Passed] /task responded ephemeral with issue link: "${validTaskJson.text}"`);
+    console.log(`✅ [Test 2c Passed] /task acknowledged immediately in ${taskAckElapsed}ms with: "${validTaskJson.text}"`);
 
-    // Extract issue number from response or test mapping
-    const issueMatch = (validTaskJson.text as string).match(/#(\d+)/);
+    // Wait for background async task creation and response_url update
+    console.log("Waiting for async task creation and response_url update...");
+    const timeoutAt = Date.now() + 10000;
+    while (!responseUrlPayload && Date.now() < timeoutAt) {
+      await new Promise((r) => setTimeout(r, 200));
+    }
+    await new Promise<void>((resolve) => responseServer.close(() => resolve()));
+
+    if (!responseUrlPayload) {
+      throw new Error("Timed out waiting for response_url update from background task");
+    }
+    if (!responseUrlPayload.text.includes("Task created") || !responseUrlPayload.text.includes("#site-build")) {
+      throw new Error(`Unexpected response_url payload: ${JSON.stringify(responseUrlPayload)}`);
+    }
+    console.log(`✅ [Test 2c Async Update Passed] response_url updated with: "${responseUrlPayload.text}"`);
+
+    // Extract issue number from response_url payload text
+    const issueMatch = (responseUrlPayload.text as string).match(/#(\d+)/);
     const createdIssueNum = issueMatch ? parseInt(issueMatch[1], 10) : 1;
 
     // -------------------------------------------------------------------------
@@ -98,8 +133,8 @@ async function runDay03Tests(): Promise<void> {
     if (!mapping) {
       throw new Error(`Mapping for issue #${createdIssueNum} was not found in index`);
     }
-    if (mapping.channel !== "#marketing") {
-      throw new Error(`Expected channel "#marketing", got "${mapping.channel}"`);
+    if (mapping.channel !== "#site-build") {
+      throw new Error(`Expected channel "#site-build", got "${mapping.channel}"`);
     }
     console.log(`✅ [Test 3 Passed] Mapping verified: Issue #${createdIssueNum} -> channel: ${mapping.channel}, ts: ${mapping.ts}`);
 
@@ -110,7 +145,7 @@ async function runDay03Tests(): Promise<void> {
     const pickedUpPayload = {
       type: "block_actions",
       user: { id: "U_ARCHITECT", name: "falkanmedia", username: "falkanmedia" },
-      channel: { id: "#marketing" },
+      channel: { id: "#site-build" },
       container: { message_ts: mapping.ts },
       actions: [
         {
@@ -120,7 +155,7 @@ async function runDay03Tests(): Promise<void> {
             agent: "web-builder",
             door: "core",
             title: "Fix footer CTA spacing on mobile",
-            channel: "#marketing",
+            channel: "#site-build",
           }),
         },
       ],

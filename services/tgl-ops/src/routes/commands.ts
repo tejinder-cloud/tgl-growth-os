@@ -15,17 +15,44 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
 
   // 1. /standup Command
   if (command === "/standup") {
-    // If a specific date is passed (YYYY-MM-DD), compile for that date; otherwise today
-    const dateArg = text?.trim();
-    const targetDate = /^\d{4}-\d{2}-\d{2}$/.test(dateArg) ? dateArg : getTodayDateString();
-
-    const digest = await compileStandupDigest(targetDate);
-    const message = formatStandupMessage(digest);
-
-    res.json({
-      response_type: "in_channel",
-      text: message,
+    const responseUrl = req.body.response_url;
+    // Acknowledge immediately within 3 seconds
+    res.status(200).json({
+      response_type: "ephemeral",
+      text: "⏳ Compiling standup digest…",
     });
+
+    (async () => {
+      try {
+        const dateArg = text?.trim();
+        const targetDate = /^\d{4}-\d{2}-\d{2}$/.test(dateArg) ? dateArg : getTodayDateString();
+        const digest = await compileStandupDigest(targetDate);
+        const message = formatStandupMessage(digest);
+
+        if (responseUrl) {
+          await fetch(responseUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              response_type: "in_channel",
+              text: message,
+            }),
+          });
+        }
+      } catch (err) {
+        console.error("[Standup Error]", err);
+        if (responseUrl) {
+          await fetch(responseUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              response_type: "ephemeral",
+              text: `❌ Error compiling standup: ${(err as Error).message}`,
+            }),
+          });
+        }
+      }
+    })();
     return;
   }
 
@@ -81,10 +108,21 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const permalink = `https://itsthegrowthlab.slack.com/archives/${channel_id}`;
-    const contextText = `Slack message by @${user_name} in <#${channel_id}>:\n> "${trimmedText}"\n\n*Slack Permalink:* ${permalink}`;
+    const responseUrl = req.body.response_url;
 
-    const issueBody = `### for-agent
+    // Acknowledge immediately within 3 seconds
+    res.status(200).json({
+      response_type: "ephemeral",
+      text: "⏳ Creating task…",
+    });
+
+    // Perform GitHub issue creation, Slack card dispatch, and mapping recording asynchronously
+    (async () => {
+      try {
+        const permalink = `https://itsthegrowthlab.slack.com/archives/${channel_id}`;
+        const contextText = `Slack message by @${user_name} in <#${channel_id}>:\n> "${trimmedText}"\n\n*Slack Permalink:* ${permalink}`;
+
+        const issueBody = `### for-agent
 ${matchedAgent.name}
 
 ### door
@@ -102,98 +140,122 @@ ${matchedAgent.reviewer}
 ### due
 `;
 
-    const titleSnippet = what.split("\n")[0].slice(0, 80);
-    const issue = await createIssue({
-      title: `[TASK]: ${titleSnippet}`,
-      body: issueBody,
-      labels: [`for:${matchedAgent.name}`, `door:${matchedDoor}`, "type:build"],
-    });
+        const titleSnippet = what.split("\n")[0].slice(0, 80);
+        const issue = await createIssue({
+          title: `[TASK]: ${titleSnippet}`,
+          body: issueBody,
+          labels: [`for:${matchedAgent.name}`, `door:${matchedDoor}`, "type:build"],
+        });
 
-    const deptChannel = matchedAgent.channel;
-    const cardMetadata = JSON.stringify({
-      agent: matchedAgent.name,
-      door: matchedDoor,
-      issue: issue.number,
-      issueUrl: issue.html_url,
-      title: titleSnippet,
-      channel: deptChannel,
-    });
+        const targetChannel = matchedAgent.channel;
+        const cardMetadata = JSON.stringify({
+          agent: matchedAgent.name,
+          door: matchedDoor,
+          issue: issue.number,
+          issueUrl: issue.html_url,
+          title: titleSnippet,
+          channel: targetChannel,
+        });
 
-    const cardBlocks = [
-      {
-        type: "header",
-        text: {
-          type: "plain_text",
-          text: `⚡ Task Assigned: ${matchedAgent.name}`,
-          emoji: true,
-        },
-      },
-      {
-        type: "context",
-        elements: [
+        const cardBlocks = [
           {
-            type: "mrkdwn",
-            text: `*Agent:* \`${matchedAgent.name}\`  |  *Door:* \`${matchedDoor}\`  |  *Reviewer:* \`${matchedAgent.reviewer}\``,
-          },
-        ],
-      },
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `*Deliverable:*\n${what}\n\n*Issue Link:* <${issue.html_url}|#${issue.number} ${titleSnippet}>`,
-        },
-      },
-      {
-        type: "actions",
-        block_id: "task_actions",
-        elements: [
-          {
-            type: "button",
+            type: "header",
             text: {
               type: "plain_text",
-              text: "Picked up",
+              text: `⚡ Task Assigned: ${matchedAgent.name}`,
               emoji: true,
             },
-            style: "primary",
-            action_id: "action_picked_up",
-            value: cardMetadata,
           },
-        ],
-      },
-    ];
+          {
+            type: "context",
+            elements: [
+              {
+                type: "mrkdwn",
+                text: `*Agent:* \`${matchedAgent.name}\`  |  *Door:* \`${matchedDoor}\`  |  *Reviewer:* \`${matchedAgent.reviewer}\``,
+              },
+            ],
+          },
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: `*Deliverable:*\n${what}\n\n*Issue Link:* <${issue.html_url}|#${issue.number} ${titleSnippet}>`,
+            },
+          },
+          {
+            type: "actions",
+            block_id: "task_actions",
+            elements: [
+              {
+                type: "button",
+                text: {
+                  type: "plain_text",
+                  text: "Picked up",
+                  emoji: true,
+                },
+                style: "primary",
+                action_id: "action_picked_up",
+                value: cardMetadata,
+              },
+            ],
+          },
+        ];
 
-    let cardTs: string | undefined;
-    if (config.slackBotToken) {
-      try {
-        const postRes = await slackClient.chat.postMessage({
-          channel: deptChannel,
-          text: `⚡ Task for @${matchedAgent.name}: <${issue.html_url}|#${issue.number} ${titleSnippet}>`,
-          blocks: cardBlocks,
+        let cardTs: string | undefined;
+        if (config.slackBotToken) {
+          try {
+            const postRes = await slackClient.chat.postMessage({
+              channel: targetChannel,
+              text: `⚡ Task for @${matchedAgent.name}: <${issue.html_url}|#${issue.number} ${titleSnippet}>`,
+              blocks: cardBlocks,
+            });
+            cardTs = postRes.ts;
+          } catch (err) {
+            console.warn(`[Task Card Warning] Failed to post task card to ${targetChannel}:`, err);
+          }
+        }
+
+        // In environments without a live Slack Bot token (or test mocks), assign synthetic timestamp
+        if (!cardTs) {
+          cardTs = `${(Date.now() / 1000).toFixed(6)}`;
+        }
+
+        await recordIssueMapping(issue.number, {
+          channel: targetChannel,
+          ts: cardTs,
+          agent: matchedAgent.name,
+          door: matchedDoor,
+          title: titleSnippet,
         });
-        cardTs = postRes.ts;
+
+        const confirmationText = `✅ Task created: <${issue.html_url}|#${issue.number} ${titleSnippet}>\nPosted to ${targetChannel} for @${matchedAgent.name}.`;
+
+        if (responseUrl) {
+          await fetch(responseUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              response_type: "ephemeral",
+              replace_original: true,
+              text: confirmationText,
+            }),
+          });
+        }
       } catch (err) {
-        console.warn(`[Task Card Warning] Failed to post task card to ${deptChannel}:`, err);
+        console.error("[Task Creation Error]", err);
+        if (responseUrl) {
+          await fetch(responseUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              response_type: "ephemeral",
+              replace_original: true,
+              text: `❌ Failed to create task: ${(err as Error).message}`,
+            }),
+          });
+        }
       }
-    }
-
-    // In environments without a live Slack Bot token (or test mocks), assign synthetic timestamp
-    if (!cardTs) {
-      cardTs = `${(Date.now() / 1000).toFixed(6)}`;
-    }
-
-    await recordIssueMapping(issue.number, {
-      channel: deptChannel,
-      ts: cardTs,
-      agent: matchedAgent.name,
-      door: matchedDoor,
-      title: titleSnippet,
-    });
-
-    res.json({
-      response_type: "ephemeral",
-      text: `✅ Task created: <${issue.html_url}|#${issue.number} ${titleSnippet}>\nPosted to ${deptChannel} for @${matchedAgent.name}.`,
-    });
+    })();
     return;
   }
 
