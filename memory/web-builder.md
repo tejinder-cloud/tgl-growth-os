@@ -17,3 +17,5 @@
 - Never add inline script or style tags; tracking events must use `data-tgl-event` attributes.
 - Avoid low-contrast text on Thinking cards (body metadata must maintain WCAG AA ≥ 4.5:1).
 - Never use generic `<div>` with `aria-label`; place ARIA directly on interactive elements or SVGs with `role="img"`.
+- Railway default domains (`*.up.railway.app`) lack IPv6 `AAAA` DNS records. Services receiving webhooks from platforms with IPv6-preferring egress (e.g. Slack Event Subscriptions) can fail or time out during DNS/egress resolution if relying solely on the default Railway subdomain; attach a custom domain with Cloudflare or dual-stack proxying if IPv6 egress delivery fails.
+
