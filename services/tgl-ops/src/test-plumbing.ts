@@ -182,6 +182,17 @@ async function runPlumbingTest(): Promise<void> {
       throw new Error(`Expected { status: "ok", mounted: true }, got ${JSON.stringify(getJson)}`);
     }
     console.log("✅ [Test 4f Passed] GET /slack/events returned HTTP 200 confirming endpoint is mounted");
+
+    // 4g. POST /cards/gate0 triggers Gate 0 test card dispatch
+    const cardGate0Res = await fetch(`${baseUrl}/cards/gate0`, { method: "POST" });
+    if (cardGate0Res.status !== 200) {
+      throw new Error(`Expected HTTP 200 for POST /cards/gate0, got ${cardGate0Res.status}`);
+    }
+    const cardGate0Json: any = await cardGate0Res.json();
+    if (cardGate0Json.ok !== true) {
+      throw new Error(`Expected { ok: true } from /cards/gate0, got ${JSON.stringify(cardGate0Json)}`);
+    }
+    console.log("✅ [Test 4g Passed] POST /cards/gate0 successfully dispatched Gate 0 card");
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }
