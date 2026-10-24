@@ -6,7 +6,9 @@ import {
   execute1815SilenceCheck,
   handleArchitectStandupReply,
   pollStandupReplies,
-} from "./agents/chief-of-staff/worker.js";
+  getAnthropicModel,
+  getAnthropicPricing,
+} from "./agents/chief-of-staff/index.js";
 import { compileMondayScorecard } from "./agents/chief-of-staff/scorecard.js";
 import { postLine } from "./lib/post.js";
 import { getCurrentTimeIST, getTodayDateString } from "./lib/standup.js";
@@ -28,6 +30,61 @@ async function runDay04Tests(): Promise<void> {
   fs.mkdirSync(testDir, { recursive: true });
 
   try {
+    // -------------------------------------------------------------------------
+    // 0. Test Env Configuration: ANTHROPIC_MODEL & Pricing must fail loudly if missing
+    // -------------------------------------------------------------------------
+    console.log("\n[Test 0] Verifying ANTHROPIC_MODEL and pricing fail loudly when missing...");
+    const origModel = process.env.ANTHROPIC_MODEL;
+    const origPriceIn = process.env.ANTHROPIC_PRICE_IN;
+    const origPriceOut = process.env.ANTHROPIC_PRICE_OUT;
+
+    // 0a. Missing ANTHROPIC_MODEL
+    delete process.env.ANTHROPIC_MODEL;
+    let modelFailedLoudly = false;
+    try {
+      getAnthropicModel();
+    } catch (err: any) {
+      modelFailedLoudly = true;
+      console.log(`  • Missing ANTHROPIC_MODEL caught: ${err.message}`);
+    }
+    if (!modelFailedLoudly) {
+      throw new Error("ANTHROPIC_MODEL must fail loudly when missing; no hard-coded default allowed!");
+    }
+
+    // 0b. Missing ANTHROPIC_PRICE_IN
+    process.env.ANTHROPIC_MODEL = "claude-3-7-sonnet-20250219";
+    delete process.env.ANTHROPIC_PRICE_IN;
+    let priceInFailedLoudly = false;
+    try {
+      getAnthropicPricing();
+    } catch (err: any) {
+      priceInFailedLoudly = true;
+      console.log(`  • Missing ANTHROPIC_PRICE_IN caught: ${err.message}`);
+    }
+    if (!priceInFailedLoudly) {
+      throw new Error("ANTHROPIC_PRICE_IN must fail loudly when missing!");
+    }
+
+    // 0c. Missing ANTHROPIC_PRICE_OUT
+    process.env.ANTHROPIC_PRICE_IN = "3.00";
+    delete process.env.ANTHROPIC_PRICE_OUT;
+    let priceOutFailedLoudly = false;
+    try {
+      getAnthropicPricing();
+    } catch (err: any) {
+      priceOutFailedLoudly = true;
+      console.log(`  • Missing ANTHROPIC_PRICE_OUT caught: ${err.message}`);
+    }
+    if (!priceOutFailedLoudly) {
+      throw new Error("ANTHROPIC_PRICE_OUT must fail loudly when missing!");
+    }
+
+    // Restore environment variables for subsequent tests
+    process.env.ANTHROPIC_MODEL = origModel || "claude-3-7-sonnet-20250219";
+    process.env.ANTHROPIC_PRICE_IN = origPriceIn || "3.00";
+    process.env.ANTHROPIC_PRICE_OUT = origPriceOut || "15.00";
+    console.log(`✅ [Test 0 Passed] Missing ANTHROPIC_MODEL, ANTHROPIC_PRICE_IN, and ANTHROPIC_PRICE_OUT verified to fail loudly.`);
+
     // -------------------------------------------------------------------------
     // 1. Run 17:50 Gather + Anthropic Call against today's real logs -> post to #ops
     // -------------------------------------------------------------------------
