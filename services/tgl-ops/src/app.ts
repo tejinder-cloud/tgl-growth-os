@@ -6,6 +6,7 @@ import { eventsRouter } from "./routes/events.js";
 import { interactionsRouter } from "./routes/interactions.js";
 import { commandsRouter } from "./routes/commands.js";
 import { healthRouter } from "./routes/health.js";
+import { cardsRouter } from "./routes/cards.js";
 
 /**
  * Creates and configures the Express app.
@@ -117,7 +118,10 @@ export function createApp(signingSecret?: string) {
   app.use("/slack/interactions", verifier, interactionsRouter);
   app.use("/slack/commands", verifier, commandsRouter);
 
-  // 7. Global Error Handler
+  // 7. Cards API: Inbound card dispatch endpoint for agents and tests
+  app.use("/cards", cardsRouter);
+
+  // 8. Global Error Handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     console.error("[Server Error]", err);
     res.status(500).json({ error: "Internal Server Error" });
