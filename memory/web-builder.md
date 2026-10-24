@@ -16,6 +16,4 @@
 - Never self-approve proposals or execute unapproved scope expansions before Architect review.
 - Never add inline script or style tags; tracking events must use `data-tgl-event` attributes.
 - Avoid low-contrast text on Thinking cards (body metadata must maintain WCAG AA ≥ 4.5:1).
-- Never use generic `<div>` with `aria-label`; place ARIA directly on interactive elements or SVGs with `role="img"`.
-- Railway default domains (`*.up.railway.app`) lack IPv6 `AAAA` DNS records. Services receiving webhooks from platforms with IPv6-preferring egress (e.g. Slack Event Subscriptions) can fail or time out during DNS/egress resolution if relying solely on the default Railway subdomain; attach a custom domain with Cloudflare or dual-stack proxying if IPv6 egress delivery fails.
-
+- Slack Event Subscriptions verification observation: `tgl-growth-os-production.up.railway.app` publishes no `AAAA` DNS record (only IPv4 `A` at `69.46.46.67`). The endpoint is verified reachable and responsive over IPv4 (~0.5s). Slack's verification request was captured at `webhook.site` (with valid headers and matching signature) but was not observed arriving at the Railway application when targeting the Railway domain; cause: unknown — under investigation.
