@@ -10,9 +10,10 @@
 - Never edit `tgl-theme/theme.json` manually; edit `design-system/tokens.json` and run `site/build-theme-json.js`.
 - Always set `font-display: optional` on Fraunces to eliminate webfont swap delay and layout recalculation.
 - Never preload body font (DM Sans); preload only display hero faces (`fraunces-latin-normal.woff2` and italic) with `fetchpriority="high"`.
-- Test hygiene standing rule: any issue, PR, card or log line created by a test is labelled `type:test`, posts only to `#ops`, and is closed by the test itself. Never post test executions to real channels (`#standup`, `#marketing`, `#site-build`, `#approvals`, `#architect`) or leave unclosed test artifacts.
+- Test hygiene standing rule: tests never write to `decisions/` or `logs/` on main — not even to delete afterwards. Write to `logs/.test/` and clean it, or mock the write. Any issue, PR, card or log line created by a test is labelled `type:test`, posts only to `#ops`, and is closed by the test itself. Never post test executions to real channels (`#standup`, `#marketing`, `#site-build`, `#approvals`, `#architect`) or leave unclosed test artifacts.
 
 ## Pitfalls & Anti-Patterns Avoided
+- 2026-10-24 Test write breach: Test suite wrote test decision and architect log directly to `decisions/2026-10-24.md` ("Approved revised CTA copy for mobile") and `logs/2026-10-24/architect.md` on main. Remedied by deleting `logs/2026-10-24/architect.md` and reverting the test decision line via the GitHub Contents API. Standing rule enforced: tests must never touch production `logs/` or `decisions/` on main under any circumstance (not even for cleanup); use `logs/.test/` with immediate cleanup or mock the write.
 - Never duplicate repository-level `config/` into subservices; having two copies of configuration breaks the single-source rule in `ORG.md §3`.
 - Never self-approve proposals or execute unapproved scope expansions before Architect review.
 - Never add inline script or style tags; tracking events must use `data-tgl-event` attributes.

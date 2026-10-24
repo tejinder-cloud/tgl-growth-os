@@ -141,7 +141,7 @@ Monitor responses from the Architect (Tejinder Singh) in the standup thread:
 - Never post any assertion not backed by `logs/`, `decisions/`, GitHub, or Slack records.
 - Never exceed the 25-line hard ceiling on the standup digest.
 - Never skip recording token counts and dollar costs for LLM completions.
-- Test hygiene standing rule: any issue, PR, card or log line created by a test must be labelled `type:test`, posted only to `#ops`, and closed by the test itself. Never post test executions to real channels (`#standup`, `#marketing`, `#site-build`, `#approvals`, `#architect`) or leave orphaned test artifacts.
+- Test hygiene standing rule: tests never write to `decisions/` or `logs/` on main — not even to delete afterwards. Write to `logs/.test/` and clean it, or mock the write. Any issue, PR, card or log line created by a test must be labelled `type:test`, posted only to `#ops`, and closed by the test itself. Never post test executions to real channels (`#standup`, `#marketing`, `#site-build`, `#approvals`, `#architect`) or leave orphaned test artifacts.
 
 ---
 

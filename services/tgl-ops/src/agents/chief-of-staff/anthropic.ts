@@ -49,7 +49,11 @@ export function loadChiefOfStaffSkillPrompt(): string {
  * Hard cap: 25 lines total.
  * Logs token cost to logs/<today>/chief-of-staff.md.
  */
-export async function synthesizeStandupDigest(data: GatheredData): Promise<SynthesisResult> {
+export async function synthesizeStandupDigest(
+  data: GatheredData,
+  options?: { testMode?: boolean }
+): Promise<SynthesisResult> {
+  const isTest = options?.testMode || process.env.TGL_TEST_MODE === "1";
   const systemPrompt = loadChiefOfStaffSkillPrompt() + `
 
 MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
@@ -65,7 +69,7 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
 `;
 
   let digestText = "";
-  let modelName = process.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-20241022";
+  let modelName = process.env.ANTHROPIC_MODEL || "claude-3-7-sonnet-20250219";
   let inputTokens = 0;
   let outputTokens = 0;
 
@@ -112,14 +116,26 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
     (inputTokens * SONNET_INPUT_PRICE_PER_TOKEN + outputTokens * SONNET_OUTPUT_PRICE_PER_TOKEN).toFixed(4)
   );
 
-  // Log token cost to logs/<today>/chief-of-staff.md via Contents API
+  // Log token cost
   const timeStr = getCurrentTimeIST();
   const logLine = `- ${timeStr} IST — Standup compilation: ${inputTokens} input, ${outputTokens} output (${modelName}) · Cost: $${totalCostUsd.toFixed(4)}`;
-  const appendRes = await appendFileInRepo(
-    `logs/${data.date}/chief-of-staff.md`,
-    logLine,
-    `chore(log): record chief-of-staff compilation tokens for ${data.date}`
-  );
+  let loggedCost = false;
+
+  if (isTest) {
+    // Tests never write to logs/ or decisions/ on main — write to logs/.test/
+    const testLogsDir = path.join(config.repoRoot, "logs/.test");
+    fs.mkdirSync(testLogsDir, { recursive: true });
+    fs.appendFileSync(path.join(testLogsDir, "chief-of-staff.md"), logLine + "\n", "utf8");
+    loggedCost = true;
+    console.log(`[Test Mode] Standup compilation cost logged to logs/.test/chief-of-staff.md (not on main).`);
+  } else {
+    const appendRes = await appendFileInRepo(
+      `logs/${data.date}/chief-of-staff.md`,
+      logLine,
+      `chore(log): record chief-of-staff compilation tokens for ${data.date}`
+    );
+    loggedCost = appendRes.success;
+  }
 
   return {
     digestText,
@@ -127,7 +143,7 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
     inputTokens,
     outputTokens,
     totalCostUsd,
-    loggedCost: appendRes.success,
+    loggedCost,
   };
 }
 

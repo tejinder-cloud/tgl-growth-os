@@ -10,6 +10,7 @@ export interface AgentRecord {
   channel: string;
   trigger: string;
   reviewer: string;
+  status?: "active" | "planned" | string;
 }
 
 export interface DoorRecord {

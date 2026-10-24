@@ -6,75 +6,88 @@
   channel: "#standup"
   trigger: "Daily 17:50 IST compilation, Monday 07:00 scorecard, mention @chief-of-staff"
   reviewer: "Architect"
+  status: active
 
 - name: prospect-researcher
   department: revenue
   channel: "#revenue"
   trigger: "Weekly list manufacture schedule, mention @prospect-researcher"
   reviewer: "Sales Desk"
+  status: planned
 
 - name: outreach-sequencer
   department: revenue
   channel: "#revenue"
   trigger: "New qualified prospects from Supabase, mention @outreach-sequencer"
   reviewer: "Sales Desk"
+  status: planned
 
 - name: sales-desk
   department: revenue
   channel: "#revenue"
   trigger: "Inbound replies, calendar bookings, mention @sales-desk"
   reviewer: "Chief of Staff"
+  status: planned
 
 - name: aeo-audit-engine
   department: doors-aeo
   channel: "#doors-aeo"
   trigger: "Audit form submission, mention @aeo-audit-engine"
   reviewer: "Delivery QA"
+  status: planned
 
 - name: aeo-strategist
   department: aeo-delivery
   channel: "#doors-aeo"
   trigger: "Start managed AEO trigger, monthly review cycle, mention @aeo-strategist"
   reviewer: "Creative Director"
+  status: planned
 
 - name: content-writer
   department: marketing
   channel: "#marketing"
   trigger: "Weekly editorial calendar, mention @content-writer"
   reviewer: "Creative Director"
+  status: planned
 
 - name: repurposer-publisher
   department: marketing
   channel: "#marketing"
   trigger: "Approved blog post from Editor, mention @repurposer-publisher"
   reviewer: "Creative Director"
+  status: planned
 
 - name: web-builder
   department: marketing
   channel: "#site-build"
   trigger: "Issue labeled for:web-builder, mention @web-builder"
   reviewer: "Creative Director"
+  status: active
 
 - name: creative-director
   department: marketing
   channel: "#site-build"
   trigger: "Review requests from Web Builder/Content Writer, mention @creative-director"
   reviewer: "Architect"
+  status: planned
 
 - name: video-team
   department: marketing
   channel: "#video"
   trigger: "Issue labeled for:video-team, mention @video-team"
   reviewer: "Creative Director"
+  status: planned
 
 - name: finance
   department: finance
   channel: "#finance"
   trigger: "Deal won event, monthly close cycle (3rd), mention @finance"
   reviewer: "Architect"
+  status: planned
 
 - name: people-ops
   department: people
   channel: "#people"
   trigger: "Monthly review cycle (14th), new agent onboarding, mention @people-ops"
   reviewer: "Chief of Staff"
+  status: planned

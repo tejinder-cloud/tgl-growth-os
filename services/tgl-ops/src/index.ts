@@ -10,6 +10,7 @@ import {
   execute1800Broadcast,
   execute1815SilenceCheck,
   executeMondayScorecard,
+  pollStandupReplies,
 } from "./agents/chief-of-staff/worker.js";
 
 // Scheduled Chief of Staff Jobs (node-cron configured for Asia/Kolkata)
@@ -50,6 +51,34 @@ cron.schedule(
       await execute1815SilenceCheck();
     } catch (err) {
       console.error("[Cron 18:15 Error]", err);
+    }
+  },
+  { timezone: config.timezone }
+);
+
+// Every 10 minutes from 18:00 to 23:00 IST: Poll standup thread replies
+cron.schedule(
+  "*/10 18-23 * * *",
+  async () => {
+    console.log("[Cron Standup Poll 18-23 IST] Chief of Staff: Polling standup thread replies...");
+    try {
+      await pollStandupReplies();
+    } catch (err) {
+      console.error("[Cron Standup Poll Error]", err);
+    }
+  },
+  { timezone: config.timezone }
+);
+
+// 08:30 IST: Morning poll for standup thread replies
+cron.schedule(
+  "30 8 * * *",
+  async () => {
+    console.log("[Cron 08:30 IST] Chief of Staff: Polling standup thread replies...");
+    try {
+      await pollStandupReplies();
+    } catch (err) {
+      console.error("[Cron 08:30 IST Poll Error]", err);
     }
   },
   { timezone: config.timezone }
