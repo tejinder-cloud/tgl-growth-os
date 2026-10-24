@@ -15,8 +15,44 @@ export interface SynthesisResult {
   loggedCost: boolean;
 }
 
-const SONNET_INPUT_PRICE_PER_TOKEN = 3.0 / 1_000_000; // $3.00 per MTok
-const SONNET_OUTPUT_PRICE_PER_TOKEN = 15.0 / 1_000_000; // $15.00 per MTok
+/**
+ * Reads Anthropic model from ANTHROPIC_MODEL environment variable.
+ * Fallback: fails loudly with a descriptive error — no hard-coded default allowed.
+ */
+export function getAnthropicModel(): string {
+  const modelName = process.env.ANTHROPIC_MODEL?.trim();
+  if (!modelName) {
+    throw new Error(
+      "Missing required environment variable ANTHROPIC_MODEL. Model must not be hard-coded (fallback: fail loudly, no default allowed)."
+    );
+  }
+  return modelName;
+}
+
+/**
+ * Reads token pricing (USD per MTok) from ANTHROPIC_PRICE_IN and ANTHROPIC_PRICE_OUT environment variables.
+ * Fallback: fails loudly with a descriptive error if missing or invalid.
+ */
+export function getAnthropicPricing(): { priceInPerMTok: number; priceOutPerMTok: number } {
+  const priceInRaw = process.env.ANTHROPIC_PRICE_IN?.trim();
+  const priceOutRaw = process.env.ANTHROPIC_PRICE_OUT?.trim();
+
+  if (!priceInRaw || isNaN(Number(priceInRaw))) {
+    throw new Error(
+      "Missing or invalid required environment variable ANTHROPIC_PRICE_IN. Must be USD price per MTok (e.g. '3.00')."
+    );
+  }
+  if (!priceOutRaw || isNaN(Number(priceOutRaw))) {
+    throw new Error(
+      "Missing or invalid required environment variable ANTHROPIC_PRICE_OUT. Must be USD price per MTok (e.g. '15.00')."
+    );
+  }
+
+  return {
+    priceInPerMTok: Number(priceInRaw),
+    priceOutPerMTok: Number(priceOutRaw),
+  };
+}
 
 /**
  * Loads the Chief of Staff SKILL.md to use as the system prompt.
@@ -54,6 +90,9 @@ export async function synthesizeStandupDigest(
   options?: { testMode?: boolean }
 ): Promise<SynthesisResult> {
   const isTest = options?.testMode || process.env.TGL_TEST_MODE === "1";
+  const modelName = getAnthropicModel();
+  const { priceInPerMTok, priceOutPerMTok } = getAnthropicPricing();
+
   const systemPrompt = loadChiefOfStaffSkillPrompt() + `
 
 MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
@@ -69,7 +108,6 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
 `;
 
   let digestText = "";
-  let modelName = process.env.ANTHROPIC_MODEL || "claude-3-7-sonnet-20250219";
   let inputTokens = 0;
   let outputTokens = 0;
 
@@ -92,7 +130,6 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
       if (firstBlock && firstBlock.type === "text") {
         digestText = firstBlock.text;
       }
-      modelName = response.model || modelName;
       inputTokens = response.usage?.input_tokens || 0;
       outputTokens = response.usage?.output_tokens || 0;
     } catch (err: any) {
@@ -111,9 +148,11 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
   // Enforce 25 lines hard cap
   digestText = enforceLineCap(digestText, 25);
 
-  // Compute cost
+  // Compute cost using pricing read from environment variables (USD per MTok)
+  const inputPricePerToken = priceInPerMTok / 1_000_000;
+  const outputPricePerToken = priceOutPerMTok / 1_000_000;
   const totalCostUsd = Number(
-    (inputTokens * SONNET_INPUT_PRICE_PER_TOKEN + outputTokens * SONNET_OUTPUT_PRICE_PER_TOKEN).toFixed(4)
+    (inputTokens * inputPricePerToken + outputTokens * outputPricePerToken).toFixed(4)
   );
 
   // Log token cost
