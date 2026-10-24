@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { config } from "../../config.js";
+import { config, isTestMode } from "../../config.js";
 import { loadAgents } from "../../lib/agents.js";
 import { appendFileInRepo, octokit, putFileInRepo, readFileFromRepo } from "../../lib/github-client.js";
 import { slackClient, getActorDisplayName } from "../../lib/slack-client.js";
@@ -15,6 +15,7 @@ export interface StandupRunResult {
   date: string;
   digestText: string;
   synthesis: SynthesisResult;
+  costLine: string;
   cardTs?: string;
   threadTemplateTs?: string;
 }
@@ -34,6 +35,7 @@ export interface StandupState {
     inputTokens: number;
     outputTokens: number;
     totalCostUsd: number;
+    costLine?: string;
   };
   posted?: boolean;
   postedAt?: string;
@@ -54,7 +56,7 @@ export async function getStandupState(
   options?: { testMode?: boolean }
 ): Promise<StandupState | null> {
   const date = dateStr || getTodayDateString();
-  const isTest = options?.testMode || process.env.TGL_TEST_MODE === "1";
+  const isTest = options?.testMode === true || isTestMode();
 
   if (isTest) {
     const testStatePath = path.join(config.repoRoot, "logs/.test/.state", `standup-${date}.json`);
@@ -89,7 +91,7 @@ export async function saveStandupState(
   options?: { testMode?: boolean }
 ): Promise<void> {
   const date = dateStr || getTodayDateString();
-  const isTest = options?.testMode || process.env.TGL_TEST_MODE === "1";
+  const isTest = options?.testMode === true || isTestMode();
   const jsonContent = JSON.stringify(state, null, 2);
 
   if (isTest) {
@@ -123,16 +125,15 @@ export async function execute1750Gather(
   testTargetChannel?: string,
   options?: { testMode?: boolean }
 ): Promise<StandupRunResult> {
-  const isTest = options?.testMode || !!testTargetChannel || process.env.TGL_TEST_MODE === "1";
+  const isTest = options?.testMode === true || isTestMode();
   const date = dateStr || getTodayDateString();
   console.log(`[Chief of Staff] Running 17:50 IST gather & synthesis for ${date}...`);
 
   const data = await gatherStandupMaterial(date, { testMode: isTest });
   const synthesis = await synthesizeStandupDigest(data, { testMode: isTest });
 
-  console.log(
-    `[Chief of Staff] Synthesis complete (${synthesis.model}). Tokens: ${synthesis.inputTokens} in / ${synthesis.outputTokens} out ($${synthesis.totalCostUsd.toFixed(4)} USD)`
-  );
+  const costLine = `Standup compilation: ${synthesis.inputTokens} input, ${synthesis.outputTokens} output (${synthesis.model}) · Cost: $${synthesis.totalCostUsd.toFixed(4)} USD`;
+  console.log(`[Chief of Staff] Synthesis complete. ${costLine}`);
 
   // Preserve existing state if any, updating compilation details
   const existingState = await getStandupState(date, { testMode: isTest });
@@ -146,6 +147,7 @@ export async function execute1750Gather(
       inputTokens: synthesis.inputTokens,
       outputTokens: synthesis.outputTokens,
       totalCostUsd: synthesis.totalCostUsd,
+      costLine,
     },
     posted: existingState?.posted || false,
   };
@@ -165,6 +167,7 @@ export async function execute1750Gather(
     date,
     digestText: synthesis.digestText,
     synthesis,
+    costLine,
   };
 }
 
@@ -177,6 +180,22 @@ export interface BroadcastOptions {
   source?: "cron" | "standup_command" | "startup_catchup";
 }
 
+export interface BroadcastResult {
+  channel: string;
+  standupTs: string;
+  threadTs?: string;
+  alreadyPosted?: boolean;
+  compiledFresh?: boolean;
+  synthesis?: {
+    model: string;
+    inputTokens: number;
+    outputTokens: number;
+    totalCostUsd: number;
+    costLine?: string;
+  };
+  costLine?: string;
+}
+
 /**
  * Step 3b / 18:00 IST: Self-sufficient broadcast job.
  * Gathers + synthesizes + posts in one run.
@@ -187,18 +206,12 @@ export interface BroadcastOptions {
 export async function execute1800Broadcast(
   arg1?: string | BroadcastOptions,
   arg2?: string
-): Promise<{
-  channel: string;
-  standupTs?: string;
-  threadTs?: string;
-  alreadyPosted?: boolean;
-  compiledFresh?: boolean;
-}> {
+): Promise<BroadcastResult> {
   const options: BroadcastOptions = typeof arg1 === "object" && arg1 !== null
     ? arg1
     : { digestText: typeof arg1 === "string" ? arg1 : undefined, targetChannel: arg2 };
 
-  const isTest = options.testMode || !!options.targetChannel || process.env.TGL_TEST_MODE === "1";
+  const isTest = options.testMode === true || isTestMode();
   const date = options.dateStr || getTodayDateString();
   const channel = options.targetChannel || (isTest ? (config.opsChannelId || "#ops") : config.standupChannelId);
 
@@ -214,11 +227,14 @@ export async function execute1800Broadcast(
       threadTs: existingState.threadPromptTs,
       alreadyPosted: true,
       compiledFresh: false,
+      synthesis: existingState.synthesis,
+      costLine: existingState.synthesis?.costLine,
     };
   }
 
   let textToPost = options.digestText;
   let compiledFresh = false;
+  let currentSynthesis = existingState?.synthesis;
 
   // If digestText was not explicitly passed, check pre-compiled state file
   if (!textToPost) {
@@ -229,64 +245,121 @@ export async function execute1800Broadcast(
       console.log(`[Chief of Staff] No pre-compiled digest in state file (or forceCompile requested). Compiling fresh (gather + synthesize)...`);
       const runRes = await execute1750Gather(date, undefined, { testMode: isTest });
       textToPost = runRes.digestText;
+      currentSynthesis = {
+        model: runRes.synthesis.model,
+        inputTokens: runRes.synthesis.inputTokens,
+        outputTokens: runRes.synthesis.outputTokens,
+        totalCostUsd: runRes.synthesis.totalCostUsd,
+        costLine: runRes.costLine,
+      };
       compiledFresh = true;
     }
   }
 
+  const fallbackText = (textToPost && textToPost.trim()) || "*📊 The Growth Lab — Daily Standup Digest*";
   console.log(`[Chief of Staff] Broadcasting 18:00 IST standup digest to ${channel}...`);
   let standupTs: string | undefined;
+
+  // Audit: Every chat.postMessage MUST carry text (plain-text fallback) plus blocks
+  const standupBlocks = [
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: fallbackText,
+      },
+    },
+  ];
 
   if (config.slackBotToken) {
     try {
       const postRes = await slackClient.chat.postMessage({
         channel,
-        text: textToPost,
+        text: fallbackText,
+        blocks: standupBlocks,
       });
+      if (!postRes.ok || !postRes.ts) {
+        throw new Error(`Slack chat.postMessage failed: ${postRes.error || "no ts returned"}`);
+      }
       standupTs = postRes.ts;
     } catch (err: any) {
-      console.warn(`[Chief of Staff] Failed to post standup to ${channel}:`, err.message);
+      console.error(`[Chief of Staff] Failed to post standup to ${channel}:`, err.message);
+      if (!isTest) {
+        throw new Error(`Failed to broadcast standup to ${channel}: ${err.message}`);
+      }
     }
-  } else {
+  } else if (isTest) {
     standupTs = `${(Date.now() / 1000).toFixed(6)}`;
-    console.log(`[Chief of Staff Dry Run] [${channel}] Posted standup digest:\n${textToPost}`);
+    console.log(`[Chief of Staff Dry Run] [${channel}] Posted standup digest:\n${fallbackText}`);
+  } else {
+    throw new Error(`SLACK_BOT_TOKEN is not configured; cannot broadcast standup in production.`);
+  }
+
+  if (!standupTs) {
+    throw new Error(`Failed to broadcast standup to ${channel}: no message timestamp returned from Slack.`);
   }
 
   let threadTs: string | undefined;
-  if (standupTs) {
-    const threadPrompt = "Each agent: Did · Blocked · Need from the Architect · Tomorrow.";
-    if (config.slackBotToken) {
-      try {
-        const replyRes = await slackClient.chat.postMessage({
-          channel,
-          thread_ts: standupTs,
-          text: threadPrompt,
-        });
-        threadTs = replyRes.ts;
-      } catch (err: any) {
-        console.warn(`[Chief of Staff] Failed to post thread prompt to ${channel}:`, err.message);
+  const threadPrompt = "Each agent: Did · Blocked · Need from the Architect · Tomorrow.";
+  const threadBlocks = [
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: threadPrompt,
+      },
+    },
+  ];
+
+  if (config.slackBotToken) {
+    try {
+      const replyRes = await slackClient.chat.postMessage({
+        channel,
+        thread_ts: standupTs,
+        text: threadPrompt,
+        blocks: threadBlocks,
+      });
+      threadTs = replyRes.ts;
+    } catch (err: any) {
+      console.warn(`[Chief of Staff] Failed to post thread prompt to ${channel}:`, err.message);
+      if (!isTest) {
+        throw new Error(`Failed to post thread prompt to ${channel}: ${err.message}`);
       }
-    } else {
-      threadTs = `${(Date.now() / 1000).toFixed(6)}`;
-      console.log(`[Chief of Staff Dry Run] [${channel} : thread ${standupTs}] ${threadPrompt}`);
     }
-
-    // Persist posted state to logs/.state/standup-<date>.json via Contents API immediately
-    const updatedState: StandupState = {
-      ...(existingState || { date }),
-      date,
-      digestText: textToPost,
-      posted: true,
-      postedAt: new Date().toISOString(),
-      standupTs,
-      threadPromptTs: threadTs,
-      channel,
-      source: options.source || "cron",
-    };
-
-    await saveStandupState(date, updatedState, { testMode: isTest });
+  } else if (isTest) {
+    threadTs = `${(Date.now() / 1000).toFixed(6)}`;
+    console.log(`[Chief of Staff Dry Run] [${channel} : thread ${standupTs}] ${threadPrompt}`);
   }
 
-  return { channel, standupTs, threadTs, alreadyPosted: false, compiledFresh };
+  const costLine = currentSynthesis?.costLine || (currentSynthesis
+    ? `Standup compilation: ${currentSynthesis.inputTokens} input, ${currentSynthesis.outputTokens} output (${currentSynthesis.model}) · Cost: $${currentSynthesis.totalCostUsd.toFixed(4)} USD`
+    : undefined);
+
+  // Persist posted state to logs/.state/standup-<date>.json via Contents API immediately
+  const updatedState: StandupState = {
+    ...(existingState || { date }),
+    date,
+    digestText: fallbackText,
+    synthesis: currentSynthesis,
+    posted: true,
+    postedAt: new Date().toISOString(),
+    standupTs,
+    threadPromptTs: threadTs,
+    channel,
+    source: options.source || "cron",
+  };
+
+  await saveStandupState(date, updatedState, { testMode: isTest });
+
+  return {
+    channel,
+    standupTs,
+    threadTs,
+    alreadyPosted: false,
+    compiledFresh,
+    synthesis: currentSynthesis,
+    costLine,
+  };
 }
 
 /**
@@ -305,7 +378,7 @@ export async function checkAndRunStartupCatchup(options?: {
   reason: string;
   result?: any;
 }> {
-  const isTest = options?.testMode || process.env.TGL_TEST_MODE === "1";
+  const isTest = options?.testMode === true || isTestMode();
   const date = getTodayDateString();
   const inWindow = options?.forceWindowCheck !== false
     ? isWithinCatchupWindowIST(options?.testDate)
@@ -388,7 +461,7 @@ export async function execute1815SilenceCheck(
   targetChannel?: string,
   options?: { testMode?: boolean }
 ): Promise<{ silentAgents: string[]; postedCount: number }> {
-  const isTest = options?.testMode || !!targetChannel || process.env.TGL_TEST_MODE === "1";
+  const isTest = options?.testMode === true || isTestMode();
   const date = dateStr || getTodayDateString();
 
   // Retrieve standup post info from state file first
@@ -524,7 +597,7 @@ export async function handleArchitectStandupReply(
     testMode?: boolean;
   }
 ): Promise<{ handled: boolean; action?: "decision" | "log"; path?: string; alreadyProcessed?: boolean }> {
-  const isTest = options?.testMode || process.env.TGL_TEST_MODE === "1";
+  const isTest = options?.testMode === true || isTestMode();
 
   // Deduplicate by message ts
   if (event.ts && isReplyProcessed(event.ts)) {
@@ -615,7 +688,7 @@ export async function pollStandupReplies(options?: {
   repliesFound: number;
   newProcessedCount: number;
 }> {
-  const isTest = options?.testMode || process.env.TGL_TEST_MODE === "1";
+  const isTest = options?.testMode === true || isTestMode();
   const date = options?.dateStr || getTodayDateString();
 
   // 1. Read state file to find today's standup post (from cron or /standup)

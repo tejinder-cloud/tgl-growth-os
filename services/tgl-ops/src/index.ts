@@ -1,6 +1,15 @@
 import cron from "node-cron";
-import { config, validateConfig } from "./config.js";
+import { config, validateConfig, isTestMode } from "./config.js";
 import { createApp } from "./app.js";
+
+// On boot, log mode and validate environment
+console.log(`mode: ${isTestMode() ? "test" : "production"}`);
+try {
+  validateConfig();
+} catch (err: any) {
+  console.error("Configuration validation failed:", err.message);
+  process.exit(1);
+}
 
 const app = createApp();
 
@@ -98,8 +107,6 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
-// Validate environment configuration
-validateConfig();
 
 // Startup catch-up: if booted between 18:00 and 21:00 IST and standup was not posted today, run 18:00 job immediately
 checkAndRunStartupCatchup().catch((err) => {

@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { config } from "./config.js";
+import { config, validateConfig, isTestMode } from "./config.js";
 import {
   execute1750Gather,
   execute1800Broadcast,
@@ -88,7 +88,43 @@ async function runDay04Tests(): Promise<void> {
     process.env.ANTHROPIC_MODEL = origModel || "claude-3-7-sonnet-20250219";
     process.env.ANTHROPIC_PRICE_IN = origPriceIn || "3.00";
     process.env.ANTHROPIC_PRICE_OUT = origPriceOut || "15.00";
-    console.log(`✅ [Test 0 Passed] Missing ANTHROPIC_MODEL, ANTHROPIC_PRICE_IN, and ANTHROPIC_PRICE_OUT verified to fail loudly.`);
+
+    // 0d. Strict Test Mode detection (TGL_TEST_MODE === "1" strictly)
+    console.log("  • 0d: Verifying TGL_TEST_MODE strictness (only '1' is test mode)...");
+    process.env.TGL_TEST_MODE = "true";
+    if (isTestMode()) {
+      throw new Error("isTestMode() must return false when TGL_TEST_MODE is 'true'; only '1' allowed!");
+    }
+    process.env.TGL_TEST_MODE = "yes";
+    if (isTestMode()) {
+      throw new Error("isTestMode() must return false when TGL_TEST_MODE is 'yes'; only '1' allowed!");
+    }
+    delete process.env.TGL_TEST_MODE;
+    if (isTestMode()) {
+      throw new Error("isTestMode() must return false when TGL_TEST_MODE is unset!");
+    }
+    process.env.TGL_TEST_MODE = "1";
+    if (!isTestMode()) {
+      throw new Error("isTestMode() must return true when TGL_TEST_MODE is literally '1'!");
+    }
+
+    // 0e. Refuse to boot in test mode if RAILWAY_ENVIRONMENT is set
+    console.log("  • 0e: Verifying refusal to boot in test mode if RAILWAY_ENVIRONMENT is set...");
+    process.env.RAILWAY_ENVIRONMENT = "production";
+    let bootRefused = false;
+    try {
+      validateConfig();
+    } catch (err: any) {
+      bootRefused = true;
+      console.log(`    Refusal caught: ${err.message}`);
+    } finally {
+      delete process.env.RAILWAY_ENVIRONMENT;
+    }
+    if (!bootRefused) {
+      throw new Error("validateConfig() must throw and refuse to boot if RAILWAY_ENVIRONMENT is set in test mode!");
+    }
+
+    console.log(`✅ [Test 0 Passed] Missing ANTHROPIC_MODEL/pricing, strict test mode, and Railway boot refusal verified.`);
 
     // -------------------------------------------------------------------------
     // 1. 17:50 Pre-Compilation & State Persistence
@@ -222,12 +258,23 @@ async function runDay04Tests(): Promise<void> {
     if (!standupCommandRes.standupTs) {
       throw new Error("/standup broadcast did not return standupTs!");
     }
+    if (standupCommandRes.standupTs.includes("simulated")) {
+      throw new Error("standupTs must NEVER contain 'simulated'!");
+    }
+    if (!standupCommandRes.costLine) {
+      throw new Error("/standup broadcast must return a valid costLine!");
+    }
+
+    const replyText = `✅ Chief of Staff standup broadcast complete to <#${standupCommandRes.channel}> (ts: ${standupCommandRes.standupTs})\n• *Cost:* ${standupCommandRes.costLine}`;
+    if (replyText.includes("simulated")) {
+      throw new Error("Reply text must NEVER include 'simulated' or placeholder values!");
+    }
 
     const commandState = await getStandupState(today, { testMode: true });
     if (commandState?.source !== "standup_command" || commandState.standupTs !== standupCommandRes.standupTs) {
       throw new Error("/standup failed to persist command execution state!");
     }
-    console.log(`✅ [Test 4 Passed] /standup called Chief of Staff run (gather + Anthropic + broadcast) and saved state.`);
+    console.log(`✅ [Test 4 Passed] /standup called Chief of Staff run; verified real timestamp, costLine, and zero simulated strings.`);
 
     // -------------------------------------------------------------------------
     // 5. Standup Poll (18–23) finding post made by /standup as well as cron
