@@ -31,6 +31,14 @@
     "title": "Fix footer CTA spacing on mobile",
     "updatedAt": "2026-10-24T09:43:41.828Z"
   },
+  "24": {
+    "channel": "#site-build",
+    "ts": "1792849323.673000",
+    "agent": "web-builder",
+    "door": "core",
+    "title": "Fix footer CTA spacing on mobile",
+    "updatedAt": "2026-10-24T13:42:03.674Z"
+  },
   "42": {
     "channel": "#site-build",
     "ts": "1792834930.264000",
