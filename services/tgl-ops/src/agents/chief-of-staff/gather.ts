@@ -54,28 +54,33 @@ export interface GatheredData {
  * - PRs awaiting review
  * - door configurations from config/doors/*.yaml
  */
-export async function gatherStandupMaterial(dateStr?: string): Promise<GatheredData> {
+export async function gatherStandupMaterial(
+  dateStr?: string,
+  options?: { testMode?: boolean }
+): Promise<GatheredData> {
   const date = dateStr || getTodayDateString();
+  const isTest = options?.testMode || process.env.TGL_TEST_MODE === "1";
 
-  // 1. Gather logs/<date>/*.md
+  // 1. Gather logs/<date>/*.md from main via Contents API, never local disk
   const logs: LogEntry[] = [];
-  const localLogsDir = path.join(config.repoRoot, "logs", date);
 
-  if (fs.existsSync(localLogsDir)) {
-    try {
-      const files = fs.readdirSync(localLogsDir).filter((f) => f.endsWith(".md") && !f.startsWith("."));
-      for (const file of files) {
-        const agent = file.replace(/\.md$/, "");
-        const content = fs.readFileSync(path.join(localLogsDir, file), "utf8");
-        logs.push({ agent, content: content.trim() });
-      }
-    } catch (err) {
-      console.warn(`[Gather] Error reading local logs from ${localLogsDir}:`, err);
+  // In test mode, allow reading mock logs from logs/.test/logs if present
+  if (isTest) {
+    const testLogsDir = path.join(config.repoRoot, "logs/.test/logs");
+    if (fs.existsSync(testLogsDir)) {
+      try {
+        const files = fs.readdirSync(testLogsDir).filter((f) => f.endsWith(".md") && !f.startsWith("."));
+        for (const file of files) {
+          const agent = file.replace(/\.md$/, "");
+          const content = fs.readFileSync(path.join(testLogsDir, file), "utf8");
+          logs.push({ agent, content: content.trim() });
+        }
+      } catch {}
     }
   }
 
-  // Also query GitHub Contents API if remote has additional or fresh logs
-  if (config.githubToken && logs.length === 0) {
+  // Primary path (production & testing against real logs): Read directly from main via GitHub Contents API
+  if (logs.length === 0 && config.githubToken) {
     try {
       const res = await octokit.repos.getContent({
         owner: config.githubOwner,
@@ -86,7 +91,7 @@ export async function gatherStandupMaterial(dateStr?: string): Promise<GatheredD
 
       if (Array.isArray(res.data)) {
         for (const item of res.data) {
-          if (item.type === "file" && item.name.endsWith(".md")) {
+          if (item.type === "file" && item.name.endsWith(".md") && !item.name.startsWith(".")) {
             const fileRes = await octokit.repos.getContent({
               owner: config.githubOwner,
               repo: config.githubRepo,
@@ -105,17 +110,21 @@ export async function gatherStandupMaterial(dateStr?: string): Promise<GatheredD
       }
     } catch (err: any) {
       if (err.status !== 404) {
-        console.warn(`[Gather] GitHub error fetching logs for ${date}:`, err.message);
+        console.warn(`[Gather] GitHub error fetching logs for ${date} from main:`, err.message);
       }
     }
   }
 
-  // 2. Gather confirmed decisions to determine open approvals
+  // 2. Gather confirmed decisions to determine open approvals from main via Contents API
   let confirmedDecisionsText = "";
-  const localDecisionsPath = path.join(config.repoRoot, "decisions", `${date}.md`);
-  if (fs.existsSync(localDecisionsPath)) {
-    confirmedDecisionsText = fs.readFileSync(localDecisionsPath, "utf8");
-  } else if (config.githubToken) {
+  if (isTest) {
+    const testDecisionsPath = path.join(config.repoRoot, "logs/.test/decisions.md");
+    if (fs.existsSync(testDecisionsPath)) {
+      confirmedDecisionsText = fs.readFileSync(testDecisionsPath, "utf8");
+    }
+  }
+
+  if (!confirmedDecisionsText && config.githubToken) {
     try {
       const decRes = await octokit.repos.getContent({
         owner: config.githubOwner,

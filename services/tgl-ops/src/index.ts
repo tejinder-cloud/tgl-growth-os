@@ -1,7 +1,6 @@
 import cron from "node-cron";
 import { config, validateConfig } from "./config.js";
 import { createApp } from "./app.js";
-import { broadcast1800Standup, broadcast1815SilenceFlag, compileStandupDigest } from "./lib/standup.js";
 
 const app = createApp();
 
@@ -11,6 +10,7 @@ import {
   execute1815SilenceCheck,
   executeMondayScorecard,
   pollStandupReplies,
+  checkAndRunStartupCatchup,
 } from "./agents/chief-of-staff/worker.js";
 
 // Scheduled Chief of Staff Jobs (node-cron configured for Asia/Kolkata)
@@ -100,6 +100,11 @@ cron.schedule(
 
 // Validate environment configuration
 validateConfig();
+
+// Startup catch-up: if booted between 18:00 and 21:00 IST and standup was not posted today, run 18:00 job immediately
+checkAndRunStartupCatchup().catch((err) => {
+  console.error("[Startup Catch-Up Error]", err);
+});
 
 // Sync labels on startup
 import("./lib/labels.js").then(({ syncLabels }) => {

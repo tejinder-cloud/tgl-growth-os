@@ -1,10 +1,11 @@
 import { Router, type Request, type Response } from "express";
 import { config } from "../config.js";
 import { loadAgents } from "../lib/agents.js";
-import { compileStandupDigest, formatStandupMessage, getTodayDateString } from "../lib/standup.js";
+import { getTodayDateString } from "../lib/standup.js";
 import { createIssue } from "../lib/github-client.js";
 import { slackClient, openModal } from "../lib/slack-client.js";
 import { recordIssueMapping } from "../lib/issues-index.js";
+import { execute1800Broadcast } from "../agents/chief-of-staff/worker.js";
 
 export const commandsRouter = Router();
 
@@ -13,41 +14,54 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
 
   console.log(`[Slash Command] Command: ${command} | User: ${user_name} | Text: "${text}"`);
 
-  // 1. /standup Command
+  // 1. /standup Command: Calls Chief of Staff run (gather from GitHub, Anthropic call, cost line)
   if (command === "/standup") {
     const responseUrl = req.body.response_url;
     // Acknowledge immediately within 3 seconds
     res.status(200).json({
       response_type: "ephemeral",
-      text: "⏳ Compiling standup digest…",
+      text: "⏳ Chief of Staff: Gathering operational material & synthesizing standup…",
     });
 
     (async () => {
       try {
+        const isTest = process.env.TGL_TEST_MODE === "1";
         const dateArg = text?.trim();
         const targetDate = /^\d{4}-\d{2}-\d{2}$/.test(dateArg) ? dateArg : getTodayDateString();
-        const digest = await compileStandupDigest(targetDate);
-        const message = formatStandupMessage(digest);
 
-        if (responseUrl) {
-          await fetch(responseUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              response_type: "in_channel",
-              text: message,
-            }),
-          });
-        }
-      } catch (err) {
-        console.error("[Standup Error]", err);
+        const targetChannel = isTest
+          ? (config.opsChannelId || "#ops")
+          : (channel_id === config.standupChannelId ? config.standupChannelId : (config.standupChannelId || channel_id));
+
+        console.log(`[Slash Command /standup] Invoking Chief of Staff standup run for ${targetDate} to ${targetChannel}...`);
+
+        const broadcastRes = await execute1800Broadcast({
+          targetChannel,
+          dateStr: targetDate,
+          forceCompile: true,
+          source: "standup_command",
+          testMode: isTest,
+        });
+
         if (responseUrl) {
           await fetch(responseUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               response_type: "ephemeral",
-              text: `❌ Error compiling standup: ${(err as Error).message}`,
+              text: `✅ Chief of Staff standup broadcast complete to <#${broadcastRes.channel}> (ts: ${broadcastRes.standupTs || "simulated"}).`,
+            }),
+          });
+        }
+      } catch (err) {
+        console.error("[Standup Command Error]", err);
+        if (responseUrl) {
+          await fetch(responseUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              response_type: "ephemeral",
+              text: `❌ Error running Chief of Staff standup: ${(err as Error).message}`,
             }),
           });
         }
