@@ -3,6 +3,7 @@ import { config } from "../config.js";
 import { loadAgents } from "../lib/agents.js";
 import { createIssue, addCommentToIssue, appendFileInRepo } from "../lib/github-client.js";
 import { postLine } from "../lib/post.js";
+import { getActorDisplayName } from "../lib/slack-client.js";
 import { getTodayDateString, getCurrentTimeIST } from "../lib/standup.js";
 
 export const eventsRouter = Router();
@@ -121,7 +122,7 @@ Immediate priority
 }
 
 async function handleApprovalsThreadReply(event: any): Promise<void> {
-  const actor = event.user || "architect";
+  const actor = await getActorDisplayName(event.user || "architect");
   const text = event.text || "";
   const dateStr = getTodayDateString();
   const timeStr = getCurrentTimeIST();
@@ -131,9 +132,25 @@ async function handleApprovalsThreadReply(event: any): Promise<void> {
 
   const line = `${timeStr} IST · ${actor} · COMMENT · thread:${thread_ts} · "${text.replace(/\n/g, " ")}"`;
 
-  await appendFileInRepo(
+  const appendRes = await appendFileInRepo(
     `decisions/${dateStr}.md`,
     line,
     `chore(decisions): record discussion comment from ${actor}`
   );
+
+  if (!appendRes.success) {
+    const failureMsg = `Decision captured in Slack but NOT written to the repo — ${appendRes.status || 500} ${appendRes.error || "Unknown error"}`;
+    if (thread_ts) {
+      await postLine({
+        channel: event.channel,
+        text: failureMsg,
+        thread_ts,
+      });
+    }
+    await postLine({
+      channel: config.alertsChannelId,
+      text: failureMsg,
+    });
+  }
 }
+

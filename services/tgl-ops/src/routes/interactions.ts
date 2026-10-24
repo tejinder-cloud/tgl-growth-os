@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { config } from "../config.js";
-import { slackClient, openModal } from "../lib/slack-client.js";
+import { slackClient, openModal, getActorDisplayName } from "../lib/slack-client.js";
 import { appendFileInRepo, addLabelsToIssue } from "../lib/github-client.js";
 import { postLine } from "../lib/post.js";
 import { getTodayDateString, getCurrentTimeIST } from "../lib/standup.js";
@@ -56,7 +56,7 @@ interactionsRouter.post("/", async (req: Request, res: Response): Promise<void> 
 
 async function handleApproveAction(payload: any, action: any): Promise<void> {
   const meta = JSON.parse(action.value || "{}");
-  const actor = payload.user?.username || payload.user?.name || payload.user?.id || "Architect";
+  const actor = await getActorDisplayName(payload.user);
   const agent = meta.agent || "web-builder";
   const summary = meta.summary || meta.title || "Task approval";
   const issueNum = meta.issue ? parseInt(meta.issue, 10) : undefined;
@@ -75,7 +75,7 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
   const decisionLine = `${timeStr} IST · ${actor} · APPROVE · ${agent} · ${summary} · ${issueUrl}`;
 
   // Append to decisions/YYYY-MM-DD.md
-  await appendFileInRepo(
+  const appendRes = await appendFileInRepo(
     `decisions/${dateStr}.md`,
     decisionLine,
     `chore(decision): approve ${agent} task per ${actor}`
@@ -86,51 +86,96 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
     await addLabelsToIssue(issueNum, ["approved:yes"]);
   }
 
-  // Update card message to show approved status
-  if (messageTs && config.slackBotToken) {
-    try {
-      const originalBlocks = payload.message?.blocks || [];
-      const updatedBlocks = originalBlocks
-        .filter((b: any) => b.block_id !== "card_actions")
-        .concat([
-          {
-            type: "section",
-            text: {
-              type: "mrkdwn",
-              text: `✅ *Approved by @${actor} at ${timeStr} IST*\n_Recorded in \`decisions/${dateStr}.md\`._`,
+  if (appendRes.success) {
+    // 200/201 Success: Update card message to show approved status with "Recorded"
+    if (messageTs && config.slackBotToken) {
+      try {
+        const originalBlocks = payload.message?.blocks || [];
+        const updatedBlocks = originalBlocks
+          .filter((b: any) => b.block_id !== "card_actions")
+          .concat([
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: `✅ *Approved by ${actor} at ${timeStr} IST*\n_Recorded in \`decisions/${dateStr}.md\`._`,
+              },
             },
-          },
-        ]);
+          ]);
 
-      await slackClient.chat.update({
-        channel,
-        ts: messageTs,
-        text: `✅ Approved: ${meta.title} by @${actor}`,
-        blocks: updatedBlocks,
-      });
-    } catch (err) {
-      console.warn("[Card Update Warning]", err);
+        await slackClient.chat.update({
+          channel,
+          ts: messageTs,
+          text: `✅ Approved: ${meta.title} by ${actor}`,
+          blocks: updatedBlocks,
+        });
+      } catch (err) {
+        console.warn("[Card Update Warning]", err);
+      }
     }
-  }
 
-  // Post confirmation in thread
-  await postLine({
-    channel,
-    text: `✅ Decision recorded: Approved by @${actor} at ${timeStr} IST. Appended to \`decisions/${dateStr}.md\`.`,
-    thread_ts: messageTs,
-  });
+    // Post confirmation in thread
+    await postLine({
+      channel,
+      text: `✅ Decision recorded: Approved by ${actor} at ${timeStr} IST. Appended to \`decisions/${dateStr}.md\`.`,
+      thread_ts: messageTs,
+    });
+  } else {
+    // Failure (any status other than 200/201): Never report a write that didn't happen!
+    const failureMsg = `Decision captured in Slack but NOT written to the repo — ${appendRes.status || 500} ${appendRes.error || "Unknown error"}`;
+
+    // Update card to remove buttons without falsely claiming "Recorded"
+    if (messageTs && config.slackBotToken) {
+      try {
+        const originalBlocks = payload.message?.blocks || [];
+        const updatedBlocks = originalBlocks
+          .filter((b: any) => b.block_id !== "card_actions")
+          .concat([
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: `⚠️ *Decision captured by ${actor} at ${timeStr} IST*\n${failureMsg}`,
+              },
+            },
+          ]);
+
+        await slackClient.chat.update({
+          channel,
+          ts: messageTs,
+          text: `⚠️ Approved (Repo Write Failed): ${meta.title} by ${actor}`,
+          blocks: updatedBlocks,
+        });
+      } catch (err) {
+        console.warn("[Card Update Warning on Failure]", err);
+      }
+    }
+
+    // Post failure notification in-thread
+    await postLine({
+      channel,
+      text: failureMsg,
+      thread_ts: messageTs,
+    });
+
+    // Post failure notification to #alerts
+    await postLine({
+      channel: config.alertsChannelId,
+      text: failureMsg,
+    });
+  }
 }
 
 async function handleDiscussAction(payload: any, action: any): Promise<void> {
   const meta = JSON.parse(action.value || "{}");
-  const actor = payload.user?.username || payload.user?.name || payload.user?.id || "Architect";
+  const actor = await getActorDisplayName(payload.user);
   const agent = meta.agent || "web-builder";
   const channel = payload.channel?.id || meta.channel || config.approvalsChannelId;
   const messageTs = payload.container?.message_ts;
 
   await postLine({
     channel,
-    text: `💬 \`@${agent}\` — discussion requested by @${actor}. Please review the brief and proposal above and respond in this thread.`,
+    text: `💬 \`@${agent}\` — discussion requested by ${actor}. Please review the brief and proposal above and respond in this thread.`,
     thread_ts: messageTs,
   });
 }
@@ -199,7 +244,7 @@ async function handleRejectSubmission(payload: any): Promise<void> {
   const values = payload.view?.state?.values || {};
   const reason = values.reason_block?.reason_input?.value || "No reason specified";
 
-  const actor = payload.user?.username || payload.user?.name || payload.user?.id || "Architect";
+  const actor = await getActorDisplayName(payload.user);
   const agent = meta.agent || "web-builder";
   const summary = meta.summary || meta.title || "Task rejected";
   const issueNum = meta.issue ? parseInt(meta.issue, 10) : undefined;
@@ -216,7 +261,7 @@ async function handleRejectSubmission(payload: any): Promise<void> {
 
   // 1. Append to decisions/YYYY-MM-DD.md
   const decisionLine = `${timeStr} IST · ${actor} · REJECT · ${agent} · ${summary} (Reason: ${reason}) · ${issueUrl}`;
-  await appendFileInRepo(
+  const decRes = await appendFileInRepo(
     `decisions/${dateStr}.md`,
     decisionLine,
     `chore(decision): reject ${agent} task per ${actor}`
@@ -226,11 +271,11 @@ async function handleRejectSubmission(payload: any): Promise<void> {
   const rejectionBlock = `
 ## ${timeStr} IST — ${meta.title || summary}
 - **Agent:** \`${agent}\`
-- **Reviewer / Actor:** \`${actor}\`
+- **Reviewer / Actor:** ${actor}
 - **Task / Reference:** ${issueUrl}
 - **Reason for Rejection:** ${reason}
 `;
-  await appendFileInRepo(
+  const rejRes = await appendFileInRepo(
     `rejections/${dateStr}.md`,
     rejectionBlock,
     `chore(rejections): log rejected proposal for ${agent}`
@@ -241,16 +286,35 @@ async function handleRejectSubmission(payload: any): Promise<void> {
     await addLabelsToIssue(issueNum, ["approved:no"]);
   }
 
-  // 4. Update Slack card
-  if (messageTs && config.slackBotToken) {
-    try {
-      await slackClient.chat.postMessage({
-        channel,
-        thread_ts: messageTs,
-        text: `❌ *Proposal Rejected by @${actor} at ${timeStr} IST*\n*Reason:* ${reason}\n_Recorded in \`rejections/${dateStr}.md\` and \`decisions/${dateStr}.md\`._`,
-      });
-    } catch (err) {
-      console.warn("[Card Update Warning on Reject]", err);
+  // 4. Update Slack card or post alert
+  if (decRes.success && rejRes.success) {
+    if (messageTs && config.slackBotToken) {
+      try {
+        await slackClient.chat.postMessage({
+          channel,
+          thread_ts: messageTs,
+          text: `❌ *Proposal Rejected by ${actor} at ${timeStr} IST*\n*Reason:* ${reason}\n_Recorded in \`rejections/${dateStr}.md\` and \`decisions/${dateStr}.md\`._`,
+        });
+      } catch (err) {
+        console.warn("[Card Update Warning on Reject]", err);
+      }
     }
+  } else {
+    const failedRes = !decRes.success ? decRes : rejRes;
+    const failureMsg = `Decision captured in Slack but NOT written to the repo — ${failedRes.status || 500} ${failedRes.error || "Unknown error"}`;
+
+    if (messageTs) {
+      await postLine({
+        channel,
+        text: failureMsg,
+        thread_ts: messageTs,
+      });
+    }
+
+    await postLine({
+      channel: config.alertsChannelId,
+      text: failureMsg,
+    });
   }
 }
+
