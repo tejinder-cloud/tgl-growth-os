@@ -23,7 +23,37 @@ export function createApp(signingSecret?: string) {
     })
   );
 
-  // 2. Parse body from raw bytes based on Content-Type
+  // 2. FIRST MIDDLEWARE: Synchronous url_verification handshake handler.
+  // Fully synchronous: no awaits, no config fetch, no GitHub calls, no signature check.
+  // Reads challenge directly from the raw buffer, logs "[handshake] answered in Nms", and responds 200 JSON.
+  app.use((req: SlackVerifiedRequest, res: Response, next: NextFunction): void => {
+    const url = req.originalUrl || req.url;
+    if (req.method === "POST" && (url === "/slack/events" || url.startsWith("/slack/events?") || url === "/slack/events/")) {
+      const buf = Buffer.isBuffer(req.body) ? req.body : undefined;
+      if (buf && buf.length > 0) {
+        req.rawBody = buf;
+        const rawText = buf.toString("utf8");
+        if (rawText.includes("url_verification")) {
+          const start = process.hrtime.bigint();
+          try {
+            const parsed = JSON.parse(rawText);
+            if (parsed.type === "url_verification" && parsed.challenge !== undefined) {
+              const elapsedMs = (Number(process.hrtime.bigint() - start) / 1e6).toFixed(2);
+              console.log(`[handshake] answered in ${elapsedMs}ms`);
+              res.setHeader("Content-Type", "application/json; charset=utf-8");
+              res.status(200).send(JSON.stringify({ challenge: parsed.challenge }));
+              return;
+            }
+          } catch {
+            // Not valid JSON, proceed to standard parsing
+          }
+        }
+      }
+    }
+    next();
+  });
+
+  // 3. Parse body from raw bytes based on Content-Type for all other routes
   app.use((req: SlackVerifiedRequest, _res: Response, next: NextFunction) => {
     if (Buffer.isBuffer(req.body)) {
       req.rawBody = req.body;
@@ -52,10 +82,10 @@ export function createApp(signingSecret?: string) {
     next();
   });
 
-  // 3. Health check route (unauthenticated for Railway / load balancer)
+  // 4. Health check route (unauthenticated for Railway / load balancer)
   app.use("/health", healthRouter);
 
-  // 4. Slack entry logger: traces every request to /slack/* BEFORE signature verification
+  // 5. Slack entry logger: traces every request to /slack/* BEFORE signature verification
   app.use("/slack", (req: Request, _res: Response, next: NextFunction) => {
     const retryNum = req.headers["x-slack-retry-num"];
     const retryReason = req.headers["x-slack-retry-reason"];
@@ -81,28 +111,13 @@ export function createApp(signingSecret?: string) {
     });
   });
 
-  // Handshake: Respond to type=url_verification BEFORE signature verification.
-  // Per Slack's documented behaviour, the handshake carries no payload worth protecting,
-  // ensuring seamless setup while all real event callbacks stay strictly verified.
-  app.post("/slack/events", (req: Request, res: Response, next: NextFunction) => {
-    if (req.body?.type === "url_verification") {
-      const challenge = req.body.challenge;
-      console.log("[Slack Events] Responding to url_verification handshake before signature verification", {
-        hasChallenge: Boolean(challenge),
-      });
-      res.status(200).json({ challenge });
-      return;
-    }
-    next();
-  });
-
-  // 5. Slack routes with signature verification middleware (all real events strictly verified)
+  // 6. Slack routes with signature verification middleware (all real events strictly verified)
   const verifier = verifySlackSignature(signingSecret ?? config.slackSigningSecret);
   app.use("/slack/events", verifier, eventsRouter);
   app.use("/slack/interactions", verifier, interactionsRouter);
   app.use("/slack/commands", verifier, commandsRouter);
 
-  // 6. Global Error Handler
+  // 7. Global Error Handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     console.error("[Server Error]", err);
     res.status(500).json({ error: "Internal Server Error" });
