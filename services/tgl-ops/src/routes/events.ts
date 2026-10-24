@@ -46,10 +46,18 @@ eventsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // 3. Handle thread reply in #approvals
+    // 3. Handle thread replies in #standup and #approvals
     if (event.type === "message" && !event.bot_id && event.subtype !== "bot_message") {
-      if (event.thread_ts && (event.channel === config.approvalsChannelId || event.channel.startsWith("C"))) {
-        await handleApprovalsThreadReply(event);
+      if (event.thread_ts) {
+        if (event.channel === config.standupChannelId) {
+          const { handleArchitectStandupReply } = await import("../agents/chief-of-staff/worker.js");
+          await handleArchitectStandupReply(event);
+          return;
+        }
+        if (event.channel === config.approvalsChannelId || event.channel.startsWith("C")) {
+          await handleApprovalsThreadReply(event);
+          return;
+        }
       }
     }
   } catch (err) {
