@@ -10,6 +10,7 @@
 - Never edit `tgl-theme/theme.json` manually; edit `design-system/tokens.json` and run `site/build-theme-json.js`.
 - Always set `font-display: optional` on Fraunces to eliminate webfont swap delay and layout recalculation.
 - Never preload body font (DM Sans); preload only display hero faces (`fraunces-latin-normal.woff2` and italic) with `fetchpriority="high"`.
+- Test hygiene standing rule: any issue, PR, card or log line created by a test is labelled `type:test`, posts only to `#ops`, and is closed by the test itself. Never post test executions to real channels (`#standup`, `#marketing`, `#site-build`, `#approvals`, `#architect`) or leave unclosed test artifacts.
 
 ## Pitfalls & Anti-Patterns Avoided
 - Never duplicate repository-level `config/` into subservices; having two copies of configuration breaks the single-source rule in `ORG.md §3`.

@@ -90,7 +90,7 @@ case "${DEPARTMENT}" in
     CHANNEL="#finance"
     REVIEWER="Architect"
     ;;
-  office-of-the-architect)
+  office-of-the-architect|architect)
     CHANNEL="#standup"
     REVIEWER="Architect"
     ;;
