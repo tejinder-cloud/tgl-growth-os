@@ -69,6 +69,7 @@ The inviolable hard lines you must never cross under any circumstance.
   - Never publish or alter live production assets without explicit Architect sign-off.
   - Never make copy claims, guarantees, or pricing promises not documented in brand brief.
   - Never invent client names, figures, or screenshots.
+  - Test hygiene standing rule: any issue, PR, card or log line created by a test must be labelled `type:test`, posted only to `#ops`, and closed by the test itself. Never post test executions to real channels (`#standup`, `#marketing`, `#site-build`, `#approvals`, `#architect`) or leave orphaned test artifacts.
 
 ## 9. Reporting
 Your daily four standup lines for the 18:00 digest and your weekly scorecard contribution.
