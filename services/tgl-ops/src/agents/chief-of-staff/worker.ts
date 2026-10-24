@@ -2,10 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { config } from "../../config.js";
 import { loadAgents } from "../../lib/agents.js";
-import { appendFileInRepo, octokit } from "../../lib/github-client.js";
+import { appendFileInRepo, octokit, putFileInRepo, readFileFromRepo } from "../../lib/github-client.js";
 import { slackClient, getActorDisplayName } from "../../lib/slack-client.js";
 import { postLine } from "../../lib/post.js";
-import { getCurrentTimeIST, getTodayDateString } from "../../lib/standup.js";
+import { getCurrentTimeIST, getTodayDateString, isWithinCatchupWindowIST } from "../../lib/standup.js";
 import { getArchitectConfig } from "../../lib/org.js";
 import { gatherStandupMaterial } from "./gather.js";
 import { synthesizeStandupDigest, type SynthesisResult } from "./anthropic.js";
@@ -25,20 +25,98 @@ export interface StandupRecord {
   standupTs: string;
 }
 
-// In-memory record of the day's standup broadcast thread
-let currentStandupRecord: StandupRecord | null = null;
-
-export function getLastStandupRecord(): StandupRecord | null {
-  return currentStandupRecord;
+export interface StandupState {
+  date: string;
+  compiledAt?: string;
+  digestText?: string;
+  synthesis?: {
+    model: string;
+    inputTokens: number;
+    outputTokens: number;
+    totalCostUsd: number;
+  };
+  posted?: boolean;
+  postedAt?: string;
+  standupTs?: string;
+  threadPromptTs?: string;
+  channel?: string;
+  source?: "cron" | "standup_command" | "startup_catchup";
+  processedReplies?: string[];
 }
 
-export function setLastStandupRecord(record: StandupRecord | null): void {
-  currentStandupRecord = record;
+/**
+ * Reads standup state for a given date.
+ * Production: reads logs/.state/standup-<date>.json via Contents API from main (never local disk).
+ * Test mode: reads logs/.test/.state/standup-<date>.json from local test dir.
+ */
+export async function getStandupState(
+  dateStr?: string,
+  options?: { testMode?: boolean }
+): Promise<StandupState | null> {
+  const date = dateStr || getTodayDateString();
+  const isTest = options?.testMode || process.env.TGL_TEST_MODE === "1";
+
+  if (isTest) {
+    const testStatePath = path.join(config.repoRoot, "logs/.test/.state", `standup-${date}.json`);
+    if (fs.existsSync(testStatePath)) {
+      try {
+        return JSON.parse(fs.readFileSync(testStatePath, "utf8"));
+      } catch {}
+    }
+    return null;
+  }
+
+  const filePath = `logs/.state/standup-${date}.json`;
+  try {
+    const content = await readFileFromRepo(filePath);
+    if (content) {
+      return JSON.parse(content);
+    }
+  } catch (err: any) {
+    console.warn(`[Chief of Staff State] Error reading ${filePath}:`, err.message);
+  }
+  return null;
+}
+
+/**
+ * Persists standup state for a given date.
+ * Production: writes logs/.state/standup-<date>.json via Contents API to main.
+ * Test mode: writes logs/.test/.state/standup-<date>.json locally.
+ */
+export async function saveStandupState(
+  dateStr: string,
+  state: StandupState,
+  options?: { testMode?: boolean }
+): Promise<void> {
+  const date = dateStr || getTodayDateString();
+  const isTest = options?.testMode || process.env.TGL_TEST_MODE === "1";
+  const jsonContent = JSON.stringify(state, null, 2);
+
+  if (isTest) {
+    const testDir = path.join(config.repoRoot, "logs/.test/.state");
+    if (!fs.existsSync(testDir)) {
+      fs.mkdirSync(testDir, { recursive: true });
+    }
+    const testStatePath = path.join(testDir, `standup-${date}.json`);
+    fs.writeFileSync(testStatePath, jsonContent, "utf8");
+    console.log(`[Chief of Staff State Test Mode] Saved state to ${testStatePath}`);
+    return;
+  }
+
+  const filePath = `logs/.state/standup-${date}.json`;
+  const commitMsg = `chore(state): update standup state for ${date}`;
+  const res = await putFileInRepo(filePath, jsonContent, commitMsg);
+  if (!res.success) {
+    console.error(`[Chief of Staff State] Failed to save state to ${filePath}: status ${res.status} error: ${res.error}`);
+  } else {
+    console.log(`[Chief of Staff State] Saved state to ${filePath} on main (status ${res.status})`);
+  }
 }
 
 /**
  * Step 3a / 17:50 IST: Gathers operational material, calls Anthropic to synthesize
- * the standup digest (<=25 lines), and logs token cost to logs/<today>/chief-of-staff.md.
+ * the standup digest (<=25 lines), logs token cost to logs/<today>/chief-of-staff.md,
+ * and writes the pre-compiled state to logs/.state/standup-<date>.json via Contents API.
  */
 export async function execute1750Gather(
   dateStr?: string,
@@ -49,10 +127,30 @@ export async function execute1750Gather(
   const date = dateStr || getTodayDateString();
   console.log(`[Chief of Staff] Running 17:50 IST gather & synthesis for ${date}...`);
 
-  const data = await gatherStandupMaterial(date);
+  const data = await gatherStandupMaterial(date, { testMode: isTest });
   const synthesis = await synthesizeStandupDigest(data, { testMode: isTest });
 
-  console.log(`[Chief of Staff] Synthesis complete (${synthesis.model}). Tokens: ${synthesis.inputTokens} in / ${synthesis.outputTokens} out ($${synthesis.totalCostUsd.toFixed(4)} USD)`);
+  console.log(
+    `[Chief of Staff] Synthesis complete (${synthesis.model}). Tokens: ${synthesis.inputTokens} in / ${synthesis.outputTokens} out ($${synthesis.totalCostUsd.toFixed(4)} USD)`
+  );
+
+  // Preserve existing state if any, updating compilation details
+  const existingState = await getStandupState(date, { testMode: isTest });
+  const newState: StandupState = {
+    ...(existingState || { date }),
+    date,
+    compiledAt: new Date().toISOString(),
+    digestText: synthesis.digestText,
+    synthesis: {
+      model: synthesis.model,
+      inputTokens: synthesis.inputTokens,
+      outputTokens: synthesis.outputTokens,
+      totalCostUsd: synthesis.totalCostUsd,
+    },
+    posted: existingState?.posted || false,
+  };
+
+  await saveStandupState(date, newState, { testMode: isTest });
 
   // If a test target channel is provided (e.g. #ops for Day 4 test), post there
   if (testTargetChannel) {
@@ -70,22 +168,69 @@ export async function execute1750Gather(
   };
 }
 
+export interface BroadcastOptions {
+  digestText?: string;
+  targetChannel?: string;
+  dateStr?: string;
+  testMode?: boolean;
+  forceCompile?: boolean;
+  source?: "cron" | "standup_command" | "startup_catchup";
+}
+
 /**
- * Step 3b / 18:00 IST: Posts the synthesized digest to #standup and immediately
- * posts the thread prompt as the first reply:
- * "Each agent: Did · Blocked · Need from the Architect · Tomorrow."
+ * Step 3b / 18:00 IST: Self-sufficient broadcast job.
+ * Gathers + synthesizes + posts in one run.
+ * Uses 17:50 pre-compiled digest from logs/.state/standup-<date>.json if present,
+ * otherwise compiles fresh. Nothing that must survive a restart lives in memory.
+ * Posts to #standup, posts thread reply prompt, and updates state file on main.
  */
 export async function execute1800Broadcast(
-  digestText?: string,
-  targetChannel?: string
-): Promise<{ channel: string; standupTs?: string; threadTs?: string }> {
-  const date = getTodayDateString();
-  const channel = targetChannel || config.standupChannelId;
+  arg1?: string | BroadcastOptions,
+  arg2?: string
+): Promise<{
+  channel: string;
+  standupTs?: string;
+  threadTs?: string;
+  alreadyPosted?: boolean;
+  compiledFresh?: boolean;
+}> {
+  const options: BroadcastOptions = typeof arg1 === "object" && arg1 !== null
+    ? arg1
+    : { digestText: typeof arg1 === "string" ? arg1 : undefined, targetChannel: arg2 };
 
-  let textToPost = digestText;
+  const isTest = options.testMode || !!options.targetChannel || process.env.TGL_TEST_MODE === "1";
+  const date = options.dateStr || getTodayDateString();
+  const channel = options.targetChannel || (isTest ? (config.opsChannelId || "#ops") : config.standupChannelId);
+
+  // 1. Check existing state file from Contents API
+  const existingState = await getStandupState(date, { testMode: isTest });
+
+  // If already posted today and not forced, do not post duplicate standup
+  if (existingState?.posted && existingState?.standupTs && !options.forceCompile) {
+    console.log(`[Chief of Staff] Standup already posted for ${date} (ts=${existingState.standupTs} in ${existingState.channel || channel}); skipping duplicate broadcast.`);
+    return {
+      channel: existingState.channel || channel,
+      standupTs: existingState.standupTs,
+      threadTs: existingState.threadPromptTs,
+      alreadyPosted: true,
+      compiledFresh: false,
+    };
+  }
+
+  let textToPost = options.digestText;
+  let compiledFresh = false;
+
+  // If digestText was not explicitly passed, check pre-compiled state file
   if (!textToPost) {
-    const res = await execute1750Gather(date);
-    textToPost = res.digestText;
+    if (!options.forceCompile && existingState?.digestText) {
+      console.log(`[Chief of Staff] Found pre-compiled digest from 17:50 in state file for ${date}. Using it.`);
+      textToPost = existingState.digestText;
+    } else {
+      console.log(`[Chief of Staff] No pre-compiled digest in state file (or forceCompile requested). Compiling fresh (gather + synthesize)...`);
+      const runRes = await execute1750Gather(date, undefined, { testMode: isTest });
+      textToPost = runRes.digestText;
+      compiledFresh = true;
+    }
   }
 
   console.log(`[Chief of Staff] Broadcasting 18:00 IST standup digest to ${channel}...`);
@@ -125,29 +270,131 @@ export async function execute1800Broadcast(
       console.log(`[Chief of Staff Dry Run] [${channel} : thread ${standupTs}] ${threadPrompt}`);
     }
 
-    currentStandupRecord = {
+    // Persist posted state to logs/.state/standup-<date>.json via Contents API immediately
+    const updatedState: StandupState = {
+      ...(existingState || { date }),
       date,
-      channel,
+      digestText: textToPost,
+      posted: true,
+      postedAt: new Date().toISOString(),
       standupTs,
+      threadPromptTs: threadTs,
+      channel,
+      source: options.source || "cron",
     };
+
+    await saveStandupState(date, updatedState, { testMode: isTest });
   }
 
-  return { channel, standupTs, threadTs };
+  return { channel, standupTs, threadTs, alreadyPosted: false, compiledFresh };
+}
+
+/**
+ * Startup catch-up check:
+ * On boot, if IST time is 18:00–21:00 and no standup was posted today
+ * (check the state file / conversations.history for the bot's post),
+ * run the 18:00 job immediately.
+ */
+export async function checkAndRunStartupCatchup(options?: {
+  forceWindowCheck?: boolean;
+  testMode?: boolean;
+  targetChannel?: string;
+  testDate?: Date;
+}): Promise<{
+  ranCatchup: boolean;
+  reason: string;
+  result?: any;
+}> {
+  const isTest = options?.testMode || process.env.TGL_TEST_MODE === "1";
+  const date = getTodayDateString();
+  const inWindow = options?.forceWindowCheck !== false
+    ? isWithinCatchupWindowIST(options?.testDate)
+    : true;
+
+  if (!inWindow) {
+    const timeIST = getCurrentTimeIST();
+    console.log(`[Startup Catch-Up] Outside 18:00–21:00 IST window (${timeIST} IST); skipping catch-up.`);
+    return { ranCatchup: false, reason: `Outside window (${timeIST} IST)` };
+  }
+
+  console.log(`[Startup Catch-Up] Boot detected inside 18:00–21:00 IST window. Checking if standup was posted today (${date})...`);
+
+  // 1. Check state file from main via Contents API
+  const state = await getStandupState(date, { testMode: isTest });
+  if (state?.posted && state?.standupTs) {
+    console.log(`[Startup Catch-Up] Standup already posted today according to state file (ts=${state.standupTs} at ${state.postedAt}). Catch-up not needed.`);
+    return { ranCatchup: false, reason: "Already posted according to state file" };
+  }
+
+  // 2. Check Slack conversations.history for bot's standup post today
+  const targetChannel = options?.targetChannel || (isTest ? (config.opsChannelId || "#ops") : config.standupChannelId);
+  if (config.slackBotToken && targetChannel) {
+    try {
+      const history = await slackClient.conversations.history({
+        channel: targetChannel,
+        limit: 30,
+      });
+      const messages = history.messages || [];
+      const botPost = messages.find(
+        (m: any) =>
+          (m.text?.includes("Daily Standup Digest") ||
+           m.text?.includes("The Growth Lab — Daily Standup Digest") ||
+           (m.bot_id && m.text?.includes("Standup")))
+      );
+
+      if (botPost?.ts) {
+        console.log(`[Startup Catch-Up] Standup post found in ${targetChannel} history (ts=${botPost.ts}). Syncing state file.`);
+        const syncedState: StandupState = {
+          ...(state || { date }),
+          date,
+          posted: true,
+          postedAt: new Date(Number(botPost.ts) * 1000).toISOString(),
+          standupTs: botPost.ts,
+          channel: targetChannel,
+          source: "cron",
+        };
+        await saveStandupState(date, syncedState, { testMode: isTest });
+        return { ranCatchup: false, reason: "Already posted according to Slack history" };
+      }
+    } catch (err: any) {
+      console.warn(`[Startup Catch-Up] Warning checking channel history for ${targetChannel}:`, err.message);
+    }
+  }
+
+  // 3. Neither state file nor conversations.history shows a post today -> run 18:00 broadcast immediately!
+  console.log(`[Startup Catch-Up] No standup post found for today (${date}). Running 18:00 job immediately!`);
+  const result = await execute1800Broadcast({
+    targetChannel,
+    testMode: isTest,
+    source: "startup_catchup",
+  });
+
+  return {
+    ranCatchup: true,
+    reason: "Standup was missing; executed 18:00 broadcast",
+    result,
+  };
 }
 
 /**
  * Step 3c / 18:15 IST: For every agent in config/agents.yaml with status: active
  * (and not on bench) with no logs/<today>/<agent>.md, post one line in the thread:
  * "No report from <agent> today."
+ * Logs are read strictly from main via Contents API, never local disk.
  */
 export async function execute1815SilenceCheck(
   dateStr?: string,
   threadTs?: string,
-  targetChannel?: string
+  targetChannel?: string,
+  options?: { testMode?: boolean }
 ): Promise<{ silentAgents: string[]; postedCount: number }> {
+  const isTest = options?.testMode || !!targetChannel || process.env.TGL_TEST_MODE === "1";
   const date = dateStr || getTodayDateString();
-  const channel = targetChannel || currentStandupRecord?.channel || config.standupChannelId;
-  const parentTs = threadTs || currentStandupRecord?.standupTs;
+
+  // Retrieve standup post info from state file first
+  const state = await getStandupState(date, { testMode: isTest });
+  const channel = targetChannel || state?.channel || (isTest ? (config.opsChannelId || "#ops") : config.standupChannelId);
+  const parentTs = threadTs || state?.standupTs;
 
   console.log(`[Chief of Staff] Running 18:15 IST silence check for ${date}...`);
   const allAgents = await loadAgents();
@@ -155,19 +402,22 @@ export async function execute1815SilenceCheck(
   // Active agents only (status: active in config/agents.yaml)
   const activeAgents = allAgents.filter((a) => a.status === "active");
 
-  // Check logs locally and remotely
+  // Check logs from main via Contents API, never local disk (except mock in test mode)
   const reportedAgents = new Set<string>();
-  const localLogsDir = path.join(config.repoRoot, "logs", date);
-  if (fs.existsSync(localLogsDir)) {
-    try {
-      const files = fs.readdirSync(localLogsDir).filter((f) => f.endsWith(".md"));
-      for (const f of files) {
-        reportedAgents.add(f.replace(/\.md$/, "").toLowerCase());
-      }
-    } catch {}
+
+  if (isTest) {
+    const testLogsDir = path.join(config.repoRoot, "logs/.test/logs");
+    if (fs.existsSync(testLogsDir)) {
+      try {
+        const files = fs.readdirSync(testLogsDir).filter((f) => f.endsWith(".md") && !f.startsWith("."));
+        for (const file of files) {
+          reportedAgents.add(file.replace(/\.md$/, "").toLowerCase());
+        }
+      } catch {}
+    }
   }
 
-  if (config.githubToken) {
+  if (reportedAgents.size === 0 && config.githubToken) {
     try {
       const res = await octokit.repos.getContent({
         owner: config.githubOwner,
@@ -177,12 +427,16 @@ export async function execute1815SilenceCheck(
       });
       if (Array.isArray(res.data)) {
         for (const item of res.data) {
-          if (item.type === "file" && item.name.endsWith(".md")) {
+          if (item.type === "file" && item.name.endsWith(".md") && !item.name.startsWith(".")) {
             reportedAgents.add(item.name.replace(/\.md$/, "").toLowerCase());
           }
         }
       }
-    } catch {}
+    } catch (err: any) {
+      if (err.status !== 404) {
+        console.warn(`[Silence Check] Error reading logs/${date} from main:`, err.message);
+      }
+    }
   }
 
   const silentAgents: string[] = [];
@@ -346,13 +600,14 @@ export async function handleArchitectStandupReply(
 /**
  * Step 3f: Poll standup thread replies every 10 minutes from 18:00 to 23:00 IST
  * and once at 08:30 IST.
- * Reads conversations.replies on today's (or most recent) standup post (bot token, channels:history).
- * Processes new replies from the Architect the same way the event handler does, deduped by ts.
+ * Finds a standup post made by /standup as well as by cron (via state file, then conversations.history).
+ * Reads conversations.replies on the post, processes new replies from the Architect, deduped by ts.
  */
 export async function pollStandupReplies(options?: {
   channel?: string;
   standupTs?: string;
   testMode?: boolean;
+  dateStr?: string;
 }): Promise<{
   polled: boolean;
   channel: string;
@@ -360,12 +615,18 @@ export async function pollStandupReplies(options?: {
   repliesFound: number;
   newProcessedCount: number;
 }> {
-  const channel = options?.channel || currentStandupRecord?.channel || config.standupChannelId;
-  let standupTs = options?.standupTs || currentStandupRecord?.standupTs;
+  const isTest = options?.testMode || process.env.TGL_TEST_MODE === "1";
+  const date = options?.dateStr || getTodayDateString();
+
+  // 1. Read state file to find today's standup post (from cron or /standup)
+  const state = await getStandupState(date, { testMode: isTest });
+
+  const channel = options?.channel || state?.channel || (isTest ? (config.opsChannelId || "#ops") : config.standupChannelId);
+  let standupTs = options?.standupTs || state?.standupTs;
 
   console.log(`[Chief of Staff Poll] Checking standup replies in ${channel}...`);
 
-  // If no standupTs in memory, locate today's (or most recent) standup post via conversations.history
+  // 2. If no standupTs in state, search Slack channel history (finds bot post from /standup or cron)
   if (!standupTs && config.slackBotToken) {
     try {
       const historyRes = await slackClient.conversations.history({
@@ -381,12 +642,16 @@ export async function pollStandupReplies(options?: {
         );
         if (digestMsg?.ts) {
           standupTs = digestMsg.ts;
-          currentStandupRecord = {
-            date: getTodayDateString(),
-            channel,
+          console.log(`[Chief of Staff Poll] Located standup digest post at ts=${standupTs} via history in ${channel}`);
+          // Sync state file so subsequent polls don't need history lookup
+          const updatedState: StandupState = {
+            ...(state || { date }),
+            date,
+            posted: true,
             standupTs,
+            channel,
           };
-          console.log(`[Chief of Staff Poll] Located standup digest post at ts=${standupTs}`);
+          await saveStandupState(date, updatedState, { testMode: isTest });
         }
       }
     } catch (err: any) {
@@ -418,9 +683,13 @@ export async function pollStandupReplies(options?: {
   const threadReplies = replies.filter((r) => r.ts !== standupTs && !r.bot_id && r.subtype !== "bot_message");
   let newProcessedCount = 0;
 
+  // Load set of already processed reply timestamps
+  const processedFromState = new Set<string>(state?.processedReplies || []);
+  const newlyProcessedList: string[] = [];
+
   for (const reply of threadReplies) {
     const replyTs = reply.ts;
-    if (!replyTs || isReplyProcessed(replyTs)) {
+    if (!replyTs || isReplyProcessed(replyTs) || processedFromState.has(replyTs)) {
       continue;
     }
 
@@ -437,7 +706,18 @@ export async function pollStandupReplies(options?: {
 
     if (handledRes.handled) {
       newProcessedCount++;
+      newlyProcessedList.push(replyTs);
+      processedFromState.add(replyTs);
     }
+  }
+
+  // If new replies were processed, persist them in state file
+  if (newlyProcessedList.length > 0) {
+    const updatedState: StandupState = {
+      ...(state || { date, posted: true, standupTs, channel }),
+      processedReplies: Array.from(processedFromState),
+    };
+    await saveStandupState(date, updatedState, { testMode: isTest });
   }
 
   console.log(`[Chief of Staff Poll] Polled ${threadReplies.length} thread replies (${newProcessedCount} new processed from Architect).`);

@@ -7,7 +7,7 @@ import { createApp } from "./app.js";
 import { postCard } from "./lib/post.js";
 import { appendFileInRepo } from "./lib/github-client.js";
 import { getActorDisplayName } from "./lib/slack-client.js";
-import { getTodayDateString, getCurrentTimeIST, compileStandupDigest, formatStandupMessage } from "./lib/standup.js";
+import { getTodayDateString, getCurrentTimeIST } from "./lib/standup.js";
 
 async function runPlumbingTest(): Promise<void> {
   console.log("=== TGL Ops TASK-P02 Plumbing Verification ===");
@@ -76,13 +76,13 @@ async function runPlumbingTest(): Promise<void> {
   }
 
 
-  // 3. Test Standup compilation logic
+  // 3. Test Standup compilation logic (Chief of Staff gather & synthesis)
   console.log("\n[Test 3] Testing standup digest compilation...");
-  const digest = await compileStandupDigest();
-  const standupMsg = formatStandupMessage(digest);
+  const { execute1750Gather } = await import("./agents/chief-of-staff/worker.js");
+  const standupResult = await execute1750Gather(getTodayDateString(), undefined, { testMode: true });
   console.log("✅ [Test 3 Passed] Standup digest compiled cleanly:");
   console.log("-------------------------------------------------------");
-  console.log(standupMsg);
+  console.log(standupResult.digestText);
   console.log("-------------------------------------------------------");
 
   // 4. Test Slack-signed url_verification & event signature verification

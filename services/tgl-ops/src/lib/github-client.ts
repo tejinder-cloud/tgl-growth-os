@@ -182,3 +182,121 @@ export async function appendFileInRepo(
 
   return { success: false, status: 409, error: "Exceeded max conflict retries" };
 }
+
+/**
+ * Creates or overwrites an entire file on the main branch via the GitHub Contents API.
+ */
+export async function putFileInRepo(
+  filePath: string,
+  content: string,
+  commitMessage: string
+): Promise<AppendFileResult> {
+  const syncLocal = (): void => {
+    const localFullPath = path.join(config.repoRoot, filePath);
+    try {
+      const dir = path.dirname(localFullPath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(localFullPath, content, "utf8");
+    } catch {}
+  };
+
+  if (!config.githubToken) {
+    syncLocal();
+    return { success: true, status: 200, error: "Simulated local write (GITHUB_TOKEN not set)" };
+  }
+
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      let sha: string | undefined;
+
+      try {
+        const getRes = await octokit.repos.getContent({
+          owner: config.githubOwner,
+          repo: config.githubRepo,
+          path: filePath,
+          ref: "main",
+        });
+
+        if (!Array.isArray(getRes.data) && getRes.data.type === "file") {
+          sha = getRes.data.sha;
+        }
+      } catch (err: any) {
+        if (err.status !== 404) {
+          throw err;
+        }
+      }
+
+      const putRes = await octokit.repos.createOrUpdateFileContents({
+        owner: config.githubOwner,
+        repo: config.githubRepo,
+        path: filePath,
+        message: commitMessage,
+        content: Buffer.from(content, "utf8").toString("base64"),
+        branch: "main",
+        sha,
+      });
+
+      const isSuccess = putRes.status === 200 || putRes.status === 201;
+      if (isSuccess) {
+        syncLocal();
+      }
+
+      return {
+        success: isSuccess,
+        status: putRes.status,
+        sha: putRes.data.content?.sha,
+      };
+    } catch (err: any) {
+      const status = err.status || 500;
+      if (status === 409 && attempt < maxAttempts) {
+        console.warn(`[GitHub Contents API] 409 Conflict on ${filePath} (attempt ${attempt}/${maxAttempts}); retrying...`);
+        await new Promise((r) => setTimeout(r, attempt * 500));
+        continue;
+      }
+      return {
+        success: false,
+        status,
+        error: (err.response?.data?.message || err.message || "Unknown error").replace(/\n+/g, " ").trim(),
+      };
+    }
+  }
+
+  return { success: false, status: 409, error: "Exceeded max conflict retries" };
+}
+
+/**
+ * Reads a file's content directly from the main branch via the GitHub Contents API.
+ */
+export async function readFileFromRepo(filePath: string): Promise<string | null> {
+  if (!config.githubToken) {
+    const localFullPath = path.join(config.repoRoot, filePath);
+    if (fs.existsSync(localFullPath)) {
+      try {
+        return fs.readFileSync(localFullPath, "utf8");
+      } catch {}
+    }
+    return null;
+  }
+
+  try {
+    const res = await octokit.repos.getContent({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      path: filePath,
+      ref: "main",
+    });
+
+    if (!Array.isArray(res.data) && res.data.type === "file" && res.data.content) {
+      return Buffer.from(res.data.content, "base64").toString("utf8");
+    }
+  } catch (err: any) {
+    if (err.status !== 404) {
+      console.warn(`[GitHub Contents API] Error reading ${filePath}:`, err.message);
+    }
+  }
+  return null;
+}
+
