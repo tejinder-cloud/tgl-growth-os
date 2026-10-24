@@ -1,5 +1,6 @@
 import { WebClient } from "@slack/web-api";
 import { config } from "../config.js";
+import { getArchitectConfig } from "./org.js";
 
 export const slackClient = new WebClient(config.slackBotToken || "xoxb-mock-token");
 
@@ -17,8 +18,9 @@ export async function openModal(triggerId: string, view: any): Promise<void> {
 const userDisplayNameCache = new Map<string, string>();
 
 /**
- * Resolves a Slack user or user ID to their display name (e.g. "Tejinder Singh").
- * Falls back to profile.real_name, user.real_name, user.name, or "Tejinder Singh".
+ * Resolves a Slack user or user ID to their display name.
+ * Uses architect display name from config/org.yaml for the Architect,
+ * and resolves other team members dynamically via users.info.
  */
 export async function getActorDisplayName(user: any): Promise<string> {
   const userId = typeof user === "string" ? user : user?.id;
@@ -27,9 +29,25 @@ export async function getActorDisplayName(user: any): Promise<string> {
     return userDisplayNameCache.get(userId)!;
   }
 
+  const architect = await getArchitectConfig();
+  const rawName = typeof user === "object" ? user?.name || user?.username : (typeof user === "string" ? user : undefined);
+
+  // Match Architect either by user ID or handle
+  if (
+    (userId && architect.slack_user_id && userId === architect.slack_user_id) ||
+    rawName === "falkanmedia" ||
+    (userId && userId === "falkanmedia")
+  ) {
+    if (userId) {
+      userDisplayNameCache.set(userId, architect.display_name);
+    }
+    return architect.display_name;
+  }
+
   let resolvedName: string | undefined;
 
-  if (userId && config.slackBotToken && !userId.startsWith("mock")) {
+  // Resolve team members via users.info
+  if (userId && config.slackBotToken && !userId.startsWith("mock") && !userId.startsWith("U_TEST")) {
     try {
       const res = await slackClient.users.info({ user: userId });
       if (res.ok && res.user) {
@@ -45,17 +63,9 @@ export async function getActorDisplayName(user: any): Promise<string> {
     }
   }
 
-  let finalName = resolvedName;
-  if (!finalName) {
-    const rawName = typeof user === "object" ? user?.name || user?.username : undefined;
-    if (rawName === "falkanmedia") {
-      finalName = "Tejinder Singh";
-    } else if (rawName && typeof rawName === "string" && rawName.trim().length > 0) {
-      finalName = rawName.trim();
-    } else {
-      finalName = "Tejinder Singh";
-    }
-  }
+  const finalName: string =
+    resolvedName ||
+    (rawName && typeof rawName === "string" && rawName.trim().length > 0 ? rawName.trim() : architect.display_name);
 
   if (userId) {
     userDisplayNameCache.set(userId, finalName);
@@ -63,4 +73,5 @@ export async function getActorDisplayName(user: any): Promise<string> {
 
   return finalName;
 }
+
 

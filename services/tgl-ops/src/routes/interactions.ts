@@ -31,6 +31,8 @@ interactionsRouter.post("/", async (req: Request, res: Response): Promise<void> 
         await handleDiscussAction(payload, action);
       } else if (action.action_id === "action_reject") {
         await handleRejectModalOpen(payload, action);
+      } else if (action.action_id === "action_picked_up") {
+        await handlePickedUpAction(payload, action);
       }
     } catch (err) {
       console.error("[Interaction Action Error]", err);
@@ -60,9 +62,17 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
   const agent = meta.agent || "web-builder";
   const summary = meta.summary || meta.title || "Task approval";
   const issueNum = meta.issue ? parseInt(meta.issue, 10) : undefined;
-  const issueUrl = issueNum
-    ? `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/${issueNum}`
-    : `https://github.com/${config.githubOwner}/${config.githubRepo}`;
+  let issueUrl: string;
+  if (issueNum) {
+    issueUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/${issueNum}`;
+  } else if (meta.issueUrl) {
+    issueUrl = meta.issueUrl;
+  } else if (meta.prUrl) {
+    issueUrl = meta.prUrl;
+  } else {
+    const foundLink = (meta.links || []).find((l: any) => l.url?.includes("/issues/") || l.url?.includes("/pull/"));
+    issueUrl = foundLink ? foundLink.url : `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/1`;
+  }
 
   const dateStr = getTodayDateString();
   const timeStr = getCurrentTimeIST();
@@ -248,9 +258,17 @@ async function handleRejectSubmission(payload: any): Promise<void> {
   const agent = meta.agent || "web-builder";
   const summary = meta.summary || meta.title || "Task rejected";
   const issueNum = meta.issue ? parseInt(meta.issue, 10) : undefined;
-  const issueUrl = issueNum
-    ? `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/${issueNum}`
-    : `https://github.com/${config.githubOwner}/${config.githubRepo}`;
+  let issueUrl: string;
+  if (issueNum) {
+    issueUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/${issueNum}`;
+  } else if (meta.issueUrl) {
+    issueUrl = meta.issueUrl;
+  } else if (meta.prUrl) {
+    issueUrl = meta.prUrl;
+  } else {
+    const foundLink = (meta.links || []).find((l: any) => l.url?.includes("/issues/") || l.url?.includes("/pull/"));
+    issueUrl = foundLink ? foundLink.url : `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/1`;
+  }
 
   const dateStr = getTodayDateString();
   const timeStr = getCurrentTimeIST();
@@ -317,4 +335,60 @@ async function handleRejectSubmission(payload: any): Promise<void> {
     });
   }
 }
+
+async function handlePickedUpAction(payload: any, action: any): Promise<void> {
+  const meta = JSON.parse(action.value || "{}");
+  const actor = await getActorDisplayName(payload.user);
+  const issueNum = meta.issue ? parseInt(meta.issue, 10) : undefined;
+  const timeStr = getCurrentTimeIST();
+  const channel = payload.channel?.id || meta.channel;
+  const messageTs = payload.container?.message_ts;
+
+  console.log(`[Action Picked Up] Actor: ${actor} | Issue: #${issueNum} | Channel: ${channel}`);
+
+  // 1. Add label status:in-progress to the GitHub issue
+  if (issueNum) {
+    await addLabelsToIssue(issueNum, ["status:in-progress"]);
+  }
+
+  // 2. Update card in Slack to remove "Picked up" button and show in-progress badge
+  if (messageTs && config.slackBotToken) {
+    try {
+      const originalBlocks = payload.message?.blocks || [];
+      const updatedBlocks = originalBlocks
+        .filter((b: any) => b.block_id !== "task_actions" && b.block_id !== "card_actions")
+        .concat([
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: `🚀 *Picked up by ${actor} at ${timeStr} IST*\n*Status:* \`status:in-progress\``,
+            },
+          },
+        ]);
+
+      await slackClient.chat.update({
+        channel,
+        ts: messageTs,
+        text: `🚀 Picked up: #${issueNum} by ${actor}`,
+        blocks: updatedBlocks,
+      });
+    } catch (err) {
+      console.warn("[Card Update Warning on Picked Up]", err);
+    }
+  }
+
+  // 3. Post confirmation in-thread
+  if (channel && messageTs) {
+    const issueLink = issueNum
+      ? `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/${issueNum}`
+      : meta.issueUrl;
+    await postLine({
+      channel,
+      text: `🚀 Task <${issueLink}|#${issueNum}> picked up by *${actor}* at ${timeStr} IST (marked \`status:in-progress\`).`,
+      thread_ts: messageTs,
+    });
+  }
+}
+
 

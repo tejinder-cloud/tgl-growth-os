@@ -4,3 +4,6 @@ slack_url: "https://itsthegrowthlab.slack.com"
 github_repo: "https://github.com/tejinder-cloud/tgl-growth-os"
 railway_project: "tgl-growth-os"
 supabase_url: "https://rmrauejublipukulnjou.supabase.co"
+architect:
+  slack_user_id: ""
+  display_name: "Tejinder Singh"

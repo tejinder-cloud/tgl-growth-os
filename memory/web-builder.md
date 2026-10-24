@@ -15,5 +15,9 @@
 - Never duplicate repository-level `config/` into subservices; having two copies of configuration breaks the single-source rule in `ORG.md §3`.
 - Never self-approve proposals or execute unapproved scope expansions before Architect review.
 - Never add inline script or style tags; tracking events must use `data-tgl-event` attributes.
-- Avoid low-contrast text on Thinking cards (body metadata must maintain WCAG AA ≥ 4.5:1).
-- Slack Event Subscriptions verification observation: `tgl-growth-os-production.up.railway.app` publishes no `AAAA` DNS record (only IPv4 `A` at `69.46.46.67`). The endpoint is verified reachable and responsive over IPv4 (~0.5s). Slack's verification request was captured at `webhook.site` (with valid headers and matching signature) but was not observed arriving at the Railway application when targeting the Railway domain; cause: unknown — under investigation.
+- Slack Event Subscriptions verification observation & mounting diff:
+  - Both `/slack/commands` and `/slack/events` share identical `express.raw({ type: "*/*", limit: "5mb" })` capture.
+  - Middleware order: Synchronous `url_verification` sits as the first middleware on `/slack/events`, returning `200 { challenge }` in <1ms without awaits or external dependencies. Content-type parsing follows, followed by `/slack` entry logging and HMAC verification.
+  - Redirects & status: Neither endpoint issues redirects (no 301/302/307) or 404 on POST; both return HTTP 200 on synthetic IPv4 POSTs.
+  - Network & routing: `tgl-growth-os-production.up.railway.app` publishes no `AAAA` DNS record (IPv4 `A` at `69.46.46.67`). The endpoint is responsive over IPv4 (~0.5s). Slack's verification request was captured at `webhook.site` (with valid headers and matching signature) but was not observed arriving at the Railway application when targeting the Railway domain; cause: unknown — under investigation.
+  - Operational rule: Zero application-level differences exist in code; `/task` is the operational trigger until Slack events verify.
