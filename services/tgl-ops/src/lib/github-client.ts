@@ -77,31 +77,41 @@ export async function addCommentToIssue(issueNumber: number, body: string): Prom
  * Appends a line to a file in the repository using the GitHub Contents API.
  * Also synchronises to local filesystem if the local repository exists.
  */
+export interface AppendFileResult {
+  success: boolean;
+  status?: number;
+  error?: string;
+  sha?: string;
+}
+
 export async function appendFileInRepo(
   filePath: string,
   lineToAppend: string,
   commitMessage: string
-): Promise<{ success: boolean; sha?: string }> {
-  // Sync to local filesystem if possible
-  const localFullPath = path.join(config.repoRoot, filePath);
-  try {
-    const dir = path.dirname(localFullPath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+): Promise<AppendFileResult> {
+  const syncLocal = (): void => {
+    const localFullPath = path.join(config.repoRoot, filePath);
+    try {
+      const dir = path.dirname(localFullPath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      const localContent = fs.existsSync(localFullPath) ? fs.readFileSync(localFullPath, "utf8") : "";
+      const updatedLocal = localContent.endsWith("\n") || localContent.length === 0
+        ? `${localContent}${lineToAppend}\n`
+        : `${localContent}\n${lineToAppend}\n`;
+      fs.writeFileSync(localFullPath, updatedLocal, "utf8");
+      console.log(`[File Sync] Appended line to local file: ${filePath}`);
+    } catch (err) {
+      console.warn(`[File Sync] Could not write to local filesystem for ${filePath}:`, err);
     }
-    const localContent = fs.existsSync(localFullPath) ? fs.readFileSync(localFullPath, "utf8") : "";
-    const updatedLocal = localContent.endsWith("\n") || localContent.length === 0
-      ? `${localContent}${lineToAppend}\n`
-      : `${localContent}\n${lineToAppend}\n`;
-    fs.writeFileSync(localFullPath, updatedLocal, "utf8");
-    console.log(`[File Sync] Appended line to local file: ${filePath}`);
-  } catch (err) {
-    console.warn(`[File Sync] Could not write to local filesystem for ${filePath}:`, err);
-  }
+  };
 
   if (!config.githubToken) {
     console.warn(`[GitHub] GITHUB_TOKEN not set; skipped remote commit for ${filePath}`);
-    return { success: true };
+    // If run locally in dry-run without token, sync locally and indicate dry-run status
+    syncLocal();
+    return { success: true, status: 200, error: "Simulated local write (GITHUB_TOKEN not set)" };
   }
 
   try {
@@ -139,12 +149,24 @@ export async function appendFileInRepo(
       sha,
     });
 
+    const isSuccess = putRes.status === 200 || putRes.status === 201;
+    if (isSuccess) {
+      syncLocal();
+    }
+
     return {
-      success: true,
+      success: isSuccess,
+      status: putRes.status,
       sha: putRes.data.content?.sha,
     };
-  } catch (err) {
+  } catch (err: any) {
     console.error(`[GitHub Contents API] Error writing to ${filePath}:`, err);
-    return { success: false };
+    const status = err.status || 500;
+    const message = err.response?.data?.message || err.message || "Unknown error";
+    return {
+      success: false,
+      status,
+      error: message.replace(/\n+/g, " ").trim(),
+    };
   }
 }
