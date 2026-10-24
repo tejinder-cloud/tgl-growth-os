@@ -40,12 +40,17 @@ export function setLastStandupRecord(record: StandupRecord | null): void {
  * Step 3a / 17:50 IST: Gathers operational material, calls Anthropic to synthesize
  * the standup digest (<=25 lines), and logs token cost to logs/<today>/chief-of-staff.md.
  */
-export async function execute1750Gather(dateStr?: string, testTargetChannel?: string): Promise<StandupRunResult> {
+export async function execute1750Gather(
+  dateStr?: string,
+  testTargetChannel?: string,
+  options?: { testMode?: boolean }
+): Promise<StandupRunResult> {
+  const isTest = options?.testMode || !!testTargetChannel || process.env.TGL_TEST_MODE === "1";
   const date = dateStr || getTodayDateString();
   console.log(`[Chief of Staff] Running 17:50 IST gather & synthesis for ${date}...`);
 
   const data = await gatherStandupMaterial(date);
-  const synthesis = await synthesizeStandupDigest(data);
+  const synthesis = await synthesizeStandupDigest(data, { testMode: isTest });
 
   console.log(`[Chief of Staff] Synthesis complete (${synthesis.model}). Tokens: ${synthesis.inputTokens} in / ${synthesis.outputTokens} out ($${synthesis.totalCostUsd.toFixed(4)} USD)`);
 
@@ -147,8 +152,8 @@ export async function execute1815SilenceCheck(
   console.log(`[Chief of Staff] Running 18:15 IST silence check for ${date}...`);
   const allAgents = await loadAgents();
 
-  // Active agents (excluding bench or retired roles)
-  const activeAgents = allAgents.filter((a: any) => a.status !== "bench" && a.status !== "retired");
+  // Active agents only (status: active in config/agents.yaml)
+  const activeAgents = allAgents.filter((a) => a.status === "active");
 
   // Check logs locally and remotely
   const reportedAgents = new Set<string>();
@@ -162,7 +167,7 @@ export async function execute1815SilenceCheck(
     } catch {}
   }
 
-  if (config.githubToken && reportedAgents.size === 0) {
+  if (config.githubToken) {
     try {
       const res = await octokit.repos.getContent({
         owner: config.githubOwner,
@@ -210,17 +215,69 @@ export async function execute1815SilenceCheck(
   return { silentAgents, postedCount };
 }
 
+// Local cache for deduplicating processed replies by Slack message ts
+const CACHE_DIR = path.join(config.repoRoot, ".tgl-cache");
+const REPLIES_CACHE_FILE = path.join(CACHE_DIR, "processed_replies.json");
+
+let processedRepliesSet: Set<string> | null = null;
+
+export function getProcessedReplies(): Set<string> {
+  if (processedRepliesSet) return processedRepliesSet;
+  processedRepliesSet = new Set<string>();
+  if (fs.existsSync(REPLIES_CACHE_FILE)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(REPLIES_CACHE_FILE, "utf8"));
+      if (Array.isArray(data)) {
+        for (const item of data) {
+          if (typeof item === "string") processedRepliesSet.add(item);
+        }
+      }
+    } catch {}
+  }
+  return processedRepliesSet;
+}
+
+export function markReplyProcessed(ts: string): void {
+  const set = getProcessedReplies();
+  set.add(ts);
+  try {
+    if (!fs.existsSync(CACHE_DIR)) {
+      fs.mkdirSync(CACHE_DIR, { recursive: true });
+    }
+    fs.writeFileSync(REPLIES_CACHE_FILE, JSON.stringify(Array.from(set)), "utf8");
+  } catch {}
+}
+
+export function isReplyProcessed(ts: string): boolean {
+  return getProcessedReplies().has(ts);
+}
+
 /**
  * Step 3d: Architect replies in standup thread.
  * If message starts with "Decision:" -> write to decisions/<date>.md
  * Otherwise -> append to logs/<date>/architect.md
+ * Deduplicates by message ts. Supports testMode (writes to logs/.test/).
  */
-export async function handleArchitectStandupReply(event: {
-  text: string;
-  user?: any;
-  thread_ts?: string;
-  channel: string;
-}): Promise<{ handled: boolean; action?: "decision" | "log"; path?: string }> {
+export async function handleArchitectStandupReply(
+  event: {
+    text: string;
+    user?: any;
+    thread_ts?: string;
+    ts?: string;
+    channel: string;
+  },
+  options?: {
+    testMode?: boolean;
+  }
+): Promise<{ handled: boolean; action?: "decision" | "log"; path?: string; alreadyProcessed?: boolean }> {
+  const isTest = options?.testMode || process.env.TGL_TEST_MODE === "1";
+
+  // Deduplicate by message ts
+  if (event.ts && isReplyProcessed(event.ts)) {
+    console.log(`[Chief of Staff] Standup reply ${event.ts} already processed; skipping.`);
+    return { handled: false, alreadyProcessed: true };
+  }
+
   const actor = await getActorDisplayName(event.user || "falkanmedia");
   const architectConfig = await getArchitectConfig();
   const text = (event.text || "").trim();
@@ -244,22 +301,153 @@ export async function handleArchitectStandupReply(event: {
 
   if (text.startsWith("Decision:") || text.startsWith("decision:")) {
     const decisionBody = text.replace(/^decision:\s*/i, "").trim();
-    const line = `${timeStr} IST · ${actor} · DECISION · standup:${event.thread_ts || "root"} · ${decisionBody}`;
-    const filePath = `decisions/${dateStr}.md`;
+    const line = `${timeStr} IST · ${actor} · DECISION · standup:${event.thread_ts || event.ts || "root"} · ${decisionBody}`;
 
+    if (isTest) {
+      // Test mode: write to logs/.test/ and clean it; never write to main
+      const testDir = path.join(config.repoRoot, "logs/.test");
+      fs.mkdirSync(testDir, { recursive: true });
+      const testFile = path.join(testDir, "decisions.md");
+      fs.appendFileSync(testFile, line + "\n", "utf8");
+      if (event.ts) markReplyProcessed(event.ts);
+      console.log(`[Chief of Staff Test Mode] Recorded Architect decision in ${testFile}`);
+      return { handled: true, action: "decision", path: testFile };
+    }
+
+    const filePath = `decisions/${dateStr}.md`;
     await appendFileInRepo(filePath, line, `chore(decision): record Architect decision from standup thread`);
+    if (event.ts) markReplyProcessed(event.ts);
     console.log(`[Chief of Staff] Recorded Architect decision in ${filePath}`);
 
     return { handled: true, action: "decision", path: filePath };
   } else {
     const logLine = `- ${timeStr} IST — ${text}`;
-    const filePath = `logs/${dateStr}/architect.md`;
 
+    if (isTest) {
+      // Test mode: write to logs/.test/ and clean it; never write to main
+      const testDir = path.join(config.repoRoot, "logs/.test");
+      fs.mkdirSync(testDir, { recursive: true });
+      const testFile = path.join(testDir, "architect.md");
+      fs.appendFileSync(testFile, logLine + "\n", "utf8");
+      if (event.ts) markReplyProcessed(event.ts);
+      console.log(`[Chief of Staff Test Mode] Recorded Architect log in ${testFile}`);
+      return { handled: true, action: "log", path: testFile };
+    }
+
+    const filePath = `logs/${dateStr}/architect.md`;
     await appendFileInRepo(filePath, logLine, `chore(log): record Architect standup comment`);
+    if (event.ts) markReplyProcessed(event.ts);
     console.log(`[Chief of Staff] Recorded Architect log in ${filePath}`);
 
     return { handled: true, action: "log", path: filePath };
   }
+}
+
+/**
+ * Step 3f: Poll standup thread replies every 10 minutes from 18:00 to 23:00 IST
+ * and once at 08:30 IST.
+ * Reads conversations.replies on today's (or most recent) standup post (bot token, channels:history).
+ * Processes new replies from the Architect the same way the event handler does, deduped by ts.
+ */
+export async function pollStandupReplies(options?: {
+  channel?: string;
+  standupTs?: string;
+  testMode?: boolean;
+}): Promise<{
+  polled: boolean;
+  channel: string;
+  standupTs?: string;
+  repliesFound: number;
+  newProcessedCount: number;
+}> {
+  const channel = options?.channel || currentStandupRecord?.channel || config.standupChannelId;
+  let standupTs = options?.standupTs || currentStandupRecord?.standupTs;
+
+  console.log(`[Chief of Staff Poll] Checking standup replies in ${channel}...`);
+
+  // If no standupTs in memory, locate today's (or most recent) standup post via conversations.history
+  if (!standupTs && config.slackBotToken) {
+    try {
+      const historyRes = await slackClient.conversations.history({
+        channel,
+        limit: 30,
+      });
+      if (historyRes.messages) {
+        const digestMsg = historyRes.messages.find(
+          (m: any) =>
+            m.text?.includes("Daily Standup Digest") ||
+            m.text?.includes("The Growth Lab — Daily Standup Digest") ||
+            (m.bot_id && m.text?.includes("Standup"))
+        );
+        if (digestMsg?.ts) {
+          standupTs = digestMsg.ts;
+          currentStandupRecord = {
+            date: getTodayDateString(),
+            channel,
+            standupTs,
+          };
+          console.log(`[Chief of Staff Poll] Located standup digest post at ts=${standupTs}`);
+        }
+      }
+    } catch (err: any) {
+      console.warn(`[Chief of Staff Poll] Failed to fetch channel history for ${channel}:`, err.message);
+    }
+  }
+
+  if (!standupTs) {
+    console.log(`[Chief of Staff Poll] No standup post found to poll in ${channel}; skipping.`);
+    return { polled: false, channel, repliesFound: 0, newProcessedCount: 0 };
+  }
+
+  let replies: any[] = [];
+  if (config.slackBotToken) {
+    try {
+      const repliesRes = await slackClient.conversations.replies({
+        channel,
+        ts: standupTs,
+        limit: 100,
+      });
+      replies = repliesRes.messages || [];
+    } catch (err: any) {
+      console.error(`[Chief of Staff Poll] Error reading conversations.replies for ${standupTs}:`, err.message);
+      return { polled: false, channel, standupTs, repliesFound: 0, newProcessedCount: 0 };
+    }
+  }
+
+  // Filter out the parent standup message itself and bots
+  const threadReplies = replies.filter((r) => r.ts !== standupTs && !r.bot_id && r.subtype !== "bot_message");
+  let newProcessedCount = 0;
+
+  for (const reply of threadReplies) {
+    const replyTs = reply.ts;
+    if (!replyTs || isReplyProcessed(replyTs)) {
+      continue;
+    }
+
+    const handledRes = await handleArchitectStandupReply(
+      {
+        text: reply.text || "",
+        user: reply.user,
+        thread_ts: standupTs,
+        ts: replyTs,
+        channel,
+      },
+      { testMode: options?.testMode }
+    );
+
+    if (handledRes.handled) {
+      newProcessedCount++;
+    }
+  }
+
+  console.log(`[Chief of Staff Poll] Polled ${threadReplies.length} thread replies (${newProcessedCount} new processed from Architect).`);
+  return {
+    polled: true,
+    channel,
+    standupTs,
+    repliesFound: threadReplies.length,
+    newProcessedCount,
+  };
 }
 
 /**

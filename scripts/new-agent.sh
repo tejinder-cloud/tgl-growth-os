@@ -112,6 +112,7 @@ if ! grep -q "name: ${NAME}$" "${AGENTS_CONFIG}" 2>/dev/null; then
   channel: "${CHANNEL}"
   trigger: "${TRIGGER}"
   reviewer: "${REVIEWER}"
+  status: planned
 EOF
 fi
 
