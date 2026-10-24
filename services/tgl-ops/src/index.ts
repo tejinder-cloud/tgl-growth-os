@@ -48,6 +48,15 @@ cron.schedule(
 // Validate environment configuration
 validateConfig();
 
+// Sync labels on startup
+import("./lib/labels.js").then(({ syncLabels }) => {
+  syncLabels().catch((err) => {
+    console.warn("[Labels Startup Sync Warning]", err);
+  });
+}).catch((err) => {
+  console.warn("[Labels Loader Error]", err);
+});
+
 // Start HTTP server
 app.listen(config.port, () => {
   console.log(`=======================================================`);
@@ -58,5 +67,6 @@ app.listen(config.port, () => {
   console.log(`💬 Slack Standup Channel: ${config.standupChannelId}`);
   console.log(`=======================================================`);
 });
+
 
 export { app };

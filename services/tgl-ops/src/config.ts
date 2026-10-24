@@ -19,6 +19,8 @@ export interface AppConfig {
   approvalsChannelId: string;
   standupChannelId: string;
   alertsChannelId: string;
+  opsChannelId: string;
+  githubWebhookSecret: string;
   timezone: string;
   repoRoot: string;
 }
@@ -46,9 +48,11 @@ export const config: AppConfig = {
   githubToken: (process.env.GITHUB_TOKEN || "").trim(),
   githubOwner: (process.env.GITHUB_OWNER || githubOwner).trim(),
   githubRepo: (process.env.GITHUB_REPO_NAME || githubRepo).trim(),
+  githubWebhookSecret: (process.env.GITHUB_WEBHOOK_SECRET || "").trim(),
   approvalsChannelId: (process.env.APPROVALS_CHANNEL_ID || "#approvals").trim(),
   standupChannelId: (process.env.STANDUP_CHANNEL_ID || "#standup").trim(),
   alertsChannelId: (process.env.ALERTS_CHANNEL_ID || "#alerts").trim(),
+  opsChannelId: (process.env.OPS_CHANNEL_ID || "#ops").trim(),
   timezone: (process.env.TIMEZONE || "Asia/Kolkata").trim(),
   repoRoot: REPO_ROOT,
 };

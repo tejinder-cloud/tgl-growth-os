@@ -98,3 +98,21 @@
 - name: "for:compliance"
   color: "B7B7A4"
   description: "Assigned to Compliance"
+
+# Status
+- name: "status:in-progress"
+  color: "D4A373"
+  description: "Task has been picked up by an agent and is actively being worked on"
+
+- name: "status:done"
+  color: "2A9D8F"
+  description: "Task deliverable has been completed and verified"
+
+# Approvals
+- name: "approved:yes"
+  color: "2A9D8F"
+  description: "Proposal or deliverable approved by Architect or Reviewer"
+
+- name: "approved:no"
+  color: "E63946"
+  description: "Proposal rejected; see rejections/ for rationale"

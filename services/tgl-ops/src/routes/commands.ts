@@ -3,7 +3,8 @@ import { config } from "../config.js";
 import { loadAgents } from "../lib/agents.js";
 import { compileStandupDigest, formatStandupMessage, getTodayDateString } from "../lib/standup.js";
 import { createIssue } from "../lib/github-client.js";
-import { openModal } from "../lib/slack-client.js";
+import { slackClient, openModal } from "../lib/slack-client.js";
+import { recordIssueMapping } from "../lib/issues-index.js";
 
 export const commandsRouter = Router();
 
@@ -28,42 +29,170 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  // 2. /task Command
+  // 2. /task Command: /task @agent | door | what
   if (command === "/task") {
     const trimmedText = text?.trim() || "";
+    const registeredAgents = await loadAgents();
+    const validDoors = ["aeo", "ai", "truelead", "core"];
+    const validAgentsList = registeredAgents.map((a) => a.name).join(", ");
+    const validDoorsList = validDoors.join(", ");
 
-    // If user provided text: "/task @web-builder Fix footer copyright line"
-    if (trimmedText.length > 0) {
-      const agentMatch = trimmedText.match(/@([a-zA-Z0-9_-]+)/);
-      const agentName = agentMatch ? agentMatch[1].toLowerCase() : "web-builder";
-      const taskTitle = trimmedText.replace(/@([a-zA-Z0-9_-]+)/, "").trim() || "Operational Task";
-
-      const registered = await loadAgents();
-      const matched = registered.find((a) => a.name.toLowerCase() === agentName);
-
-      const issue = await createIssue({
-        title: `[TASK]: ${taskTitle}`,
-        body: `### for-agent\n${matched?.name || agentName}\n\n### door\ncore\n\n### context\nCreated via /task slash command by @${user_name}:\n> "${trimmedText}"\n\n### deliverable\nPer agent mandate.\n\n### reviewer\n${matched?.reviewer || "Chief of Staff"}\n\n### due\nToday\n`,
-        labels: [`for:${matched?.name || agentName}`, "type:build"],
-      });
-
+    if (!trimmedText) {
+      if (trigger_id) {
+        res.status(200).send("");
+        await openTaskModal(trigger_id, user_name);
+        return;
+      }
       res.json({
-        response_type: "in_channel",
-        text: `⚡ Task created by @${user_name} for \`@${matched?.name || agentName}\`:\n• *Issue:* <${issue.html_url}|#${issue.number} ${taskTitle}>\n• *Reviewer:* ${matched?.reviewer || "Chief of Staff"}`,
+        response_type: "ephemeral",
+        text: `Usage: \`/task @<agent> | <door> | <what>\`\n\n• *Valid Agents:* ${validAgentsList}\n• *Valid Doors:* ${validDoorsList}`,
       });
       return;
     }
 
-    // If no text provided, open the interactive modal
-    if (trigger_id) {
-      res.status(200).send(""); // acknowledge immediately
-      await openTaskModal(trigger_id, user_name);
+    const parts = trimmedText.split("|").map((p: string) => p.trim());
+    if (parts.length < 3) {
+      res.json({
+        response_type: "ephemeral",
+        text: `❌ Invalid format. Please use: \`/task @<agent> | <door> | <what>\`\n\n• *Valid Agents:* ${validAgentsList}\n• *Valid Doors:* ${validDoorsList}\n\n*Example:* \`/task @web-builder | core | Fix footer CTA spacing on mobile\``,
+      });
       return;
     }
+
+    const agentRaw = parts[0].replace(/^@/, "").trim().toLowerCase();
+    const doorRaw = parts[1].toLowerCase().trim();
+    const what = parts.slice(2).join(" | ").trim();
+
+    const matchedAgent = registeredAgents.find(
+      (a) =>
+        a.name.toLowerCase() === agentRaw ||
+        a.name.toLowerCase().replace(/-/g, "") === agentRaw.replace(/-/g, "")
+    );
+    const matchedDoor = validDoors.includes(doorRaw) ? doorRaw : undefined;
+
+    if (!matchedAgent || !matchedDoor) {
+      const errReason = !matchedAgent
+        ? `Unknown agent "${parts[0]}"`
+        : `Unknown door "${parts[1]}"`;
+      res.json({
+        response_type: "ephemeral",
+        text: `❌ ${errReason}.\n\n• *Valid Agents:* ${validAgentsList}\n• *Valid Doors:* ${validDoorsList}\n\nUsage: \`/task @<agent> | <door> | <what>\``,
+      });
+      return;
+    }
+
+    const permalink = `https://itsthegrowthlab.slack.com/archives/${channel_id}`;
+    const contextText = `Slack message by @${user_name} in <#${channel_id}>:\n> "${trimmedText}"\n\n*Slack Permalink:* ${permalink}`;
+
+    const issueBody = `### for-agent
+${matchedAgent.name}
+
+### door
+${matchedDoor}
+
+### context
+${contextText}
+
+### deliverable
+${what}
+
+### reviewer
+${matchedAgent.reviewer}
+
+### due
+`;
+
+    const titleSnippet = what.split("\n")[0].slice(0, 80);
+    const issue = await createIssue({
+      title: `[TASK]: ${titleSnippet}`,
+      body: issueBody,
+      labels: [`for:${matchedAgent.name}`, `door:${matchedDoor}`, "type:build"],
+    });
+
+    const deptChannel = matchedAgent.channel;
+    const cardMetadata = JSON.stringify({
+      agent: matchedAgent.name,
+      door: matchedDoor,
+      issue: issue.number,
+      issueUrl: issue.html_url,
+      title: titleSnippet,
+      channel: deptChannel,
+    });
+
+    const cardBlocks = [
+      {
+        type: "header",
+        text: {
+          type: "plain_text",
+          text: `⚡ Task Assigned: ${matchedAgent.name}`,
+          emoji: true,
+        },
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `*Agent:* \`${matchedAgent.name}\`  |  *Door:* \`${matchedDoor}\`  |  *Reviewer:* \`${matchedAgent.reviewer}\``,
+          },
+        ],
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*Deliverable:*\n${what}\n\n*Issue Link:* <${issue.html_url}|#${issue.number} ${titleSnippet}>`,
+        },
+      },
+      {
+        type: "actions",
+        block_id: "task_actions",
+        elements: [
+          {
+            type: "button",
+            text: {
+              type: "plain_text",
+              text: "Picked up",
+              emoji: true,
+            },
+            style: "primary",
+            action_id: "action_picked_up",
+            value: cardMetadata,
+          },
+        ],
+      },
+    ];
+
+    let cardTs: string | undefined;
+    if (config.slackBotToken) {
+      try {
+        const postRes = await slackClient.chat.postMessage({
+          channel: deptChannel,
+          text: `⚡ Task for @${matchedAgent.name}: <${issue.html_url}|#${issue.number} ${titleSnippet}>`,
+          blocks: cardBlocks,
+        });
+        cardTs = postRes.ts;
+      } catch (err) {
+        console.warn(`[Task Card Warning] Failed to post task card to ${deptChannel}:`, err);
+      }
+    }
+
+    // In environments without a live Slack Bot token (or test mocks), assign synthetic timestamp
+    if (!cardTs) {
+      cardTs = `${(Date.now() / 1000).toFixed(6)}`;
+    }
+
+    await recordIssueMapping(issue.number, {
+      channel: deptChannel,
+      ts: cardTs,
+      agent: matchedAgent.name,
+      door: matchedDoor,
+      title: titleSnippet,
+    });
 
     res.json({
       response_type: "ephemeral",
-      text: "Usage: `/task @<agent> <task description>`",
+      text: `✅ Task created: <${issue.html_url}|#${issue.number} ${titleSnippet}>\nPosted to ${deptChannel} for @${matchedAgent.name}.`,
     });
     return;
   }

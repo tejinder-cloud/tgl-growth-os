@@ -114,59 +114,71 @@ export async function appendFileInRepo(
     return { success: true, status: 200, error: "Simulated local write (GITHUB_TOKEN not set)" };
   }
 
-  try {
-    let sha: string | undefined;
-    let existingContent = "";
-
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      const getRes = await octokit.repos.getContent({
+      let sha: string | undefined;
+      let existingContent = "";
+
+      try {
+        const getRes = await octokit.repos.getContent({
+          owner: config.githubOwner,
+          repo: config.githubRepo,
+          path: filePath,
+          ref: "main",
+        });
+
+        if (!Array.isArray(getRes.data) && getRes.data.type === "file") {
+          sha = getRes.data.sha;
+          existingContent = Buffer.from(getRes.data.content, "base64").toString("utf8");
+        }
+      } catch (err: any) {
+        if (err.status !== 404) {
+          throw err;
+        }
+        // File doesn't exist yet on remote; will create
+      }
+
+      const newContent = existingContent.endsWith("\n") || existingContent.length === 0
+        ? `${existingContent}${lineToAppend}\n`
+        : `${existingContent}\n${lineToAppend}\n`;
+
+      const putRes = await octokit.repos.createOrUpdateFileContents({
         owner: config.githubOwner,
         repo: config.githubRepo,
         path: filePath,
+        message: commitMessage,
+        content: Buffer.from(newContent, "utf8").toString("base64"),
+        branch: "main",
+        sha,
       });
 
-      if (!Array.isArray(getRes.data) && getRes.data.type === "file") {
-        sha = getRes.data.sha;
-        existingContent = Buffer.from(getRes.data.content, "base64").toString("utf8");
+      const isSuccess = putRes.status === 200 || putRes.status === 201;
+      if (isSuccess) {
+        syncLocal();
       }
+
+      return {
+        success: isSuccess,
+        status: putRes.status,
+        sha: putRes.data.content?.sha,
+      };
     } catch (err: any) {
-      if (err.status !== 404) {
-        throw err;
+      const status = err.status || 500;
+      if (status === 409 && attempt < maxAttempts) {
+        console.warn(`[GitHub Contents API] 409 Conflict on ${filePath} (attempt ${attempt}/${maxAttempts}); retrying in ${attempt * 500}ms...`);
+        await new Promise((r) => setTimeout(r, attempt * 500));
+        continue;
       }
-      // File doesn't exist yet on remote; will create
+      console.error(`[GitHub Contents API] Error writing to ${filePath}:`, err);
+      const message = err.response?.data?.message || err.message || "Unknown error";
+      return {
+        success: false,
+        status,
+        error: message.replace(/\n+/g, " ").trim(),
+      };
     }
-
-    const newContent = existingContent.endsWith("\n") || existingContent.length === 0
-      ? `${existingContent}${lineToAppend}\n`
-      : `${existingContent}\n${lineToAppend}\n`;
-
-    const putRes = await octokit.repos.createOrUpdateFileContents({
-      owner: config.githubOwner,
-      repo: config.githubRepo,
-      path: filePath,
-      message: commitMessage,
-      content: Buffer.from(newContent, "utf8").toString("base64"),
-      sha,
-    });
-
-    const isSuccess = putRes.status === 200 || putRes.status === 201;
-    if (isSuccess) {
-      syncLocal();
-    }
-
-    return {
-      success: isSuccess,
-      status: putRes.status,
-      sha: putRes.data.content?.sha,
-    };
-  } catch (err: any) {
-    console.error(`[GitHub Contents API] Error writing to ${filePath}:`, err);
-    const status = err.status || 500;
-    const message = err.response?.data?.message || err.message || "Unknown error";
-    return {
-      success: false,
-      status,
-      error: message.replace(/\n+/g, " ").trim(),
-    };
   }
+
+  return { success: false, status: 409, error: "Exceeded max conflict retries" };
 }
