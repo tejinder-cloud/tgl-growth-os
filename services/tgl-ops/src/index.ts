@@ -13,6 +13,9 @@ try {
 
 const app = createApp();
 
+import { postLine } from "./lib/post.js";
+import { getCurrentTimeIST } from "./lib/standup.js";
+
 import {
   execute1750Gather,
   execute1800Broadcast,
@@ -22,96 +25,85 @@ import {
   checkAndRunStartupCatchup,
 } from "./agents/chief-of-staff/worker.js";
 
+import {
+  setupProcessErrorHandlers,
+  wrapCronJob,
+  getAlertsChannel,
+} from "./lib/cron-wrapper.js";
+
+// Initialize process error handlers (unhandledRejection & uncaughtException)
+setupProcessErrorHandlers();
+
 // Scheduled Chief of Staff Jobs (node-cron configured for Asia/Kolkata)
 // 17:50 IST: Gather operational material & Anthropic synthesis
 cron.schedule(
   "50 17 * * *",
-  async () => {
-    console.log("[Cron 17:50 IST] Chief of Staff: Gathering operational material & synthesizing standup...");
-    try {
-      await execute1750Gather();
-    } catch (err) {
-      console.error("[Cron 17:50 Error]", err);
-    }
-  },
+  wrapCronJob("17:50 IST Standup Gather", async () => {
+    await execute1750Gather();
+  }),
   { timezone: config.timezone }
 );
 
 // 18:00 IST: Post standup digest to #standup & post thread template reply
 cron.schedule(
   "0 18 * * *",
-  async () => {
-    console.log("[Cron 18:00 IST] Chief of Staff: Broadcasting standup digest to #standup...");
-    try {
-      await execute1800Broadcast();
-    } catch (err) {
-      console.error("[Cron 18:00 Error]", err);
-    }
-  },
+  wrapCronJob("18:00 IST Standup Broadcast", async () => {
+    await execute1800Broadcast({ source: "cron" });
+  }),
   { timezone: config.timezone }
 );
 
 // 18:15 IST: Silence check on #standup thread
 cron.schedule(
   "15 18 * * *",
-  async () => {
-    console.log("[Cron 18:15 IST] Chief of Staff: Executing 18:15 IST silence check...");
-    try {
-      await execute1815SilenceCheck();
-    } catch (err) {
-      console.error("[Cron 18:15 Error]", err);
-    }
-  },
+  wrapCronJob("18:15 IST Silence Check", async () => {
+    await execute1815SilenceCheck();
+  }),
   { timezone: config.timezone }
 );
 
 // Every 10 minutes from 18:00 to 23:00 IST: Poll standup thread replies
 cron.schedule(
   "*/10 18-23 * * *",
-  async () => {
-    console.log("[Cron Standup Poll 18-23 IST] Chief of Staff: Polling standup thread replies...");
-    try {
-      await pollStandupReplies();
-    } catch (err) {
-      console.error("[Cron Standup Poll Error]", err);
-    }
-  },
+  wrapCronJob("18-23 IST Standup Poll", async () => {
+    await pollStandupReplies();
+  }),
   { timezone: config.timezone }
 );
 
 // 08:30 IST: Morning poll for standup thread replies
 cron.schedule(
   "30 8 * * *",
-  async () => {
-    console.log("[Cron 08:30 IST] Chief of Staff: Polling standup thread replies...");
-    try {
-      await pollStandupReplies();
-    } catch (err) {
-      console.error("[Cron 08:30 IST Poll Error]", err);
-    }
-  },
+  wrapCronJob("08:30 IST Standup Poll", async () => {
+    await pollStandupReplies();
+  }),
   { timezone: config.timezone }
 );
 
 // Monday 09:00 IST: Monday Door Scorecard to #architect
 cron.schedule(
   "0 9 * * 1",
-  async () => {
-    console.log("[Cron Monday 09:00 IST] Chief of Staff: Broadcasting Monday door scorecard to #architect...");
-    try {
-      await executeMondayScorecard();
-    } catch (err) {
-      console.error("[Cron Monday 09:00 Error]", err);
-    }
-  },
+  wrapCronJob("Monday 09:00 IST Scorecard", async () => {
+    await executeMondayScorecard();
+  }),
   { timezone: config.timezone }
 );
 
-
 // Startup catch-up: if booted between 18:00 and 21:00 IST and standup was not posted today, run 18:00 job immediately
-checkAndRunStartupCatchup().catch((err) => {
-  console.error("[Startup Catch-Up Error]", err);
-});
+(async () => {
+  try {
+    await checkAndRunStartupCatchup();
+  } catch (err: any) {
+    const errMsg = err?.stack || err?.message || String(err);
+    console.error("[Startup Catch-Up Error]", err);
+    await postLine({
+      channel: getAlertsChannel(),
+      text: `⚠️ *[Startup Catch-Up Failure]* at ${getCurrentTimeIST()} IST\n• Error: \`${errMsg.slice(0, 400)}\`\n_Process kept running._`,
+    }).catch((postErr) => {
+      console.error("[Failed to post startup catchup error to Slack alerts]", postErr);
+    });
+  }
+})();
 
 // Sync labels on startup
 import("./lib/labels.js").then(({ syncLabels }) => {

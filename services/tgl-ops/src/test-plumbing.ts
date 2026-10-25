@@ -52,7 +52,7 @@ async function runPlumbingTest(): Promise<void> {
   const summary = "TASK-P02 plumbing test approval";
   const issueUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/1`;
 
-  const decisionLine = `${timeStr} IST · ${actor} · APPROVE · ${agent} · ${summary} · ${issueUrl}`;
+  const decisionLine = `- ${timeStr} IST · ${actor} · APPROVE · ${agent} · ${summary} · ${issueUrl}`;
   const appendResult = await appendFileInRepo(
     `decisions/${dateStr}.md`,
     decisionLine,
