@@ -103,7 +103,7 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
   • Every agent line must be a single compact bullet: '• *@<agent>*: <terse did> · <tomorrow>' (max 20 words per line).
   • Every blocker must be a single compact bullet: '• [<Rank>] <who>: <what>' (max 15 words).
 - Shape:
-  1. Header: "*📊 The Growth Lab — Daily Standup Digest | ${data.date} 18:00 IST*"
+  1. Header: "*📊 The Growth Lab — Daily Standup Digest | ${data.date} ${data.compileTime || "18:00"} IST*"
   2. Per-Door Headline Numbers (AEO, AI, TrueLead, Core): either real count/metric or "no data yet".
   3. Ranked Blockers: strictly ordered by [Money] > [Customer] > [Irreversible] > [Everything else]. If none, "• None reported today."
   4. Pending Approvals: list each card from #approvals without decisions/ line, with direct link. If none, "• None pending."
@@ -206,7 +206,7 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
 function generateDeterministicDigest(data: GatheredData): string {
   const lines: string[] = [];
 
-  lines.push(`*📊 The Growth Lab — Daily Standup Digest | ${data.date} 18:00 IST*`);
+  lines.push(`*📊 The Growth Lab — Daily Standup Digest | ${data.date} ${data.compileTime || "18:00"} IST*`);
   lines.push("──────────────────────────────────────────");
 
   // 1. Doors headline

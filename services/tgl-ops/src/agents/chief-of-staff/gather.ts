@@ -4,7 +4,7 @@ import { config } from "../../config.js";
 import { octokit } from "../../lib/github-client.js";
 import { slackClient } from "../../lib/slack-client.js";
 import { loadDoorConfig } from "../../lib/agents.js";
-import { getTodayDateString } from "../../lib/standup.js";
+import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
 
 export interface LogEntry {
   agent: string;
@@ -38,6 +38,7 @@ export interface OpenPR {
 
 export interface GatheredData {
   date: string;
+  compileTime?: string;
   logs: LogEntry[];
   openApprovals: OpenApproval[];
   inProgressIssues: InProgressIssue[];
@@ -56,9 +57,10 @@ export interface GatheredData {
  */
 export async function gatherStandupMaterial(
   dateStr?: string,
-  options?: { testMode?: boolean }
+  options?: { testMode?: boolean; compileTime?: string }
 ): Promise<GatheredData> {
   const date = dateStr || getTodayDateString();
+  const compileTime = options?.compileTime || getCurrentTimeIST();
   const isTest = options?.testMode === true || process.env.TGL_TEST_MODE === "1";
 
   // 1. Gather logs/<date>/*.md from main via Contents API, never local disk
@@ -153,46 +155,62 @@ export async function gatherStandupMaterial(
       const now = Date.now();
 
       for (const msg of messages) {
-        // Detect approval card by presence of actions or specific format
-        const hasActions = (msg.blocks || []).some(
-          (b: any) => b.block_id === "card_actions" || b.type === "actions"
+        // Ignore system messages (join, leave, rename, purpose, topic, etc.)
+        if (msg.subtype && msg.subtype !== "bot_message") {
+          continue;
+        }
+
+        // Count only bot-posted cards
+        const isBot = Boolean(msg.bot_id || msg.app_id || msg.subtype === "bot_message");
+        if (!isBot) {
+          continue;
+        }
+
+        // Count only cards with action buttons (block_id card_actions or type actions with button elements)
+        const hasActionButtons = (msg.blocks || []).some(
+          (b: any) =>
+            (b.block_id === "card_actions" || b.type === "actions") &&
+            Array.isArray(b.elements) &&
+            b.elements.some((el: any) => el.type === "button")
         );
+        if (!hasActionButtons) {
+          continue;
+        }
+
         const text = msg.text || "";
 
-        if (hasActions || text.includes("review") || text.includes("approval") || text.includes("Approve")) {
-          // Extract title or summary
-          let title = "Approval proposal";
-          const headerBlock = (msg.blocks || []).find((b: any) => b.type === "header");
-          if (headerBlock?.text?.text) {
-            title = headerBlock.text.text;
-          } else if (text) {
-            title = text.split("\n")[0].slice(0, 80);
-          }
+        // Extract title or summary
+        let title = "Approval proposal";
+        const headerBlock = (msg.blocks || []).find((b: any) => b.type === "header");
+        if (headerBlock?.text?.text) {
+          title = headerBlock.text.text;
+        } else if (text) {
+          title = text.split("\n")[0].slice(0, 80);
+        }
 
-          // Extract agent
-          let agent = "web-builder";
-          const agentMatch = text.match(/@([a-zA-Z0-9_-]+)/);
-          if (agentMatch) {
-            agent = agentMatch[1];
-          }
+        // Extract agent
+        let agent = "web-builder";
+        const agentMatch = text.match(/@([a-zA-Z0-9_-]+)/);
+        if (agentMatch) {
+          agent = agentMatch[1];
+        }
 
-          // Check if this card was decided in decisions/<date>.md
-          const isDecided =
-            confirmedDecisionsText.includes(msg.ts || "") ||
-            (title && confirmedDecisionsText.includes(title.slice(0, 40))) ||
-            (msg.blocks || []).some((b: any) => b.text?.text?.includes("Approved by") || b.text?.text?.includes("Rejected by"));
+        // Check if this card was decided in decisions/<date>.md (no decisions/ line)
+        const isDecided =
+          (msg.ts && confirmedDecisionsText.includes(msg.ts)) ||
+          (title && confirmedDecisionsText.includes(title.slice(0, 40))) ||
+          (msg.blocks || []).some((b: any) => b.text?.text?.includes("Approved by") || b.text?.text?.includes("Rejected by"));
 
-          if (!isDecided && msg.ts) {
-            const ageHours = Math.max(0, Math.round((now - Number(msg.ts) * 1000) / 3600000));
-            const permalink = `https://itsthegrowthlab.slack.com/archives/${config.approvalsChannelId}/p${msg.ts.replace(".", "")}`;
-            openApprovals.push({
-              title,
-              agent,
-              ts: msg.ts,
-              permalink,
-              ageHours,
-            });
-          }
+        if (!isDecided && msg.ts) {
+          const ageHours = Math.max(0, Math.round((now - Number(msg.ts) * 1000) / 3600000));
+          const permalink = `https://itsthegrowthlab.slack.com/archives/${config.approvalsChannelId}/p${msg.ts.replace(".", "")}`;
+          openApprovals.push({
+            title,
+            agent,
+            ts: msg.ts,
+            permalink,
+            ageHours,
+          });
         }
       }
     } catch (err: any) {
@@ -285,6 +303,7 @@ export async function gatherStandupMaterial(
   // 7. Format raw material string for LLM user prompt
   const rawSummaryText = formatGatheredText({
     date,
+    compileTime,
     logs,
     openApprovals,
     inProgressIssues,
@@ -294,6 +313,7 @@ export async function gatherStandupMaterial(
 
   return {
     date,
+    compileTime,
     logs,
     openApprovals,
     inProgressIssues,
@@ -305,7 +325,7 @@ export async function gatherStandupMaterial(
 
 function formatGatheredText(data: Omit<GatheredData, "rawSummaryText">): string {
   const parts: string[] = [];
-  parts.push(`OPERATIONAL LOGS & STATUS FOR DATE: ${data.date}`);
+  parts.push(`OPERATIONAL LOGS & STATUS FOR DATE: ${data.date} (${data.compileTime || "18:00"} IST)`);
   parts.push("=================================================");
 
   // 1. Logs

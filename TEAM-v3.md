@@ -10,12 +10,20 @@ The Growth Lab is now an umbrella with three product-led doors, each running the
 Broad audience, narrow offer per door. One site, one design system, one charter.
 
 ## The TrueLead MVP gate (ship target: 4 November 2026)
-"MVP" means a stranger can complete this without anyone at TGL touching it:
-1. Sign up with email, verify, land in an empty account
-2. Connect a Meta ad account via OAuth (Lead Ads access) — or upload a CSV of the last 100 leads as the fallback path
-3. Receive scored leads (HOT/WARM/COLD + reason) within 15 minutes of connect/upload
-4. See them in a dashboard and optionally push to GHL via API key
-5. Hit a paywall at the trial limit (100 leads or 14 days) with a Razorpay/Stripe plan page
+"MVP" means a stranger can complete this without anyone at TGL touching it (per `products/truelead/SPEC-v0.md`):
+1. **Agency connects Meta Lead Ads** (one authorisation) or uploads a CSV. Leads land in the TrueLead inbox under the client (brand). Historical CSV import → first Lead Accountability report within 15 minutes.
+2. **Callers work inside TrueLead.** Mobile-first lead card: tap-to-call, outcome in two taps (unreachable · not interested · interested · follow-up · converted), optional remark, next follow-up date. New lead → WhatsApp ping to the assigned caller with the card link. Assignment: round-robin or manual.
+3. **Outcomes → Meta daily** via CAPI quality events (Navkiran SOP), per brand's pixel/dataset. No GHL in the pipeline.
+4. **Dashboard, two audiences, one data set.** Per lead: campaign, ad set, creative, cost (left) × time-to-first-call, attempts, outcome, remark (right). Views: Overview (funnel, time-to-call, outcome mix, by campaign/creative), Leads (the inbox), Callers (per-caller activity), Export (Sheet / CSV). Logins: agency owner, account manager, performance marketer; client owner, callers, sales head. Client sees only its brand.
+5. **Monday email** to agency owner and client owner: the week's accountability numbers + link. **14-day trial → ₹2,999/month per brand** (+18% GST). Included in TGL retainers.
+
+Gate metrics (Product QA runs these; the Architect does not decide by feel):
+- **Adoption:** at the first real client, by end of week 2, ≥70% of leads have an outcome logged within 48h. Below → add sheet-import path and investigate before any other feature.
+- **Time to first report:** < 15 min from CSV upload.
+- **Time to first call** shown correctly for every lead (the number the owner will quote).
+- **CAPI delivery:** ≥95% of outcomes acknowledged by Meta within 24h.
+- **Trial → paid target:** 10% (agencies see their own data; higher than TrueVisible's 5–8%).
+
 Until all five pass end-to-end from a fresh account, the TrueLead door on the site is a **waitlist**, not a trial. A QA agent runs the five steps weekly from a clean account and posts pass/fail to #truelead.
 
 ---

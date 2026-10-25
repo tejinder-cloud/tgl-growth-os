@@ -123,13 +123,14 @@ export async function saveStandupState(
 export async function execute1750Gather(
   dateStr?: string,
   testTargetChannel?: string,
-  options?: { testMode?: boolean }
+  options?: { testMode?: boolean; compileTime?: string }
 ): Promise<StandupRunResult> {
   const isTest = options?.testMode === true || isTestMode();
   const date = dateStr || getTodayDateString();
-  console.log(`[Chief of Staff] Running 17:50 IST gather & synthesis for ${date}...`);
+  const compileTime = options?.compileTime || getCurrentTimeIST();
+  console.log(`[Chief of Staff] Running standup gather & synthesis for ${date} at ${compileTime} IST...`);
 
-  const data = await gatherStandupMaterial(date, { testMode: isTest });
+  const data = await gatherStandupMaterial(date, { testMode: isTest, compileTime });
   const synthesis = await synthesizeStandupDigest(data, { testMode: isTest });
 
   const costLine = `Standup compilation: ${synthesis.inputTokens} input, ${synthesis.outputTokens} output (${synthesis.model}) · Cost: $${synthesis.totalCostUsd.toFixed(4)} USD`;
@@ -243,7 +244,7 @@ export async function execute1800Broadcast(
       textToPost = existingState.digestText;
     } else {
       console.log(`[Chief of Staff] No pre-compiled digest in state file (or forceCompile requested). Compiling fresh (gather + synthesize)...`);
-      const runRes = await execute1750Gather(date, undefined, { testMode: isTest });
+      const runRes = await execute1750Gather(date, undefined, { testMode: isTest, compileTime: getCurrentTimeIST() });
       textToPost = runRes.digestText;
       currentSynthesis = {
         model: runRes.synthesis.model,
