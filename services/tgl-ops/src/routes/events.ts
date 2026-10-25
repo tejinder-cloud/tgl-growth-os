@@ -138,7 +138,7 @@ async function handleApprovalsThreadReply(event: any): Promise<void> {
 
   console.log(`[Approvals Thread Reply] User: ${actor} | Text: "${text}" | Thread: ${thread_ts}`);
 
-  const line = `${timeStr} IST · ${actor} · COMMENT · thread:${thread_ts} · "${text.replace(/\n/g, " ")}"`;
+  const line = `- ${timeStr} IST · ${actor} · COMMENT · thread:${thread_ts} · "${text.replace(/\n/g, " ")}"`;
 
   const appendRes = await appendFileInRepo(
     `decisions/${dateStr}.md`,

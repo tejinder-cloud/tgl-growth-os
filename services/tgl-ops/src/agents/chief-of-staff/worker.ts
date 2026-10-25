@@ -5,7 +5,7 @@ import { loadAgents } from "../../lib/agents.js";
 import { appendFileInRepo, octokit, putFileInRepo, readFileFromRepo } from "../../lib/github-client.js";
 import { slackClient, getActorDisplayName } from "../../lib/slack-client.js";
 import { postLine } from "../../lib/post.js";
-import { getCurrentTimeIST, getTodayDateString, isWithinCatchupWindowIST } from "../../lib/standup.js";
+import { getCurrentTimeIST, getTodayDateString, isWithinCatchupWindowIST, formatTimeIST, formatDateIST } from "../../lib/standup.js";
 import { getArchitectConfig } from "../../lib/org.js";
 import { gatherStandupMaterial } from "./gather.js";
 import { synthesizeStandupDigest, type SynthesisResult } from "./anthropic.js";
@@ -151,6 +151,7 @@ export async function execute1750Gather(
       costLine,
     },
     posted: existingState?.posted || false,
+    source: "cron",
   };
 
   await saveStandupState(date, newState, { testMode: isTest });
@@ -219,31 +220,18 @@ export async function execute1800Broadcast(
   // 1. Check existing state file from Contents API
   const existingState = await getStandupState(date, { testMode: isTest });
 
-  // If already posted today and not forced, do not post duplicate standup
-  if (existingState?.posted && existingState?.standupTs && !options.forceCompile) {
-    console.log(`[Chief of Staff] Standup already posted for ${date} (ts=${existingState.standupTs} in ${existingState.channel || channel}); skipping duplicate broadcast.`);
-    return {
-      channel: existingState.channel || channel,
-      standupTs: existingState.standupTs,
-      threadTs: existingState.threadPromptTs,
-      alreadyPosted: true,
-      compiledFresh: false,
-      synthesis: existingState.synthesis,
-      costLine: existingState.synthesis?.costLine,
-    };
-  }
-
   let textToPost = options.digestText;
   let compiledFresh = false;
   let currentSynthesis = existingState?.synthesis;
 
   // If digestText was not explicitly passed, check pre-compiled state file
+  // (Only reuse if pre-compiled by cron, not from an earlier ad-hoc /standup)
   if (!textToPost) {
-    if (!options.forceCompile && existingState?.digestText) {
+    if (!options.forceCompile && existingState?.digestText && existingState?.source !== "standup_command") {
       console.log(`[Chief of Staff] Found pre-compiled digest from 17:50 in state file for ${date}. Using it.`);
       textToPost = existingState.digestText;
     } else {
-      console.log(`[Chief of Staff] No pre-compiled digest in state file (or forceCompile requested). Compiling fresh (gather + synthesize)...`);
+      console.log(`[Chief of Staff] No pre-compiled digest in state file (or forceCompile requested / prior ad-hoc). Compiling fresh (gather + synthesize)...`);
       const runRes = await execute1750Gather(date, undefined, { testMode: isTest, compileTime: getCurrentTimeIST() });
       textToPost = runRes.digestText;
       currentSynthesis = {
@@ -336,14 +324,17 @@ export async function execute1800Broadcast(
     ? `Standup compilation: ${currentSynthesis.inputTokens} input, ${currentSynthesis.outputTokens} output (${currentSynthesis.model}) · Cost: $${currentSynthesis.totalCostUsd.toFixed(4)} USD`
     : undefined);
 
-  // Persist posted state to logs/.state/standup-<date>.json via Contents API immediately
+  // Persist state to logs/.state/standup-<date>.json via Contents API immediately.
+  // /standup posts an ad-hoc digest and must not mark the day as posted; the 18:00 cron always posts.
+  // standupTs always points to whichever post is latest, so subsequent polls follow it.
+  const isAdHoc = options.source === "standup_command";
   const updatedState: StandupState = {
     ...(existingState || { date }),
     date,
     digestText: fallbackText,
     synthesis: currentSynthesis,
-    posted: true,
-    postedAt: new Date().toISOString(),
+    posted: isAdHoc ? (existingState?.posted || false) : true,
+    postedAt: isAdHoc ? existingState?.postedAt : new Date().toISOString(),
     standupTs,
     threadPromptTs: threadTs,
     channel,
@@ -609,8 +600,9 @@ export async function handleArchitectStandupReply(
   const actor = await getActorDisplayName(event.user || "falkanmedia");
   const architectConfig = await getArchitectConfig();
   const text = (event.text || "").trim();
-  const dateStr = getTodayDateString();
-  const timeStr = getCurrentTimeIST();
+  // Record Slack message time and date, NOT the poll time
+  const msgTimeStr = formatTimeIST(event.ts);
+  const msgDateStr = formatDateIST(event.ts);
 
   // Verify actor is Architect
   const isArchitect =
@@ -629,7 +621,8 @@ export async function handleArchitectStandupReply(
 
   if (text.startsWith("Decision:") || text.startsWith("decision:")) {
     const decisionBody = text.replace(/^decision:\s*/i, "").trim();
-    const line = `${timeStr} IST · ${actor} · DECISION · standup:${event.thread_ts || event.ts || "root"} · ${decisionBody}`;
+    // Prefix with "- " bullet so GitHub renders one per line; record Slack message time
+    const line = `- ${msgTimeStr} IST · ${actor} · DECISION · standup:${event.thread_ts || event.ts || "root"} · ${decisionBody}`;
 
     if (isTest) {
       // Test mode: write to logs/.test/ and clean it; never write to main
@@ -642,14 +635,14 @@ export async function handleArchitectStandupReply(
       return { handled: true, action: "decision", path: testFile };
     }
 
-    const filePath = `decisions/${dateStr}.md`;
+    const filePath = `decisions/${msgDateStr}.md`;
     await appendFileInRepo(filePath, line, `chore(decision): record Architect decision from standup thread`);
     if (event.ts) markReplyProcessed(event.ts);
     console.log(`[Chief of Staff] Recorded Architect decision in ${filePath}`);
 
     return { handled: true, action: "decision", path: filePath };
   } else {
-    const logLine = `- ${timeStr} IST — ${text}`;
+    const logLine = `- ${msgTimeStr} IST — ${text}`;
 
     if (isTest) {
       // Test mode: write to logs/.test/ and clean it; never write to main
@@ -662,7 +655,7 @@ export async function handleArchitectStandupReply(
       return { handled: true, action: "log", path: testFile };
     }
 
-    const filePath = `logs/${dateStr}/architect.md`;
+    const filePath = `logs/${msgDateStr}/architect.md`;
     await appendFileInRepo(filePath, logLine, `chore(log): record Architect standup comment`);
     if (event.ts) markReplyProcessed(event.ts);
     console.log(`[Chief of Staff] Recorded Architect log in ${filePath}`);
@@ -717,11 +710,11 @@ export async function pollStandupReplies(options?: {
         if (digestMsg?.ts) {
           standupTs = digestMsg.ts;
           console.log(`[Chief of Staff Poll] Located standup digest post at ts=${standupTs} via history in ${channel}`);
-          // Sync state file so subsequent polls don't need history lookup
+          // Sync state file so subsequent polls don't need history lookup (do not mark posted: true)
           const updatedState: StandupState = {
             ...(state || { date }),
             date,
-            posted: true,
+            posted: state?.posted || false,
             standupTs,
             channel,
           };
@@ -785,10 +778,10 @@ export async function pollStandupReplies(options?: {
     }
   }
 
-  // If new replies were processed, persist them in state file
+  // If new replies were processed, persist them in state file (preserve posted status)
   if (newlyProcessedList.length > 0) {
     const updatedState: StandupState = {
-      ...(state || { date, posted: true, standupTs, channel }),
+      ...(state || { date, posted: false, standupTs, channel }),
       processedReplies: Array.from(processedFromState),
     };
     await saveStandupState(date, updatedState, { testMode: isTest });

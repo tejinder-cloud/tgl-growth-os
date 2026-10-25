@@ -85,8 +85,8 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
 
   console.log(`[Action Approve] Actor: ${actor} | Agent: ${agent} | Issue: #${issueNum}`);
 
-  // Format: "HH:MM IST · <actor> · <APPROVE|REJECT> · <agent> · <summary> · <issue/PR url>"
-  const decisionLine = `${timeStr} IST · ${actor} · APPROVE · ${agent} · ${summary} · ${issueUrl}`;
+  // Format: "- HH:MM IST · <actor> · <APPROVE|REJECT> · <agent> · <summary> · <issue/PR url>"
+  const decisionLine = `- ${timeStr} IST · ${actor} · APPROVE · ${agent} · ${summary} · ${issueUrl}`;
 
   // Append to decisions/YYYY-MM-DD.md
   const appendRes = await appendFileInRepo(
@@ -282,7 +282,7 @@ async function handleRejectSubmission(payload: any): Promise<void> {
   console.log(`[Action Reject] Actor: ${actor} | Agent: ${agent} | Reason: "${reason}"`);
 
   // 1. Append to decisions/YYYY-MM-DD.md
-  const decisionLine = `${timeStr} IST · ${actor} · REJECT · ${agent} · ${summary} (Reason: ${reason}) · ${issueUrl}`;
+  const decisionLine = `- ${timeStr} IST · ${actor} · REJECT · ${agent} · ${summary} (Reason: ${reason}) · ${issueUrl}`;
   const decRes = await appendFileInRepo(
     `decisions/${dateStr}.md`,
     decisionLine,

@@ -16,6 +16,7 @@ import {
 import { compileMondayScorecard } from "./agents/chief-of-staff/scorecard.js";
 import { postLine } from "./lib/post.js";
 import { getCurrentTimeIST, getTodayDateString, isWithinCatchupWindowIST } from "./lib/standup.js";
+import { setupProcessErrorHandlers, wrapCronJob } from "./lib/cron-wrapper.js";
 
 // Set Test Mode: Tests never write to decisions/ or logs/ on main
 process.env.TGL_TEST_MODE = "1";
@@ -240,10 +241,15 @@ async function runDay04Tests(): Promise<void> {
     console.log(`✅ [Test 3 Passed] Startup catch-up logic verified.`);
 
     // -------------------------------------------------------------------------
-    // 4. /standup Slash Command Execution (Chief of Staff Run)
+    // 4. /standup Slash Command Execution (Ad-Hoc Digest & State Isolation)
     // -------------------------------------------------------------------------
     console.log("\n[Test 4] Testing /standup Slash Command invocation...");
-    // Simulate /standup execution calling execute1800Broadcast with forceCompile: true
+    // Clear state file to simulate fresh day before 18:00 cron
+    if (fs.existsSync(testStatePath)) {
+      fs.rmSync(testStatePath);
+    }
+
+    // 4a. /standup posts an ad-hoc digest and must not mark the day as posted
     const standupCommandRes = await execute1800Broadcast({
       targetChannel,
       dateStr: today,
@@ -274,22 +280,60 @@ async function runDay04Tests(): Promise<void> {
     if (commandState?.source !== "standup_command" || commandState.standupTs !== standupCommandRes.standupTs) {
       throw new Error("/standup failed to persist command execution state!");
     }
-    console.log(`✅ [Test 4 Passed] /standup called Chief of Staff run; verified real timestamp, costLine, and zero simulated strings.`);
+    if (commandState.posted) {
+      throw new Error("/standup must NOT mark the day as posted! (posted should be false)");
+    }
+    console.log(`  • Verified: /standup saved state with posted: false and standupTs: ${commandState.standupTs}.`);
+
+    // 4b. 18:00 cron always posts, even after /standup has posted
+    console.log("  • Verifying 18:00 cron broadcast always posts after /standup...");
+    const cronAfterStandup = await execute1800Broadcast({
+      targetChannel,
+      dateStr: today,
+      source: "cron",
+      testMode: true,
+    });
+
+    if (!cronAfterStandup.standupTs) {
+      throw new Error("18:00 cron broadcast failed to post after /standup!");
+    }
+    const stateAfterCron = await getStandupState(today, { testMode: true });
+    if (!stateAfterCron?.posted || stateAfterCron.standupTs !== cronAfterStandup.standupTs) {
+      throw new Error("18:00 cron broadcast failed to update state file with posted: true and new standupTs!");
+    }
+    console.log(`  • Verified: 18:00 cron always posts, updates posted: true, and standupTs points to cron post.`);
+
+    // 4c. Second ad-hoc /standup (e.g. at 20:00) posts and updates standupTs to latest post
+    console.log("  • Verifying subsequent ad-hoc /standup updates standupTs to latest post...");
+    const secondStandupRes = await execute1800Broadcast({
+      targetChannel,
+      dateStr: today,
+      forceCompile: true,
+      source: "standup_command",
+      testMode: true,
+    });
+
+    const stateAfterSecondStandup = await getStandupState(today, { testMode: true });
+    if (!stateAfterSecondStandup?.posted || stateAfterSecondStandup.standupTs !== secondStandupRes.standupTs) {
+      throw new Error("Subsequent /standup failed to update state file's standupTs to latest post!");
+    }
+    console.log(`  • Verified: standupTs updated to latest /standup post (ts=${secondStandupRes.standupTs}), posted remains true.`);
+    console.log(`✅ [Test 4 Passed] /standup ad-hoc digest does not mark day as posted, 18:00 cron always posts, and standupTs tracks latest post.`);
 
     // -------------------------------------------------------------------------
-    // 5. Standup Poll (18–23) finding post made by /standup as well as cron
+    // 5. Standup Poll (18–23) follows whichever post is latest
     // -------------------------------------------------------------------------
-    console.log("\n[Test 5] Testing Standup Reply Poll (finds post made by /standup)...");
+    console.log("\n[Test 5] Testing Standup Reply Poll (follows latest post in state)...");
     const pollResult = await pollStandupReplies({
       channel: targetChannel,
       testMode: true,
     });
 
-    if (!pollResult.polled || pollResult.standupTs !== standupCommandRes.standupTs) {
-      throw new Error(`Poll failed to find post made by /standup! Expected ${standupCommandRes.standupTs}, got ${pollResult.standupTs}`);
+    if (!pollResult.polled || pollResult.standupTs !== secondStandupRes.standupTs) {
+      throw new Error(`Poll failed to follow latest post! Expected ${secondStandupRes.standupTs}, got ${pollResult.standupTs}`);
     }
-    console.log(`  • Poll successfully located /standup post (ts=${pollResult.standupTs}) via state file.`);
-    console.log(`✅ [Test 5 Passed] Poll verified finding post made by /standup as well as by cron.`);
+    console.log(`  • Poll successfully located latest post (ts=${pollResult.standupTs}) via state file.`);
+    console.log(`✅ [Test 5 Passed] Poll verified following whichever post is latest in state file.`);
 
     // -------------------------------------------------------------------------
     // 6. Test Monday 09:00 IST Scorecard Compilation
@@ -324,10 +368,12 @@ async function runDay04Tests(): Promise<void> {
     console.log(`✅ [Test 7 Passed] 18:15 silence check executed; correctly restricted to active agents only.`);
 
     // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // 8. Test Architect In-Thread Reply Decision Capture & Deduplication (logs/.test/)
     // -------------------------------------------------------------------------
-    console.log("\n[Test 8] Testing Architect in-thread reply capture & deduplication (mocked to logs/.test/)...");
-    const testDecisionTs = `test-ts-${Date.now()}.001`;
+    console.log("\n[Test 8] Testing Architect in-thread reply capture, Slack message timestamp, and '- ' bullet formatting...");
+    // 1729861200 epoch seconds = 2024-10-25 13:00:00 UTC = 18:30:00 IST
+    const testDecisionTs = `1729861200.${Date.now().toString().slice(-6)}`;
 
     const decisionReplyResult = await handleArchitectStandupReply(
       {
@@ -347,6 +393,18 @@ async function runDay04Tests(): Promise<void> {
       throw new Error(`Test must write to logs/.test/, got: ${decisionReplyResult.path}`);
     }
 
+    // Verify file content formatting: must start with "- " bullet, and record message time 18:30 IST (not poll time)
+    const writtenDecisionContent = fs.readFileSync(decisionReplyResult.path, "utf-8");
+    console.log(`  • Written decision entry:\n    ${writtenDecisionContent.trim()}`);
+    if (!writtenDecisionContent.startsWith("- 18:30 IST")) {
+      throw new Error(
+        `Decision line must begin with '- 18:30 IST' (recording Slack message time with '- ' bullet)! Got: ${writtenDecisionContent}`
+      );
+    }
+    if (!writtenDecisionContent.includes("DECISION · standup:")) {
+      throw new Error(`Decision line must contain 'DECISION · standup:'! Got: ${writtenDecisionContent}`);
+    }
+
     // Deduplication check
     const duplicateReplyResult = await handleArchitectStandupReply(
       {
@@ -362,7 +420,51 @@ async function runDay04Tests(): Promise<void> {
     if (duplicateReplyResult.handled || !duplicateReplyResult.alreadyProcessed) {
       throw new Error(`Expected duplicate reply ts ${testDecisionTs} to be skipped, got: ${JSON.stringify(duplicateReplyResult)}`);
     }
-    console.log(`✅ [Test 8 Passed] Architect decision capture & deduplication verified.`);
+    console.log(`✅ [Test 8 Passed] Architect decision capture verified: recorded Slack message time (18:30 IST), prefixed with '- ' bullet, and deduplicated.`);
+
+    // -------------------------------------------------------------------------
+    // 9. Test Cron Wrapper and Process Error Handlers
+    // -------------------------------------------------------------------------
+    console.log("\n[Test 9] Testing Cron Wrapper isolation and process error handlers...");
+    setupProcessErrorHandlers();
+
+    if (process.listenerCount("unhandledRejection") === 0) {
+      throw new Error("process.on('unhandledRejection') handler must be registered!");
+    }
+    if (process.listenerCount("uncaughtException") === 0) {
+      throw new Error("process.on('uncaughtException') handler must be registered!");
+    }
+
+    let errorCapturedByHook = false;
+    let hookErrorMsg = "";
+    const testFailingCron = wrapCronJob(
+      "Test Failing Cron Job",
+      async () => {
+        throw new Error("Simulated failure in cron task for resilience testing");
+      },
+      {
+        channel: targetChannel,
+        onError: (err: any) => {
+          errorCapturedByHook = true;
+          hookErrorMsg = err?.message || String(err);
+        },
+      }
+    );
+
+    // Execute wrapped cron job; it must not throw or exit the process
+    testFailingCron();
+
+    // Give the async IIFE 300ms to log, run onError hook, and post alert to target channel (#ops)
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    if (!errorCapturedByHook) {
+      throw new Error("wrapCronJob failed to invoke error hook on task failure!");
+    }
+    if (!hookErrorMsg.includes("Simulated failure")) {
+      throw new Error(`Unexpected error message caught: ${hookErrorMsg}`);
+    }
+    console.log(`  • Verified: failing cron was caught, dispatched alert to ${targetChannel}, and process remained alive.`);
+    console.log(`✅ [Test 9 Passed] Cron wrapper error isolation and process error handlers verified.`);
 
   } finally {
     // Teardown: Clean up logs/.test/ completely
