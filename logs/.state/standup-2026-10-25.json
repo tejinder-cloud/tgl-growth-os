@@ -14,5 +14,8 @@
   "postedAt": "2026-10-25T09:26:34.023Z",
   "threadPromptTs": "1792920393.951769",
   "source": "standup_command",
-  "compiledAt": "2026-10-25T12:20:11.944Z"
+  "compiledAt": "2026-10-25T12:20:11.944Z",
+  "processedReplies": [
+    "1792920483.946459"
+  ]
 }
