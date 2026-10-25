@@ -109,9 +109,7 @@ export async function appendFileInRepo(
 
   if (!config.githubToken) {
     console.warn(`[GitHub] GITHUB_TOKEN not set; skipped remote commit for ${filePath}`);
-    // If run locally in dry-run without token, sync locally and indicate dry-run status
-    syncLocal();
-    return { success: true, status: 200, error: "Simulated local write (GITHUB_TOKEN not set)" };
+    return { success: false, status: 401, error: "GITHUB_TOKEN not set; remote write skipped" };
   }
 
   const maxAttempts = 3;
@@ -203,8 +201,8 @@ export async function putFileInRepo(
   };
 
   if (!config.githubToken) {
-    syncLocal();
-    return { success: true, status: 200, error: "Simulated local write (GITHUB_TOKEN not set)" };
+    console.warn(`[GitHub] GITHUB_TOKEN not set; skipped remote commit for ${filePath}`);
+    return { success: false, status: 401, error: "GITHUB_TOKEN not set; remote write skipped" };
   }
 
   const maxAttempts = 3;

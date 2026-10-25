@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { slackClient } from "./slack-client.js";
-import { config } from "../config.js";
+import { config, isTestMode } from "../config.js";
 
 export interface PostCardLink {
   label: string;
@@ -151,9 +151,12 @@ export async function postCard(options: PostCardOptions): Promise<{ ok: boolean;
   }
 
   if (!config.slackBotToken) {
-    console.log(`[postCard Dry Run] Channel: ${channel} | Title: ${title}`);
-    console.log(JSON.stringify(blocks, null, 2));
-    return { ok: true, ts: `${Date.now() / 1000}`, channel };
+    if (isTestMode()) {
+      console.log(`[postCard Dry Run] Channel: ${channel} | Title: ${title}`);
+      console.log(JSON.stringify(blocks, null, 2));
+      return { ok: true, ts: `${Date.now() / 1000}`, channel };
+    }
+    throw new Error(`SLACK_BOT_TOKEN is not configured; cannot post card to ${channel} in production.`);
   }
 
   try {
@@ -163,33 +166,53 @@ export async function postCard(options: PostCardOptions): Promise<{ ok: boolean;
       blocks,
       thread_ts,
     });
+    if (!res.ok || !res.ts) {
+      throw new Error(`Slack postCard failed: ${res.error || "no ts returned"}`);
+    }
     return { ok: true, ts: res.ts, channel: res.channel };
-  } catch (err) {
-    console.error("[postCard Error]", err);
+  } catch (err: any) {
+    console.error("[postCard Error]", err.message || err);
     return { ok: false };
   }
 }
 
 /**
  * Posts a single line or markdown update in a Slack channel or thread.
+ * Guaranteed to carry plain-text text plus blocks.
  */
 export async function postLine(options: PostLineOptions): Promise<{ ok: boolean; ts?: string }> {
   const { channel, text, thread_ts } = options;
+  const safeText = (text && text.trim()) || " ";
 
   if (!config.slackBotToken) {
-    console.log(`[postLine Dry Run] [${channel}${thread_ts ? ` : thread ${thread_ts}` : ""}] ${text}`);
-    return { ok: true, ts: `${Date.now() / 1000}` };
+    if (isTestMode()) {
+      console.log(`[postLine Dry Run] [${channel}${thread_ts ? ` : thread ${thread_ts}` : ""}] ${safeText}`);
+      return { ok: true, ts: `${Date.now() / 1000}` };
+    }
+    throw new Error(`SLACK_BOT_TOKEN is not configured; cannot post to ${channel} in production.`);
   }
 
   try {
     const res = await slackClient.chat.postMessage({
       channel,
-      text,
+      text: safeText,
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: safeText,
+          },
+        },
+      ],
       thread_ts,
     });
+    if (!res.ok || !res.ts) {
+      throw new Error(`Slack postLine failed: ${res.error || "no ts returned"}`);
+    }
     return { ok: true, ts: res.ts };
-  } catch (err) {
-    console.error("[postLine Error]", err);
+  } catch (err: any) {
+    console.error("[postLine Error]", err.message || err);
     return { ok: false };
   }
 }

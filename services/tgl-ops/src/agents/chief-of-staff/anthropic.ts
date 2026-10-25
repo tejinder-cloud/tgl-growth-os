@@ -89,7 +89,7 @@ export async function synthesizeStandupDigest(
   data: GatheredData,
   options?: { testMode?: boolean }
 ): Promise<SynthesisResult> {
-  const isTest = options?.testMode || process.env.TGL_TEST_MODE === "1";
+  const isTest = options?.testMode === true || process.env.TGL_TEST_MODE === "1";
   const modelName = getAnthropicModel();
   const { priceInPerMTok, priceOutPerMTok } = getAnthropicPricing();
 
@@ -97,10 +97,15 @@ export async function synthesizeStandupDigest(
 
 MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
 - You must output strictly plain text / Slack mrkdwn for the standup digest.
+- DENSITY & LENGTH CONSTRAINT:
+  • Be terse, numerical, and compact. Target output length is approximately 350–450 tokens (~20–25 lines).
+  • Zero preamble, conversational filler, or commentary. Output ONLY the final standup digest.
+  • Every agent line must be a single compact bullet: '• *@<agent>*: <terse did> · <tomorrow>' (max 20 words per line).
+  • Every blocker must be a single compact bullet: '• [<Rank>] <who>: <what>' (max 15 words).
 - Shape:
   1. Header: "*📊 The Growth Lab — Daily Standup Digest | ${data.date} 18:00 IST*"
   2. Per-Door Headline Numbers (AEO, AI, TrueLead, Core): either real count/metric or "no data yet".
-  3. Ranked Blockers: strictly ordered by [Money] > [Customer] > [Irreversible] > [Everything else]. If none, "• None reported."
+  3. Ranked Blockers: strictly ordered by [Money] > [Customer] > [Irreversible] > [Everything else]. If none, "• None reported today."
   4. Pending Approvals: list each card from #approvals without decisions/ line, with direct link. If none, "• None pending."
   5. Agent Standup Lines: strictly one single terse line per reporting agent (Did · Tomorrow).
 - HARD CAP: The entire message MUST be 25 lines or fewer. Count your lines carefully.
@@ -116,7 +121,7 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
       const anthropic = new Anthropic({ apiKey: config.anthropicApiKey });
       const response = await anthropic.messages.create({
         model: modelName,
-        max_tokens: 1000,
+        max_tokens: 2000,
         system: systemPrompt,
         messages: [
           {
@@ -126,12 +131,21 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
         ],
       });
 
+      if (response.stop_reason === "max_tokens") {
+        console.warn("[Anthropic WARNING] Standup synthesis output was truncated by max_tokens (stop_reason: max_tokens)!");
+      }
+
       const firstBlock = response.content[0];
       if (firstBlock && firstBlock.type === "text") {
-        digestText = firstBlock.text;
+        digestText = firstBlock.text.trim();
       }
       inputTokens = response.usage?.input_tokens || 0;
       outputTokens = response.usage?.output_tokens || 0;
+
+      if (!digestText) {
+        console.warn("[Anthropic WARNING] Anthropic response text was empty; falling back to deterministic synthesis.");
+        digestText = generateDeterministicDigest(data);
+      }
     } catch (err: any) {
       console.warn("[Anthropic] API call failed; falling back to deterministic synthesis:", err.message);
       digestText = generateDeterministicDigest(data);
