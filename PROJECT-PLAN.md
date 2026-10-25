@@ -31,7 +31,7 @@
 ## Phase 2 — TrueVisible v1 + AEO delivery (Days 16–33)
 | Day | Build | Your hour |
 |---|---|---|
-| 16 | Supabase schema per SPEC §11, RLS by tenant; `usage_costs` from day one | Approve schema (5-line explainer). |
+| 16 | Supabase schema per SPEC §11, RLS by tenant; `usage_costs` from day one | Install Claude Code + gstack on the Mac for engineering sessions (git clone gstack → ./setup). Approve schema (5-line explainer). |
 | 17 | Citation Tracker: daily runs per brand → runs/answers/citations; TGL = tenant zero; cost per brand logged | Add TGL's 10 prompts (I draft). |
 | 18 | Auth + onboarding wizard (3 steps, platform question, language) in paper-and-ink | Walk the wizard on your phone; list what confuses you. |
 | 19 | Setup-verification queue: agent proposes category/competitors/prompts → human confirm within 24h | Verify the first 3 setups yourself. |
@@ -47,7 +47,7 @@
 | 29 | AEO Strategist + Implementer (one agent): 90-day plan from audit; executes on TGL's site first | Approve TGL's own 90-day plan; grant GBP access. |
 | 30 | Competitor Intelligence: per-prompt citing sources, monthly refresh, gap list | Review TGL's gap list. |
 | 31 | Customer Success v1: 7/30/60 check-ins, health score, churn flag; Trial Concierge for TrueVisible sign-ups | Approve copy. |
-| 32 | Compliance: TrueVisible terms + privacy, managed-AEO contract, DPDP note, LUT filing checklist, comparison-page review rules | Read the contract and terms once. |
+| 32 | Compliance: TrueVisible terms + privacy, managed-AEO contract, DPDP note, LUT filing checklist, comparison-page review rules; /cso security audit of TrueVisible before first paying customer | Read the contract and terms once. |
 | 33 | Load test: TGL + 3 dummy tenants through signup → trial → audit → dashboard → managed AEO → invoice | **Gate 2:** a stranger signs up, gets the day-1 audit, sees the dashboard, and you can upsell them to managed AEO without touching anything. |
 
 ## Phase 3 — Marketing engine, umbrella site, Mission Control (Days 34–46)

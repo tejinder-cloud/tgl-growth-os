@@ -1,13 +1,14 @@
 name: "TrueLead / Lead Scoring & Validation"
 icp: "Coaching institutes, test-prep academies, and training providers with 2+ branches or 150+ monthly enquiries, spending ₹50,000+ on Meta ads, with a counselling team of 3+ staff."
-audit_spec: "5-step MVP gate: self-serve signup → Meta OAuth / 100-lead CSV upload → scored leads (HOT/WARM/COLD + reasoning) delivered in <15 minutes → dashboard view + GHL API sync → 14-day / 100-lead paywall."
+audit_spec: "5-step gate (SPEC-v0): Agency connects Meta Lead Ads / CSV upload (first report <15 min) → Callers work inside TrueLead (mobile card, 2-tap outcome, WhatsApp ping) → Daily CAPI quality events to Meta (≥95% ack) → Dashboard (time-to-call, outcomes, caller activity, export) → Monday email + 14-day trial (₹2,999/mo per brand)."
 sla_hours: 1
 ghl_pipeline: ""
 content_pillar: "Lead Quality, Counselling Operations & Admissions Attribution (1 post/week)"
 scorecard_lines:
   - "Waitlist sign-ups / Trial activations"
   - "Meta accounts connected / CSVs uploaded"
-  - "Total leads scored"
-  - "Trial-to-paid conversion rate (target 5–8%)"
+  - "Total leads accounted for"
+  - "Caller adoption rate (target ≥70% outcomes logged within 48h)"
+  - "Trial-to-paid conversion rate (target 10%)"
   - "Paid-to-managed upsell rate (target 20%)"
   - "Weekly MVP gate pass/fail status"
