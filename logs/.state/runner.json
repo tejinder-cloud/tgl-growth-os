@@ -20,15 +20,6 @@
       "prUrl": "https://github.com/tejinder-cloud/tgl-growth-os/pull/30",
       "runCompletedAt": "2026-10-26T13:38:25.454Z"
     },
-    "28": {
-      "agent": "web-builder",
-      "title": "Issue #28",
-      "status": "completed",
-      "runStartedAt": "2026-10-26T13:38:23.308Z",
-      "prNumber": 29,
-      "prUrl": "https://github.com/tejinder-cloud/tgl-growth-os/pull/29",
-      "runCompletedAt": "2026-10-26T13:38:23.176Z"
-    },
     "33": {
       "agent": "web-builder",
       "title": "[TASK]: Make the site faster",

@@ -9,6 +9,7 @@ import {
   closePR,
   closeIssue,
   deleteBranch,
+  getPR,
 } from "../lib/github-client.js";
 import { postLine } from "../lib/post.js";
 import { getTodayDateString, getCurrentTimeIST } from "../lib/standup.js";
@@ -96,20 +97,100 @@ export function formatMarkdownRefLink(url: string, refNum?: number): string {
   return cleanUrl;
 }
 
-async function handleApproveAction(payload: any, action: any): Promise<void> {
-  const meta = JSON.parse(action.value || "{}");
-  const actor = await getActorDisplayName(payload.user);
-  const agent = meta.agent || "web-builder";
-  const summary = meta.summary || meta.title || "Task approval";
+export interface ResolvedTargets {
+  prNum?: number;
+  linkedIssueNum?: number;
+  issueNum?: number;
+  branchName?: string;
+  prUrl?: string;
+  issueUrl?: string;
+  targetUrl: string;
+}
 
-  // Extract PR and issue numbers
-  const prNum = meta.pr ? parseInt(meta.pr, 10) : undefined;
-  const linkedIssueNum = meta.linkedIssue
-    ? parseInt(meta.linkedIssue, 10)
-    : meta.issue && !prNum
-    ? parseInt(meta.issue, 10)
-    : undefined;
-  const issueNum = linkedIssueNum || (meta.issue ? parseInt(meta.issue, 10) : undefined);
+/**
+ * Robustly resolves PR, issue, branch, and target URL from card action metadata.
+ * Detects PRs even when meta.pr was omitted, inspecting URLs, links, titles, summaries,
+ * and checking GitHub pulls API if an issue number actually represents a PR.
+ */
+export async function resolveActionTargets(meta: any): Promise<ResolvedTargets> {
+  let prNum = meta.pr ? parseInt(meta.pr, 10) : undefined;
+  let linkedIssueNum = meta.linkedIssue ? parseInt(meta.linkedIssue, 10) : undefined;
+  const branchName = meta.branch;
+
+  // 1. If prNum not explicitly set, search URLs, links, summary, and title
+  if (!prNum && meta.prUrl) {
+    const m = meta.prUrl.match(/\/pull\/(\d+)/i);
+    if (m) prNum = parseInt(m[1], 10);
+  }
+  if (!prNum && meta.targetUrl) {
+    const m = meta.targetUrl.match(/\/pull\/(\d+)/i);
+    if (m) prNum = parseInt(m[1], 10);
+  }
+  if (!prNum && Array.isArray(meta.links)) {
+    for (const l of meta.links) {
+      const m = (l.url || "").match(/\/pull\/(\d+)/i);
+      if (m) {
+        prNum = parseInt(m[1], 10);
+        break;
+      }
+    }
+  }
+  if (!prNum && meta.summary) {
+    const m = meta.summary.match(/(?:pull\/|PR\s*(?:<[^>]+>)?#?)(\d+)/i);
+    if (m) prNum = parseInt(m[1], 10);
+  }
+  if (!prNum && meta.title) {
+    const m = meta.title.match(/(?:pull\/|PR\s*#?)(\d+)/i);
+    if (m) prNum = parseInt(m[1], 10);
+  }
+
+  // 2. Extract linkedIssueNum from summary or title if not explicitly set
+  if (!linkedIssueNum && meta.summary) {
+    const m = meta.summary.match(/(?:for issue|fixes|closes|resolves|linked to)\s*(?:<[^>]+>)?#?(\d+)/i);
+    if (m) linkedIssueNum = parseInt(m[1], 10);
+  }
+  if (!linkedIssueNum && meta.title) {
+    const m = meta.title.match(/(?:for issue|fixes|closes|resolves|#)\s*#?(\d+)/i);
+    if (m) linkedIssueNum = parseInt(m[1], 10);
+  }
+
+  // 3. What if meta.issue was provided?
+  if (meta.issue) {
+    const rawNum = parseInt(meta.issue, 10);
+    if (!isNaN(rawNum)) {
+      if (!prNum) {
+        // Check if rawNum is actually a PR on GitHub
+        const prCheck = await getPR(rawNum);
+        if (prCheck.success && prCheck.data) {
+          prNum = rawNum;
+          if (!linkedIssueNum && prCheck.data.body) {
+            const m = prCheck.data.body.match(/(?:fixes|closes|resolves)\s*#?(\d+)/i);
+            if (m) linkedIssueNum = parseInt(m[1], 10);
+          }
+        } else if (!linkedIssueNum) {
+          linkedIssueNum = rawNum;
+        }
+      } else if (rawNum !== prNum && !linkedIssueNum) {
+        linkedIssueNum = rawNum;
+      }
+    }
+  }
+
+  // 4. If prNum is present, check if PR body mentions "Fixes #<num>" if linkedIssueNum still unknown
+  if (prNum && !linkedIssueNum && config.githubToken) {
+    const prDetails = await getPR(prNum);
+    if (prDetails.success && prDetails.data?.body) {
+      const m = prDetails.data.body.match(/(?:fixes|closes|resolves)\s*#?(\d+)/i);
+      if (m) linkedIssueNum = parseInt(m[1], 10);
+    }
+  }
+
+  // Ensure linkedIssueNum never equals prNum (a PR must never close itself as a linked issue)
+  if (linkedIssueNum === prNum) {
+    linkedIssueNum = undefined;
+  }
+
+  const issueNum = linkedIssueNum;
 
   let prUrl = meta.prUrl;
   let issueUrl = meta.issueUrl;
@@ -119,23 +200,41 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
   if (!issueUrl && issueNum) {
     issueUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/${issueNum}`;
   }
-  const targetUrl = prUrl || issueUrl || `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/1`;
+
+  const targetUrl = prUrl || issueUrl || meta.targetUrl || `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/1`;
+
+  return {
+    prNum,
+    linkedIssueNum,
+    issueNum,
+    branchName,
+    prUrl,
+    issueUrl,
+    targetUrl,
+  };
+}
+
+async function handleApproveAction(payload: any, action: any): Promise<void> {
+  const meta = JSON.parse(action.value || "{}");
+  const actor = await getActorDisplayName(payload.user);
+  const agent = meta.agent || "web-builder";
+  const summary = meta.summary || meta.title || "Task approval";
+
+  // Robust target resolution
+  const { prNum, linkedIssueNum, issueNum, targetUrl } = await resolveActionTargets(meta);
 
   const dateStr = getTodayDateString();
   const timeStr = getCurrentTimeIST();
   const channel = payload.channel?.id || meta.channel || config.approvalsChannelId;
   const messageTs = payload.container?.message_ts;
 
-  console.log(`[Action Approve] Actor: ${actor} | Agent: ${agent} | PR: #${prNum} | Issue: #${issueNum}`);
+  console.log(`[Action Approve] Actor: ${actor} | Agent: ${agent} | PR: #${prNum} | LinkedIssue: #${linkedIssueNum} | Issue: #${issueNum}`);
 
   // Format with strict markdown link [#N](url), never Slack <url|text>
   const cleanSummary = formatSlackToMarkdown(summary);
   const targetLink = formatMarkdownRefLink(targetUrl, prNum || issueNum);
-  const decisionLine = `- ${timeStr} IST · ${actor} · APPROVE · ${agent} · ${cleanSummary} · ${targetLink}`;
 
   // 1. If this is a PR approval, squash-merge the PR first
-  let mergeSuccess = true;
-  let mergeError: string | undefined;
   if (prNum) {
     console.log(`[Action Approve] Squash-merging PR #${prNum}...`);
     const mergeRes = await squashMergePR(
@@ -143,36 +242,34 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
       meta.title || `Squash-merge PR #${prNum}`,
       `Merged autonomously upon Architect approval by ${actor}`
     );
-    mergeSuccess = mergeRes.success;
-    mergeError = mergeRes.error;
-    if (!mergeSuccess) {
-      console.error(`[Action Approve] Failed to squash-merge PR #${prNum}:`, mergeError);
-    }
-  }
 
-  // 2. If PR merge succeeded (or not a PR), close linked issue with comment and update labels
-  if (mergeSuccess) {
-    if (linkedIssueNum) {
-      await closeIssue(
-        linkedIssueNum,
-        prNum
-          ? `Closed automatically upon Architect approval and squash-merge of PR #${prNum}.`
-          : `Closed upon Architect approval by ${actor}.`
+    if (!mergeRes.success) {
+      const failReason = mergeRes.error || "Merge conflict or branch protection error";
+      console.error(`[Action Approve] Failed to squash-merge PR #${prNum}: ${failReason}`);
+
+      // Record APPROVE-UNMERGED in decisions/YYYY-MM-DD.md
+      const unmergedDecisionLine = `- ${timeStr} IST · ${actor} · APPROVE-UNMERGED · ${agent} · ${cleanSummary} · ${targetLink}`;
+      const appendRes = await appendFileInRepo(
+        `decisions/${dateStr}.md`,
+        unmergedDecisionLine,
+        `chore(decision): record unmerged approval for ${agent} PR #${prNum} per ${actor}`
       );
-      await removeLabelFromIssue(linkedIssueNum, "status:in-progress");
-      await addLabelsToIssue(linkedIssueNum, ["approved:yes", "status:completed"]);
-    } else if (issueNum) {
-      await addLabelsToIssue(issueNum, ["approved:yes"]);
-    }
 
-    // 3. Append to decisions/YYYY-MM-DD.md
-    const appendRes = await appendFileInRepo(
-      `decisions/${dateStr}.md`,
-      decisionLine,
-      `chore(decision): approve ${agent} ${prNum ? `PR #${prNum}` : "task"} per ${actor}`
-    );
+      if (!appendRes.success) {
+        const failureMsg = `Decision captured in Slack but NOT written to repo — ${appendRes.status || 500} ${appendRes.error || "Unknown error"}`;
+        if (messageTs) {
+          await postLine({ channel, text: failureMsg, thread_ts: messageTs });
+        }
+        await postLine({ channel: config.alertsChannelId, text: failureMsg });
+      }
 
-    if (appendRes.success) {
+      // Post "Approved but NOT merged — <reason>" to thread and #alerts
+      const alertMsg = `Approved but NOT merged — ${failReason}`;
+      if (messageTs) {
+        await postLine({ channel, text: alertMsg, thread_ts: messageTs });
+      }
+      await postLine({ channel: config.alertsChannelId, text: alertMsg });
+
       // Update card message
       if (messageTs && config.slackBotToken) {
         try {
@@ -184,9 +281,7 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
                 type: "section",
                 text: {
                   type: "mrkdwn",
-                  text: prNum
-                    ? `✅ *Approved and Squash-Merged by ${actor} at ${timeStr} IST*\n_Recorded in \`decisions/${dateStr}.md\`._`
-                    : `✅ *Approved by ${actor} at ${timeStr} IST*\n_Recorded in \`decisions/${dateStr}.md\`._`,
+                  text: `⚠️ *Approved but NOT Merged by ${actor} at ${timeStr} IST*\n*Reason:* ${failReason}\n_Recorded as APPROVE-UNMERGED in \`decisions/${dateStr}.md\`._`,
                 },
               },
             ]);
@@ -194,7 +289,7 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
           await slackClient.chat.update({
             channel,
             ts: messageTs,
-            text: `✅ Approved: ${meta.title} by ${actor}`,
+            text: `⚠️ Approved but NOT merged: ${meta.title || `PR #${prNum}`} by ${actor}`,
             blocks: updatedBlocks,
           });
         } catch (err) {
@@ -202,36 +297,83 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
         }
       }
 
-      // Post "Merged" in thread per requirement:
-      // "Approve → the service squash-merges the PR (admin token), closes the issue with a comment, writes the decisions/ line (bullet, Slack message time), posts "Merged" in the thread."
-      if (prNum) {
-        await postLine({
+      return;
+    }
+  }
+
+  // 2. PR merge succeeded (or not a PR)
+  const decisionLine = `- ${timeStr} IST · ${actor} · APPROVE · ${agent} · ${cleanSummary} · ${targetLink}`;
+
+  if (linkedIssueNum) {
+    await closeIssue(
+      linkedIssueNum,
+      prNum
+        ? `Closed automatically upon Architect approval and squash-merge of PR #${prNum}.`
+        : `Closed upon Architect approval by ${actor}.`
+    );
+    await removeLabelFromIssue(linkedIssueNum, "status:in-progress");
+    await addLabelsToIssue(linkedIssueNum, ["approved:yes", "status:completed"]);
+  } else if (issueNum) {
+    await addLabelsToIssue(issueNum, ["approved:yes"]);
+  }
+
+  // 3. Append to decisions/YYYY-MM-DD.md
+  const appendRes = await appendFileInRepo(
+    `decisions/${dateStr}.md`,
+    decisionLine,
+    `chore(decision): approve ${agent} ${prNum ? `PR #${prNum}` : "task"} per ${actor}`
+  );
+
+  if (appendRes.success) {
+    // Update card message
+    if (messageTs && config.slackBotToken) {
+      try {
+        const originalBlocks = payload.message?.blocks || [];
+        const updatedBlocks = originalBlocks
+          .filter((b: any) => b.block_id !== "card_actions")
+          .concat([
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: prNum
+                  ? `✅ *Approved and Squash-Merged by ${actor} at ${timeStr} IST*\n_Recorded in \`decisions/${dateStr}.md\`._`
+                  : `✅ *Approved by ${actor} at ${timeStr} IST*\n_Recorded in \`decisions/${dateStr}.md\`._`,
+              },
+            },
+          ]);
+
+        await slackClient.chat.update({
           channel,
-          text: "Merged",
-          thread_ts: messageTs,
+          ts: messageTs,
+          text: `✅ Approved: ${meta.title || (prNum ? `PR #${prNum}` : "Task")} by ${actor}`,
+          blocks: updatedBlocks,
         });
-      } else {
-        await postLine({
-          channel,
-          text: `✅ Decision recorded: Approved by ${actor} at ${timeStr} IST. Appended to \`decisions/${dateStr}.md\`.`,
-          thread_ts: messageTs,
-        });
+      } catch (err) {
+        console.warn("[Card Update Warning]", err);
       }
+    }
+
+    if (prNum) {
+      await postLine({
+        channel,
+        text: "Merged",
+        thread_ts: messageTs,
+      });
     } else {
-      // Decisions write failed
-      const failureMsg = `Decision captured in Slack but NOT written to repo — ${appendRes.status || 500} ${appendRes.error || "Unknown error"}`;
-      if (messageTs) {
-        await postLine({ channel, text: failureMsg, thread_ts: messageTs });
-      }
-      await postLine({ channel: config.alertsChannelId, text: failureMsg });
+      await postLine({
+        channel,
+        text: `✅ Decision recorded: Approved by ${actor} at ${timeStr} IST. Appended to \`decisions/${dateStr}.md\`.`,
+        thread_ts: messageTs,
+      });
     }
   } else {
-    // PR Merge failed
-    const mergeFailMsg = `⚠️ Failed to squash-merge PR #${prNum} — ${mergeError || "Merge conflict or permission error"}`;
+    // Decisions write failed
+    const failureMsg = `Decision captured in Slack but NOT written to repo — ${appendRes.status || 500} ${appendRes.error || "Unknown error"}`;
     if (messageTs) {
-      await postLine({ channel, text: mergeFailMsg, thread_ts: messageTs });
+      await postLine({ channel, text: failureMsg, thread_ts: messageTs });
     }
-    await postLine({ channel: config.alertsChannelId, text: mergeFailMsg });
+    await postLine({ channel: config.alertsChannelId, text: failureMsg });
   }
 }
 
@@ -317,23 +459,8 @@ async function handleRejectSubmission(payload: any): Promise<void> {
   const agent = meta.agent || "web-builder";
   const summary = meta.summary || meta.title || "Task rejected";
 
-  const prNum = meta.pr ? parseInt(meta.pr, 10) : undefined;
-  const linkedIssueNum = meta.linkedIssue
-    ? parseInt(meta.linkedIssue, 10)
-    : meta.issue && !prNum
-    ? parseInt(meta.issue, 10)
-    : undefined;
-  const branchName = meta.branch;
-  const issueNum = linkedIssueNum || (meta.issue ? parseInt(meta.issue, 10) : undefined);
-
-  let targetUrl = meta.prUrl || meta.issueUrl;
-  if (!targetUrl && prNum) {
-    targetUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/pull/${prNum}`;
-  } else if (!targetUrl && issueNum) {
-    targetUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/${issueNum}`;
-  } else if (!targetUrl) {
-    targetUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/1`;
-  }
+  const { prNum, linkedIssueNum, issueNum, branchName, targetUrl } = await resolveActionTargets(meta);
+  const targetIssueNum = linkedIssueNum || issueNum;
 
   const dateStr = getTodayDateString();
   const timeStr = getCurrentTimeIST();
@@ -379,9 +506,9 @@ async function handleRejectSubmission(payload: any): Promise<void> {
   }
 
   // 4. Label issue status:rejected and approved:no
-  if (issueNum) {
-    await removeLabelFromIssue(issueNum, "status:in-progress");
-    await addLabelsToIssue(issueNum, ["status:rejected", "approved:no"]);
+  if (targetIssueNum) {
+    await removeLabelFromIssue(targetIssueNum, "status:in-progress");
+    await addLabelsToIssue(targetIssueNum, ["status:rejected", "approved:no"]);
   }
 
   // 5. Update Slack card or post alert
