@@ -10,6 +10,7 @@ import {
   removeLabelFromIssue,
   appendFileInRepo,
   deleteBranch,
+  addCommentToIssue,
 } from "../lib/github-client.js";
 import { postCard, postLine } from "../lib/post.js";
 import { getIssueMapping } from "../lib/issues-index.js";
@@ -128,8 +129,8 @@ export async function runIssueTask(
 
     console.log(`[Runner] Picked up issue #${issueNum} for @${agentName}: "${issue.title}"`);
 
-    // 3. Pre-flight check
-    const preflight = runPreflightCheck({
+    // 3. Pre-flight check via live model call
+    const preflight = await runPreflightCheck({
       issueNumber: issueNum,
       title: issue.title,
       body: issue.body,
@@ -137,19 +138,41 @@ export async function runIssueTask(
       agentName,
     });
 
-    if (!preflight.passed) {
-      console.warn(`[Runner Pre-flight Failed on Issue #${issueNum}]: ${preflight.reason}`);
-      const questionsText = (preflight.questions || []).join("\n");
-      const threadMessage = `⚠️ *[Pre-flight Review — Questions before build]*\n${preflight.reason}\n\n${questionsText}\n\n_Task paused. Labelled \`status:needs-brief\`._`;
+    console.log(`[Runner Pre-flight Verdict on Issue #${issueNum}]: ${preflight.verdict} — ${preflight.reason}`);
 
-      if (slackChannel && slackThreadTs) {
-        await postLine({
-          channel: slackChannel,
-          thread_ts: slackThreadTs,
-          text: threadMessage,
-        }).catch((err) => console.warn("[Runner thread post error]", err));
-      }
+    // Format verdict message for threads
+    const verdictTitle =
+      preflight.verdict === "proceed"
+        ? "✅ *[Pre-flight Verdict: Proceed]*"
+        : preflight.verdict === "needs-brief"
+        ? "⚠️ *[Pre-flight Verdict: Needs Brief — Questions before build]*"
+        : "⛔ *[Pre-flight Verdict: Refuse — Guardrail Violation]*";
 
+    const questionsBlock =
+      preflight.questions && preflight.questions.length > 0
+        ? `\n\n*Clarification Questions (AGENTS.md Mandate 2):*\n${preflight.questions.join("\n")}`
+        : "";
+
+    const threadMessage = `${verdictTitle}\n${preflight.reason}${questionsBlock}`;
+
+    // Log verdict & reasoning to Slack thread
+    if (slackChannel && slackThreadTs) {
+      await postLine({
+        channel: slackChannel,
+        thread_ts: slackThreadTs,
+        text: threadMessage,
+      }).catch((err) => console.warn("[Runner thread post error]", err));
+    }
+
+    // Log verdict & reasoning to GitHub issue thread
+    if (!isTest) {
+      const ghComment = `${verdictTitle.replace(/\*/g, "**")}\n\n${preflight.reason}${questionsBlock.replace(/\*/g, "**")}`;
+      await addCommentToIssue(issueNum, ghComment).catch((err) =>
+        console.warn("[Runner GitHub comment error]", err)
+      );
+    }
+
+    if (preflight.verdict === "needs-brief") {
       await removeLabelFromIssue(issueNum, "status:in-progress");
       await addLabelsToIssue(issueNum, ["status:needs-brief"]);
 
@@ -159,6 +182,19 @@ export async function runIssueTask(
         status: "needs-brief",
         toolCallsCount: 0,
         error: preflight.reason,
+      };
+    }
+
+    if (preflight.verdict === "refuse") {
+      await removeLabelFromIssue(issueNum, "status:in-progress");
+      await addLabelsToIssue(issueNum, ["status:rejected", "approved:no"]);
+
+      return {
+        success: false,
+        issueNumber: issueNum,
+        status: "blocked",
+        toolCallsCount: 0,
+        error: `Refusal: ${preflight.reason}`,
       };
     }
 

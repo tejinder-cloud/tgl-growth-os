@@ -1,7 +1,18 @@
+import fs from "node:fs";
+import path from "node:path";
+import Anthropic from "@anthropic-ai/sdk";
+import { config } from "../config.js";
+import { getAnthropicModel } from "../agents/chief-of-staff/anthropic.js";
+
 export interface PreflightResult {
+  verdict: "proceed" | "needs-brief" | "refuse";
   passed: boolean;
-  reason?: string;
+  reason: string;
   questions?: string[];
+  tokens?: {
+    input: number;
+    output: number;
+  };
 }
 
 export interface IssueBriefContext {
@@ -12,97 +23,153 @@ export interface IssueBriefContext {
   agentName: string;
 }
 
-/**
- * Checks the issue brief against SKILL.md "Never" section, Mandate 2 (challenge the brief),
- * and v1 protected paths before any branch creation or tool calls.
- */
-export function runPreflightCheck(context: IssueBriefContext): PreflightResult {
-  const { title, deliverable, body, agentName } = context;
-  const fullText = `${title}\n${deliverable}\n${body}`.toLowerCase();
-
-  // 1. Protected paths refusal in v1 (services/ and .github/ are read-only)
-  const servicesRegex = /(?:modify|edit|update|change|write|create|delete)\s+(?:in\s+|to\s+)?(?:services\/|\.github\/)/i;
-  const directPathRegex = /(?:services\/[a-z0-9_\-\/.]+|\.github\/[a-z0-9_\-\/.]+)/i;
-  if (servicesRegex.test(fullText) || (directPathRegex.test(deliverable) && !deliverable.includes("README.md"))) {
-    return {
-      passed: false,
-      reason: "Refusal: Files under services/ and .github/ are read-only for this runner in v1 (docs, site/, agents/, config only).",
-      questions: [
-        "1. The brief requests modifications inside protected paths (services/ or .github/), which are read-only in v1. Can this task be scoped strictly to docs, site/, agents/, or config?",
-        "2. If service infrastructure changes are required, can this be escalated directly to the Architect for manual review?",
-      ],
-    };
-  }
-
-  // 2. SKILL.md "Never" Guardrails
-  // a. Never publish to live / touch DNS / prod deploy
-  if (
-    /\b(publish to live|deploy to prod|change dns|live site publish)\b/i.test(fullText)
-  ) {
-    return {
-      passed: false,
-      reason: "SKILL.md Never violation: Never publish or change a live page status directly.",
-      questions: [
-        "1. The task asks for live deployment. Web Builder builds strictly on staging or draft. Can we deliver to a staging/draft branch instead?",
-        "2. Will the Architect deploy after review per AGENTS.md workflow?",
-      ],
-    };
-  }
-
-  // b. Never change positioning copy or pricing without Architect approval
-  if (
-    /\b(change (?:the )?(?:pricing|prices|fee|rates|positioning))\b/i.test(fullText)
-  ) {
-    return {
-      passed: false,
-      reason: "SKILL.md Never violation: Never change positioning copy or pricing without prior Architect approval.",
-      questions: [
-        "1. The task requests pricing or positioning modifications. What is the approved decision reference in decisions/?",
-        "2. Can the exact approved figures and copy claims be provided?",
-      ],
-    };
-  }
-
-  // c. Never add plugins or external scripts
-  if (
-    /\b(install (?:a )?plugin|add (?:an )?external script|embed script tag)\b/i.test(fullText)
-  ) {
-    return {
-      passed: false,
-      reason: "SKILL.md Never violation: Never add plugins, font files, or external scripts.",
-      questions: [
-        "1. External scripts and plugins are forbidden by brand and craft standards. Can this be implemented using native theme tokens or GTM?",
-      ],
-    };
-  }
-
-  // 3. Mandate 2: Vagueness / Underspecified Brief
-  const trimmedDeliverable = deliverable.trim();
-  const vaguePatterns = [
-    /^fix stuff$/i,
-    /^make it better$/i,
-    /^do work$/i,
-    /^update website$/i,
-    /^help with site$/i,
-    /^please check$/i,
-    /^improve ui$/i,
+function safeReadFile(filePath: string): string {
+  const candidates = [
+    path.join(config.repoRoot, filePath),
+    path.join(process.cwd(), filePath),
+    path.join(process.cwd(), "../../", filePath),
   ];
 
-  const isVague =
-    trimmedDeliverable.length < 15 ||
-    vaguePatterns.some((p) => p.test(trimmedDeliverable));
+  for (const c of candidates) {
+    if (fs.existsSync(c)) {
+      try {
+        return fs.readFileSync(c, "utf8");
+      } catch {}
+    }
+  }
+  return "";
+}
 
-  if (isVague) {
-    return {
-      passed: false,
-      reason: "Mandate 2 pushback: The brief is vague or lacks a concrete deliverable and file target.",
-      questions: [
-        "1. What exact file(s) or WordPress template should be modified for this task?",
-        "2. What is the precise deliverable and expected user-visible outcome?",
-        "3. Are there specific copy, tokens, or references from BRAND-BRIEF.md or ORG.md to follow?",
-      ],
-    };
+const PREFLIGHT_TOOLS: Anthropic.Tool[] = [
+  {
+    name: "submit_preflight_verdict",
+    description: "Submit the authoritative pre-flight check verdict for the issue brief",
+    input_schema: {
+      type: "object",
+      properties: {
+        verdict: {
+          type: "string",
+          enum: ["proceed", "needs-brief", "refuse"],
+          description:
+            "proceed: brief is concrete, clear, and within scope. needs-brief: brief is vague, broad, or underspecified (requires numbered questions). refuse: brief violates SKILL.md §8 Never or modifies protected service/CI paths.",
+        },
+        reason: {
+          type: "string",
+          description: "Clear senior practitioner reasoning explaining the verdict.",
+        },
+        questions: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "Numbered clarification questions to the Architect if verdict is needs-brief (minimum 2 concrete questions).",
+        },
+      },
+      required: ["verdict", "reason"],
+    },
+  },
+];
+
+/**
+ * Checks the issue brief against SKILL.md "Never" section, Mandate 2 (challenge the brief),
+ * and v1 protected paths via a live Anthropic model call.
+ *
+ * Verdict answers: { proceed | needs-brief with numbered questions | refuse with reason }.
+ */
+export async function runPreflightCheck(
+  context: IssueBriefContext,
+  options?: { apiKey?: string; model?: string }
+): Promise<PreflightResult> {
+  const { title, deliverable, body, agentName, issueNumber } = context;
+
+  const apiKey = options?.apiKey || config.anthropicApiKey || process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing required ANTHROPIC_API_KEY for pre-flight check model call.");
   }
 
-  return { passed: true };
+  const modelName = options?.model || getAnthropicModel();
+  const anthropic = new Anthropic({ apiKey });
+
+  // Read agent SKILL.md and AGENTS.md
+  const skillFile = safeReadFile(`agents/${agentName}/SKILL.md`);
+  const agentsFile = safeReadFile("AGENTS.md");
+
+  const systemPrompt = `You are the senior pre-flight reviewer for The Growth Lab's autonomous agent issue runner.
+Your job is to protect The Growth Lab's quality, standards, and production safety by reviewing task briefs BEFORE any branch or code is created.
+
+You are evaluating a task brief for agent: \`${agentName}\`.
+
+=== 1. AGENTS.md SENIORITY MANDATES ===
+${agentsFile}
+
+=== 2. AGENT SKILL.md & §8 NEVER GUARDRAILS ===
+${skillFile}
+
+=== 3. V1 OPERATIONAL BOUNDARIES & PROTECTED PATHS ===
+- In v1, the runner operates strictly in: site/, docs/, agents/, design-system/, config/.
+- Files under services/ and .github/ are STRICTLY PROTECTED and READ-ONLY for the issue runner.
+- The agent must NEVER publish to live production, change live page status, touch DNS, install external plugins, install external script tags, change pricing/positioning without approved decisions/ references, or delete content.
+
+=== 4. EVALUATION RULES ===
+You must answer with tool \`submit_preflight_verdict\`:
+1. "refuse":
+   Return this if the brief violates SKILL.md §8 Never or requests edits inside protected paths (\`services/\`, \`.github/\`).
+   Provide the exact guardrail violated in the reason.
+
+2. "needs-brief":
+   Return this if the brief is vague, underspecified, lacks a concrete deliverable, or lacks exact file/template targets.
+   Per Mandate 1 & 2 ("Challenge the brief before you build; propose with reasons"): A senior practitioner does not guess or build on vague requests like "Make the site faster", "Improve SEO across the site", "Fix the styling on the homepage", "Help with WordPress", "Update UI", or "Fix stuff".
+   You MUST provide 2 to 4 concrete, numbered questions asking the Architect for specifics (e.g. target URLs, baseline metrics, target template/file, design tokens, acceptance criteria).
+
+3. "proceed":
+   Return this IF AND ONLY IF the brief has a concrete, clearly-scoped deliverable targeting specific files or templates within the agent's discipline with measurable or verifiable outcomes.
+
+Call \`submit_preflight_verdict\` now.`;
+
+  const userPrompt = `Please evaluate the following task brief:
+- Issue Number: #${issueNumber}
+- Issue Title: ${title}
+- Deliverable: ${deliverable}
+- Full Body:
+${body || "(No additional body provided)"}`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: modelName,
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userPrompt }],
+      tools: PREFLIGHT_TOOLS,
+      tool_choice: { type: "tool", name: "submit_preflight_verdict" },
+    });
+
+    const toolUse = response.content.find((b) => b.type === "tool_use") as Anthropic.ToolUseBlock | undefined;
+    if (!toolUse || toolUse.name !== "submit_preflight_verdict") {
+      throw new Error("Model failed to call submit_preflight_verdict");
+    }
+
+    const input = toolUse.input as {
+      verdict: "proceed" | "needs-brief" | "refuse";
+      reason: string;
+      questions?: string[];
+    };
+
+    const verdict = input.verdict || "needs-brief";
+    const passed = verdict === "proceed";
+    const reason = input.reason || "No reasoning provided";
+    const questions = Array.isArray(input.questions) ? input.questions : [];
+
+    return {
+      verdict,
+      passed,
+      reason,
+      questions: questions.length > 0 ? questions : undefined,
+      tokens: {
+        input: response.usage?.input_tokens || 0,
+        output: response.usage?.output_tokens || 0,
+      },
+    };
+  } catch (err: any) {
+    console.error(`[Pre-flight Check Error on Issue #${issueNumber}]:`, err);
+    throw err;
+  }
 }
