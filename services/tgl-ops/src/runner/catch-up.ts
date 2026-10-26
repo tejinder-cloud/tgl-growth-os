@@ -122,29 +122,20 @@ export async function catchUpRunnerIssues(options?: {
         continue;
       }
 
-      // 2. Check if issue already has a linked PR (open or merged)
+      // 2. Check if issue already has an open linked PR in progress
+      // Per Architect rule: an issue counts as "has a PR" only if an OPEN PR references it;
+      // a closed or merged PR never blocks an issue that is still open.
       if (!isTest) {
-        const linkedPr = await findLinkedPR(issueNum);
-        if (linkedPr) {
-          console.log(`[Catch-Up] Issue #${issueNum} already has linked PR #${linkedPr.number} (${linkedPr.state}); recording and skipping.`);
-          await recordRunnerIssue(
-            issueNum,
-            {
-              agent: agent.name,
-              status: "completed",
-              prNumber: linkedPr.number,
-              prUrl: linkedPr.html_url,
-              runCompletedAt: new Date().toISOString(),
-            },
-            { testMode: isTest }
-          );
+        const linkedOpenPr = await findLinkedPR(issueNum, { state: "open" });
+        if (linkedOpenPr && linkedOpenPr.state === "open") {
+          console.log(`[Catch-Up] Issue #${issueNum} has open linked PR #${linkedOpenPr.number}; skipping duplicate run.`);
           skippedCount++;
           results.push({
             issueNumber: issueNum,
             status: "skipped",
-            reason: `Already has linked PR #${linkedPr.number}`,
-            prNumber: linkedPr.number,
-            prUrl: linkedPr.html_url,
+            reason: `Already has open linked PR #${linkedOpenPr.number}`,
+            prNumber: linkedOpenPr.number,
+            prUrl: linkedOpenPr.html_url,
           });
           continue;
         }
