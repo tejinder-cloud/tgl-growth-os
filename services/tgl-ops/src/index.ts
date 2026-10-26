@@ -89,6 +89,17 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
+import { runAutorunCycle } from "./agents/autorun/index.js";
+
+// Every 30 minutes: Autorun worker for active agent issues (Asia/Kolkata)
+cron.schedule(
+  "*/30 * * * *",
+  wrapCronJob("30-min Autorun Issue Worker", async () => {
+    await runAutorunCycle();
+  }),
+  { timezone: config.timezone }
+);
+
 // Startup catch-up: if booted between 18:00 and 21:00 IST and standup was not posted today, run 18:00 job immediately
 (async () => {
   try {
@@ -101,6 +112,22 @@ cron.schedule(
       text: `⚠️ *[Startup Catch-Up Failure]* at ${getCurrentTimeIST()} IST\n• Error: \`${errMsg.slice(0, 400)}\`\n_Process kept running._`,
     }).catch((postErr) => {
       console.error("[Failed to post startup catchup error to Slack alerts]", postErr);
+    });
+  }
+})();
+
+// Startup autorun: pick up any eligible in-progress issues on boot
+(async () => {
+  try {
+    await runAutorunCycle();
+  } catch (err: any) {
+    const errMsg = err?.stack || err?.message || String(err);
+    console.error("[Startup Autorun Error]", err);
+    await postLine({
+      channel: getAlertsChannel(),
+      text: `⚠️ *[Startup Autorun Failure]* at ${getCurrentTimeIST()} IST\n• Error: \`${errMsg.slice(0, 400)}\`\n_Process kept running._`,
+    }).catch((postErr) => {
+      console.error("[Failed to post startup autorun error to Slack alerts]", postErr);
     });
   }
 })();

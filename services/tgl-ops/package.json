@@ -8,6 +8,7 @@
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "test:plumbing": "tsx src/test-plumbing.ts",
+    "test:day05": "tsx src/test-day05.ts",
     "sync-labels": "tsx src/scripts/sync-labels.ts"
   },
   "engines": {
