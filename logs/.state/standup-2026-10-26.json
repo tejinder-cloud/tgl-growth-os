@@ -5,5 +5,15 @@
   "channel": "C0ASF13879Q",
   "processedReplies": [
     "1792920483.946459"
-  ]
+  ],
+  "compiledAt": "2026-10-26T12:20:12.251Z",
+  "digestText": "*📊 The Growth Lab — Daily Standup Digest | 2026-10-26 17:50 IST*\n──────────────────────────────────────────\n*🚪 Product Doors:*\n• *AEO:* no data yet | *AI:* no data yet | *TrueLead:* no data yet | *Core:* operational\n\n*🚨 Blockers (Ranked):*\n• _None reported today._\n\n*⏳ Approvals Pending:*\n• _None pending._\n\n*📋 Agent Reports:*\n• _No agent logs recorded today._\n\n_Active agents: reply in-thread with your 4 lines: Did · Blocked · Need · Tomorrow._",
+  "synthesis": {
+    "model": "claude-sonnet-5-5",
+    "inputTokens": 1358,
+    "outputTokens": 847,
+    "totalCostUsd": 0.0168,
+    "costLine": "Standup compilation: 1358 input, 847 output (claude-sonnet-5-5) · Cost: $0.0168 USD"
+  },
+  "source": "cron"
 }
