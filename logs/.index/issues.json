@@ -126,5 +126,13 @@
     "door": "core",
     "title": "Add a \"How approvals work\" section to README.md, 5 lines, from ORG.md",
     "updatedAt": "2026-10-26T16:03:18.381Z"
+  },
+  "43": {
+    "channel": "#site-build",
+    "ts": "1793030944.104719",
+    "agent": "web-builder",
+    "door": "core",
+    "title": "Make the site faster",
+    "updatedAt": "2026-10-26T16:09:04.175Z"
   }
 }
