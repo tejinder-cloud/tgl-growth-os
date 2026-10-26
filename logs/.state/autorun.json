@@ -4,9 +4,13 @@
       "issueNumber": 16,
       "agent": "web-builder",
       "runStartedAt": "2026-10-26T13:01:25.124Z",
-      "status": "in-progress",
+      "status": "completed",
       "door": "core",
-      "title": "[TASK]: Day 3 routing test"
+      "title": "[TASK]: Day 3 routing test",
+      "branch": "feat/issue-16-how-approvals-work",
+      "prNumber": 30,
+      "prUrl": "https://github.com/tejinder-cloud/tgl-growth-os/pull/30",
+      "runCompletedAt": "2026-10-26T13:01:35.971Z"
     },
     "28": {
       "issueNumber": 28,
@@ -18,5 +22,5 @@
       "runCompletedAt": "2026-10-26T13:01:22.405Z"
     }
   },
-  "lastCycleAt": "2026-10-26T13:01:25.346Z"
+  "lastCycleAt": "2026-10-26T13:01:36.357Z"
 }
