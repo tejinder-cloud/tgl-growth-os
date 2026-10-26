@@ -592,7 +592,7 @@ export async function readFileFromBranch(
   filePath: string,
   branchName: string
 ): Promise<string | null> {
-  if (!config.githubToken) {
+  const readLocal = (): string | null => {
     const localFullPath = path.join(config.repoRoot, filePath);
     if (fs.existsSync(localFullPath)) {
       try {
@@ -600,6 +600,10 @@ export async function readFileFromBranch(
       } catch {}
     }
     return null;
+  };
+
+  if (!config.githubToken || branchName.startsWith("__test__")) {
+    return readLocal();
   }
 
   try {
@@ -617,6 +621,7 @@ export async function readFileFromBranch(
     if (err.status !== 404) {
       console.warn(`[GitHub API] Error reading ${filePath} from branch ${branchName}:`, err.message);
     }
+    return readLocal();
   }
   return null;
 }
@@ -628,7 +633,7 @@ export async function listDirectoryOnBranch(
   dirPath: string,
   branchName: string
 ): Promise<string[]> {
-  if (!config.githubToken) {
+  const listLocal = (): string[] => {
     const localFullPath = path.join(config.repoRoot, dirPath);
     if (fs.existsSync(localFullPath) && fs.statSync(localFullPath).isDirectory()) {
       try {
@@ -640,6 +645,10 @@ export async function listDirectoryOnBranch(
       } catch {}
     }
     return [];
+  };
+
+  if (!config.githubToken || branchName.startsWith("__test__")) {
+    return listLocal();
   }
 
   try {
@@ -654,7 +663,7 @@ export async function listDirectoryOnBranch(
       return res.data.map((item) => `${item.type === "dir" ? "[DIR]" : "[FILE]"} ${item.path}`);
     }
   } catch (err: any) {
-    console.warn(`[GitHub API] Error listing dir ${dirPath} on branch ${branchName}:`, err.message);
+    return listLocal();
   }
   return [];
 }

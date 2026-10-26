@@ -19,6 +19,7 @@ import { getAnthropicModel, getAnthropicPricing } from "../agents/chief-of-staff
 import { runPreflightCheck } from "./preflight.js";
 import { buildRunnerSystemPrompt, buildRunnerUserMessage } from "./prompt.js";
 import { RUNNER_TOOLS, executeRunnerTool, type RunnerToolContext } from "./tools.js";
+import { recordRunnerIssue } from "./state.js";
 
 // Concurrency 1 and one run per issue
 const runningIssues = new Set<number>();
@@ -187,7 +188,7 @@ export async function runIssueTask(
     let totalOutputTokens = 0;
     let toolCallsCount = 0;
     const MAX_TOOL_CALLS = 25;
-    const modelName = process.env.ANTHROPIC_MODEL || "claude-3-7-sonnet-20250219";
+    const modelName = getAnthropicModel();
 
     const systemPrompt = buildRunnerSystemPrompt(agentName, branchName);
     const userMessage = buildRunnerUserMessage({
@@ -199,95 +200,69 @@ export async function runIssueTask(
       branchName,
     });
 
-    // 6. Execute Run Loop (Anthropic or deterministic runner for test/fallback)
-    if (config.anthropicApiKey && !isTest) {
-      const anthropic = new Anthropic({ apiKey: config.anthropicApiKey });
-      const messages: Anthropic.MessageParam[] = [
-        { role: "user", content: userMessage },
-      ];
+    // 6. Execute Run Loop strictly via Anthropic and Tools
+    const apiKey = config.anthropicApiKey || process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      throw new Error("Missing required ANTHROPIC_API_KEY; cannot execute runner without LLM.");
+    }
 
-      const startTime = Date.now();
-      const MAX_RUNTIME_MS = 15 * 60 * 1000; // 15 minutes hard limit
+    const anthropic = new Anthropic({ apiKey });
+    const messages: Anthropic.MessageParam[] = [
+      { role: "user", content: userMessage },
+    ];
 
-      while (toolCallsCount < MAX_TOOL_CALLS) {
-        if (Date.now() - startTime > MAX_RUNTIME_MS) {
-          throw new Error("Runner execution exceeded 15 minutes hard timeout limit.");
+    const startTime = Date.now();
+    const MAX_RUNTIME_MS = 15 * 60 * 1000; // 15 minutes hard limit
+
+    while (toolCallsCount < MAX_TOOL_CALLS) {
+      if (Date.now() - startTime > MAX_RUNTIME_MS) {
+        throw new Error("Runner execution exceeded 15 minutes hard timeout limit.");
+      }
+
+      const response = await anthropic.messages.create({
+        model: modelName,
+        max_tokens: 4096,
+        system: systemPrompt,
+        messages,
+        tools: RUNNER_TOOLS,
+      });
+
+      totalInputTokens += response.usage?.input_tokens || 0;
+      totalOutputTokens += response.usage?.output_tokens || 0;
+
+      // Check for tool use
+      const toolUseBlocks = response.content.filter((b) => b.type === "tool_use") as Anthropic.ToolUseBlock[];
+      if (toolUseBlocks.length === 0) {
+        // Model finished with text response
+        break;
+      }
+
+      // Append assistant response to messages
+      messages.push({ role: "assistant", content: response.content });
+
+      // Process tool calls
+      const toolResultBlocks: Anthropic.ToolResultBlockParam[] = [];
+      for (const toolUse of toolUseBlocks) {
+        toolCallsCount++;
+        if (toolCallsCount > MAX_TOOL_CALLS) {
+          throw new Error(`Tool call hard limit reached (${MAX_TOOL_CALLS} calls).`);
         }
 
-        const response = await anthropic.messages.create({
-          model: modelName,
-          max_tokens: 4096,
-          system: systemPrompt,
-          messages,
-          tools: RUNNER_TOOLS,
+        console.log(`[Runner Tool Call #${toolCallsCount}] ${toolUse.name}(${JSON.stringify(toolUse.input)})`);
+        const resultStr = await executeRunnerTool(toolUse.name, toolUse.input, toolContext);
+
+        toolResultBlocks.push({
+          type: "tool_result",
+          tool_use_id: toolUse.id,
+          content: resultStr,
         });
-
-        totalInputTokens += response.usage?.input_tokens || 0;
-        totalOutputTokens += response.usage?.output_tokens || 0;
-
-        // Check for tool use
-        const toolUseBlocks = response.content.filter((b) => b.type === "tool_use") as Anthropic.ToolUseBlock[];
-        if (toolUseBlocks.length === 0) {
-          // Model finished with text response
-          break;
-        }
-
-        // Append assistant response to messages
-        messages.push({ role: "assistant", content: response.content });
-
-        // Process tool calls
-        const toolResultBlocks: Anthropic.ToolResultBlockParam[] = [];
-        for (const toolUse of toolUseBlocks) {
-          toolCallsCount++;
-          if (toolCallsCount > MAX_TOOL_CALLS) {
-            throw new Error(`Tool call hard limit reached (${MAX_TOOL_CALLS} calls).`);
-          }
-
-          console.log(`[Runner Tool Call #${toolCallsCount}] ${toolUse.name}(${JSON.stringify(toolUse.input)})`);
-          const resultStr = await executeRunnerTool(toolUse.name, toolUse.input, toolContext);
-
-          toolResultBlocks.push({
-            type: "tool_result",
-            tool_use_id: toolUse.id,
-            content: resultStr,
-          });
-        }
-
-        messages.push({ role: "user", content: toolResultBlocks });
       }
 
-      if (toolCallsCount >= MAX_TOOL_CALLS) {
-        throw new Error(`Tool call limit reached (${MAX_TOOL_CALLS} calls).`);
-      }
-    } else {
-      // Deterministic tool execution for test mode or dry runs
-      console.log(`[Runner Deterministic Execution] Executing deliverable for #${issueNum}...`);
-      toolCallsCount++;
-      const readRes = await executeRunnerTool("read_file", { path: "README.md" }, toolContext);
+      messages.push({ role: "user", content: toolResultBlocks });
+    }
 
-      // Sourced 5-line approvals section from ORG.md §3
-      const approvalsSection = `## 3. How Approvals Work (ORG.md §3)
-
-1. **Slack Notification:** Work requiring sign-off posts an interactive card to \`#approvals\` with Approve, Reject, and Discuss buttons.
-2. **Approve:** Writes an authoritative line to \`decisions/YYYY-MM-DD.md\` via GitHub Contents API, labels the item \`approved:yes\`, and updates the card.
-3. **Reject:** Opens an interactive modal requiring a rejection reason, written to \`rejections/YYYY-MM-DD.md\` and \`decisions/\`, labelling it \`approved:no\`.
-4. **Discuss:** Notifies the responsible agent in-thread (\`@${agentName}\`) to clarify the brief or proposal.
-5. **Strict Escalation:** Anything live, irreversible, or involving money skips straight to \`#approvals\`; decisions and logs are written only by the service on main.`;
-
-      let updatedContent = readRes;
-      if (readRes.includes("## 3. Scaffolding a New Agent")) {
-        updatedContent = readRes
-          .replace("## 3. Scaffolding a New Agent", `${approvalsSection}\n\n---\n\n## 4. Scaffolding a New Agent`)
-          .replace("## 4. Where the Standup Lives (ORG.md §4)", "## 5. Where the Standup Lives (ORG.md §4)");
-      } else if (!readRes.includes("How Approvals Work")) {
-        updatedContent = `${readRes.trim()}\n\n---\n\n${approvalsSection}\n`;
-      }
-
-      toolCallsCount++;
-      await executeRunnerTool("write_file", { path: "README.md", content: updatedContent }, toolContext);
-
-      totalInputTokens = 1250;
-      totalOutputTokens = 480;
+    if (toolCallsCount >= MAX_TOOL_CALLS) {
+      throw new Error(`Tool call limit reached (${MAX_TOOL_CALLS} calls).`);
     }
 
     // 7. Calculate cost & log run
@@ -385,6 +360,22 @@ Fixes #${issueNum}
       linkedIssue: issueNum,
       branch: branchName,
     }).catch((err) => console.warn("[Runner card post error]", err));
+
+    // 11. Record completed run in runner state
+    await recordRunnerIssue(
+      issueNum,
+      {
+        agent: agentName,
+        door: issue.door || "core",
+        title: issue.title,
+        status: "completed",
+        branch: branchName,
+        prNumber: prRes.number,
+        prUrl: prRes.html_url,
+        runCompletedAt: new Date().toISOString(),
+      },
+      { testMode: isTest }
+    ).catch((err) => console.warn("[Runner state save warning]", err));
 
     return {
       success: true,
