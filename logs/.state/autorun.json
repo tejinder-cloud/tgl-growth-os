@@ -1,5 +1,13 @@
 {
   "runs": {
+    "16": {
+      "issueNumber": 16,
+      "agent": "web-builder",
+      "runStartedAt": "2026-10-26T13:01:25.124Z",
+      "status": "in-progress",
+      "door": "core",
+      "title": "[TASK]: Day 3 routing test"
+    },
     "28": {
       "issueNumber": 28,
       "agent": "web-builder",
@@ -10,5 +18,5 @@
       "runCompletedAt": "2026-10-26T13:01:22.405Z"
     }
   },
-  "lastCycleAt": "2026-10-26T13:01:22.534Z"
+  "lastCycleAt": "2026-10-26T13:01:25.346Z"
 }
