@@ -55,6 +55,14 @@
     "title": "Add a \"How approvals work\" section to README.md, 5 lines, from ORG.md",
     "updatedAt": "2026-10-26T12:57:33.984Z"
   },
+  "31": {
+    "channel": "#marketing",
+    "ts": "1792833586.528000",
+    "agent": "web-builder",
+    "door": "core",
+    "title": "Fix footer CTA spacing on mobile",
+    "updatedAt": "2026-10-26T13:01:45.685Z"
+  },
   "42": {
     "channel": "#site-build",
     "ts": "1792849323.673000",
