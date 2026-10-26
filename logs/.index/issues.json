@@ -47,6 +47,14 @@
     "title": "Add a \"How approvals work\" section to README.md, 5 lines, from ORG.md",
     "updatedAt": "2026-10-26T12:37:02.147Z"
   },
+  "29": {
+    "channel": "#site-build",
+    "ts": "1793018221.815749",
+    "agent": "web-builder",
+    "door": "core",
+    "title": "Add a \"How approvals work\" section to README.md, 5 lines, from ORG.md",
+    "updatedAt": "2026-10-26T12:57:33.984Z"
+  },
   "42": {
     "channel": "#site-build",
     "ts": "1792849323.673000",
