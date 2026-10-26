@@ -68,13 +68,19 @@ githubEventsRouter.post("/", verifyGitHubWebhook, async (req: Request, res: Resp
       return;
     }
 
-    // 3. Handle pull_request (action: opened)
+    // 3. Handle issues (action: labeled)
+    if (event === "issues" && payload.action === "labeled") {
+      await handleIssueLabeled(payload);
+      return;
+    }
+
+    // 4. Handle pull_request (action: opened)
     if (event === "pull_request" && payload.action === "opened") {
       await handlePullRequestOpened(payload);
       return;
     }
 
-    // 4. Handle pull_request_review (action: submitted)
+    // 5. Handle pull_request_review (action: submitted)
     if (event === "pull_request_review" && payload.action === "submitted") {
       await handlePullRequestReviewSubmitted(payload);
       return;
@@ -83,6 +89,31 @@ githubEventsRouter.post("/", verifyGitHubWebhook, async (req: Request, res: Resp
     console.error(`[GitHub Event Processing Error for ${event}]:`, err);
   }
 });
+
+async function handleIssueLabeled(payload: any): Promise<void> {
+  const issue = payload.issue;
+  if (!issue) return;
+
+  const labels = (issue.labels || []).map((l: any) => (typeof l === "string" ? l : l.name || ""));
+  const hasInProgress = labels.includes("status:in-progress");
+  const agentLabel = labels.find((l: string) => l.startsWith("for:"));
+
+  if (hasInProgress && agentLabel) {
+    const agentName = agentLabel.replace(/^for:/, "");
+    console.log(`[GitHub Event] Issue #${issue.number} labeled for:${agentName} + status:in-progress. Triggering runner...`);
+    const { runIssueTask } = await import("../runner/index.js");
+    runIssueTask({
+      number: issue.number,
+      title: issue.title,
+      body: issue.body || "",
+      labels,
+      html_url: issue.html_url,
+      agentName,
+    }).catch((err) => {
+      console.error(`[Runner Webhook Error on Issue #${issue.number}]:`, err);
+    });
+  }
+}
 
 async function handleIssueComment(payload: any): Promise<void> {
   const issue = payload.issue;

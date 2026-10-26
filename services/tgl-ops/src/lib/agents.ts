@@ -11,6 +11,7 @@ export interface AgentRecord {
   trigger: string;
   reviewer: string;
   status?: "active" | "planned" | string;
+  autorun?: boolean;
 }
 
 export interface DoorRecord {

@@ -18,6 +18,9 @@ export interface PostCardOptions {
   links?: PostCardLink[];
   actions?: ActionType[];
   issue?: number | string;
+  pr?: number | string;
+  branch?: string;
+  linkedIssue?: number | string;
   thread_ts?: string;
 }
 
@@ -49,6 +52,9 @@ export async function postCard(options: PostCardOptions): Promise<{ ok: boolean;
     links = [],
     actions = ["approve", "reject", "discuss"],
     issue,
+    pr,
+    branch,
+    linkedIssue,
     thread_ts,
   } = options;
 
@@ -58,6 +64,9 @@ export async function postCard(options: PostCardOptions): Promise<{ ok: boolean;
     title,
     summary,
     issue: issue ? String(issue) : undefined,
+    pr: pr !== undefined ? String(pr) : undefined,
+    branch,
+    linkedIssue: linkedIssue !== undefined ? String(linkedIssue) : undefined,
     channel,
   });
 

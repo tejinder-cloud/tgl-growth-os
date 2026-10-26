@@ -553,3 +553,241 @@ export async function findLinkedPR(
   }
   return null;
 }
+
+/**
+ * Deletes a git branch via GitHub Git API.
+ */
+export async function deleteBranch(
+  branchName: string
+): Promise<{ success: boolean; error?: string }> {
+  if (!config.githubToken) {
+    console.warn(`[GitHub] GITHUB_TOKEN not set; simulating branch deletion: ${branchName}`);
+    return { success: true };
+  }
+
+  try {
+    await octokit.git.deleteRef({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      ref: `heads/${branchName}`,
+    });
+    return { success: true };
+  } catch (err: any) {
+    if (err.status === 404 || err.status === 422) {
+      // Branch already deleted or not found
+      return { success: true };
+    }
+    console.error(`[GitHub API] Error deleting branch ${branchName}:`, err);
+    return {
+      success: false,
+      error: err.response?.data?.message || err.message || "Failed to delete branch",
+    };
+  }
+}
+
+/**
+ * Reads file content from a specific git branch.
+ */
+export async function readFileFromBranch(
+  filePath: string,
+  branchName: string
+): Promise<string | null> {
+  const readLocal = (): string | null => {
+    const localFullPath = path.join(config.repoRoot, filePath);
+    if (fs.existsSync(localFullPath)) {
+      try {
+        return fs.readFileSync(localFullPath, "utf8");
+      } catch {}
+    }
+    return null;
+  };
+
+  if (!config.githubToken || branchName.startsWith("__test__")) {
+    return readLocal();
+  }
+
+  try {
+    const res = await octokit.repos.getContent({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      path: filePath,
+      ref: branchName,
+    });
+
+    if (!Array.isArray(res.data) && res.data.type === "file" && res.data.content) {
+      return Buffer.from(res.data.content, "base64").toString("utf8");
+    }
+  } catch (err: any) {
+    if (err.status !== 404) {
+      console.warn(`[GitHub API] Error reading ${filePath} from branch ${branchName}:`, err.message);
+    }
+    return readLocal();
+  }
+  return null;
+}
+
+/**
+ * Lists items in a directory on a specific git branch.
+ */
+export async function listDirectoryOnBranch(
+  dirPath: string,
+  branchName: string
+): Promise<string[]> {
+  const listLocal = (): string[] => {
+    const localFullPath = path.join(config.repoRoot, dirPath);
+    if (fs.existsSync(localFullPath) && fs.statSync(localFullPath).isDirectory()) {
+      try {
+        return fs.readdirSync(localFullPath).map((f) => {
+          const itemPath = path.join(localFullPath, f);
+          const isDir = fs.statSync(itemPath).isDirectory();
+          return `${isDir ? "[DIR]" : "[FILE]"} ${path.join(dirPath, f)}`;
+        });
+      } catch {}
+    }
+    return [];
+  };
+
+  if (!config.githubToken || branchName.startsWith("__test__")) {
+    return listLocal();
+  }
+
+  try {
+    const res = await octokit.repos.getContent({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      path: dirPath,
+      ref: branchName,
+    });
+
+    if (Array.isArray(res.data)) {
+      return res.data.map((item) => `${item.type === "dir" ? "[DIR]" : "[FILE]"} ${item.path}`);
+    }
+  } catch (err: any) {
+    return listLocal();
+  }
+  return [];
+}
+
+/**
+ * Squash-merges a Pull Request using admin token.
+ */
+export async function squashMergePR(
+  prNumber: number,
+  commitTitle?: string,
+  commitMessage?: string
+): Promise<{ success: boolean; sha?: string; error?: string }> {
+  if (!config.githubToken) {
+    console.warn(`[GitHub] GITHUB_TOKEN not set; simulating squash-merge for PR #${prNumber}`);
+    return { success: true, sha: "simulated-merge-sha-" + Date.now() };
+  }
+
+  try {
+    const res = await octokit.pulls.merge({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      pull_number: prNumber,
+      merge_method: "squash",
+      commit_title: commitTitle,
+      commit_message: commitMessage,
+    });
+
+    return {
+      success: res.data.merged,
+      sha: res.data.sha,
+    };
+  } catch (err: any) {
+    console.error(`[GitHub API] Error squash-merging PR #${prNumber}:`, err);
+    return {
+      success: false,
+      error: err.response?.data?.message || err.message || "Failed to squash-merge PR",
+    };
+  }
+}
+
+/**
+ * Closes a Pull Request without merging.
+ */
+export async function closePR(
+  prNumber: number
+): Promise<{ success: boolean; error?: string }> {
+  if (!config.githubToken) {
+    console.warn(`[GitHub] GITHUB_TOKEN not set; simulating PR #${prNumber} closure`);
+    return { success: true };
+  }
+
+  try {
+    await octokit.pulls.update({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      pull_number: prNumber,
+      state: "closed",
+    });
+    return { success: true };
+  } catch (err: any) {
+    console.error(`[GitHub API] Error closing PR #${prNumber}:`, err);
+    return {
+      success: false,
+      error: err.response?.data?.message || err.message || "Failed to close PR",
+    };
+  }
+}
+
+/**
+ * Closes a GitHub issue with an optional closing comment.
+ */
+export async function closeIssue(
+  issueNumber: number,
+  comment?: string
+): Promise<{ success: boolean; error?: string }> {
+  if (!config.githubToken) {
+    console.warn(`[GitHub] GITHUB_TOKEN not set; simulating issue #${issueNumber} closure`);
+    return { success: true };
+  }
+
+  try {
+    if (comment) {
+      await addCommentToIssue(issueNumber, comment);
+    }
+
+    await octokit.issues.update({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      issue_number: issueNumber,
+      state: "closed",
+    });
+
+    return { success: true };
+  } catch (err: any) {
+    console.error(`[GitHub API] Error closing issue #${issueNumber}:`, err);
+    return {
+      success: false,
+      error: err.response?.data?.message || err.message || "Failed to close issue",
+    };
+  }
+}
+
+/**
+ * Removes a specific label from a GitHub issue.
+ */
+export async function removeLabelFromIssue(
+  issueNumber: number,
+  labelName: string
+): Promise<void> {
+  if (!config.githubToken) {
+    return;
+  }
+
+  try {
+    await octokit.issues.removeLabel({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      issue_number: issueNumber,
+      name: labelName,
+    });
+  } catch (err: any) {
+    if (err.status !== 404) {
+      console.warn(`[GitHub API] Could not remove label '${labelName}' from #${issueNumber}:`, err.message);
+    }
+  }
+}
+

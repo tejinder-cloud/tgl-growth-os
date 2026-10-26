@@ -89,13 +89,13 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
-import { runAutorunCycle } from "./agents/autorun/index.js";
+import { catchUpRunnerIssues } from "./runner/index.js";
 
-// Every 30 minutes: Autorun worker for active agent issues (Asia/Kolkata)
+// Every 30 minutes: Catch-up worker for in-progress issues with no PR (Asia/Kolkata)
 cron.schedule(
   "*/30 * * * *",
-  wrapCronJob("30-min Autorun Issue Worker", async () => {
-    await runAutorunCycle();
+  wrapCronJob("30-min Catch-up Issue Runner", async () => {
+    await catchUpRunnerIssues();
   }),
   { timezone: config.timezone }
 );
@@ -116,18 +116,18 @@ cron.schedule(
   }
 })();
 
-// Startup autorun: pick up any eligible in-progress issues on boot
+// Startup catch-up: pick up any eligible in-progress issues on boot
 (async () => {
   try {
-    await runAutorunCycle();
+    await catchUpRunnerIssues();
   } catch (err: any) {
     const errMsg = err?.stack || err?.message || String(err);
-    console.error("[Startup Autorun Error]", err);
+    console.error("[Startup Runner Catch-Up Error]", err);
     await postLine({
       channel: getAlertsChannel(),
-      text: `⚠️ *[Startup Autorun Failure]* at ${getCurrentTimeIST()} IST\n• Error: \`${errMsg.slice(0, 400)}\`\n_Process kept running._`,
+      text: `⚠️ *[Startup Runner Catch-Up Failure]* at ${getCurrentTimeIST()} IST\n• Error: \`${errMsg.slice(0, 400)}\`\n_Process kept running._`,
     }).catch((postErr) => {
-      console.error("[Failed to post startup autorun error to Slack alerts]", postErr);
+      console.error("[Failed to post startup runner catch-up error to Slack alerts]", postErr);
     });
   }
 })();
