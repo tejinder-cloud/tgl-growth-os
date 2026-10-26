@@ -81,3 +81,13 @@ This script automatically:
   - **Tomorrow:** [Immediate priority tasks]
 - **Architect Decisions:** The Architect responds in-thread; decisions are logged into `decisions/YYYY-MM-DD.md`.
 - **Silence Flag:** Silence from an active agent is automatically flagged by the Chief of Staff by 18:15 IST.
+
+---
+
+## 5. How approvals work (ORG.md §2–§3)
+
+1. The Architect alone decides positioning, pricing, who we serve, spend, hires, and anything live or irreversible.
+2. Every agent has a named reviewer; peer QA happens on the PR before the Architect sees any work.
+3. Anything irreversible, live, or involving money or a prospect skips straight to `#approvals`; the Sales Desk never sends to a prospect without approval.
+4. The approval webhook writes each button decision to `decisions/` and fires the next agent.
+5. The Chief of Staff tracks pending approvals, lists them in the 18:00 standup digest, and chases blockers.
