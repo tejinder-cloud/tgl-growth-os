@@ -670,6 +670,30 @@ export async function listDirectoryOnBranch(
 }
 
 /**
+ * Fetches a Pull Request by number.
+ */
+export async function getPR(
+  prNumber: number
+): Promise<{ success: boolean; data?: any; error?: string }> {
+  if (!config.githubToken) {
+    return { success: false, error: "GITHUB_TOKEN not set" };
+  }
+  try {
+    const res = await octokit.pulls.get({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      pull_number: prNumber,
+    });
+    return { success: true, data: res.data };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: (err.response?.data?.message || err.message || "Failed to fetch PR").replace(/\n+/g, " ").trim(),
+    };
+  }
+}
+
+/**
  * Squash-merges a Pull Request using admin token.
  */
 export async function squashMergePR(
@@ -695,12 +719,13 @@ export async function squashMergePR(
     return {
       success: res.data.merged,
       sha: res.data.sha,
+      error: res.data.merged ? undefined : (res.data.message || "Pull request was not merged"),
     };
   } catch (err: any) {
     console.error(`[GitHub API] Error squash-merging PR #${prNumber}:`, err);
     return {
       success: false,
-      error: err.response?.data?.message || err.message || "Failed to squash-merge PR",
+      error: (err.response?.data?.message || err.message || "Failed to squash-merge PR").replace(/\n+/g, " ").trim(),
     };
   }
 }

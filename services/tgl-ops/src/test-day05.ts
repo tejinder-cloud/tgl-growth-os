@@ -26,7 +26,7 @@ import {
   type GitHubIssueSummary,
 } from "./lib/github-client.js";
 import { postCard, postLine } from "./lib/post.js";
-import { formatSlackToMarkdown, formatMarkdownRefLink } from "./routes/interactions.js";
+import { formatSlackToMarkdown, formatMarkdownRefLink, resolveActionTargets } from "./routes/interactions.js";
 
 // Ensure TGL_TEST_MODE=1 so test operations route to #ops and logs/.test/
 process.env.TGL_TEST_MODE = "1";
@@ -311,7 +311,36 @@ async function runDay05RunnerTestSuite(): Promise<void> {
     });
     if (!mergedPost.ok) throw new Error("Merged post failed");
     console.log("  ✓ Approve: squash-merges PR, closes issue with comment, writes decisions/ line, posts 'Merged' in thread.");
-    console.log("✅ [Test 6 Passed] [Fixture / Dry Run] Interactive Slack lifecycle & markdown decisions formatting verified.");
+
+    // Verify resolveActionTargets recovery (Defect 1: PRs with omitted meta.pr, like PR #30 and #31)
+    const omittedPrMeta = {
+      agent: "web-builder",
+      door: "core",
+      title: "Review: docs(readme): add \"How approvals work\" section (#16)",
+      summary: "PR <https://github.com/tejinder-cloud/tgl-growth-os/pull/30|#30> opened by `@web-builder` for issue #16. Sourced 5-line approvals section from ORG.md §3.",
+      issue: "30",
+    };
+    const resolvedOmitted = await resolveActionTargets(omittedPrMeta);
+    if (resolvedOmitted.prNum !== 30 || resolvedOmitted.linkedIssueNum !== 16) {
+      throw new Error(`resolveActionTargets failed on omitted meta.pr: expected prNum=30, linkedIssueNum=16; got prNum=${resolvedOmitted.prNum}, linkedIssueNum=${resolvedOmitted.linkedIssueNum}`);
+    }
+    console.log("  ✓ Target resolution: successfully extracted prNum=30 and linkedIssueNum=16 from omitted-pr card metadata.");
+
+    // Verify APPROVE-UNMERGED flow when squashMergePR fails
+    const failReason = "Pull Request is not mergeable: Merge conflict";
+    const unmergedDecisionLine = `- ${decTime} IST · Architect · APPROVE-UNMERGED · web-builder · ${markdownSummary} · ${targetMdLink}`;
+    if (!unmergedDecisionLine.includes("APPROVE-UNMERGED")) {
+      throw new Error(`unmergedDecisionLine must contain APPROVE-UNMERGED: "${unmergedDecisionLine}"`);
+    }
+    const unmergedAlertMsg = `Approved but NOT merged — ${failReason}`;
+    const unmergedPost = await postLine({
+      channel: config.opsChannelId || "#ops",
+      text: unmergedAlertMsg,
+      thread_ts: "1729900000.028",
+    });
+    if (!unmergedPost.ok) throw new Error("Unmerged alert post failed");
+    console.log(`  ✓ Approve-unmerged: verified APPROVE-UNMERGED line and "${unmergedAlertMsg}" notification.`);
+    console.log("✅ [Test 6 Passed] [Fixture / Dry Run] Interactive Slack lifecycle, target resolution, and APPROVE-UNMERGED verified.");
 
     // -------------------------------------------------------------------------
     // Test 7: Runner State Management, Boot/30-min Catch-up & Deduplication
