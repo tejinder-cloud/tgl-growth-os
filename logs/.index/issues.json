@@ -79,6 +79,14 @@
     "title": "Make the site faster",
     "updatedAt": "2026-10-26T13:46:41.657Z"
   },
+  "35": {
+    "channel": "#site-build",
+    "ts": "1793018221.815749",
+    "agent": "web-builder",
+    "door": "core",
+    "title": "Add a \"How approvals work\" section to README.md, 5 lines, from ORG.md",
+    "updatedAt": "2026-10-26T14:13:42.610Z"
+  },
   "42": {
     "channel": "#site-build",
     "ts": "1792849323.673000",
