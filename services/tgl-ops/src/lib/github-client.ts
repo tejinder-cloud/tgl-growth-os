@@ -516,30 +516,37 @@ export async function findOpenIssuesWithLabels(labels: string[]): Promise<GitHub
 }
 
 /**
- * Searches for any Pull Request linked to an issue (open, merged, or closed).
+ * Searches for an open Pull Request linked to an issue.
+ * Per Architect rule: an issue counts as "has a PR" only if an OPEN PR references it;
+ * a closed or merged PR never blocks an issue that is still open.
  */
 export async function findLinkedPR(
-  issueNumber: number
+  issueNumber: number,
+  options?: { state?: "open" | "all" }
 ): Promise<{ number: number; html_url: string; state: string } | null> {
   if (!config.githubToken) {
     return null;
   }
 
+  const queryState = options?.state || "open";
+
   try {
     const pulls = await octokit.pulls.list({
       owner: config.githubOwner,
       repo: config.githubRepo,
-      state: "all",
+      state: queryState,
       per_page: 50,
     });
 
     const issueRegex = new RegExp(`(?:fixes|closes|resolves)\\s*#?${issueNumber}\\b`, "i");
     const matched = pulls.data.find(
       (pr) =>
-        issueRegex.test(pr.body || "") ||
-        pr.head.ref.includes(`issue-${issueNumber}`) ||
-        pr.head.ref.includes(`/${issueNumber}-`) ||
-        new RegExp(`(?:fixes|closes|resolves|#)\\s*${issueNumber}\\b`, "i").test(pr.title)
+        (queryState === "all" || pr.state === "open") && (
+          issueRegex.test(pr.body || "") ||
+          pr.head.ref.includes(`issue-${issueNumber}`) ||
+          pr.head.ref.includes(`/${issueNumber}-`) ||
+          new RegExp(`(?:fixes|closes|resolves|#)\\s*${issueNumber}\\b`, "i").test(pr.title)
+        )
     );
 
     if (matched) {

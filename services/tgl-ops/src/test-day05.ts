@@ -23,6 +23,7 @@ import {
   createBranch,
   deleteBranch,
   createPullRequest,
+  findLinkedPR,
   type GitHubIssueSummary,
 } from "./lib/github-client.js";
 import { postCard, postLine } from "./lib/post.js";
@@ -428,6 +429,13 @@ async function runDay05RunnerTestSuite(): Promise<void> {
     console.log("  • Catch-up rule verified: skipped completed issue #28 (deduplication).");
     console.log("  • Catch-up rule verified: ignored issue #16 (labelled type:test).");
     console.log("  • Catch-up rule verified: ignored issue #12 (>7 days old without Architect comment).");
+
+    // Verify findLinkedPR defaults to state: "open" and never returns closed PRs to block open issues
+    const openPrCheck = await findLinkedPR(28);
+    if (openPrCheck !== null && openPrCheck.state !== "open") {
+      throw new Error(`findLinkedPR must return null or an OPEN PR only, got state=${openPrCheck.state}`);
+    }
+    console.log("  • Catch-up rule verified: findLinkedPR filters strictly for OPEN PRs; closed/merged PRs never block open issues.");
     console.log("✅ [Test 7 Passed] Runner state management and 30-min catch-up filter rules verified.");
 
     // -------------------------------------------------------------------------
