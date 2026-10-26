@@ -258,7 +258,28 @@ ${matchedAgent.reviewer}
           title: titleSnippet,
         });
 
-        const confirmationText = `✅ Task created: <${issue.html_url}|#${issue.number} ${titleSnippet}>\nPosted to ${targetChannel} for @${matchedAgent.name}.`;
+        // Trigger autonomous issue runner if agent has autorun: true (web-builder)
+        if (matchedAgent.autorun === true) {
+          const { addLabelsToIssue } = await import("../lib/github-client.js");
+          await addLabelsToIssue(issue.number, ["status:in-progress"]);
+
+          const { runIssueTask } = await import("../runner/index.js");
+          runIssueTask({
+            number: issue.number,
+            title: `[TASK]: ${titleSnippet}`,
+            body: issueBody,
+            labels: [`for:${matchedAgent.name}`, `door:${matchedDoor}`, "type:build", "status:in-progress"],
+            html_url: issue.html_url,
+            agentName: matchedAgent.name,
+            door: matchedDoor,
+            slackChannel: targetChannel,
+            slackThreadTs: cardTs,
+          }).catch((err) => {
+            console.error(`[Runner Trigger Error on Task #${issue.number}]:`, err);
+          });
+        }
+
+        const confirmationText = `✅ Task created: <${issue.html_url}|#${issue.number} ${titleSnippet}>\nPosted to ${targetChannel} for @${matchedAgent.name}.${matchedAgent.autorun ? "\n_Autonomous runner triggered._" : ""}`;
 
         if (responseUrl) {
           await fetch(responseUrl, {

@@ -63,6 +63,7 @@
   trigger: "Issue labeled for:web-builder, mention @web-builder"
   reviewer: "Creative Director"
   status: active
+  autorun: true
 
 - name: creative-director
   department: marketing

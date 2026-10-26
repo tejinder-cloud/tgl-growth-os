@@ -1,9 +1,19 @@
 import { Router, type Request, type Response } from "express";
 import { config } from "../config.js";
 import { slackClient, openModal, getActorDisplayName } from "../lib/slack-client.js";
-import { appendFileInRepo, addLabelsToIssue } from "../lib/github-client.js";
+import {
+  appendFileInRepo,
+  addLabelsToIssue,
+  removeLabelFromIssue,
+  squashMergePR,
+  closePR,
+  closeIssue,
+  deleteBranch,
+} from "../lib/github-client.js";
 import { postLine } from "../lib/post.js";
 import { getTodayDateString, getCurrentTimeIST } from "../lib/standup.js";
+import { findAgentByName } from "../lib/agents.js";
+import { runIssueTask } from "../runner/runner.js";
 
 export const interactionsRouter = Router();
 
@@ -65,118 +75,135 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
   const actor = await getActorDisplayName(payload.user);
   const agent = meta.agent || "web-builder";
   const summary = meta.summary || meta.title || "Task approval";
-  const issueNum = meta.issue ? parseInt(meta.issue, 10) : undefined;
-  let issueUrl: string;
-  if (issueNum) {
-    issueUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/${issueNum}`;
-  } else if (meta.issueUrl) {
-    issueUrl = meta.issueUrl;
-  } else if (meta.prUrl) {
-    issueUrl = meta.prUrl;
-  } else {
-    const foundLink = (meta.links || []).find((l: any) => l.url?.includes("/issues/") || l.url?.includes("/pull/"));
-    issueUrl = foundLink ? foundLink.url : `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/1`;
+
+  // Extract PR and issue numbers
+  const prNum = meta.pr ? parseInt(meta.pr, 10) : undefined;
+  const linkedIssueNum = meta.linkedIssue
+    ? parseInt(meta.linkedIssue, 10)
+    : meta.issue && !prNum
+    ? parseInt(meta.issue, 10)
+    : undefined;
+  const issueNum = linkedIssueNum || (meta.issue ? parseInt(meta.issue, 10) : undefined);
+
+  let prUrl = meta.prUrl;
+  let issueUrl = meta.issueUrl;
+  if (!prUrl && prNum) {
+    prUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/pull/${prNum}`;
   }
+  if (!issueUrl && issueNum) {
+    issueUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/${issueNum}`;
+  }
+  const targetUrl = prUrl || issueUrl || `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/1`;
 
   const dateStr = getTodayDateString();
   const timeStr = getCurrentTimeIST();
   const channel = payload.channel?.id || meta.channel || config.approvalsChannelId;
   const messageTs = payload.container?.message_ts;
 
-  console.log(`[Action Approve] Actor: ${actor} | Agent: ${agent} | Issue: #${issueNum}`);
+  console.log(`[Action Approve] Actor: ${actor} | Agent: ${agent} | PR: #${prNum} | Issue: #${issueNum}`);
 
   // Format: "- HH:MM IST · <actor> · <APPROVE|REJECT> · <agent> · <summary> · <issue/PR url>"
-  const decisionLine = `- ${timeStr} IST · ${actor} · APPROVE · ${agent} · ${summary} · ${issueUrl}`;
+  const decisionLine = `- ${timeStr} IST · ${actor} · APPROVE · ${agent} · ${summary} · ${targetUrl}`;
 
-  // Append to decisions/YYYY-MM-DD.md
-  const appendRes = await appendFileInRepo(
-    `decisions/${dateStr}.md`,
-    decisionLine,
-    `chore(decision): approve ${agent} task per ${actor}`
-  );
-
-  // Label issue approved:yes
-  if (issueNum) {
-    await addLabelsToIssue(issueNum, ["approved:yes"]);
+  // 1. If this is a PR approval, squash-merge the PR first
+  let mergeSuccess = true;
+  let mergeError: string | undefined;
+  if (prNum) {
+    console.log(`[Action Approve] Squash-merging PR #${prNum}...`);
+    const mergeRes = await squashMergePR(
+      prNum,
+      meta.title || `Squash-merge PR #${prNum}`,
+      `Merged autonomously upon Architect approval by ${actor}`
+    );
+    mergeSuccess = mergeRes.success;
+    mergeError = mergeRes.error;
+    if (!mergeSuccess) {
+      console.error(`[Action Approve] Failed to squash-merge PR #${prNum}:`, mergeError);
+    }
   }
 
-  if (appendRes.success) {
-    // 200/201 Success: Update card message to show approved status with "Recorded"
-    if (messageTs && config.slackBotToken) {
-      try {
-        const originalBlocks = payload.message?.blocks || [];
-        const updatedBlocks = originalBlocks
-          .filter((b: any) => b.block_id !== "card_actions")
-          .concat([
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: `✅ *Approved by ${actor} at ${timeStr} IST*\n_Recorded in \`decisions/${dateStr}.md\`._`,
-              },
-            },
-          ]);
-
-        await slackClient.chat.update({
-          channel,
-          ts: messageTs,
-          text: `✅ Approved: ${meta.title} by ${actor}`,
-          blocks: updatedBlocks,
-        });
-      } catch (err) {
-        console.warn("[Card Update Warning]", err);
-      }
+  // 2. If PR merge succeeded (or not a PR), close linked issue with comment and update labels
+  if (mergeSuccess) {
+    if (linkedIssueNum) {
+      await closeIssue(
+        linkedIssueNum,
+        prNum
+          ? `Closed automatically upon Architect approval and squash-merge of PR #${prNum}.`
+          : `Closed upon Architect approval by ${actor}.`
+      );
+      await removeLabelFromIssue(linkedIssueNum, "status:in-progress");
+      await addLabelsToIssue(linkedIssueNum, ["approved:yes", "status:completed"]);
+    } else if (issueNum) {
+      await addLabelsToIssue(issueNum, ["approved:yes"]);
     }
 
-    // Post confirmation in thread
-    await postLine({
-      channel,
-      text: `✅ Decision recorded: Approved by ${actor} at ${timeStr} IST. Appended to \`decisions/${dateStr}.md\`.`,
-      thread_ts: messageTs,
-    });
+    // 3. Append to decisions/YYYY-MM-DD.md
+    const appendRes = await appendFileInRepo(
+      `decisions/${dateStr}.md`,
+      decisionLine,
+      `chore(decision): approve ${agent} ${prNum ? `PR #${prNum}` : "task"} per ${actor}`
+    );
+
+    if (appendRes.success) {
+      // Update card message
+      if (messageTs && config.slackBotToken) {
+        try {
+          const originalBlocks = payload.message?.blocks || [];
+          const updatedBlocks = originalBlocks
+            .filter((b: any) => b.block_id !== "card_actions")
+            .concat([
+              {
+                type: "section",
+                text: {
+                  type: "mrkdwn",
+                  text: prNum
+                    ? `✅ *Approved and Squash-Merged by ${actor} at ${timeStr} IST*\n_Recorded in \`decisions/${dateStr}.md\`._`
+                    : `✅ *Approved by ${actor} at ${timeStr} IST*\n_Recorded in \`decisions/${dateStr}.md\`._`,
+                },
+              },
+            ]);
+
+          await slackClient.chat.update({
+            channel,
+            ts: messageTs,
+            text: `✅ Approved: ${meta.title} by ${actor}`,
+            blocks: updatedBlocks,
+          });
+        } catch (err) {
+          console.warn("[Card Update Warning]", err);
+        }
+      }
+
+      // Post "Merged" in thread per requirement:
+      // "Approve → the service squash-merges the PR (admin token), closes the issue with a comment, writes the decisions/ line (bullet, Slack message time), posts "Merged" in the thread."
+      if (prNum) {
+        await postLine({
+          channel,
+          text: "Merged",
+          thread_ts: messageTs,
+        });
+      } else {
+        await postLine({
+          channel,
+          text: `✅ Decision recorded: Approved by ${actor} at ${timeStr} IST. Appended to \`decisions/${dateStr}.md\`.`,
+          thread_ts: messageTs,
+        });
+      }
+    } else {
+      // Decisions write failed
+      const failureMsg = `Decision captured in Slack but NOT written to repo — ${appendRes.status || 500} ${appendRes.error || "Unknown error"}`;
+      if (messageTs) {
+        await postLine({ channel, text: failureMsg, thread_ts: messageTs });
+      }
+      await postLine({ channel: config.alertsChannelId, text: failureMsg });
+    }
   } else {
-    // Failure (any status other than 200/201): Never report a write that didn't happen!
-    const failureMsg = `Decision captured in Slack but NOT written to the repo — ${appendRes.status || 500} ${appendRes.error || "Unknown error"}`;
-
-    // Update card to remove buttons without falsely claiming "Recorded"
-    if (messageTs && config.slackBotToken) {
-      try {
-        const originalBlocks = payload.message?.blocks || [];
-        const updatedBlocks = originalBlocks
-          .filter((b: any) => b.block_id !== "card_actions")
-          .concat([
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: `⚠️ *Decision captured by ${actor} at ${timeStr} IST*\n${failureMsg}`,
-              },
-            },
-          ]);
-
-        await slackClient.chat.update({
-          channel,
-          ts: messageTs,
-          text: `⚠️ Approved (Repo Write Failed): ${meta.title} by ${actor}`,
-          blocks: updatedBlocks,
-        });
-      } catch (err) {
-        console.warn("[Card Update Warning on Failure]", err);
-      }
+    // PR Merge failed
+    const mergeFailMsg = `⚠️ Failed to squash-merge PR #${prNum} — ${mergeError || "Merge conflict or permission error"}`;
+    if (messageTs) {
+      await postLine({ channel, text: mergeFailMsg, thread_ts: messageTs });
     }
-
-    // Post failure notification in-thread
-    await postLine({
-      channel,
-      text: failureMsg,
-      thread_ts: messageTs,
-    });
-
-    // Post failure notification to #alerts
-    await postLine({
-      channel: config.alertsChannelId,
-      text: failureMsg,
-    });
+    await postLine({ channel: config.alertsChannelId, text: mergeFailMsg });
   }
 }
 
@@ -261,17 +288,23 @@ async function handleRejectSubmission(payload: any): Promise<void> {
   const actor = await getActorDisplayName(payload.user);
   const agent = meta.agent || "web-builder";
   const summary = meta.summary || meta.title || "Task rejected";
-  const issueNum = meta.issue ? parseInt(meta.issue, 10) : undefined;
-  let issueUrl: string;
-  if (issueNum) {
-    issueUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/${issueNum}`;
-  } else if (meta.issueUrl) {
-    issueUrl = meta.issueUrl;
-  } else if (meta.prUrl) {
-    issueUrl = meta.prUrl;
-  } else {
-    const foundLink = (meta.links || []).find((l: any) => l.url?.includes("/issues/") || l.url?.includes("/pull/"));
-    issueUrl = foundLink ? foundLink.url : `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/1`;
+
+  const prNum = meta.pr ? parseInt(meta.pr, 10) : undefined;
+  const linkedIssueNum = meta.linkedIssue
+    ? parseInt(meta.linkedIssue, 10)
+    : meta.issue && !prNum
+    ? parseInt(meta.issue, 10)
+    : undefined;
+  const branchName = meta.branch;
+  const issueNum = linkedIssueNum || (meta.issue ? parseInt(meta.issue, 10) : undefined);
+
+  let targetUrl = meta.prUrl || meta.issueUrl;
+  if (!targetUrl && prNum) {
+    targetUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/pull/${prNum}`;
+  } else if (!targetUrl && issueNum) {
+    targetUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/${issueNum}`;
+  } else if (!targetUrl) {
+    targetUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/1`;
   }
 
   const dateStr = getTodayDateString();
@@ -279,10 +312,10 @@ async function handleRejectSubmission(payload: any): Promise<void> {
   const channel = meta.channel || config.approvalsChannelId;
   const messageTs = meta.message_ts;
 
-  console.log(`[Action Reject] Actor: ${actor} | Agent: ${agent} | Reason: "${reason}"`);
+  console.log(`[Action Reject] Actor: ${actor} | Agent: ${agent} | PR: #${prNum} | Issue: #${issueNum} | Reason: "${reason}"`);
 
   // 1. Append to decisions/YYYY-MM-DD.md
-  const decisionLine = `- ${timeStr} IST · ${actor} · REJECT · ${agent} · ${summary} (Reason: ${reason}) · ${issueUrl}`;
+  const decisionLine = `- ${timeStr} IST · ${actor} · REJECT · ${agent} · ${summary} (Reason: ${reason}) · ${targetUrl}`;
   const decRes = await appendFileInRepo(
     `decisions/${dateStr}.md`,
     decisionLine,
@@ -294,7 +327,7 @@ async function handleRejectSubmission(payload: any): Promise<void> {
 ## ${timeStr} IST — ${meta.title || summary}
 - **Agent:** \`${agent}\`
 - **Reviewer / Actor:** ${actor}
-- **Task / Reference:** ${issueUrl}
+- **Task / Reference:** ${targetUrl}
 - **Reason for Rejection:** ${reason}
 `;
   const rejRes = await appendFileInRepo(
@@ -303,12 +336,23 @@ async function handleRejectSubmission(payload: any): Promise<void> {
     `chore(rejections): log rejected proposal for ${agent}`
   );
 
-  // 3. Label issue approved:no
-  if (issueNum) {
-    await addLabelsToIssue(issueNum, ["approved:no"]);
+  // 3. Close PR and delete branch if PR exists
+  if (prNum) {
+    console.log(`[Action Reject] Closing PR #${prNum}...`);
+    await closePR(prNum);
+  }
+  if (branchName) {
+    console.log(`[Action Reject] Deleting working branch ${branchName}...`);
+    await deleteBranch(branchName);
   }
 
-  // 4. Update Slack card or post alert
+  // 4. Label issue status:rejected and approved:no
+  if (issueNum) {
+    await removeLabelFromIssue(issueNum, "status:in-progress");
+    await addLabelsToIssue(issueNum, ["status:rejected", "approved:no"]);
+  }
+
+  // 5. Update Slack card or post alert
   if (decRes.success && rejRes.success) {
     if (messageTs && config.slackBotToken) {
       try {
@@ -402,6 +446,30 @@ async function handlePickedUpAction(payload: any, action: any): Promise<void> {
       text: `🚀 Task <${issueLink}|#${issueNum}> picked up by *${actor}* at ${timeStr} IST (marked \`status:in-progress\`).`,
       thread_ts: messageTs,
     });
+  }
+
+  // 4. Trigger runner if agent has autorun: true
+  if (issueNum) {
+    const agentRecord = await findAgentByName(meta.agent || "web-builder");
+    if (agentRecord?.autorun === true) {
+      console.log(`[Action Picked Up] Agent @${agentRecord.name} has autorun: true; invoking runner for #${issueNum}...`);
+      (async () => {
+        try {
+          await runIssueTask({
+            number: issueNum,
+            title: meta.title || `Issue #${issueNum}`,
+            body: meta.summary || meta.body || "",
+            labels: [`for:${agentRecord.name}`, "status:in-progress"],
+            agentName: agentRecord.name,
+            door: meta.door || "core",
+            slackChannel: channel,
+            slackThreadTs: messageTs,
+          });
+        } catch (err) {
+          console.error(`[Action Picked Up Runner Error on #${issueNum}]:`, err);
+        }
+      })();
+    }
   }
 }
 
