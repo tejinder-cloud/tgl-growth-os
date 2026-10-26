@@ -3,6 +3,7 @@ import { loadAgents, type AgentRecord } from "../lib/agents.js";
 import {
   findOpenIssuesWithLabels,
   findLinkedPR,
+  hasArchitectComment,
   type GitHubIssueSummary,
 } from "../lib/github-client.js";
 import { getRunnerState, recordRunnerIssue } from "./state.js";
@@ -72,6 +73,39 @@ export async function catchUpRunnerIssues(options?: {
 
     for (const issue of issues) {
       const issueNum = issue.number;
+
+      // Rule A: Ignore issues labelled type:test
+      if (issue.labels.includes("type:test")) {
+        console.log(`[Catch-Up] Issue #${issueNum} is labelled type:test; skipping.`);
+        skippedCount++;
+        results.push({
+          issueNumber: issueNum,
+          status: "skipped",
+          reason: "Labelled type:test",
+        });
+        continue;
+      }
+
+      // Rule B: Ignore issues older than 7 days without a comment from the Architect
+      if (issue.created_at) {
+        const createdAtMs = new Date(issue.created_at).getTime();
+        const ageInDays = (Date.now() - createdAtMs) / (1000 * 60 * 60 * 24);
+        if (ageInDays > 7) {
+          const hasComment = !isTest ? await hasArchitectComment(issueNum) : false;
+          if (!hasComment) {
+            console.log(
+              `[Catch-Up] Issue #${issueNum} is older than 7 days (${ageInDays.toFixed(1)}d) without Architect comment; skipping.`
+            );
+            skippedCount++;
+            results.push({
+              issueNumber: issueNum,
+              status: "skipped",
+              reason: "Older than 7 days without Architect comment",
+            });
+            continue;
+          }
+        }
+      }
 
       // 1. Check if run is already recorded as completed in runner state
       const existingRecord = state.runs[String(issueNum)];

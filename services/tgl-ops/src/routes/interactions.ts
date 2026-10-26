@@ -70,6 +70,32 @@ interactionsRouter.post("/", async (req: Request, res: Response): Promise<void> 
   res.status(200).send("OK");
 });
 
+/**
+ * Converts Slack mrkdwn link format <URL|TEXT> to standard Markdown [TEXT](URL).
+ */
+export function formatSlackToMarkdown(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/<(https?:\/\/[^|>]+)\|([^>]+)>/g, "[$2]($1)")
+    .replace(/<(https?:\/\/[^>]+)>/g, "$1");
+}
+
+/**
+ * Ensures target link is formatted as a markdown link [#N](url), never raw or Slack syntax.
+ */
+export function formatMarkdownRefLink(url: string, refNum?: number): string {
+  if (!url) return "";
+  const cleanUrl = url.replace(/^[<](https?:\/\/[^>|]+).*[>]$/, "$1");
+  if (refNum) {
+    return `[#${refNum}](${cleanUrl})`;
+  }
+  const match = cleanUrl.match(/\/(?:issues|pull)\/(\d+)/i);
+  if (match) {
+    return `[#${match[1]}](${cleanUrl})`;
+  }
+  return cleanUrl;
+}
+
 async function handleApproveAction(payload: any, action: any): Promise<void> {
   const meta = JSON.parse(action.value || "{}");
   const actor = await getActorDisplayName(payload.user);
@@ -102,8 +128,10 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
 
   console.log(`[Action Approve] Actor: ${actor} | Agent: ${agent} | PR: #${prNum} | Issue: #${issueNum}`);
 
-  // Format: "- HH:MM IST · <actor> · <APPROVE|REJECT> · <agent> · <summary> · <issue/PR url>"
-  const decisionLine = `- ${timeStr} IST · ${actor} · APPROVE · ${agent} · ${summary} · ${targetUrl}`;
+  // Format with strict markdown link [#N](url), never Slack <url|text>
+  const cleanSummary = formatSlackToMarkdown(summary);
+  const targetLink = formatMarkdownRefLink(targetUrl, prNum || issueNum);
+  const decisionLine = `- ${timeStr} IST · ${actor} · APPROVE · ${agent} · ${cleanSummary} · ${targetLink}`;
 
   // 1. If this is a PR approval, squash-merge the PR first
   let mergeSuccess = true;
@@ -314,8 +342,12 @@ async function handleRejectSubmission(payload: any): Promise<void> {
 
   console.log(`[Action Reject] Actor: ${actor} | Agent: ${agent} | PR: #${prNum} | Issue: #${issueNum} | Reason: "${reason}"`);
 
-  // 1. Append to decisions/YYYY-MM-DD.md
-  const decisionLine = `- ${timeStr} IST · ${actor} · REJECT · ${agent} · ${summary} (Reason: ${reason}) · ${targetUrl}`;
+  const cleanSummary = formatSlackToMarkdown(summary);
+  const cleanReason = formatSlackToMarkdown(reason);
+  const targetLink = formatMarkdownRefLink(targetUrl, prNum || issueNum);
+
+  // 1. Append to decisions/YYYY-MM-DD.md using strict markdown link [#N](url)
+  const decisionLine = `- ${timeStr} IST · ${actor} · REJECT · ${agent} · ${cleanSummary} (Reason: ${cleanReason}) · ${targetLink}`;
   const decRes = await appendFileInRepo(
     `decisions/${dateStr}.md`,
     decisionLine,
@@ -324,11 +356,11 @@ async function handleRejectSubmission(payload: any): Promise<void> {
 
   // 2. Append to rejections/YYYY-MM-DD.md
   const rejectionBlock = `
-## ${timeStr} IST — ${meta.title || summary}
+## ${timeStr} IST — ${formatSlackToMarkdown(meta.title || summary)}
 - **Agent:** \`${agent}\`
 - **Reviewer / Actor:** ${actor}
-- **Task / Reference:** ${targetUrl}
-- **Reason for Rejection:** ${reason}
+- **Task / Reference:** ${targetLink}
+- **Reason for Rejection:** ${cleanReason}
 `;
   const rejRes = await appendFileInRepo(
     `rejections/${dateStr}.md`,

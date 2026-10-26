@@ -137,12 +137,7 @@ async function handleIssueComment(payload: any): Promise<void> {
     });
     console.log(`[GitHub Event] Posted comment thread reply for issue #${issueNum} in ${mapping.channel}`);
   } else {
-    // Unknown issue -> post to #ops
-    await postLine({
-      channel: config.opsChannelId,
-      text: `💬 Comment on unmapped issue <${commentUrl}|#${issueNum}> by *${author}*: "${snippet}"`,
-    });
-    console.log(`[GitHub Event] Posted comment for unmapped issue #${issueNum} to ${config.opsChannelId}`);
+    console.log(`[GitHub Event] Issue #${issueNum} has no mapped card thread in agent channel; skipping department broadcast per routing rules.`);
   }
 }
 
@@ -163,7 +158,7 @@ async function handlePullRequestOpened(payload: any): Promise<void> {
   let mapping = linkedIssueNum ? await getIssueMapping(linkedIssueNum) : undefined;
 
   if (mapping && mapping.ts && mapping.channel) {
-    // Post thread reply under the linked issue's card
+    // Post thread reply under the linked issue's card in the agent's channel
     await postLine({
       channel: mapping.channel,
       text: `🔀 *${author}* opened PR <${prUrl}|#${prNum} ${prTitle}> (linked to #${linkedIssueNum})`,
@@ -171,15 +166,9 @@ async function handlePullRequestOpened(payload: any): Promise<void> {
     });
     // Map PR number as well so subsequent PR reviews can find the card thread
     await recordIssueMapping(prNum, mapping);
-    console.log(`[GitHub Event] Posted PR opened thread reply for issue #${linkedIssueNum} (PR #${prNum})`);
+    console.log(`[GitHub Event] Posted PR opened thread reply for issue #${linkedIssueNum} (PR #${prNum}) in ${mapping.channel}`);
   } else {
-    // Unknown issue or no linked issue -> post to #ops
-    const linkNote = linkedIssueNum ? ` (linked to unmapped issue #${linkedIssueNum})` : "";
-    await postLine({
-      channel: config.opsChannelId,
-      text: `🔀 *${author}* opened PR <${prUrl}|#${prNum} ${prTitle}>${linkNote}`,
-    });
-    console.log(`[GitHub Event] Posted PR opened for PR #${prNum} to ${config.opsChannelId}`);
+    console.log(`[GitHub Event] PR #${prNum} has no mapped card thread in agent channel; skipping department broadcast per routing rules.`);
   }
 }
 
@@ -210,10 +199,6 @@ async function handlePullRequestReviewSubmitted(payload: any): Promise<void> {
     });
     console.log(`[GitHub Event] Posted PR review thread reply for PR #${prNum} in ${mapping.channel}`);
   } else {
-    await postLine({
-      channel: config.opsChannelId,
-      text: `🔍 Review submitted on PR <${prUrl}|#${prNum}> by *${reviewer}* (State: \`${state}\`)`,
-    });
-    console.log(`[GitHub Event] Posted PR review for unmapped PR #${prNum} to ${config.opsChannelId}`);
+    console.log(`[GitHub Event] PR #${prNum} review has no mapped card thread in agent channel; skipping department broadcast per routing rules.`);
   }
 }

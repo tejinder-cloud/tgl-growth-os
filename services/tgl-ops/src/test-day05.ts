@@ -26,6 +26,7 @@ import {
   type GitHubIssueSummary,
 } from "./lib/github-client.js";
 import { postCard, postLine } from "./lib/post.js";
+import { formatSlackToMarkdown, formatMarkdownRefLink } from "./routes/interactions.js";
 
 // Ensure TGL_TEST_MODE=1 so test operations route to #ops and logs/.test/
 process.env.TGL_TEST_MODE = "1";
@@ -68,38 +69,71 @@ async function runDay05RunnerTestSuite(): Promise<void> {
     console.log("✅ [Test 1 Passed] Autorun agent configuration strictly verified.");
 
     // -------------------------------------------------------------------------
-    // Test 2: Pre-Flight Check — Vague Brief Stops at Pre-Flight
+    // Test 2: Pre-Flight Check — Live-Model Tests on Vague Briefs (Mandate 2)
     // -------------------------------------------------------------------------
-    console.log("\n[Test 2] Testing Pre-flight: Vague brief stops before branch or PR creation...");
-    const vagueCheck = runPreflightCheck({
-      issueNumber: 991,
-      title: "fix stuff",
-      deliverable: "fix stuff",
-      body: "Please help fix stuff on website",
-      agentName: "web-builder",
-    });
+    console.log("\n[Test 2] [LIVE-MODEL TESTS] Testing Pre-flight against Anthropic model for vague briefs...");
+    const vagueBriefs = [
+      {
+        title: "[TASK]: Make the site faster",
+        deliverable: "Make the site faster",
+        body: "Please make the site faster.",
+      },
+      {
+        title: "[TASK]: Improve SEO across the site",
+        deliverable: "Improve SEO across the site",
+        body: "Please help improve SEO across all pages.",
+      },
+      {
+        title: "[TASK]: Fix the styling on the homepage",
+        deliverable: "Fix the styling on the homepage",
+        body: "Fix layout and styling issues on homepage.",
+      },
+      {
+        title: "[TASK]: Help with WordPress",
+        deliverable: "Help with WordPress",
+        body: "Need help configuring WordPress.",
+      },
+    ];
 
-    if (vagueCheck.passed) {
-      throw new Error("Preflight check should have failed for vague brief 'fix stuff'!");
-    }
-    if (!vagueCheck.reason?.includes("Mandate 2 pushback")) {
-      throw new Error(`Expected Mandate 2 pushback reason, got: ${vagueCheck.reason}`);
-    }
-    if (!vagueCheck.questions || vagueCheck.questions.length < 2) {
-      throw new Error("Preflight check must provide a numbered list of clarifying questions!");
-    }
-    console.log(`  • Vague brief correctly rejected: "${vagueCheck.reason}"`);
-    console.log(`  • Clarifying questions posted:\n    ${vagueCheck.questions.join("\n    ")}`);
+    for (let i = 0; i < vagueBriefs.length; i++) {
+      const b = vagueBriefs[i];
+      console.log(`  • [Live Model Test 2.${i + 1}] Evaluating brief: "${b.title}"...`);
+      const check = await runPreflightCheck({
+        issueNumber: 990 + i,
+        title: b.title,
+        deliverable: b.deliverable,
+        body: b.body,
+        agentName: "web-builder",
+      });
 
+      console.log(`    → Verdict: ${check.verdict} | Passed: ${check.passed}`);
+      console.log(`    → Reason: ${check.reason}`);
+      console.log(`    → Questions (${check.questions?.length || 0}):\n      ${(check.questions || []).join("\n      ")}`);
+
+      if (check.verdict !== "needs-brief") {
+        throw new Error(`Expected verdict 'needs-brief' for vague brief '${b.title}', got '${check.verdict}'`);
+      }
+      if (check.passed !== false) {
+        throw new Error(`Expected passed === false for vague brief '${b.title}'`);
+      }
+      if (!check.reason || check.reason.length < 10) {
+        throw new Error(`Expected non-empty reason for vague brief '${b.title}'`);
+      }
+      if (!check.questions || check.questions.length < 2) {
+        throw new Error(`Expected at least 2 numbered clarification questions for '${b.title}', got ${check.questions?.length}`);
+      }
+    }
+
+    console.log("  • Testing full runIssueTask pipeline on 'Make the site faster' (Issue #33 simulation)...");
     const vagueRunResult = await runIssueTask(
       {
-        number: 991,
-        title: "fix stuff",
-        body: "Please help fix stuff",
+        number: 33,
+        title: "[TASK]: Make the site faster",
+        body: "Please make the site faster.",
         labels: ["for:web-builder", "status:in-progress"],
         agentName: "web-builder",
         slackChannel: config.opsChannelId || "#ops",
-        slackThreadTs: "1729900000.991",
+        slackThreadTs: "1729900000.033",
       },
       { testMode: true }
     );
@@ -107,13 +141,13 @@ async function runDay05RunnerTestSuite(): Promise<void> {
     if (vagueRunResult.status !== "needs-brief" || vagueRunResult.success !== false) {
       throw new Error(`Expected status: 'needs-brief', got '${vagueRunResult.status}'`);
     }
-    console.log("✅ [Test 2 Passed] Vague brief stopped at pre-flight with status:needs-brief, no branch cut, no PR.");
+    console.log("✅ [Test 2 Passed] Live model evaluated 4 vague briefs and stopped all at pre-flight with status:needs-brief and numbered questions.");
 
     // -------------------------------------------------------------------------
     // Test 3: Protected Paths — Refusal of writes to services/ and .github/
     // -------------------------------------------------------------------------
     console.log("\n[Test 3] Testing Protected Paths: Refusal of writes to services/ and .github/...");
-    const protectedBriefCheck = runPreflightCheck({
+    const protectedBriefCheck = await runPreflightCheck({
       issueNumber: 992,
       title: "Modify service router",
       deliverable: "Update services/tgl-ops/src/index.ts to change route",
@@ -121,10 +155,10 @@ async function runDay05RunnerTestSuite(): Promise<void> {
       agentName: "web-builder",
     });
 
-    if (protectedBriefCheck.passed) {
-      throw new Error("Preflight should have failed for brief targeting services/!");
+    if (protectedBriefCheck.passed || protectedBriefCheck.verdict !== "refuse") {
+      throw new Error(`Expected preflight refusal for services/ modification, got verdict: '${protectedBriefCheck.verdict}'!`);
     }
-    console.log(`  • Pre-flight correctly caught protected path: "${protectedBriefCheck.reason}"`);
+    console.log(`  • Pre-flight correctly caught protected path with verdict 'refuse': "${protectedBriefCheck.reason}"`);
 
     const mockToolContext: RunnerToolContext = {
       branchName: "__test__-path-protection",
@@ -252,7 +286,24 @@ async function runDay05RunnerTestSuite(): Promise<void> {
     // Approve
     const decTime = getCurrentTimeIST();
     const testDecFile = path.join(config.repoRoot, "logs/.test", `decisions-${rejDate}.md`);
-    fs.writeFileSync(testDecFile, `- ${decTime} IST · Architect · APPROVE · web-builder · Add approvals section · ${simulatedPrRes.html_url}\n`);
+
+    // Verify markdown link formatting (Defect 3: strict markdown [#N](url), never Slack <url|text>)
+    const slackRawSummary = "PR <https://github.com/tejinder-cloud/tgl-growth-os/pull/28|#28> opened by `@web-builder` for issue #28.";
+    const markdownSummary = formatSlackToMarkdown(slackRawSummary);
+    if (markdownSummary.includes("<http") || !markdownSummary.includes("[#28](https://github.com/tejinder-cloud/tgl-growth-os/pull/28)")) {
+      throw new Error(`formatSlackToMarkdown failed: expected markdown link, got "${markdownSummary}"`);
+    }
+    const targetMdLink = formatMarkdownRefLink(simulatedPrRes.html_url, simulatedPrRes.number);
+    if (!targetMdLink.startsWith(`[#${simulatedPrRes.number}]`)) {
+      throw new Error(`formatMarkdownRefLink failed: expected [#${simulatedPrRes.number}](url), got "${targetMdLink}"`);
+    }
+    const decisionLineFormatted = `- ${decTime} IST · Architect · APPROVE · web-builder · ${markdownSummary} · ${targetMdLink}`;
+    if (decisionLineFormatted.includes("<http") || decisionLineFormatted.includes("|#")) {
+      throw new Error(`decisionLine contains illegal Slack link syntax: "${decisionLineFormatted}"`);
+    }
+    console.log(`  ✓ Decisions formatting: verified markdown link "${targetMdLink}", zero Slack <url|text>.`);
+
+    fs.writeFileSync(testDecFile, `${decisionLineFormatted}\n`);
     const mergedPost = await postLine({
       channel: config.opsChannelId || "#ops",
       text: "Merged",
@@ -260,12 +311,12 @@ async function runDay05RunnerTestSuite(): Promise<void> {
     });
     if (!mergedPost.ok) throw new Error("Merged post failed");
     console.log("  ✓ Approve: squash-merges PR, closes issue with comment, writes decisions/ line, posts 'Merged' in thread.");
-    console.log("✅ [Test 6 Passed] [Fixture / Dry Run] Interactive Slack lifecycle verified.");
+    console.log("✅ [Test 6 Passed] [Fixture / Dry Run] Interactive Slack lifecycle & markdown decisions formatting verified.");
 
     // -------------------------------------------------------------------------
     // Test 7: Runner State Management, Boot/30-min Catch-up & Deduplication
     // -------------------------------------------------------------------------
-    console.log("\n[Test 7] Testing Runner State Management and Catch-up deduplication...");
+    console.log("\n[Test 7] Testing Runner State Management and Catch-up deduplication & filtering...");
     const initialState = await getRunnerState({ testMode: true });
     if (Object.keys(initialState.runs).length !== 0) {
       throw new Error("Initial test runner state must be empty!");
@@ -289,7 +340,10 @@ async function runDay05RunnerTestSuite(): Promise<void> {
     }
     console.log(`  • Runner state verified: issue #28 marked completed with PR #${reloadedState.runs["28"].prNumber}`);
 
-    // Catch-up cycle deduplication test
+    // Catch-up cycle tests:
+    // Case 1: Deduplication of completed issue
+    // Case 2: Ignore issue labelled type:test
+    // Case 3: Ignore issue older than 7 days without Architect comment
     const mockCatchupIssues: GitHubIssueSummary[] = [
       {
         number: 28,
@@ -300,6 +354,24 @@ async function runDay05RunnerTestSuite(): Promise<void> {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },
+      {
+        number: 16,
+        title: "[TASK]: Day 3 routing test",
+        body: "Routing test issue",
+        labels: ["for:web-builder", "status:in-progress", "type:test"],
+        html_url: "https://github.com/tejinder-cloud/tgl-growth-os/issues/16",
+        created_at: new Date(Date.now() - 10 * 86400 * 1000).toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      {
+        number: 12,
+        title: "[TASK]: Old unconfirmed issue",
+        body: "Stale issue without Architect comment",
+        labels: ["for:web-builder", "status:in-progress"],
+        html_url: "https://github.com/tejinder-cloud/tgl-growth-os/issues/12",
+        created_at: new Date(Date.now() - 12 * 86400 * 1000).toISOString(), // 12 days old
+        updated_at: new Date().toISOString(),
+      },
     ];
 
     const catchupRes = await catchUpRunnerIssues({
@@ -307,11 +379,27 @@ async function runDay05RunnerTestSuite(): Promise<void> {
       issuesList: mockCatchupIssues,
     });
 
-    if (catchupRes.skippedCount !== 1 || catchupRes.executedCount !== 0) {
-      throw new Error(`Expected completed issue #28 to be skipped by catch-up, got: ${JSON.stringify(catchupRes)}`);
+    if (catchupRes.skippedCount !== 3 || catchupRes.executedCount !== 0) {
+      throw new Error(`Expected all 3 issues to be skipped by catch-up rules, got: ${JSON.stringify(catchupRes)}`);
     }
-    console.log("  • Catch-up cycle correctly skipped completed issue #28 (deduplication verified).");
-    console.log("✅ [Test 7 Passed] Runner state management and 30-min catch-up deduplication verified.");
+
+    const skipped28 = catchupRes.results.find((r) => r.issueNumber === 28);
+    if (!skipped28 || skipped28.reason !== "Already completed in runner state") {
+      throw new Error(`Expected issue #28 skipped for completion, got: ${JSON.stringify(skipped28)}`);
+    }
+    const skipped16 = catchupRes.results.find((r) => r.issueNumber === 16);
+    if (!skipped16 || skipped16.reason !== "Labelled type:test") {
+      throw new Error(`Expected issue #16 skipped for type:test, got: ${JSON.stringify(skipped16)}`);
+    }
+    const skipped12 = catchupRes.results.find((r) => r.issueNumber === 12);
+    if (!skipped12 || skipped12.reason !== "Older than 7 days without Architect comment") {
+      throw new Error(`Expected issue #12 skipped for age > 7 days, got: ${JSON.stringify(skipped12)}`);
+    }
+
+    console.log("  • Catch-up rule verified: skipped completed issue #28 (deduplication).");
+    console.log("  • Catch-up rule verified: ignored issue #16 (labelled type:test).");
+    console.log("  • Catch-up rule verified: ignored issue #12 (>7 days old without Architect comment).");
+    console.log("✅ [Test 7 Passed] Runner state management and 30-min catch-up filter rules verified.");
 
     // -------------------------------------------------------------------------
     // Test 8: Real LLM Execution in TGL_TEST_MODE (Anthropic API Call)

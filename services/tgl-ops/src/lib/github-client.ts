@@ -533,12 +533,13 @@ export async function findLinkedPR(
       per_page: 50,
     });
 
-    const issueRegex = new RegExp(`(?:fixes|closes|resolves|issue|#)\\s*#?${issueNumber}\\b`, "i");
+    const issueRegex = new RegExp(`(?:fixes|closes|resolves)\\s*#?${issueNumber}\\b`, "i");
     const matched = pulls.data.find(
       (pr) =>
         issueRegex.test(pr.body || "") ||
         pr.head.ref.includes(`issue-${issueNumber}`) ||
-        pr.title.includes(`#${issueNumber}`)
+        pr.head.ref.includes(`/${issueNumber}-`) ||
+        new RegExp(`(?:fixes|closes|resolves|#)\\s*${issueNumber}\\b`, "i").test(pr.title)
     );
 
     if (matched) {
@@ -788,6 +789,33 @@ export async function removeLabelFromIssue(
     if (err.status !== 404) {
       console.warn(`[GitHub API] Could not remove label '${labelName}' from #${issueNumber}:`, err.message);
     }
+  }
+}
+
+/**
+ * Checks if a GitHub issue has at least one comment from the Architect.
+ */
+export async function hasArchitectComment(
+  issueNumber: number,
+  architectLogins: string[] = ["tejinder-cloud", "falkanmedia"]
+): Promise<boolean> {
+  if (!config.githubToken) {
+    return false;
+  }
+
+  try {
+    const res = await octokit.issues.listComments({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      issue_number: issueNumber,
+      per_page: 100,
+    });
+
+    const loginsLower = architectLogins.map((l) => l.toLowerCase());
+    return res.data.some((c) => (c.user?.login ? loginsLower.includes(c.user.login.toLowerCase()) : false));
+  } catch (err: any) {
+    console.warn(`[GitHub API] Error checking comments on #${issueNumber}:`, err.message);
+    return false;
   }
 }
 
