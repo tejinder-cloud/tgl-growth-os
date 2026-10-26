@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { config } from "../config.js";
+import { config, isTestMode } from "../config.js";
 import { octokit } from "./github-client.js";
 
 export interface IssueIndexEntry {
@@ -16,18 +16,43 @@ export type IssuesIndex = Record<string, IssueIndexEntry>;
 
 const INDEX_FILE_PATH = "logs/.index/issues.json";
 let memoryIndexCache: IssuesIndex | null = null;
+let testIndexCache: IssuesIndex | null = null;
 let lastKnownSha: string | undefined;
+
+function getIndexPath(testMode: boolean): string {
+  if (testMode) {
+    return path.join(config.repoRoot, "logs/.test", "issues.json");
+  }
+  return path.join(config.repoRoot, INDEX_FILE_PATH);
+}
 
 /**
  * Loads the issue-to-Slack mapping index from logs/.index/issues.json.
  */
-export async function loadIssuesIndex(): Promise<IssuesIndex> {
+export async function loadIssuesIndex(options?: { testMode?: boolean }): Promise<IssuesIndex> {
+  const isTest = options?.testMode === true || isTestMode();
+  if (isTest) {
+    if (testIndexCache) return testIndexCache;
+    const localFullPath = getIndexPath(true);
+    if (fs.existsSync(localFullPath)) {
+      try {
+        const raw = fs.readFileSync(localFullPath, "utf8");
+        testIndexCache = JSON.parse(raw);
+        return testIndexCache || {};
+      } catch {
+        // fallback
+      }
+    }
+    testIndexCache = {};
+    return testIndexCache;
+  }
+
   if (memoryIndexCache) {
     return memoryIndexCache;
   }
 
   // 1. Try local filesystem (for local dev)
-  const localFullPath = path.join(config.repoRoot, INDEX_FILE_PATH);
+  const localFullPath = getIndexPath(false);
   if (fs.existsSync(localFullPath)) {
     try {
       const raw = fs.readFileSync(localFullPath, "utf8");
@@ -68,8 +93,11 @@ export async function loadIssuesIndex(): Promise<IssuesIndex> {
 /**
  * Look up a mapped Slack channel and card timestamp for an issue number.
  */
-export async function getIssueMapping(issueNumber: number): Promise<IssueIndexEntry | undefined> {
-  const index = await loadIssuesIndex();
+export async function getIssueMapping(
+  issueNumber: number,
+  options?: { testMode?: boolean }
+): Promise<IssueIndexEntry | undefined> {
+  const index = await loadIssuesIndex(options);
   return index[String(issueNumber)];
 }
 
@@ -77,18 +105,38 @@ export async function getIssueMapping(issueNumber: number): Promise<IssueIndexEn
  * Records or updates an issue mapping in logs/.index/issues.json.
  * Writes locally and persists to GitHub via Contents API.
  */
-export async function recordIssueMapping(issueNumber: number, entry: IssueIndexEntry): Promise<void> {
-  const index = await loadIssuesIndex();
+export async function recordIssueMapping(
+  issueNumber: number,
+  entry: IssueIndexEntry,
+  options?: { testMode?: boolean }
+): Promise<void> {
+  const isTest = options?.testMode === true || isTestMode();
+  const index = await loadIssuesIndex({ testMode: isTest });
   index[String(issueNumber)] = {
     ...entry,
     updatedAt: new Date().toISOString(),
   };
-  memoryIndexCache = index;
 
+  if (isTest) {
+    testIndexCache = index;
+    const localFullPath = getIndexPath(true);
+    try {
+      const dir = path.dirname(localFullPath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(localFullPath, JSON.stringify(index, null, 2) + "\n", "utf8");
+    } catch {
+      // ignore
+    }
+    return;
+  }
+
+  memoryIndexCache = index;
   const contentStr = JSON.stringify(index, null, 2) + "\n";
 
   // Sync locally if repository directory exists
-  const localFullPath = path.join(config.repoRoot, INDEX_FILE_PATH);
+  const localFullPath = getIndexPath(false);
   try {
     const dir = path.dirname(localFullPath);
     if (!fs.existsSync(dir)) {
@@ -145,4 +193,41 @@ export async function recordIssueMapping(issueNumber: number, entry: IssueIndexE
       }
     }
   }
+}
+
+/**
+ * Look up mapped issue for a Slack thread timestamp.
+ * Returns the most relevant matching issue (prioritising open status:needs-brief issues).
+ */
+export async function findNeedsBriefIssueByThreadTs(
+  threadTs: string,
+  options?: { testMode?: boolean }
+): Promise<{ issueNumber: number; entry: IssueIndexEntry } | undefined> {
+  const index = await loadIssuesIndex(options);
+  const candidates: { issueNumber: number; entry: IssueIndexEntry }[] = [];
+
+  for (const [numStr, entry] of Object.entries(index)) {
+    if (entry.ts === threadTs) {
+      candidates.push({ issueNumber: Number(numStr), entry });
+    }
+  }
+
+  if (candidates.length === 0) {
+    return undefined;
+  }
+
+  // Sort descending by issue number (most recent first)
+  candidates.sort((a, b) => b.issueNumber - a.issueNumber);
+
+  // Lazy import getIssue to prevent circular dependency
+  const { getIssue } = await import("./github-client.js");
+
+  for (const c of candidates) {
+    const issue = await getIssue(c.issueNumber);
+    if (issue && issue.state === "open" && issue.labels.includes("status:needs-brief")) {
+      return c;
+    }
+  }
+
+  return candidates[0];
 }

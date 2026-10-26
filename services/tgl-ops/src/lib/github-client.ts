@@ -37,7 +37,82 @@ export async function createIssue(params: CreateIssueParams): Promise<{ number: 
   };
 }
 
+export interface GitHubIssueDetails {
+  number: number;
+  title: string;
+  body: string;
+  state: string;
+  labels: string[];
+  html_url: string;
+}
+
+export const mockIssuesStore = new Map<number, GitHubIssueDetails>();
+
+export async function getIssue(issueNumber: number): Promise<GitHubIssueDetails | null> {
+  if (mockIssuesStore.has(issueNumber)) {
+    return mockIssuesStore.get(issueNumber)!;
+  }
+
+  if (!config.githubToken) {
+    return null;
+  }
+
+  try {
+    const res = await octokit.issues.get({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      issue_number: issueNumber,
+    });
+    const labels = (res.data.labels || []).map((l: any) =>
+      typeof l === "string" ? l : l.name || ""
+    );
+    return {
+      number: res.data.number,
+      title: res.data.title,
+      body: res.data.body || "",
+      state: res.data.state,
+      labels,
+      html_url: res.data.html_url,
+    };
+  } catch (err: any) {
+    console.warn(`[GitHub API] Failed to fetch issue #${issueNumber}:`, err.message);
+    return null;
+  }
+}
+
+export async function updateIssueBody(issueNumber: number, body: string): Promise<boolean> {
+  if (mockIssuesStore.has(issueNumber)) {
+    mockIssuesStore.get(issueNumber)!.body = body;
+    return true;
+  }
+
+  if (!config.githubToken) {
+    console.warn(`[GitHub] GITHUB_TOKEN not set; simulating body update on issue #${issueNumber}`);
+    return true;
+  }
+
+  try {
+    await octokit.issues.update({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      issue_number: issueNumber,
+      body,
+    });
+    return true;
+  } catch (err: any) {
+    console.warn(`[GitHub API] Failed to update body of issue #${issueNumber}:`, err.message);
+    return false;
+  }
+}
+
 export async function addLabelsToIssue(issueNumber: number, labels: string[]): Promise<void> {
+  if (mockIssuesStore.has(issueNumber)) {
+    const item = mockIssuesStore.get(issueNumber)!;
+    for (const l of labels) {
+      if (!item.labels.includes(l)) item.labels.push(l);
+    }
+  }
+
   if (!config.githubToken) {
     console.warn(`[GitHub] GITHUB_TOKEN not set; simulating adding labels [${labels.join(", ")}] to issue #${issueNumber}`);
     return;
@@ -806,6 +881,11 @@ export async function removeLabelFromIssue(
   issueNumber: number,
   labelName: string
 ): Promise<void> {
+  if (mockIssuesStore.has(issueNumber)) {
+    const item = mockIssuesStore.get(issueNumber)!;
+    item.labels = item.labels.filter((l) => l !== labelName);
+  }
+
   if (!config.githubToken) {
     return;
   }

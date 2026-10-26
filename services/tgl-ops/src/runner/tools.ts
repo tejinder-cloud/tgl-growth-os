@@ -47,7 +47,7 @@ export const RUNNER_TOOLS: Anthropic.Tool[] = [
   },
   {
     name: "write_file",
-    description: "Creates or updates a file directly on the working branch. Protected paths (services/ and .github/) are read-only and will be rejected.",
+    description: "Creates or updates a file directly on the working branch. The rule is a denylist, not an allowlist: the runner may write anywhere except services/ and .github/.",
     input_schema: {
       type: "object",
       properties: {
@@ -127,9 +127,9 @@ export async function executeRunnerTool(
     const content = String(input.content ?? "");
     if (!rawPath) return "ERROR: path is required";
 
-    // Enforce v1 protected path rule: services/ and .github/ are read-only
+    // Enforce denylist rule: write anywhere except services/ and .github/
     if (isProtectedPath(rawPath)) {
-      return `REFUSAL: Path '${rawPath}' is protected and read-only for this runner in v1. Files under services/ and .github/ cannot be edited.`;
+      return `REFUSAL: Path '${rawPath}' is protected by denylist. The rule is a denylist, not an allowlist: the runner may write anywhere except services/ and .github/.`;
     }
 
     if (virtualFiles) {

@@ -6,6 +6,7 @@ import { findAgentByName } from "./lib/agents.js";
 import {
   runPreflightCheck,
   parseJsonVerdictFromText,
+  handleNeedsBriefClarification,
   RUNNER_TOOLS,
   executeRunnerTool,
   type RunnerToolContext,
@@ -26,7 +27,9 @@ import {
   createPullRequest,
   findLinkedPR,
   type GitHubIssueSummary,
+  mockIssuesStore,
 } from "./lib/github-client.js";
+import { recordIssueMapping } from "./lib/issues-index.js";
 import { postCard, postLine } from "./lib/post.js";
 import { formatSlackToMarkdown, formatMarkdownRefLink, resolveActionTargets } from "./routes/interactions.js";
 
@@ -193,7 +196,7 @@ async function runDay05RunnerTestSuite(): Promise<void> {
       { path: "services/tgl-ops/src/index.ts", content: "evil code" },
       mockToolContext
     );
-    if (!toolServiceRefusal.startsWith("REFUSAL:") || !toolServiceRefusal.includes("protected and read-only")) {
+    if (!toolServiceRefusal.startsWith("REFUSAL:") || !toolServiceRefusal.includes("protected by denylist")) {
       throw new Error(`Expected REFUSAL for services/ write, got: ${toolServiceRefusal}`);
     }
     console.log(`  • write_file refusal verified for services/: "${toolServiceRefusal}"`);
@@ -203,11 +206,99 @@ async function runDay05RunnerTestSuite(): Promise<void> {
       { path: ".github/workflows/deploy.yml", content: "echo hello" },
       mockToolContext
     );
-    if (!toolCiRefusal.startsWith("REFUSAL:") || !toolCiRefusal.includes("protected and read-only")) {
+    if (!toolCiRefusal.startsWith("REFUSAL:") || !toolCiRefusal.includes("protected by denylist")) {
       throw new Error(`Expected REFUSAL for .github/ write, got: ${toolCiRefusal}`);
     }
     console.log(`  • write_file refusal verified for .github/: "${toolCiRefusal}"`);
-    console.log("✅ [Test 3 Passed] Protected path write refusal verified at both pre-flight and tool layers.");
+
+    // Verify root README.md write succeeds under the denylist rule
+    const toolReadmeSuccess = await executeRunnerTool(
+      "write_file",
+      { path: "README.md", content: "# The Growth Lab" },
+      mockToolContext
+    );
+    if (!toolReadmeSuccess.startsWith("SUCCESS:")) {
+      throw new Error(`Expected SUCCESS for root README.md write, got: ${toolReadmeSuccess}`);
+    }
+    console.log(`  • write_file denylist verified: root README.md write succeeded: "${toolReadmeSuccess}"`);
+
+    // Verify pre-flight check allows concrete README.md briefs (Issue #39 case)
+    console.log("  • Verifying pre-flight on root README.md brief ([TASK]: Add a \"How approvals work\" section)...");
+    const readmeBriefCheck = await runPreflightCheck({
+      issueNumber: 39,
+      title: "[TASK]: Add a \"How approvals work\" section to README.md, 5 lines, from ORG.md",
+      deliverable: "Add a \"How approvals work\" section to README.md, 5 lines, from ORG.md",
+      body: "Add a 5-line summary of how approvals work based on ORG.md §4 to README.md.",
+      agentName: "web-builder",
+    });
+    console.log(`    → Pre-flight verdict on README.md brief: ${readmeBriefCheck.verdict} (passed: ${readmeBriefCheck.passed})`);
+    if (readmeBriefCheck.verdict !== "proceed" || !readmeBriefCheck.passed) {
+      throw new Error(`Expected verdict 'proceed' for concrete README.md brief under denylist rule, got '${readmeBriefCheck.verdict}' (${readmeBriefCheck.reason})`);
+    }
+
+    console.log("✅ [Test 3 Passed] Denylist protection verified (services/ & .github/ refused; root files allowed).");
+
+    // -------------------------------------------------------------------------
+    // Test 3b: Architect Card Thread Clarification for Needs-Brief Issue
+    // -------------------------------------------------------------------------
+    console.log("\n[Test 3b] Testing Architect Card Thread Clarification flow on needs-brief issue...");
+    const testIssueNum = 995;
+    const testThreadTs = "1729900000.995";
+    const testChannel = "#site-build";
+
+    // Set up mock issue in status:needs-brief
+    mockIssuesStore.set(testIssueNum, {
+      number: testIssueNum,
+      title: "[TASK]: Improve SEO across the site",
+      body: "Please help improve SEO across all pages.",
+      state: "open",
+      labels: ["for:web-builder", "door:core", "status:needs-brief"],
+      html_url: `https://github.com/tejinder-cloud/tgl-growth-os/issues/${testIssueNum}`,
+    });
+
+    // Map threadTs to testIssueNum in issues index
+    await recordIssueMapping(
+      testIssueNum,
+      {
+        channel: testChannel,
+        ts: testThreadTs,
+        agent: "web-builder",
+        door: "core",
+        title: "[TASK]: Improve SEO across the site",
+      },
+      { testMode: true }
+    );
+
+    // Architect replies with answers that provide concrete in-scope details
+    const architectReply = "Focus strictly on site/pages/roadmap.md: add FAQPage schema with 3 questions from ORG.md and update meta description to target 'NEET coaching automation'. Acceptance criteria: Lighthouse SEO 100 on roadmap page.";
+
+    const clarificationRes = await handleNeedsBriefClarification({
+      channel: testChannel,
+      threadTs: testThreadTs,
+      replyText: architectReply,
+      actor: "tejinder-cloud",
+      testMode: true,
+    });
+
+    console.log(`  • Clarification handled: ${clarificationRes.handled}, verdict: ${clarificationRes.verdict}`);
+    if (!clarificationRes.handled) {
+      throw new Error("Expected handleNeedsBriefClarification to handle the reply!");
+    }
+    if (clarificationRes.verdict !== "proceed") {
+      throw new Error(`Expected re-run preflight verdict 'proceed' after concrete clarification, got '${clarificationRes.verdict}': ${clarificationRes.reason}`);
+    }
+
+    const updatedIssue = mockIssuesStore.get(testIssueNum)!;
+    if (!updatedIssue.body.includes(architectReply)) {
+      throw new Error("Architect reply was not appended to the issue body!");
+    }
+    if (updatedIssue.labels.includes("status:needs-brief")) {
+      throw new Error("status:needs-brief was not removed from issue labels!");
+    }
+    if (!updatedIssue.labels.includes("status:in-progress")) {
+      throw new Error("status:in-progress was not added to issue labels!");
+    }
+    console.log("✅ [Test 3b Passed] Architect card thread clarification appended to brief, re-ran pre-flight, and continued execution.");
 
     // -------------------------------------------------------------------------
     // Test 4: Tool-Call Limit Breach (25 calls hard limit)
@@ -367,6 +458,7 @@ async function runDay05RunnerTestSuite(): Promise<void> {
     // Test 7: Runner State Management, Boot/30-min Catch-up & Deduplication
     // -------------------------------------------------------------------------
     console.log("\n[Test 7] Testing Runner State Management and Catch-up deduplication & filtering...");
+    await saveRunnerState({ version: 1, updatedAt: new Date().toISOString(), runs: {} }, { testMode: true });
     const initialState = await getRunnerState({ testMode: true });
     if (Object.keys(initialState.runs).length !== 0) {
       throw new Error("Initial test runner state must be empty!");
