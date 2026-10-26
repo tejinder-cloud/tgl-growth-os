@@ -79,7 +79,7 @@ export function buildRunnerSystemPrompt(agentName: string, branchName: string): 
   • \`post_thread(text)\`: Posts a concise status or inquiry update to the issue card thread.
 - HARD LIMITS:
   • Maximum 25 tool calls. Be efficient; inspect, plan, write, and complete.
-  • Protected Paths: Files under \`services/\` and \`.github/\` are STRICTLY READ-ONLY in v1. You may only edit documentation, \`site/\`, \`agents/\`, or \`config/\`.
+  • Protected Paths (Denylist): The rule is a denylist, not an allowlist: the runner may write anywhere in the repository EXCEPT \`services/\` and \`.github/\`. Files under \`services/\` and \`.github/\` are STRICTLY READ-ONLY in v1. Files at the repository root (e.g. \`README.md\`, \`ORG.md\`) and other directories are fully allowed.
   • Zero placeholders, zero simulated success messages.
   • When done, summarize your work clearly, stating the evidence kind (static read / file write / unit test).
 `);

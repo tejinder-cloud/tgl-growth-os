@@ -160,5 +160,18 @@ async function handleApprovalsThreadReply(event: any): Promise<void> {
       text: failureMsg,
     });
   }
+
+  // Check if thread belongs to an issue in status:needs-brief; if so, treat reply as answers
+  try {
+    const { handleNeedsBriefClarification } = await import("../runner/clarifications.js");
+    await handleNeedsBriefClarification({
+      channel: event.channel,
+      threadTs: thread_ts,
+      replyText: text,
+      actor,
+    });
+  } catch (clarifyErr: any) {
+    console.error("[Clarifications Error in Approvals Thread]", clarifyErr);
+  }
 }
 
