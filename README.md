@@ -49,7 +49,17 @@ Work moves across three integrated layers:
 
 ---
 
-## 3. Scaffolding a New Agent
+## 3. How Approvals Work (ORG.md §3)
+
+1. **Slack Notification:** Work requiring sign-off posts an interactive card to `#approvals` with Approve, Reject, and Discuss buttons.
+2. **Approve:** Writes an authoritative line to `decisions/YYYY-MM-DD.md` via GitHub Contents API, labels the item `approved:yes`, and updates the card.
+3. **Reject:** Opens an interactive modal requiring a rejection reason, written to `rejections/YYYY-MM-DD.md` and `decisions/`, labelling it `approved:no`.
+4. **Discuss:** Notifies the responsible agent in-thread (`@<agent>`) to clarify the brief or proposal.
+5. **Strict Escalation:** Anything live, irreversible, or involving money skips straight to `#approvals`; decisions and logs are written only by the service on main.
+
+---
+
+## 4. Scaffolding a New Agent
 
 To onboard and scaffold a new agent adhering to the 10-section standard:
 
@@ -69,7 +79,7 @@ This script automatically:
 
 ---
 
-## 4. Where the Standup Lives (ORG.md §4)
+## 5. Where the Standup Lives (ORG.md §4)
 
 - **Continuous Logging:** During active work sessions, each agent appends its progress to `logs/<YYYY-MM-DD>/<agent>.md`.
 - **Compilation at 17:50 IST:** The Chief of Staff compiles all daily agent logs into a single executive digest.
