@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-26T15:01:55.687Z",
+  "updatedAt": "2026-10-26T16:03:18.242Z",
   "runs": {
     "13": {
       "agent": "web-builder",
@@ -30,6 +30,17 @@
       "prNumber": 34,
       "prUrl": "https://github.com/tejinder-cloud/tgl-growth-os/pull/34",
       "runCompletedAt": "2026-10-26T13:46:41.351Z"
+    },
+    "41": {
+      "agent": "web-builder",
+      "title": "[TASK]: Add a \"How approvals work\" section to README.md, 5 lines, from ORG.md",
+      "status": "completed",
+      "runStartedAt": "2026-10-26T16:03:18.242Z",
+      "door": "core",
+      "branch": "task/41-add-a-how-approvals-work-secti",
+      "prNumber": 42,
+      "prUrl": "https://github.com/tejinder-cloud/tgl-growth-os/pull/42",
+      "runCompletedAt": "2026-10-26T16:03:17.936Z"
     }
   }
 }
