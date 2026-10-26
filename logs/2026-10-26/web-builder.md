@@ -1,1 +1,2 @@
 - 18:31 IST — Picked up issue #16: created PR #30 for "Day 3 routing test"
+- 18:31 IST — Picked up issue #13: created PR #31 for "Fix footer CTA spacing on mobile"
