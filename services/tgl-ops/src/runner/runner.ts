@@ -261,6 +261,7 @@ export async function runIssueTask(
         system: systemPrompt,
         messages,
         tools: RUNNER_TOOLS,
+        tool_choice: { type: "auto" },
       });
 
       totalInputTokens += response.usage?.input_tokens || 0;

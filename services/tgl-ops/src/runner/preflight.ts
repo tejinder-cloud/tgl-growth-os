@@ -40,7 +40,7 @@ function safeReadFile(filePath: string): string {
   return "";
 }
 
-const PREFLIGHT_TOOLS: Anthropic.Tool[] = [
+export const PREFLIGHT_TOOLS: Anthropic.Tool[] = [
   {
     name: "submit_preflight_verdict",
     description: "Submit the authoritative pre-flight check verdict for the issue brief",
@@ -70,10 +70,134 @@ const PREFLIGHT_TOOLS: Anthropic.Tool[] = [
 ];
 
 /**
+ * Helper to extract questions from input array, JSON string, or XML parameter blocks.
+ */
+function extractQuestions(inputQuestions: any, reasonText?: string): string[] {
+  if (Array.isArray(inputQuestions) && inputQuestions.length > 0) {
+    return inputQuestions.map(String).filter((q) => q.trim().length > 0);
+  }
+  if (typeof inputQuestions === "string" && inputQuestions.trim()) {
+    try {
+      const parsed = JSON.parse(inputQuestions);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map(String).filter((q) => q.trim().length > 0);
+      }
+    } catch {}
+    return [inputQuestions.trim()];
+  }
+  if (reasonText) {
+    const paramMatch = reasonText.match(/<parameter\s+name=["']questions["']>\s*(\[[\s\S]*?\])/i);
+    if (paramMatch) {
+      try {
+        const parsed = JSON.parse(paramMatch[1]);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map(String).filter((q) => q.trim().length > 0);
+        }
+      } catch {}
+    }
+    // Also check for embedded JSON questions: ["...", "..."]
+    const arrayMatch = reasonText.match(/\[\s*"[^"]{5,}"(?:\s*,\s*"[^"]{5,}")+\s*\]/);
+    if (arrayMatch) {
+      try {
+        const parsed = JSON.parse(arrayMatch[0]);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map(String).filter((q) => q.trim().length > 0);
+        }
+      } catch {}
+    }
+  }
+  return [];
+}
+
+/**
+ * Strips XML tags or parameter blocks from reason string.
+ */
+function cleanReason(reason: string): string {
+  return reason
+    .replace(/<parameter\s+name=["']questions["']>[\s\S]*?(?:<\/parameter>|$)/gi, "")
+    .replace(/<\/?[a-zA-Z0-9_-]+(?:\s+[^>]*)?>/g, "")
+    .trim();
+}
+
+/**
+ * Validates a parsed JSON object as a pre-flight verdict.
+ */
+function validateParsedVerdict(parsed: any): {
+  verdict: "proceed" | "needs-brief" | "refuse";
+  passed: boolean;
+  reason: string;
+  questions?: string[];
+} | null {
+  if (!parsed || typeof parsed !== "object") return null;
+  const rawVerdict = String(parsed.verdict || "").trim();
+  if (rawVerdict !== "proceed" && rawVerdict !== "needs-brief" && rawVerdict !== "refuse") {
+    return null;
+  }
+  const rawReason = String(parsed.reason || parsed.reasoning || "").trim();
+  const questions = extractQuestions(parsed.questions, rawReason);
+  const reason = cleanReason(rawReason) || "No reasoning provided";
+
+  return {
+    verdict: rawVerdict,
+    passed: rawVerdict === "proceed",
+    reason,
+    questions: questions.length > 0 ? questions : undefined,
+  };
+}
+
+/**
+ * Parses a JSON verdict from model text output when tool_use is not invoked.
+ */
+export function parseJsonVerdictFromText(text: string): {
+  verdict: "proceed" | "needs-brief" | "refuse";
+  passed: boolean;
+  reason: string;
+  questions?: string[];
+} | null {
+  if (!text || !text.trim()) return null;
+
+  // 1. Markdown code fence ```json ... ```
+  const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  if (codeBlockMatch) {
+    try {
+      const parsed = JSON.parse(codeBlockMatch[1].trim());
+      const res = validateParsedVerdict(parsed);
+      if (res) return res;
+    } catch {}
+  }
+
+  // 2. Direct JSON object with "verdict" key
+  const objMatch = text.match(/\{[\s\S]*?"verdict"\s*:\s*"[^"]+"[\s\S]*?\}/);
+  if (objMatch) {
+    try {
+      const parsed = JSON.parse(objMatch[0]);
+      const res = validateParsedVerdict(parsed);
+      if (res) return res;
+    } catch {}
+  }
+
+  // 3. Full text JSON parse
+  try {
+    const parsed = JSON.parse(text.trim());
+    const res = validateParsedVerdict(parsed);
+    if (res) return res;
+  } catch {}
+
+  return null;
+}
+
+/**
  * Checks the issue brief against SKILL.md "Never" section, Mandate 2 (challenge the brief),
  * and v1 protected paths via a live Anthropic model call.
  *
  * Verdict answers: { proceed | needs-brief with numbered questions | refuse with reason }.
+ *
+ * Policy:
+ * - Never force tool_choice: uses tool_choice: { type: "auto" }
+ * - Instructs model to call submit_preflight_verdict or return JSON
+ * - If model answers in text, parses JSON verdict from it
+ * - If neither parses, verdict = needs-brief with reason "pre-flight could not parse model response"
+ * - Never proceeds on a parse failure
  */
 export async function runPreflightCheck(
   context: IssueBriefContext,
@@ -110,7 +234,7 @@ ${skillFile}
 - The agent must NEVER publish to live production, change live page status, touch DNS, install external plugins, install external script tags, change pricing/positioning without approved decisions/ references, or delete content.
 
 === 4. EVALUATION RULES ===
-You must answer with tool \`submit_preflight_verdict\`:
+You must submit your verdict by calling the tool \`submit_preflight_verdict\` with arguments { verdict, reason, questions }, or by returning a JSON object with those same keys:
 1. "refuse":
    Return this if the brief violates SKILL.md §8 Never or requests edits inside protected paths (\`services/\`, \`.github/\`).
    Provide the exact guardrail violated in the reason.
@@ -123,7 +247,7 @@ You must answer with tool \`submit_preflight_verdict\`:
 3. "proceed":
    Return this IF AND ONLY IF the brief has a concrete, clearly-scoped deliverable targeting specific files or templates within the agent's discipline with measurable or verifiable outcomes.
 
-Call \`submit_preflight_verdict\` now.`;
+Call tool \`submit_preflight_verdict\` now (or reply with JSON { "verdict": "...", "reason": "...", "questions": [...] }).`;
 
   const userPrompt = `Please evaluate the following task brief:
 - Issue Number: #${issueNumber}
@@ -132,44 +256,107 @@ Call \`submit_preflight_verdict\` now.`;
 - Full Body:
 ${body || "(No additional body provided)"}`;
 
+  let response: Anthropic.Message | undefined;
   try {
-    const response = await anthropic.messages.create({
+    response = await anthropic.messages.create({
       model: modelName,
       max_tokens: 1024,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
       tools: PREFLIGHT_TOOLS,
-      tool_choice: { type: "tool", name: "submit_preflight_verdict" },
+      tool_choice: { type: "auto" },
     });
-
-    const toolUse = response.content.find((b) => b.type === "tool_use") as Anthropic.ToolUseBlock | undefined;
-    if (!toolUse || toolUse.name !== "submit_preflight_verdict") {
-      throw new Error("Model failed to call submit_preflight_verdict");
-    }
-
-    const input = toolUse.input as {
-      verdict: "proceed" | "needs-brief" | "refuse";
-      reason: string;
-      questions?: string[];
-    };
-
-    const verdict = input.verdict || "needs-brief";
-    const passed = verdict === "proceed";
-    const reason = input.reason || "No reasoning provided";
-    const questions = Array.isArray(input.questions) ? input.questions : [];
-
+  } catch (apiErr: any) {
+    console.warn(`[Pre-flight Anthropic API error on Issue #${issueNumber}]:`, apiErr?.message || apiErr);
+    // On API error, fallback safely: never proceed
     return {
-      verdict,
-      passed,
-      reason,
-      questions: questions.length > 0 ? questions : undefined,
-      tokens: {
-        input: response.usage?.input_tokens || 0,
-        output: response.usage?.output_tokens || 0,
-      },
+      verdict: "needs-brief",
+      passed: false,
+      reason: "pre-flight could not parse model response",
+      questions: [
+        `1. Pre-flight check encountered a model API error: ${apiErr?.message || String(apiErr)}`,
+        "2. Please confirm the task parameters and retry.",
+      ],
     };
-  } catch (err: any) {
-    console.error(`[Pre-flight Check Error on Issue #${issueNumber}]:`, err);
-    throw err;
   }
+
+  // 1. Check for tool_use block
+  const toolUse = response.content.find(
+    (b) => b.type === "tool_use" && b.name === "submit_preflight_verdict"
+  ) as Anthropic.ToolUseBlock | undefined;
+
+  if (toolUse && typeof toolUse.input === "object" && toolUse.input !== null) {
+    const input = toolUse.input as any;
+    const rawVerdict = String(input.verdict || "").trim();
+    if (rawVerdict === "proceed" || rawVerdict === "needs-brief" || rawVerdict === "refuse") {
+      const rawReason = String(input.reason || input.reasoning || "").trim();
+      const extractedQuestions = extractQuestions(input.questions, rawReason);
+      const reason = cleanReason(rawReason) || "No reasoning provided";
+
+      // If needs-brief was issued but no questions were returned, supply standard questions
+      const finalQuestions =
+        rawVerdict === "needs-brief" && extractedQuestions.length === 0
+          ? [
+              "1. Which specific file(s) or template(s) are in scope for this task?",
+              "2. What are the measurable acceptance criteria and baseline metrics for completion?",
+            ]
+          : extractedQuestions;
+
+      return {
+        verdict: rawVerdict,
+        passed: rawVerdict === "proceed",
+        reason,
+        questions: finalQuestions.length > 0 ? finalQuestions : undefined,
+        tokens: {
+          input: response.usage?.input_tokens || 0,
+          output: response.usage?.output_tokens || 0,
+        },
+      };
+    }
+  }
+
+  // 2. Fallback: Check text blocks for JSON verdict
+  const textBlocks = response.content
+    .filter((b) => b.type === "text")
+    .map((b) => (b as Anthropic.TextBlock).text)
+    .join("\n")
+    .trim();
+
+  if (textBlocks) {
+    const parsedFromText = parseJsonVerdictFromText(textBlocks);
+    if (parsedFromText) {
+      const finalQuestions =
+        parsedFromText.verdict === "needs-brief" && (!parsedFromText.questions || parsedFromText.questions.length === 0)
+          ? [
+              "1. Which specific file(s) or template(s) are in scope for this task?",
+              "2. What are the measurable acceptance criteria and baseline metrics for completion?",
+            ]
+          : parsedFromText.questions;
+
+      return {
+        ...parsedFromText,
+        questions: finalQuestions,
+        tokens: {
+          input: response.usage?.input_tokens || 0,
+          output: response.usage?.output_tokens || 0,
+        },
+      };
+    }
+  }
+
+  // 3. Fallback: If neither tool call nor text JSON parses
+  // "if neither parses, verdict = needs-brief with the reason 'pre-flight could not parse model response' — never proceed on a parse failure"
+  return {
+    verdict: "needs-brief",
+    passed: false,
+    reason: "pre-flight could not parse model response",
+    questions: [
+      "1. Pre-flight could not parse model response into a valid verdict.",
+      "2. Please provide explicit acceptance criteria and file targets for this task.",
+    ],
+    tokens: {
+      input: response.usage?.input_tokens || 0,
+      output: response.usage?.output_tokens || 0,
+    },
+  };
 }

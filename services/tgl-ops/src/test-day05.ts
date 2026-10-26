@@ -5,6 +5,7 @@ import { config, isTestMode } from "./config.js";
 import { findAgentByName } from "./lib/agents.js";
 import {
   runPreflightCheck,
+  parseJsonVerdictFromText,
   RUNNER_TOOLS,
   executeRunnerTool,
   type RunnerToolContext,
@@ -123,6 +124,25 @@ async function runDay05RunnerTestSuite(): Promise<void> {
       if (!check.questions || check.questions.length < 2) {
         throw new Error(`Expected at least 2 numbered clarification questions for '${b.title}', got ${check.questions?.length}`);
       }
+    }
+
+    console.log("  • [Text JSON Parser Tests] Verifying pre-flight text fallback parsing...");
+    const sampleFence = "Here is my evaluation:\n```json\n{\n  \"verdict\": \"needs-brief\",\n  \"reason\": \"Vague request without targets\",\n  \"questions\": [\"1. Which page?\", \"2. What metric?\"]\n}\n```";
+    const parsedFence = parseJsonVerdictFromText(sampleFence);
+    if (!parsedFence || parsedFence.verdict !== "needs-brief" || parsedFence.questions?.length !== 2) {
+      throw new Error("Failed to parse JSON code fence from text!");
+    }
+
+    const sampleRaw = "Result: {\"verdict\": \"proceed\", \"reason\": \"Concrete page change request\"}";
+    const parsedRaw = parseJsonVerdictFromText(sampleRaw);
+    if (!parsedRaw || parsedRaw.verdict !== "proceed" || parsedRaw.passed !== true) {
+      throw new Error("Failed to parse raw JSON from text!");
+    }
+
+    const unparseable = "I cannot decide what to do here.";
+    const parsedNone = parseJsonVerdictFromText(unparseable);
+    if (parsedNone !== null) {
+      throw new Error("Expected null for unparseable text in parseJsonVerdictFromText!");
     }
 
     console.log("  • Testing full runIssueTask pipeline on 'Make the site faster' (Issue #33 simulation)...");
@@ -489,6 +509,7 @@ Use read_file to inspect README.md, then write_file to save the modified README.
       max_tokens: 4096,
       messages: liveMessages,
       tools: RUNNER_TOOLS,
+      tool_choice: { type: "auto" },
     });
 
     const liveUsage = liveResponse.usage;
@@ -549,6 +570,7 @@ Use read_file to inspect README.md, then write_file to save the modified README.
         max_tokens: 4096,
         messages: liveMessages,
         tools: RUNNER_TOOLS,
+        tool_choice: { type: "auto" },
       });
 
       totalIn += nextResponse.usage?.input_tokens || 0;
