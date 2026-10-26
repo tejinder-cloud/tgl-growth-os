@@ -121,10 +121,10 @@
   },
   "42": {
     "channel": "#site-build",
-    "ts": "1792849323.673000",
+    "ts": "1793030565.984999",
     "agent": "web-builder",
     "door": "core",
-    "title": "Fix footer CTA spacing on mobile",
-    "updatedAt": "2026-10-24T13:42:05.332Z"
+    "title": "Add a \"How approvals work\" section to README.md, 5 lines, from ORG.md",
+    "updatedAt": "2026-10-26T16:03:18.381Z"
   }
 }
