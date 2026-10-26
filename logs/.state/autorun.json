@@ -1,5 +1,13 @@
 {
   "runs": {
+    "13": {
+      "issueNumber": 13,
+      "agent": "web-builder",
+      "runStartedAt": "2026-10-26T13:01:38.027Z",
+      "status": "in-progress",
+      "door": "core",
+      "title": "[TASK]: Fix footer CTA spacing on mobile"
+    },
     "16": {
       "issueNumber": 16,
       "agent": "web-builder",
@@ -22,5 +30,5 @@
       "runCompletedAt": "2026-10-26T13:01:22.405Z"
     }
   },
-  "lastCycleAt": "2026-10-26T13:01:36.357Z"
+  "lastCycleAt": "2026-10-26T13:01:38.278Z"
 }
