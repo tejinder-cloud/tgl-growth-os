@@ -225,10 +225,18 @@ export async function runProspectResearch(
     const enrichedDetails = await enrichCandidateSignals(cand, category, options);
     playwrightSearchesUsed++;
 
-    // Gate 6: Required Work Email from Apollo/Hunter API
-    if (!enrichedDetails.decisionMaker.verified || !enrichedDetails.decisionMaker.email) {
+    // Gate 6: Verified Contact (Hunter email OR Places phone for owner-run businesses)
+    const dm = enrichedDetails.decisionMaker;
+    const hasVerifiedContact =
+      dm.verified &&
+      (Boolean(dm.email && dm.email.includes("@")) ||
+        Boolean(dm.phone && dm.source.includes("places:phone")));
+
+    if (!hasVerifiedContact) {
       funnel.emailUnverified++;
-      console.log(`  • [Gate 6 Dropped] '${cand.name}': No verified work email via Apollo or Hunter API (${enrichedDetails.decisionMaker.source})`);
+      console.log(
+        `  • [Gate 6 Dropped] '${cand.name}': No verified contact (Hunter email or Places phone) (${dm.source})`
+      );
       continue;
     }
     funnel.emailVerified++;
@@ -306,7 +314,7 @@ export async function runProspectResearch(
   console.log(`2. Live DNS Passed / Failed:                ${funnel.dnsPassed} passed / ${funnel.dnsFailed} failed`);
   console.log(`3. Playbook C Disqualified (Chains):        ${funnel.playbookCDisqualified}`);
   console.log(`4. Place Details Enriched:                  ${funnel.placeDetailsEnriched}`);
-  console.log(`5. Work Email Verified (Apollo/Hunter):     ${funnel.emailVerified} verified / ${funnel.emailUnverified} dropped`);
+  console.log(`5. Contact Verified (Hunter / Places):       ${funnel.emailVerified} verified / ${funnel.emailUnverified} dropped`);
   console.log(`6. Fit Score >= 70 / Below 70:              ${funnel.scoredGe70} passed / ${funnel.scoredBelow70} sub-cutoff`);
   console.log(`7. Write Gate Validated / Dropped:          ${funnel.writeGatePassed} passed / ${funnel.writeGateFailed} failed`);
   console.log(`8. Deduplicated Out:                        ${funnel.dedupedOut}`);

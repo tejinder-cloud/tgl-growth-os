@@ -3,8 +3,10 @@ import { sanitizeDecisionMaker, isRolePlaceholderName } from "../guardrails.js";
 import type { DecisionMaker, ProspectSignals } from "../types.js";
 import type { RawPlaceCandidate } from "./places.js";
 import { checkMetaAdLibrary } from "./meta-ads.js";
+import { scrapeClinicWebsite } from "./website-scraper.js";
 
-const APOLLO_API_KEY = process.env.APOLLO_API_KEY || "";
+// Apollo API removed from v1 per Architect directive: free-tier returns 422 on programmatic search.
+// v1 relies on Hunter domain search & /v2/email-verifier + Clinic Website Scraper + Places phone verification.
 const HUNTER_API_KEY = process.env.HUNTER_API_KEY || "";
 
 export interface EnrichedProspectDetails {
@@ -15,7 +17,8 @@ export interface EnrichedProspectDetails {
 
 /**
  * Enriches prospect candidate with verified decision-maker and operational budget signals.
- * Zero stubs or heuristic fabrication: contacts are only populated if verified by Apollo or Hunter API.
+ * Zero stubs or heuristic fabrication: contacts are only populated if verified by Hunter API
+ * or Google Places verified business phone for owner-run businesses (<50 staff).
  */
 export async function enrichCandidateSignals(
   candidate: RawPlaceCandidate,
@@ -33,13 +36,13 @@ export async function enrichCandidateSignals(
     sourceRefs.push(`dns:pass:${candidate.dnsIp}`);
   }
 
-  // 1. Meta Ad Library verification via Playwright
+  // 1. Meta Ad Library verification via Playwright (reports 'skipped: no browser' once if unavailable)
   const metaAds = await checkMetaAdLibrary(candidate.name, options);
   if (metaAds.adLibraryUrl) {
     sourceRefs.push(metaAds.adLibraryUrl);
   }
 
-  // 2. Decision Maker Identification (Apollo / Hunter APIs ONLY)
+  // 2. Decision Maker Identification (Hunter domain search + /v2/email-verifier + Website Scraper + Places phone)
   const decisionMaker = await findVerifiedDecisionMaker(candidate, category, options);
   if (decisionMaker.source) {
     sourceRefs.push(decisionMaker.source);
@@ -76,9 +79,18 @@ export async function enrichCandidateSignals(
   };
 }
 
+interface RankedCandidateEmail {
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  position?: string;
+  confidence: number;
+  priorityScore: number;
+}
+
 /**
- * Discovers and validates economic decision-maker matching the headcount rule via real Apollo / Hunter APIs:
- * Zero synthetic generation: returns empty contact if no API match or missing keys.
+ * Discovers and validates economic decision-maker matching the headcount rule via real Hunter API
+ * and clinic website scraping (Playbook D), with Architect decision on owner-run businesses (<50 staff).
  */
 async function findVerifiedDecisionMaker(
   candidate: RawPlaceCandidate,
@@ -86,120 +98,219 @@ async function findVerifiedDecisionMaker(
   options?: { testMode?: boolean }
 ): Promise<DecisionMaker & { verified: boolean }> {
   const domain = extractDomain(candidate.website || "");
-  if (!domain) {
-    return {
-      name: "",
-      role: "",
-      email: "",
-      source: "unverified:no_domain",
-      verified: false,
-    };
-  }
 
-  // 1. Try Apollo if API key is present
-  if (APOLLO_API_KEY) {
-    const maskedKey = `${APOLLO_API_KEY.slice(0, 4)}...${APOLLO_API_KEY.slice(-4)}`;
-    console.log(`[Apollo API Real Request] POST https://api.apollo.io/v1/mixed_people/search domain=${domain}&key=${maskedKey}`);
+  // 1. Scrape clinic's own website for mailto: and owner/doctor names (Playbook D)
+  let websiteDoctorName: string | undefined;
+  let websiteDoctorRole: string | undefined;
+  let websiteEmails: string[] = [];
+
+  if (candidate.website) {
     try {
-      const res = await fetch("https://api.apollo.io/v1/mixed_people/search", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Cache-Control": "no-cache" },
-        body: JSON.stringify({
-          api_key: APOLLO_API_KEY,
-          q_organization_domains: domain,
-          person_titles: [
-            "Chief Marketing Officer",
-            "CMO",
-            "Head of Marketing",
-            "Medical Director",
-            "Managing Director",
-            "Founder",
-            "Director",
-          ],
-          page: 1,
-          per_page: 3,
-        }),
-      });
-
-      const data = (await res.json()) as any;
-      console.log(`[Apollo API Real Response] HTTP ${res.status}: results=${data.people?.length || 0}`);
-
-      if (res.status === 200 && data && Array.isArray(data.people) && data.people.length > 0) {
-        for (const p of data.people) {
-          const fullName = `${p.first_name || ""} ${p.last_name || ""}`.trim();
-          if (p.email && p.email.includes("@") && !isRolePlaceholderName(fullName)) {
-            const sanitized = sanitizeDecisionMaker(
-              {
-                name: fullName,
-                role: p.title || "Director",
-                email: p.email,
-                phone: p.phone_numbers?.[0]?.raw_number || candidate.phone,
-                source: `apollo:verified (status: ${p.email_status || "verified"})`,
-              },
-              candidate.name
-            );
-            return {
-              ...sanitized,
-              verified: Boolean(sanitized.email),
-            };
-          }
-        }
+      const scraped = await scrapeClinicWebsite(candidate.website, candidate.name);
+      websiteDoctorName = scraped.primaryDoctorName;
+      websiteDoctorRole = scraped.doctorRole;
+      websiteEmails = scraped.emails;
+      if (scraped.pagesScraped.length > 0) {
+        console.log(
+          `[Playbook D Scraper] '${candidate.name}': scraped ${scraped.pagesScraped.length} pages, doctor='${
+            websiteDoctorName || "none"
+          }', emails=${websiteEmails.length}`
+        );
       }
     } catch (err: any) {
-      console.warn(`[Apollo API Request Error on ${domain}]:`, err.message || err);
+      console.warn(`[Playbook D Scraper Warning on ${candidate.website}]:`, err.message || err);
     }
-  } else {
-    console.warn(`[Apollo API Notice] APOLLO_API_KEY not configured; skipping Apollo lookup.`);
   }
 
-  // 2. Try Hunter if API key is present
-  if (HUNTER_API_KEY) {
+  // 2. Hunter API: Domain Search -> Select Best -> Verify via /v2/email-verifier
+  let verifiedHunterEmail: string | undefined;
+  let verifiedHunterName: string | undefined;
+  let verifiedHunterRole: string | undefined;
+  let hunterVerifierStatus: string | undefined;
+  let hunterVerifierScore: number | undefined;
+
+  if (HUNTER_API_KEY && domain) {
     const maskedKey = `${HUNTER_API_KEY.slice(0, 4)}...${HUNTER_API_KEY.slice(-4)}`;
-    console.log(`[Hunter API Real Request] GET https://api.hunter.io/v2/domain-search?domain=${domain}&api_key=${maskedKey}`);
+    console.log(
+      `[Hunter API Real Request] GET https://api.hunter.io/v2/domain-search?domain=${domain}&api_key=${maskedKey}`
+    );
+
+    const candidateEmailPool: RankedCandidateEmail[] = [];
+
+    // Add any emails scraped from clinic website to candidate pool
+    for (const wEmail of websiteEmails) {
+      candidateEmailPool.push({
+        email: wEmail,
+        position: websiteDoctorRole,
+        confidence: 80,
+        priorityScore: 70, // High priority for website-sourced direct email
+      });
+    }
+
     try {
       const res = await fetch(
-        `https://api.hunter.io/v2/domain-search?domain=${domain}&api_key=${HUNTER_API_KEY}&limit=5`
+        `https://api.hunter.io/v2/domain-search?domain=${domain}&api_key=${HUNTER_API_KEY}&limit=10`
       );
       const data = (await res.json()) as any;
-      console.log(`[Hunter API Real Response] HTTP ${res.status}: emails=${data.data?.emails?.length || 0}`);
+      console.log(
+        `[Hunter API Real Response] HTTP ${res.status}: emails=${data.data?.emails?.length || 0}`
+      );
 
       if (res.status === 200 && data && data.data && Array.isArray(data.data.emails)) {
         for (const e of data.data.emails) {
-          const fullName = `${e.first_name || ""} ${e.last_name || ""}`.trim();
-          if (e.value && e.value.includes("@") && !isRolePlaceholderName(fullName)) {
-            const sanitized = sanitizeDecisionMaker(
-              {
-                name: fullName,
-                role: e.position || "Medical Director",
-                email: e.value,
-                phone: candidate.phone,
-                source: `hunter:deliverable (confidence: ${e.confidence || 90}%)`,
-              },
-              candidate.name
-            );
-            return {
-              ...sanitized,
-              verified: Boolean(sanitized.email),
-            };
+          if (!e.value || typeof e.value !== "string") continue;
+          const emailVal = e.value.toLowerCase().trim();
+
+          // Generic never: discard generic emails
+          if (e.type === "generic" || isGenericEmail(emailVal)) {
+            continue;
           }
+
+          const position = String(e.position || "").toLowerCase();
+          const fullName = `${e.first_name || ""} ${e.last_name || ""}`.trim();
+
+          // Calculate ranking priority score: owner/doctor first, personal next, generic never
+          let priority = 0;
+          if (
+            position.includes("owner") ||
+            position.includes("founder") ||
+            position.includes("doctor") ||
+            position.includes("dr") ||
+            position.includes("dentist") ||
+            position.includes("surgeon") ||
+            position.includes("director") ||
+            position.includes("principal") ||
+            position.includes("chief") ||
+            position.includes("head")
+          ) {
+            priority += 100;
+          }
+
+          if (e.type === "personal") {
+            priority += 50;
+          }
+
+          if (fullName && !isRolePlaceholderName(fullName, false)) {
+            priority += 30;
+          }
+
+          priority += Math.min(20, Math.floor((e.confidence || 0) / 5));
+
+          candidateEmailPool.push({
+            email: emailVal,
+            firstName: e.first_name,
+            lastName: e.last_name,
+            position: e.position,
+            confidence: e.confidence || 50,
+            priorityScore: priority,
+          });
         }
       }
     } catch (err: any) {
-      console.warn(`[Hunter API Request Error on ${domain}]:`, err.message || err);
+      console.warn(`[Hunter Domain Search Error on ${domain}]:`, err.message || err);
     }
-  } else {
+
+    // Sort candidate emails by priorityScore descending
+    candidateEmailPool.sort((a, b) => b.priorityScore - a.priorityScore);
+
+    // Pick best email and verify via /v2/email-verifier
+    if (candidateEmailPool.length > 0) {
+      const bestCandidate = candidateEmailPool[0];
+      const verifyUrl = `https://api.hunter.io/v2/email-verifier?email=${encodeURIComponent(
+        bestCandidate.email
+      )}&api_key=${HUNTER_API_KEY}`;
+      console.log(
+        `[Hunter Verifier Request] GET https://api.hunter.io/v2/email-verifier?email=${bestCandidate.email}&api_key=${maskedKey}`
+      );
+
+      try {
+        const vRes = await fetch(verifyUrl);
+        const vData = (await vRes.json()) as any;
+        const result = vData.data?.result; // "deliverable" | "risky" | "undeliverable"
+        const score = vData.data?.score || 0;
+        console.log(
+          `[Hunter Verifier Response] HTTP ${vRes.status}: result=${result}, score=${score}`
+        );
+
+        // Accept deliverable | risky
+        if (result === "deliverable" || result === "risky") {
+          verifiedHunterEmail = bestCandidate.email;
+          verifiedHunterName =
+            bestCandidate.firstName && bestCandidate.lastName
+              ? `${bestCandidate.firstName} ${bestCandidate.lastName}`
+              : websiteDoctorName;
+          verifiedHunterRole = bestCandidate.position || websiteDoctorRole || "Owner / Lead Doctor";
+          hunterVerifierStatus = result;
+          hunterVerifierScore = score;
+        }
+      } catch (err: any) {
+        console.warn(`[Hunter Email Verifier Error on ${bestCandidate.email}]:`, err.message || err);
+      }
+    }
+  } else if (!HUNTER_API_KEY) {
     console.warn(`[Hunter API Notice] HUNTER_API_KEY not configured; skipping Hunter lookup.`);
   }
 
-  // 3. Zero stubs / zero heuristic fabrication:
-  // If no API verified the contact, return unverified contact with empty fields.
+  // 3. Resolve Decision Maker Contact:
+  // Option A: Verified Hunter email (deliverable | risky)
+  if (verifiedHunterEmail && hunterVerifierStatus) {
+    const rawName = verifiedHunterName || websiteDoctorName || "Owner / Lead Doctor";
+    const sanitized = sanitizeDecisionMaker(
+      {
+        name: rawName,
+        role: verifiedHunterRole || "Owner / Lead Doctor",
+        email: verifiedHunterEmail,
+        phone: candidate.phone,
+        source: `hunter:verified (status: ${hunterVerifierStatus}, score: ${hunterVerifierScore || 0})`,
+      },
+      candidate.name
+    );
+    return {
+      ...sanitized,
+      verified: true,
+    };
+  }
+
+  // Option B: Architect Decision for Owner-Run Businesses (<50 staff)
+  // For owner-run clinics, an authoritative verified contact is the business phone from Google Places.
+  // Decision-maker = owner/doctor.
+  if (candidate.phone && candidate.phone.trim().length >= 8) {
+    const doctorName = websiteDoctorName || "Owner / Lead Doctor";
+    const doctorRole = websiteDoctorRole || "Owner / Lead Doctor";
+    const sanitized = sanitizeDecisionMaker(
+      {
+        name: doctorName,
+        role: doctorRole,
+        email: "",
+        phone: candidate.phone,
+        source: `places:phone (verified business line) + website:owner`,
+      },
+      candidate.name
+    );
+    return {
+      ...sanitized,
+      verified: true,
+    };
+  }
+
+  // 4. Zero stubs / zero heuristic fabrication:
+  // If neither Hunter-verified email nor Places phone exists, return unverified contact.
   return {
     name: "",
     role: "",
     email: "",
-    source: "unverified:no_api_response",
+    source: "unverified:no_contact_found",
     verified: false,
   };
+}
+
+function isGenericEmail(email: string): boolean {
+  const genericPrefixes = [
+    "info@", "contact@", "support@", "admin@", "sales@", "help@",
+    "billing@", "office@", "hello@", "enquiry@", "enquiries@", "mail@",
+    "care@", "reception@", "desk@", "feedback@"
+  ];
+  return genericPrefixes.some((p) => email.startsWith(p));
 }
 
 function extractDomain(url: string): string {

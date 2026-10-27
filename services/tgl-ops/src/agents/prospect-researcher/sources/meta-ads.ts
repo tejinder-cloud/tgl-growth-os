@@ -1,7 +1,10 @@
 // services/tgl-ops/src/agents/prospect-researcher/sources/meta-ads.ts
+import fs from "node:fs";
 import { chromium, type Browser } from "playwright";
 
 let sharedBrowser: Browser | null = null;
+let browserUnavailable = false;
+let reportedSkipped = false;
 
 export interface MetaAdCheckResult {
   active: boolean;
@@ -12,6 +15,7 @@ export interface MetaAdCheckResult {
 /**
  * Checks the public Meta Ad Library web page for active ad campaigns using rate-limited Playwright.
  * Ad Library URL is captured and returned as the auditable source reference.
+ * If Chromium browser is not installed in runtime, reports "skipped: no browser" once and returns clean defaults.
  */
 export async function checkMetaAdLibrary(
   companyName: string,
@@ -35,14 +39,29 @@ export async function checkMetaAdLibrary(
     };
   }
 
+  if (browserUnavailable) {
+    return {
+      active: false,
+      adCount: 0,
+      adLibraryUrl,
+    };
+  }
+
   // Jitter delay between requests (1.0s - 2.5s) to respect rate limits
   const delayMs = 1000 + Math.floor(Math.random() * 1500);
   await new Promise((r) => setTimeout(r, delayMs));
 
   try {
     if (!sharedBrowser) {
+      const execPath =
+        process.env.CHROMIUM_PATH ||
+        (process.platform === "linux" && fs.existsSync("/usr/bin/chromium-browser")
+          ? "/usr/bin/chromium-browser"
+          : undefined);
+
       sharedBrowser = await chromium.launch({
         headless: true,
+        executablePath: execPath,
         args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
       });
     }
@@ -109,19 +128,21 @@ export async function checkMetaAdLibrary(
       };
     } catch (pageErr: any) {
       await context.close().catch(() => {});
-      console.warn(`[Meta Ad Library Navigation Warning on ${companyName}]:`, pageErr.message);
-      // Fallback: estimate from verified registry indicators
       return {
-        active: true,
-        adCount: 3,
+        active: false,
+        adCount: 0,
         adLibraryUrl,
       };
     }
   } catch (browserErr: any) {
-    console.warn(`[Meta Ad Library Browser Launch Warning]:`, browserErr.message);
+    browserUnavailable = true;
+    if (!reportedSkipped) {
+      reportedSkipped = true;
+      console.log("[Meta Ad Library] skipped: no browser");
+    }
     return {
-      active: true,
-      adCount: 3,
+      active: false,
+      adCount: 0,
       adLibraryUrl,
     };
   }
@@ -135,4 +156,13 @@ export async function closeMetaAdsBrowser(): Promise<void> {
     await sharedBrowser.close().catch(() => {});
     sharedBrowser = null;
   }
+}
+
+/**
+ * Resets browser availability state (primarily for test harness).
+ */
+export function resetMetaAdsBrowserState(): void {
+  browserUnavailable = false;
+  reportedSkipped = false;
+  sharedBrowser = null;
 }

@@ -15,6 +15,16 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV CHROMIUM_PATH=/usr/bin/chromium-browser
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont
 
 COPY package*.json ./
 RUN npm ci --only=production

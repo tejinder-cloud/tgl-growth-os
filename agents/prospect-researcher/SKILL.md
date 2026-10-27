@@ -71,17 +71,24 @@ Save pipeline capacity by rejecting low-probability accounts instantly:
 
 ### Playbook D: Decision-Maker Identification Rules
 Target the economic buyer who can authorise a ₹3,999/mo to ₹9,999/mo software subscription or ₹50,000/mo retainer without a committee:
-1. **Headcount < 50 Staff (Small to Mid-Size):**
+1. **Headcount < 50 Staff (Owner-Run Clinics & Institutes):**
    - Target: **Owner**, **Founder**, **Co-Founder**, **Managing Director (MD)**, **Medical Director** (for clinics/hospitals), **Director / Principal** (for coaching institutes).
    - *Rationale:* Decisions are personal and unilateral. Reaching the owner directly closes deals in one call.
 2. **Headcount >= 50 Staff (Growing Institute or Hospital):**
    - Target: **Chief Marketing Officer (CMO)**, **Head of Marketing**, **VP Marketing**, **Marketing Director**, **Growth Lead**.
    - *Rationale:* The owner is insulated behind layers of executive assistants and medical administrators; the marketing head owns the lead/visibility mandate and holds the budget.
-3. **Contact Verification Standard:**
-   - **Work email (Required):** Must pass MX/SMTP verification via Hunter or Apollo. Zero unverifiable guesses or generic mailboxes (`info@`, `support@`, `admin@`, `contact@`). A prospect without a verified work email is disqualified.
-   - **Phone (Optional +5 bonus):** Direct corporate mobile, direct dial, or verified WhatsApp business line. Phone is optional; finding a verified direct mobile adds a +5 bonus to the fit score.
-   - **Attribution:** Every decision-maker record must store the source link (e.g. LinkedIn profile URL or corporate team directory URL).
-4. **DPDP Act (India) Compliance:**
+3. **Contact Verification Standard (Architect Decision):**
+   - **Owner-Run Businesses (<50 Staff):** For owner-run clinics, dental practices, boutique surgical centers, and local coaching branches (<50 staff), an authoritative verified contact is:
+     - (a) A website email verified by Hunter (`/v2/email-verifier` status `deliverable` or `risky`), **OR**
+     - (b) The verified business phone from Google Places (`candidate.phone` from Places API).
+     - Decision-maker is the **Owner / Lead Doctor**. If a specific doctor or founder name is identified on the website or clinic title (e.g. `Dr. Amit Grover`), use it; otherwise role and title are set to Owner / Lead Doctor.
+   - **Enterprise / Growing Institutions (>=50 Staff):** Must have a Hunter-verified work email.
+   - **Phone Bonus:** When both a verified email and a direct business phone are present, a +5 bonus is awarded in Dimension 5 (Total 15 pts).
+   - **Generic Mailboxes Never:** Generic addresses (`info@`, `contact@`, `support@`, `admin@`, etc.) are discarded and never accepted as decision-maker contacts.
+4. **Clinic Website Scraping (Playbook D):**
+   - Scrape the clinic's public website for `mailto:` addresses and owner/doctor names on Homepage, `/about`, `/doctors`, `/team`, and `/contact` pages.
+   - Any non-generic emails discovered on the site are verified through Hunter's `/v2/email-verifier`.
+5. **DPDP Act (India) Compliance:**
    - Store strictly professional B2B coordinates: full name, corporate title, verified business work email, business phone number (if available), company name.
    - Never scrape or persist personal home addresses, personal financial data, personal Gmail/Yahoo addresses, or family details.
 
@@ -101,7 +108,7 @@ Every prospect is scored against five quantitative dimensions:
 | **2. Active Paid Budget Signals** | **25 pts** | • Active Meta Ad Library campaigns running (3+ creatives): **15 pts** (1–2 creatives: **10 pts**)<br>• Active Google Ads / SEM presence: **10 pts**<br>• No observed paid ad spend: **0 pts** |
 | **3. GBP Maturity & Marketing Hiring** | **20 pts** | • GBP Maturity (50+ Google reviews + active owner replies to reviews): **10 pts**<br>• Active recruitment for marketing/sales/admissions roles (last 45 days): **10 pts**<br>• Neither observed: **0 pts** |
 | **4. Scale & Growth Trajectory** | **15 pts** | • Multi-branch footprint (2+ physical locations) or >20 employees: **10 pts**<br>• Recent Google Review surge (15+ verified reviews in last 30 days): **5 pts**<br>• Single outlet with stagnant reviews: **0 pts** |
-| **5. Decision-Maker Reachability** | **15 pts** | • Verified direct work email: **10 pts** (Mandatory baseline)<br>• Verified direct corporate mobile/WhatsApp: **+5 pts bonus** (Total 15 pts)<br>• No verified work email (or generic mailbox only): **0 pts** (Disqualified) |
+| **5. Decision-Maker Reachability** | **15 pts** | • Verified contact (Hunter-verified website email OR Google Places business phone for owner-run businesses <50 staff): **10 pts** (Mandatory baseline)<br>• Verified direct corporate mobile/WhatsApp bonus (both verified email and phone present): **+5 pts bonus** (Total 15 pts)<br>• Neither verified email nor Places business phone: **0 pts (Disqualified)** |
 
 - **Threshold:**
   - **>= 70 pts:** **QUALIFIED.** Eligible for weekly rotation batch and handoff to Outreach Sequencer.
@@ -124,9 +131,12 @@ Every Monday at 07:00 IST:
    - Details: Fetch `Place Details` only for prospects passing initial domain checks.
    - Limit: **STRICT HARD CEILING of 95 requests per calendar day** (5-call emergency reserve below Google 100/day limit). Persist daily counter in `logs/.state/places-quota.json`; stop execution immediately when counter reaches 95.
 2. **Meta Ad Library Web Page via Playwright:**
-   - Note: Meta Ad Library has no commercial-ads API. Query the public Ad Library web page (`facebook.com/ads/library`) using headless Playwright with polite rate-limiting (3.0–5.0s delay between lookups). Verify active ads and store the Ad Library page URL as the audit source reference.
-3. **Apollo & Hunter APIs:**
-   - Query: Retrieve verified professional work email addresses and corporate mobile numbers for target job titles (Owner, MD, CMO).
+   - Note: Meta Ad Library has no commercial-ads API. Query the public Ad Library web page (`facebook.com/ads/library`) using headless Playwright with polite rate-limiting (1.0–2.5s delay between lookups). Chromium is installed in the Docker image. If browser launch fails or is unavailable in the environment, the step reports `skipped: no browser` once and returns clean defaults without candidate error banners. Store the Ad Library page URL as the audit source reference.
+3. **Hunter API & Clinic Website Scraper (Apollo removed from v1):**
+   - **Apollo API:** Removed for v1 per Architect directive (free-tier returns 422 on programmatic search).
+   - **Hunter API:** Domain search (`/v2/domain-search`) selects the best address (owner/doctor first, personal next, generic never), verified via `/v2/email-verifier` (accepting `deliverable` and `risky` statuses).
+   - **Clinic Website Scraper:** Scrapes clinic's public website for `mailto:` links and owner/doctor names on Homepage, `/about`, `/doctors`, `/team`, and `/contact` pages.
+   - **Places Phone:** Google Places API verified business phone accepted as verified contact for owner-run businesses (<50 staff) per Architect decision.
 4. **GoHighLevel (GHL) API:**
    - Query: Query contacts and opportunities by domain, email, and phone for deduplication. Credentials `GHL_API_KEY` and `GHL_LOCATION_ID` are configured in Railway.
 5. **Justdial Public Scraper:**
@@ -218,7 +228,7 @@ A research batch is complete if and only if:
 - [ ] Up to 100 qualified net-new prospects for the active door are inserted into Supabase `prospects` under tenant `'tgl'`; any shortfall is explicitly reported with reason, never padded.
 - [ ] Every single prospect has a calculated `fit_score >= 70` with at least 3 itemized `fit_reasons`.
 - [ ] 0 prospects duplicate existing GHL contacts, Supabase rows, or domains in `rejections/`.
-- [ ] Every record includes verified decision-maker name, title, and verified business work email (phone optional, reported if found).
+- [ ] Every record includes verified decision-maker name, role, and verified contact (Hunter-verified website email OR Places business phone for owner-run businesses <50 staff).
 - [ ] Google Places API call counter did not exceed 95 requests during the run (persisted in `logs/.state/places-quota.json`).
 - [ ] Weekly CSV report is generated and uploaded to `#revenue`.
 - [ ] Interactive Review Card is dispatched to `#revenue` / `#approvals` with direct links.

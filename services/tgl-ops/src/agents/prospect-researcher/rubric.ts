@@ -213,29 +213,63 @@ export function evaluateProspectRubric(params: {
   reasons.push(`Dim 4 (Scale & Growth): ${dim4Parts.join(" · ")} [Score: ${dim4Score}/15]`);
 
   // 5. Dimension 5: Decision-Maker Reachability (15 pts)
+  // Architect decision: for owner-run businesses (<50 staff), a verified contact is:
+  // (a) a website email verified by Hunter (status deliverable | risky), OR
+  // (b) the business phone from Google Places
+  // Decision-maker = owner/doctor; baseline = 10 pts, +5 bonus if both email and phone are verified.
   let dim5Score = 0;
-  const hasValidEmail = Boolean(
+  const isOwnerRun = (signals.branch_count ?? 1) < 5;
+
+  const hasHunterEmail = Boolean(
     decisionMaker.email &&
     decisionMaker.email.includes("@") &&
     decisionMaker.source &&
-    (decisionMaker.source.includes("apollo:") || decisionMaker.source.includes("hunter:"))
+    decisionMaker.source.includes("hunter:") &&
+    (decisionMaker.source.includes("deliverable") ||
+      decisionMaker.source.includes("risky") ||
+      decisionMaker.source.includes("status:") ||
+      decisionMaker.source.includes("confidence"))
   );
 
-  if (hasValidEmail) {
-    dim5Score += 10;
-    let emailEvidence = `Verified work email (${decisionMaker.role}) via ${decisionMaker.source} (+10 pts)`;
+  const hasPlacesPhone = Boolean(
+    isOwnerRun &&
+    decisionMaker.phone &&
+    String(decisionMaker.phone).trim().length >= 8 &&
+    decisionMaker.source &&
+    decisionMaker.source.includes("places:phone")
+  );
+
+  if (hasHunterEmail && hasPlacesPhone) {
+    dim5Score = 15;
+    reasons.push(
+      `Dim 5 (DM Reachability): Verified website email via Hunter (+10 pts) · Direct Places business phone verified (+5 pts bonus) [Score: 15/15]`
+    );
+  } else if (hasHunterEmail) {
+    dim5Score = 10;
     if (decisionMaker.phone) {
       dim5Score += 5;
-      emailEvidence += ` · Direct phone/WhatsApp verified (+5 pts)`;
+      reasons.push(
+        `Dim 5 (DM Reachability): Verified website email (${decisionMaker.role}) via Hunter (+10 pts) · Direct phone verified (+5 pts bonus) [Score: 15/15]`
+      );
+    } else {
+      reasons.push(
+        `Dim 5 (DM Reachability): Verified website email (${decisionMaker.role}) via Hunter (+10 pts) [Score: 10/15]`
+      );
     }
-    reasons.push(`Dim 5 (DM Reachability): ${emailEvidence} [Score: ${dim5Score}/15]`);
+  } else if (hasPlacesPhone) {
+    dim5Score = 10;
+    reasons.push(
+      `Dim 5 (DM Reachability): Verified business phone from Places for owner-run clinic (${decisionMaker.role} / ${decisionMaker.name}) (+10 pts) [Score: 10/15]`
+    );
   } else {
-    reasons.push(`Dim 5 (DM Reachability): Disqualified — No verified work email via Apollo/Hunter API (0/15 pts)`);
+    reasons.push(
+      `Dim 5 (DM Reachability): Disqualified — No verified website email via Hunter or Places business phone (0/15 pts)`
+    );
     return {
       fitScore: 0,
       qualified: false,
       disqualified: true,
-      disqualificationReason: "No verified direct work email from Hunter or Apollo API",
+      disqualificationReason: "No verified website email via Hunter or Places business phone",
       fitReasons: reasons,
     };
   }
