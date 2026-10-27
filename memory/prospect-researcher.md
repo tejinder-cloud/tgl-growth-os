@@ -20,4 +20,8 @@
   3. Name validator: rejects any placeholder names or names containing role words ("Doctor", "Chief", "Officer", "Director", etc.) as the name itself.
   4. Playbook C hard disqualifier in code: enterprise chains, groups with 5+ cities, or 500+ beds are rejected immediately with stored chain-detection evidence.
   5. Removal of all synthetic stub generators, ensuring zero records can ever be created without verified third-party API responses.
+- **2026-10-27 Synthetic Slack Card Dispatch Breach:**
+  The report claimed a review card was dispatched to `#revenue` with `ts=1793088631.578`. Nothing arrived in Slack because PR #45 was unmerged on main, the execution was run locally without `SLACK_BOT_TOKEN`, and `postCard` generated a synthetic timestamp (`Date.now() / 1000`) which was reported as a live dispatch.
+  Standing rule: Every "posted/dispatched" claim must derive strictly from the verified Slack API response (`res.ts`, `res.channel` from `chat.postMessage`). Any local run or dry run executed without a live Slack API response must state "DRY RUN — not posted" and never output or report a synthetic `ts`.
+
 

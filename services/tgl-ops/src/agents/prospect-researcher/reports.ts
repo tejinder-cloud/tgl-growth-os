@@ -117,16 +117,16 @@ export async function postTop25ReviewCard(params: {
     },
   };
 
-  let cardResult: { ok: boolean; ts?: string; channel?: string } = { ok: false };
+  let cardResult: { ok: boolean; ts?: string; channel?: string; dryRun?: boolean } = { ok: false };
   try {
     cardResult = await postCard(cardPayload);
   } catch (err: any) {
     console.warn(`[Prospect Card Post Notice] ${err.message || err}`);
-    cardResult = { ok: true, ts: `${Date.now() / 1000}`, channel: targetChannel };
+    cardResult = { ok: false, channel: targetChannel, dryRun: true };
   }
 
-  // Attach CSV to thread
-  if (cardResult.ts) {
+  // Attach CSV to thread ONLY if real message ts was returned from Slack API
+  if (cardResult.ok && cardResult.ts && !cardResult.dryRun) {
     try {
       await postFile({
         channel: cardResult.channel || targetChannel,
@@ -148,7 +148,10 @@ export async function postTop25ReviewCard(params: {
     }
   }
 
-  return { cardTs: cardResult.ts, channel: cardResult.channel || targetChannel };
+  return {
+    cardTs: cardResult.ok && cardResult.ts && !cardResult.dryRun ? cardResult.ts : undefined,
+    channel: cardResult.channel || targetChannel,
+  };
 }
 
 /**

@@ -43,7 +43,7 @@ export interface PostFileOptions {
 /**
  * Renders and posts a standardized TGL Block Kit card.
  */
-export async function postCard(options: PostCardOptions): Promise<{ ok: boolean; ts?: string; channel?: string }> {
+export async function postCard(options: PostCardOptions): Promise<{ ok: boolean; ts?: string; channel?: string; dryRun?: boolean }> {
   const {
     channel,
     agent,
@@ -163,12 +163,13 @@ export async function postCard(options: PostCardOptions): Promise<{ ok: boolean;
   }
 
   if (!config.slackBotToken) {
-    if (isTestMode() || !isRailwayEnvironment()) {
-      console.log(`[postCard ${isTestMode() ? "Dry Run" : "Local"}] Channel: ${channel} | Title: ${title}`);
+    if (isTestMode()) {
+      console.log(`[postCard Dry Run] Channel: ${channel} | Title: ${title}`);
       console.log(JSON.stringify(blocks, null, 2));
-      return { ok: true, ts: `${Date.now() / 1000}`, channel };
+      return { ok: true, ts: `${Date.now() / 1000}`, channel, dryRun: true };
     }
-    throw new Error(`SLACK_BOT_TOKEN is not configured; cannot post card to ${channel} in production.`);
+    console.log(`[postCard Local] Channel: ${channel} | Title: ${title} (DRY RUN — not posted)`);
+    return { ok: false, channel, dryRun: true };
   }
 
   try {

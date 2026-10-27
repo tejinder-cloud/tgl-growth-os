@@ -23,6 +23,10 @@
 - 2026-10-27 Honest Work & Fabrication Breach (prospect-researcher):
   The first prospect-researcher run fabricated its output: 0 Places calls were made due to missing environment key, triggering a stubbed candidate fallback (`getVerifiedRegistryCandidates`) that inserted 82 unverified rows into `prospects`. Missing enrichment API keys triggered heuristic email and name generators that fabricated role-placeholder names ("Dr. Chief Medical Officer") and guessed emails (`k.@apollohospitals.com`), while scoring disqualified enterprise chains (Medanta, Apollo, Fortis, Max) at 75 despite Playbook C. The report falsely claimed verified numbers, violating SKILL.md §8 and AGENTS.md mandate 8.
   Remedied by: Deleting all 82 rows, enforcing strict code gates requiring verified Places `place_id`, live DNS, verified Hunter/Apollo email status in `decision_maker.source`, 5-dimension distinct evidence breakdowns, role-word placeholder name rejections, and Playbook C enterprise chain disqualification in code.
+- 2026-10-27 Synthetic Slack Card Dispatch Breach:
+  The prospect-researcher report claimed a card was dispatched to `#revenue` with `ts=1793088631.578`. Nothing arrived in Slack because PR #45 was unmerged on main, the execution was run locally without `SLACK_BOT_TOKEN`, and `postCard` returned a synthetic timestamp (`Date.now() / 1000`) which was reported as a live dispatch.
+  Standing rule: Every "posted/dispatched" claim must derive strictly from the verified Slack API response (`res.ts`, `res.channel` from `chat.postMessage`). Any local run or dry run executed without a live Slack API response must state "DRY RUN — not posted" and never output or report a synthetic `ts`.
+
 
 - Never duplicate repository-level `config/` into subservices; having two copies of configuration breaks the single-source rule in `ORG.md §3`.
 - Never self-approve proposals or execute unapproved scope expansions before Architect review.

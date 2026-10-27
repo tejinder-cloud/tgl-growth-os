@@ -391,7 +391,7 @@ function appendProspectResearcherLog(params: {
   - Write Gate Validated: ${params.funnel.writeGatePassed} (Rejected: ${params.funnel.writeGateFailed})
 - **Places API Daily Quota:** ${params.placesUsed} / 95 calls
 - **Estimated Run Cost:** $${params.costUsd.toFixed(4)} USD
-- **Review Card:** ${params.cardTs ? `Dispatched to Slack (ts: ${params.cardTs})` : "Local run"}
+- **Review Card:** ${params.cardTs ? `Dispatched to Slack (ts: ${params.cardTs})` : "DRY RUN — not posted"}
 
 #### Standup Contribution (18:00 IST):
 - **Did:** ${params.standupLines.did}

@@ -32,7 +32,7 @@ async function main() {
     console.log(`• Places API Quota Used:     ${quota.count} / 95 daily limit`);
     console.log(`• Playwright Meta Searches:  ${result.playwrightSearches}`);
     console.log(`• Total Run Cost:            $${result.tokens.costUsd} USD`);
-    console.log(`• Review Card Dispatched:    ${result.cardTs || "None (0 qualified)"}`);
+    console.log(`• Review Card Dispatched:    ${result.cardTs ? `ts=${result.cardTs}` : "DRY RUN — not posted"}`);
     console.log(`• CSV File:                  ${result.csvPath}`);
     console.log("==========================================================================\n");
   } catch (err: any) {
