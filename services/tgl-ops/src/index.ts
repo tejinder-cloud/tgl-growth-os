@@ -89,6 +89,27 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
+import { runProspectResearch } from "./agents/prospect-researcher/worker.js";
+import { exportWeeklyProspectsCsv } from "./agents/prospect-researcher/reports.js";
+
+// Mon–Fri 09:30 IST: Prospect Researcher Autonomous Run
+cron.schedule(
+  "30 9 * * 1-5",
+  wrapCronJob("09:30 IST Prospect Researcher Run", async () => {
+    await runProspectResearch({ postToSlack: true });
+  }),
+  { timezone: config.timezone }
+);
+
+// Friday 17:00 IST: Weekly Full Prospects CSV Export to #revenue
+cron.schedule(
+  "0 17 * * 5",
+  wrapCronJob("Friday 17:00 IST Weekly Prospects CSV", async () => {
+    await exportWeeklyProspectsCsv();
+  }),
+  { timezone: config.timezone }
+);
+
 import { catchUpRunnerIssues } from "./runner/index.js";
 
 // Every 30 minutes: Catch-up worker for in-progress issues with no PR (Asia/Kolkata)

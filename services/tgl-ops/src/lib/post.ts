@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { slackClient } from "./slack-client.js";
-import { config, isTestMode } from "../config.js";
+import { config, isTestMode, isRailwayEnvironment } from "../config.js";
 
 export interface PostCardLink {
   label: string;
@@ -22,6 +22,7 @@ export interface PostCardOptions {
   branch?: string;
   linkedIssue?: number | string;
   thread_ts?: string;
+  extraMeta?: Record<string, any>;
 }
 
 export interface PostLineOptions {
@@ -56,6 +57,7 @@ export async function postCard(options: PostCardOptions): Promise<{ ok: boolean;
     branch,
     linkedIssue,
     thread_ts,
+    extraMeta,
   } = options;
 
   const metadataPayload = JSON.stringify({
@@ -68,6 +70,7 @@ export async function postCard(options: PostCardOptions): Promise<{ ok: boolean;
     branch,
     linkedIssue: linkedIssue !== undefined ? String(linkedIssue) : undefined,
     channel,
+    ...(extraMeta || {}),
   });
 
   const blocks: any[] = [
@@ -160,8 +163,8 @@ export async function postCard(options: PostCardOptions): Promise<{ ok: boolean;
   }
 
   if (!config.slackBotToken) {
-    if (isTestMode()) {
-      console.log(`[postCard Dry Run] Channel: ${channel} | Title: ${title}`);
+    if (isTestMode() || !isRailwayEnvironment()) {
+      console.log(`[postCard ${isTestMode() ? "Dry Run" : "Local"}] Channel: ${channel} | Title: ${title}`);
       console.log(JSON.stringify(blocks, null, 2));
       return { ok: true, ts: `${Date.now() / 1000}`, channel };
     }
