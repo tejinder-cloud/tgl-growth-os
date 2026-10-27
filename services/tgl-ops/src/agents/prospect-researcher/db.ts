@@ -4,6 +4,7 @@ import path from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { config, isTestMode } from "../../config.js";
 import type { ProspectRecord } from "./types.js";
+import { validateProspectRecord } from "./guardrails.js";
 
 const PROSPECTS_STATE_PATH = "logs/.state/prospects.json";
 const PROSPECTS_TEST_STATE_PATH = "logs/.test/.state/prospects.json";
@@ -96,6 +97,23 @@ export async function upsertProspectRecords(
     fs.mkdirSync(dir, { recursive: true });
   }
 
+  // Hard Write-Path Gate (Iron Law):
+  // Filter out any record missing Places place_id, DNS pass, Apollo/Hunter email status, or 5-dim reasons
+  const validRecords: ProspectRecord[] = [];
+  for (const r of newRecords) {
+    const val = validateProspectRecord(r);
+    if (!val.valid) {
+      console.warn(`[Write Gate Rejected] Candidate '${r.company}' (${r.website}) dropped: ${val.reason}`);
+      continue;
+    }
+    validRecords.push(r);
+  }
+
+  if (validRecords.length === 0) {
+    console.warn(`[Write Gate Notice] 0 of ${newRecords.length} records passed all write validation gates. Zero rows written.`);
+    return { upsertedCount: 0, persistedToSupabase: false };
+  }
+
   // Load existing
   const all = await loadAllProspects(options);
   const map = new Map<string, ProspectRecord>();
@@ -104,8 +122,8 @@ export async function upsertProspectRecords(
     map.set(key, p);
   }
 
-  // Upsert new
-  for (const n of newRecords) {
+  // Upsert new valid records
+  for (const n of validRecords) {
     const key = `${n.tenant_id}:${n.door}:${n.website.toLowerCase().trim()}`;
     map.set(key, n);
   }
