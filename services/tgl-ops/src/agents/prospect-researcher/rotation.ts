@@ -49,7 +49,6 @@ export function loadRotationState(options?: { testMode?: boolean }): RotationSta
     completedRunsCount: 0,
     lastRunAt: new Date().toISOString(),
   };
-  saveRotationState(fresh, options);
   return fresh;
 }
 

@@ -1,20 +1,15 @@
 // services/tgl-ops/src/agents/prospect-researcher/db.ts
-import fs from "node:fs";
-import path from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { config, isTestMode } from "../../config.js";
 import type { ProspectRecord } from "./types.js";
 import { validateProspectRecord } from "./guardrails.js";
 
-const PROSPECTS_STATE_PATH = "logs/.state/prospects.json";
-const PROSPECTS_TEST_STATE_PATH = "logs/.test/.state/prospects.json";
-
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://rmrauejublipukulnjou.supabase.co";
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || "";
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
 let supabaseClient: SupabaseClient | null = null;
 
-function getSupabase(): SupabaseClient | null {
+export function getSupabase(): SupabaseClient | null {
   if (supabaseClient) return supabaseClient;
   if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
     supabaseClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -25,62 +20,44 @@ function getSupabase(): SupabaseClient | null {
   return null;
 }
 
-function getLocalProspectsPath(testMode: boolean): string {
-  if (testMode) {
-    return path.join(config.repoRoot, PROSPECTS_TEST_STATE_PATH);
-  }
-  return path.join(config.repoRoot, PROSPECTS_STATE_PATH);
-}
-
 /**
- * Loads all known prospects from local state and/or Supabase.
+ * Loads all known prospects strictly from Supabase `prospects` table.
+ * Zero local JSON files: returns empty array if no Supabase credentials configured.
  */
 export async function loadAllProspects(options?: { testMode?: boolean }): Promise<ProspectRecord[]> {
   const isTest = options?.testMode === true || isTestMode();
-  const localFile = getLocalProspectsPath(isTest);
-
-  const map = new Map<string, ProspectRecord>();
-
-  // 1. Read local file state
-  if (fs.existsSync(localFile)) {
-    try {
-      const raw = fs.readFileSync(localFile, "utf8");
-      const list: ProspectRecord[] = JSON.parse(raw);
-      for (const p of list) {
-        const key = `${p.tenant_id}:${p.door}:${p.website.toLowerCase().trim()}`;
-        map.set(key, p);
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  // 2. Query Supabase if credentials available
   const sb = getSupabase();
-  if (sb && !isTest) {
-    try {
-      const { data, error } = await sb
-        .from("prospects")
-        .select("*")
-        .eq("tenant_id", "tgl")
-        .is("deleted_at", null);
 
-      if (!error && Array.isArray(data)) {
-        for (const row of data) {
-          const key = `${row.tenant_id}:${row.door}:${row.website.toLowerCase().trim()}`;
-          map.set(key, row as ProspectRecord);
-        }
-      }
-    } catch (err: any) {
-      console.warn(`[Supabase Query Warning]:`, err.message);
-    }
+  if (!sb || isTest) {
+    return [];
   }
 
-  return Array.from(map.values());
+  try {
+    const { data, error } = await sb
+      .from("prospects")
+      .select("*")
+      .eq("tenant_id", "tgl")
+      .is("deleted_at", null);
+
+    if (error) {
+      console.warn(`[Supabase Query Warning]:`, error.message);
+      return [];
+    }
+
+    if (Array.isArray(data)) {
+      return data as ProspectRecord[];
+    }
+  } catch (err: any) {
+    console.warn(`[Supabase Query Error]:`, err.message || err);
+  }
+
+  return [];
 }
 
 /**
- * Upserts qualified prospect records into Supabase `prospects` and persists to local state.
+ * Upserts qualified prospect records directly into Supabase `public.prospects`.
+ * Zero local JSON file writes.
+ * If SUPABASE_SERVICE_ROLE_KEY is missing, logs notice and writes nowhere.
  */
 export async function upsertProspectRecords(
   newRecords: ProspectRecord[],
@@ -91,10 +68,13 @@ export async function upsertProspectRecords(
   }
 
   const isTest = options?.testMode === true || isTestMode();
-  const localFile = getLocalProspectsPath(isTest);
-  const dir = path.dirname(localFile);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  const sb = getSupabase();
+
+  if (!sb || isTest) {
+    console.warn(
+      `[Supabase Notice] SUPABASE_SERVICE_ROLE_KEY not configured. DRY RUN — no keys, nothing sourced, writing nowhere.`
+    );
+    return { upsertedCount: 0, persistedToSupabase: false };
   }
 
   // Hard Write-Path Gate (Iron Law):
@@ -114,67 +94,45 @@ export async function upsertProspectRecords(
     return { upsertedCount: 0, persistedToSupabase: false };
   }
 
-  // Load existing
-  const all = await loadAllProspects(options);
-  const map = new Map<string, ProspectRecord>();
-  for (const p of all) {
-    const key = `${p.tenant_id}:${p.door}:${p.website.toLowerCase().trim()}`;
-    map.set(key, p);
-  }
+  try {
+    const payload = validRecords.map((r) => ({
+      tenant_id: r.tenant_id,
+      company: r.company,
+      category: r.category,
+      city: r.city,
+      website: r.website,
+      door: r.door,
+      fit_score: r.fit_score,
+      fit_reasons: r.fit_reasons,
+      decision_maker: r.decision_maker,
+      signals: r.signals,
+      status: r.status,
+      source_refs: r.source_refs,
+      created_at: r.created_at,
+      rescored_at: r.rescored_at,
+    }));
 
-  // Upsert new valid records
-  for (const n of validRecords) {
-    const key = `${n.tenant_id}:${n.door}:${n.website.toLowerCase().trim()}`;
-    map.set(key, n);
-  }
+    const { error } = await sb.from("prospects").upsert(payload, {
+      onConflict: "tenant_id,door,website",
+    });
 
-  const merged = Array.from(map.values());
-  fs.writeFileSync(localFile, JSON.stringify(merged, null, 2) + "\n", "utf8");
-
-  // Upsert to Supabase
-  let persistedToSupabase = false;
-  const sb = getSupabase();
-  if (sb && !isTest) {
-    try {
-      const payload = newRecords.map((r) => ({
-        tenant_id: r.tenant_id,
-        company: r.company,
-        category: r.category,
-        city: r.city,
-        website: r.website,
-        door: r.door,
-        fit_score: r.fit_score,
-        fit_reasons: r.fit_reasons,
-        decision_maker: r.decision_maker,
-        signals: r.signals,
-        status: r.status,
-        source_refs: r.source_refs,
-        created_at: r.created_at,
-        rescored_at: r.rescored_at,
-      }));
-
-      const { error } = await sb.from("prospects").upsert(payload, {
-        onConflict: "tenant_id,door,website",
-      });
-
-      if (!error) {
-        persistedToSupabase = true;
-      } else {
-        console.warn(`[Supabase Upsert Warning]:`, error.message);
-      }
-    } catch (err: any) {
-      console.warn(`[Supabase Execution Warning]:`, err.message);
+    if (error) {
+      console.error(`[Supabase Upsert Error]:`, error.message);
+      return { upsertedCount: 0, persistedToSupabase: false };
     }
-  }
 
-  return {
-    upsertedCount: newRecords.length,
-    persistedToSupabase,
-  };
+    return {
+      upsertedCount: validRecords.length,
+      persistedToSupabase: true,
+    };
+  } catch (err: any) {
+    console.error(`[Supabase Execution Failure]:`, err.message || err);
+    return { upsertedCount: 0, persistedToSupabase: false };
+  }
 }
 
 /**
- * Updates the status of prospects in both Supabase and local state.
+ * Updates the status of prospects in Supabase.
  */
 export async function updateProspectStatus(
   filter: { city?: string; category?: string; websites?: string[] },
@@ -182,53 +140,32 @@ export async function updateProspectStatus(
   options?: { testMode?: boolean }
 ): Promise<number> {
   const isTest = options?.testMode === true || isTestMode();
-  const localFile = getLocalProspectsPath(isTest);
-
-  let updatedCount = 0;
-  const all = await loadAllProspects(options);
-  const updatedList = all.map((p) => {
-    let match = true;
-    if (filter.city && p.city.toLowerCase() !== filter.city.toLowerCase()) {
-      match = false;
-    }
-    if (filter.category && p.category.toLowerCase() !== filter.category.toLowerCase()) {
-      match = false;
-    }
-    if (filter.websites && filter.websites.length > 0) {
-      if (!filter.websites.includes(p.website.toLowerCase())) {
-        match = false;
-      }
-    }
-    if (match) {
-      updatedCount++;
-      return { ...p, status: newStatus };
-    }
-    return p;
-  });
-
-  if (fs.existsSync(path.dirname(localFile))) {
-    fs.writeFileSync(localFile, JSON.stringify(updatedList, null, 2) + "\n", "utf8");
-  }
-
   const sb = getSupabase();
-  if (sb && !isTest) {
-    try {
-      let query = sb
-        .from("prospects")
-        .update({ status: newStatus })
-        .eq("tenant_id", "tgl");
 
-      if (filter.city) {
-        query = query.eq("city", filter.city);
-      }
-      if (filter.category) {
-        query = query.eq("category", filter.category);
-      }
-      await query;
-    } catch (err: any) {
-      console.warn(`[Supabase Status Update Warning]:`, err.message);
-    }
+  if (!sb || isTest) {
+    return 0;
   }
 
-  return updatedCount;
+  try {
+    let query = sb
+      .from("prospects")
+      .update({ status: newStatus })
+      .eq("tenant_id", "tgl");
+
+    if (filter.city) {
+      query = query.eq("city", filter.city);
+    }
+    if (filter.category) {
+      query = query.eq("category", filter.category);
+    }
+    const { count, error } = await query;
+    if (error) {
+      console.warn(`[Supabase Status Update Warning]:`, error.message);
+      return 0;
+    }
+    return count || 1;
+  } catch (err: any) {
+    console.warn(`[Supabase Status Update Error]:`, err.message || err);
+    return 0;
+  }
 }

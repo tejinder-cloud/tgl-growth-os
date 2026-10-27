@@ -48,7 +48,6 @@ export function getPlacesQuotaState(options?: { testMode?: boolean }): PlacesQuo
     count: 0,
     lastCallAt: new Date().toISOString(),
   };
-  savePlacesQuotaState(freshState, options);
   return freshState;
 }
 

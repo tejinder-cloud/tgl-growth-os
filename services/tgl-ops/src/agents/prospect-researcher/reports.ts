@@ -58,6 +58,9 @@ export function saveProspectsCsv(
   label: string,
   options?: { testMode?: boolean }
 ): string {
+  if (prospects.length === 0) {
+    return "";
+  }
   const isTest = options?.testMode === true || isTestMode();
   const dateStr = getTodayDateString();
   const dir = path.join(config.repoRoot, isTest ? "logs/.test/reports" : `logs/${dateStr}`);

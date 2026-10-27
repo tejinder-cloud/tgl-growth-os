@@ -45,6 +45,33 @@ export async function runProspectResearch(
   const pricing = getAnthropicPricing();
   const model = getAnthropicModel();
 
+  const placesKey = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if ((!placesKey || !supabaseKey) && !isTest) {
+    console.log("DRY RUN — no keys, nothing sourced");
+    return {
+      city: options?.city || "Delhi NCR",
+      category: options?.category || "cosmetic_dental",
+      discoveredCount: 0,
+      qualifiedCount: 0,
+      dedupedCount: 0,
+      prospects: [],
+      placesCallsUsed: 0,
+      playwrightSearches: 0,
+      tokens: { input: 0, output: 0, costUsd: 0 },
+      cardTs: undefined,
+      csvPath: "",
+      rejectionPatternProposal: undefined,
+      standupLines: {
+        did: "DRY RUN — no keys, nothing sourced",
+        blocked: "Keys unconfigured",
+        need: "None",
+        tomorrow: "Awaiting Railway deployment and secrets configuration",
+      },
+    };
+  }
+
   // 1. Resolve rotation city & category
   const rotation = getNextRotation({
     cityOverride: options?.city,
@@ -127,7 +154,7 @@ export async function runProspectResearch(
       cand.dnsVerified = true;
       cand.dnsIp = dnsRes.ip;
     } else {
-      // If website not in TextSearch, fetch Place Details to retrieve website
+      // If website not in Places searchText response, fetch Place Details to retrieve website
       const detailed = await enrichPlaceDetails(cand, options);
       cand.website = detailed.website;
       cand.phone = detailed.phone;

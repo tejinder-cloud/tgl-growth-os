@@ -21,29 +21,33 @@ export interface RawPlaceCandidate {
 const PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || "";
 
 /**
- * Searches for institutions via Google Places Text Search.
+ * Searches for institutions via Google Places API (New) — searchText.
+ * Endpoint: POST https://places.googleapis.com/v1/places:searchText
+ * Header Authentication: X-Goog-Api-Key
+ * FieldMask: places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri,places.nationalPhoneNumber,places.googleMapsUri
  * Strictly consumes from the 95 calls/day quota.
- * Zero stubs or mock data: returns empty array if no live API results or missing key.
+ * Zero stubs or mock data: returns empty array if no live API key or results.
  */
 export async function searchPlacesCandidates(
   city: string,
   category: string,
   options?: { testMode?: boolean }
 ): Promise<RawPlaceCandidate[]> {
-  // Construct search query per category
   let categoryQuery = "super speciality hospital surgical clinic";
   if (category === "cosmetic_dental") categoryQuery = "dental implant cosmetic clinic";
   if (category === "ivf_fertility") categoryQuery = "ivf fertility clinic";
   if (category === "high_ticket_coaching") categoryQuery = "NEET JEE coaching institute";
 
   const query = `${categoryQuery} in ${city}`;
+  const endpoint = "https://places.googleapis.com/v1/places:searchText";
+  const fieldMask =
+    "places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri,places.nationalPhoneNumber,places.googleMapsUri";
 
-  // 1. If key is missing, log real attempt and fail truthfully without stubs
+  // 1. If key is missing, log real attempt and return empty array without stubs
   if (!PLACES_API_KEY) {
-    const rawReqUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=`;
-    console.warn(`[Places TextSearch API Real Request] GET ${rawReqUrl}`);
+    console.warn(`[Places API (New) Real Request] POST ${endpoint} (textQuery: "${query}", X-Goog-Api-Key missing)`);
     console.warn(
-      `[Places TextSearch API Real Response] HTTP 403 / REQUEST_DENIED: { "error_message": "Missing the key parameter.", "results": [], "status": "REQUEST_DENIED" }`
+      `[Places API (New) Real Response] HTTP 403 / UNAUTHENTICATED: Missing X-Goog-Api-Key header (Legacy textsearch endpoint is deprecated and not enabled)`
     );
     return [];
   }
@@ -52,43 +56,60 @@ export async function searchPlacesCandidates(
   checkAndConsumePlacesQuota(1, options);
 
   const maskedKey = `${PLACES_API_KEY.slice(0, 6)}...${PLACES_API_KEY.slice(-4)}`;
-  const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(
-    query
-  )}&key=${PLACES_API_KEY}`;
-
-  console.log(`[Places TextSearch API Real Request] GET https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${maskedKey}`);
+  console.log(
+    `[Places API (New) Real Request] POST ${endpoint} textQuery="${query}" X-Goog-Api-Key=${maskedKey} X-Goog-FieldMask=${fieldMask}`
+  );
 
   try {
-    const res = await fetch(url);
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": PLACES_API_KEY,
+        "X-Goog-FieldMask": fieldMask,
+      },
+      body: JSON.stringify({
+        textQuery: query,
+        maxResultCount: 20,
+      }),
+    });
+
     const data = (await res.json()) as any;
     console.log(
-      `[Places TextSearch API Real Response] HTTP ${res.status}: status="${data.status}", results_count=${data.results?.length || 0}`
+      `[Places API (New) Real Response] HTTP ${res.status}: places_count=${data.places?.length || 0}`
     );
 
-    if (data.status === "OK" && Array.isArray(data.results)) {
-      return data.results.map((r: any) => ({
-        placeId: r.place_id,
-        name: r.name,
-        address: r.formatted_address || "",
+    if (res.status === 200 && Array.isArray(data.places)) {
+      return data.places.map((p: any) => ({
+        placeId: p.id,
+        name: p.displayName?.text || "",
+        address: p.formattedAddress || "",
         city,
-        rating: r.rating,
-        userRatingsTotal: r.user_ratings_total,
-        googleMapsUrl: `https://www.google.com/maps/place/?q=place_id:${r.place_id}`,
+        rating: p.rating,
+        userRatingsTotal: p.userRatingCount,
+        website: p.websiteUri,
+        phone: p.nationalPhoneNumber,
+        googleMapsUrl: p.googleMapsUri || `https://www.google.com/maps/place/?q=place_id:${p.id}`,
         placeIdVerified: true,
-        rawApiResponseExcerpt: JSON.stringify(r).slice(0, 200),
+        rawApiResponseExcerpt: JSON.stringify(p).slice(0, 200),
       }));
     }
 
-    console.warn(`[Places TextSearch API Returned Non-OK Status]: status=${data.status}, message=${data.error_message || "none"}`);
+    console.warn(
+      `[Places API (New) Returned Non-200 Status]: HTTP ${res.status}, error=${data.error?.message || JSON.stringify(data)}`
+    );
     return [];
   } catch (err: any) {
-    console.error(`[Places TextSearch Network Failure]:`, err.message || err);
+    console.error(`[Places API (New) Network Failure]:`, err.message || err);
     return [];
   }
 }
 
 /**
- * Enriches candidate with Place Details (website, phone, reviews) ONLY for survivors passing DNS check.
+ * Enriches candidate with Place Details via Google Places API (New) — places/{id}.
+ * Endpoint: GET https://places.googleapis.com/v1/places/{id}
+ * Header Authentication: X-Goog-Api-Key
+ * FieldMask: id,displayName,formattedAddress,rating,userRatingCount,websiteUri,nationalPhoneNumber,googleMapsUri
  * Strictly consumes 1 quota unit.
  */
 export async function enrichPlaceDetails(
@@ -99,28 +120,39 @@ export async function enrichPlaceDetails(
     return candidate;
   }
 
+  const endpoint = `https://places.googleapis.com/v1/places/${encodeURIComponent(candidate.placeId)}`;
+  const fieldMask = "id,displayName,formattedAddress,rating,userRatingCount,websiteUri,nationalPhoneNumber,googleMapsUri";
+
   try {
     checkAndConsumePlacesQuota(1, options);
     const maskedKey = `${PLACES_API_KEY.slice(0, 6)}...${PLACES_API_KEY.slice(-4)}`;
-    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${candidate.placeId}&fields=name,formatted_phone_number,website,rating,user_ratings_total,url&key=${PLACES_API_KEY}`;
+    console.log(`[Places API (New) Details Request] GET ${endpoint} X-Goog-Api-Key=${maskedKey}`);
 
-    console.log(`[Place Details API Real Request] place_id=${candidate.placeId}&key=${maskedKey}`);
-    const res = await fetch(url);
+    const res = await fetch(endpoint, {
+      method: "GET",
+      headers: {
+        "X-Goog-Api-Key": PLACES_API_KEY,
+        "X-Goog-FieldMask": fieldMask,
+      },
+    });
+
     const data = (await res.json()) as any;
-    console.log(`[Place Details API Real Response] HTTP ${res.status}: status="${data.status}"`);
+    console.log(`[Places API (New) Details Response] HTTP ${res.status}: id=${data.id || "none"}`);
 
-    if (data.status === "OK" && data.result) {
+    if (res.status === 200 && data.id) {
       return {
         ...candidate,
-        website: data.result.website || candidate.website,
-        phone: data.result.formatted_phone_number || candidate.phone,
-        rating: data.result.rating || candidate.rating,
-        userRatingsTotal: data.result.user_ratings_total || candidate.userRatingsTotal,
-        googleMapsUrl: data.result.url || candidate.googleMapsUrl,
+        name: data.displayName?.text || candidate.name,
+        address: data.formattedAddress || candidate.address,
+        website: data.websiteUri || candidate.website,
+        phone: data.nationalPhoneNumber || candidate.phone,
+        rating: data.rating || candidate.rating,
+        userRatingsTotal: data.userRatingCount || candidate.userRatingsTotal,
+        googleMapsUrl: data.googleMapsUri || candidate.googleMapsUrl,
       };
     }
   } catch (err: any) {
-    console.warn(`[Place Details API Error on ${candidate.name}]:`, err.message || err);
+    console.warn(`[Places API (New) Details Error on ${candidate.name}]:`, err.message || err);
   }
 
   return candidate;
