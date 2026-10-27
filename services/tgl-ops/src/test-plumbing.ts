@@ -1,3 +1,6 @@
+process.env.TGL_TEST_MODE = "1";
+process.env.NODE_ENV = "test";
+
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";

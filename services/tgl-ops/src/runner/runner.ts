@@ -129,6 +129,64 @@ export async function runIssueTask(
 
     console.log(`[Runner] Picked up issue #${issueNum} for @${agentName}: "${issue.title}"`);
 
+    // Specialized execution path for prospect-researcher
+    if (agentName === "prospect-researcher") {
+      const { parseResearchBrief } = await import("../agents/prospect-researcher/rotation.js");
+      const { runProspectResearch } = await import("../agents/prospect-researcher/worker.js");
+
+      const briefText = `${issue.title} ${deliverable} ${issue.body}`;
+      const parsed = parseResearchBrief(briefText);
+
+      console.log(
+        `[Runner @prospect-researcher] Issue #${issueNum} parsed brief: city="${parsed.city || "rotation"}", category="${parsed.category || "rotation"}", targetCount=${parsed.targetCount || 20}, isExplicit=${parsed.isExplicit}`
+      );
+
+      if (deliverable.includes("FAIL_SIMULATED:") && isTest) {
+        const match = deliverable.match(/FAIL_SIMULATED:\s*([^\n]+)/);
+        throw new Error(match ? match[1].trim() : "Simulated failure for testing");
+      }
+
+      const result = await runProspectResearch({
+        city: parsed.city,
+        category: parsed.category,
+        targetCount: parsed.targetCount || 20,
+        postToSlack: true,
+        testMode: isTest,
+      });
+
+      // Post completion message to Slack thread
+      if (slackChannel && slackThreadTs) {
+        await postLine({
+          channel: slackChannel,
+          thread_ts: slackThreadTs,
+          text: `✅ *[Prospect Researcher Run Complete on Issue #${issueNum}]*\n• City & Category: *${result.city}* × *${result.category}*\n• Qualified prospects: *${result.qualifiedCount}* accounts\n• Review card posted to #revenue with CSV attached.`,
+        }).catch((err) => console.warn("[Runner thread post error]", err));
+      }
+
+      await removeLabelFromIssue(issueNum, "status:in-progress");
+      await addLabelsToIssue(issueNum, ["status:reviewed"]);
+
+      await recordRunnerIssue(
+        issueNum,
+        {
+          agent: agentName,
+          door: issue.door || "aeo",
+          title: issue.title,
+          status: "completed",
+          runCompletedAt: new Date().toISOString(),
+        },
+        { testMode: isTest }
+      ).catch((err) => console.warn("[Runner state save warning]", err));
+
+      return {
+        success: true,
+        issueNumber: issueNum,
+        status: "completed",
+        toolCallsCount: result.playwrightSearches + result.placesCallsUsed,
+        tokens: result.tokens,
+      };
+    }
+
     // 3. Pre-flight check via live model call
     const preflight = await runPreflightCheck({
       issueNumber: issueNum,
