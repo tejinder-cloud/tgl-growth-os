@@ -109,3 +109,80 @@ export function advanceRotation(options?: { testMode?: boolean }): RotationState
   saveRotationState(state, options);
   return state;
 }
+
+export interface ParsedResearchBrief {
+  city?: RotationCity;
+  category?: RotationCategory;
+  targetCount?: number;
+  isExplicit: boolean;
+}
+
+/**
+ * Parses an explicit city × category brief from a /task prompt or issue deliverable.
+ * Matches explicit combinations like "Delhi NCR × cosmetic dental", "Mumbai × hospitals", etc.
+ * Rotation state applies only to scheduled runs; an explicit brief must override rotation.
+ */
+export function parseResearchBrief(text: string): ParsedResearchBrief {
+  const normalized = text.toLowerCase().trim();
+  let city: RotationCity | undefined;
+  let category: RotationCategory | undefined;
+  let targetCount: number | undefined;
+
+  // 1. Detect City
+  if (normalized.includes("delhi ncr") || normalized.includes("delhi")) {
+    city = "Delhi NCR";
+  } else if (normalized.includes("mumbai") || normalized.includes("bombay")) {
+    city = "Mumbai";
+  } else if (normalized.includes("bengaluru") || normalized.includes("bangalore")) {
+    city = "Bengaluru";
+  } else if (normalized.includes("hyderabad")) {
+    city = "Hyderabad";
+  } else if (normalized.includes("chandigarh") || normalized.includes("tricity")) {
+    city = "Chandigarh Tricity";
+  }
+
+  // 2. Detect Category
+  if (
+    normalized.includes("cosmetic dental") ||
+    normalized.includes("cosmetic_dental") ||
+    normalized.includes("dental") ||
+    normalized.includes("dentist")
+  ) {
+    category = "cosmetic_dental";
+  } else if (
+    normalized.includes("hospital") ||
+    normalized.includes("surgical")
+  ) {
+    category = "hospitals";
+  } else if (
+    normalized.includes("ivf") ||
+    normalized.includes("fertility")
+  ) {
+    category = "ivf_fertility";
+  } else if (
+    normalized.includes("coaching") ||
+    normalized.includes("neet") ||
+    normalized.includes("jee") ||
+    normalized.includes("test prep") ||
+    normalized.includes("high ticket coaching") ||
+    normalized.includes("high_ticket_coaching")
+  ) {
+    category = "high_ticket_coaching";
+  }
+
+  // 3. Detect targetCount (e.g. "20 names", "25 prospects", "target: 20")
+  const countMatch = normalized.match(/(?:target[:\s]+)?(\d{1,3})\s*(?:names|prospects|accounts|leads)?/);
+  if (countMatch) {
+    const parsed = parseInt(countMatch[1], 10);
+    if (!isNaN(parsed) && parsed > 0 && parsed <= 100) {
+      targetCount = parsed;
+    }
+  }
+
+  return {
+    city,
+    category,
+    targetCount,
+    isExplicit: Boolean(city && category),
+  };
+}
