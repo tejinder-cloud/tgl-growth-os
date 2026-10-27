@@ -317,6 +317,16 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
     await addLabelsToIssue(issueNum, ["approved:yes"]);
   }
 
+  // If this is a prospect research batch, update status of prospects to 'reviewed'
+  if (agent === "prospect-researcher") {
+    try {
+      const { updateProspectStatus } = await import("../agents/prospect-researcher/db.js");
+      await updateProspectStatus({ city: meta.city, category: meta.category }, "reviewed");
+    } catch (err: any) {
+      console.warn("[Prospects Status Update Error on Approve]:", err.message);
+    }
+  }
+
   // 3. Append to decisions/YYYY-MM-DD.md
   const appendRes = await appendFileInRepo(
     `decisions/${dateStr}.md`,
@@ -329,6 +339,13 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
     if (messageTs && config.slackBotToken) {
       try {
         const originalBlocks = payload.message?.blocks || [];
+        const statusNote =
+          agent === "prospect-researcher"
+            ? `✅ *Prospects Approved by ${actor} at ${timeStr} IST*\n_Status updated to \`reviewed\` for outreach handoff. Recorded in \`decisions/${dateStr}.md\`._`
+            : prNum
+            ? `✅ *Approved and Squash-Merged by ${actor} at ${timeStr} IST*\n_Recorded in \`decisions/${dateStr}.md\`._`
+            : `✅ *Approved by ${actor} at ${timeStr} IST*\n_Recorded in \`decisions/${dateStr}.md\`._`;
+
         const updatedBlocks = originalBlocks
           .filter((b: any) => b.block_id !== "card_actions")
           .concat([
@@ -336,9 +353,7 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
               type: "section",
               text: {
                 type: "mrkdwn",
-                text: prNum
-                  ? `✅ *Approved and Squash-Merged by ${actor} at ${timeStr} IST*\n_Recorded in \`decisions/${dateStr}.md\`._`
-                  : `✅ *Approved by ${actor} at ${timeStr} IST*\n_Recorded in \`decisions/${dateStr}.md\`._`,
+                text: statusNote,
               },
             },
           ]);
@@ -444,6 +459,26 @@ async function handleRejectModalOpen(payload: any, action: any): Promise<void> {
           text: "Rejection Reason (Required)",
         },
       },
+      ...(meta.agent === "prospect-researcher"
+        ? [
+            {
+              type: "input",
+              block_id: "signal_block",
+              element: {
+                type: "plain_text_input",
+                action_id: "signal_input",
+                placeholder: {
+                  type: "plain_text",
+                  text: "The signal that should have caught it (e.g. active agency retainer, generic info@ email, franchise branch)...",
+                },
+              },
+              label: {
+                type: "plain_text",
+                text: "Missed Signal (Required)",
+              },
+            },
+          ]
+        : []),
     ],
   };
 
@@ -454,6 +489,7 @@ async function handleRejectSubmission(payload: any): Promise<void> {
   const meta = JSON.parse(payload.view?.private_metadata || "{}");
   const values = payload.view?.state?.values || {};
   const reason = values.reason_block?.reason_input?.value || "No reason specified";
+  const missedSignal = values.signal_block?.signal_input?.value || "";
 
   const actor = await getActorDisplayName(payload.user);
   const agent = meta.agent || "web-builder";
@@ -471,10 +507,21 @@ async function handleRejectSubmission(payload: any): Promise<void> {
 
   const cleanSummary = formatSlackToMarkdown(summary);
   const cleanReason = formatSlackToMarkdown(reason);
+  const cleanSignal = formatSlackToMarkdown(missedSignal);
   const targetLink = formatMarkdownRefLink(targetUrl, prNum || issueNum);
 
+  // If this is a prospect research batch, update status of prospects to 'rejected'
+  if (agent === "prospect-researcher") {
+    try {
+      const { updateProspectStatus } = await import("../agents/prospect-researcher/db.js");
+      await updateProspectStatus({ city: meta.city, category: meta.category }, "rejected");
+    } catch (err: any) {
+      console.warn("[Prospects Status Update Error on Reject]:", err.message);
+    }
+  }
+
   // 1. Append to decisions/YYYY-MM-DD.md using strict markdown link [#N](url)
-  const decisionLine = `- ${timeStr} IST · ${actor} · REJECT · ${agent} · ${cleanSummary} (Reason: ${cleanReason}) · ${targetLink}`;
+  const decisionLine = `- ${timeStr} IST · ${actor} · REJECT · ${agent} · ${cleanSummary} (Reason: ${cleanReason}${cleanSignal ? `; Missed Signal: ${cleanSignal}` : ""}) · ${targetLink}`;
   const decRes = await appendFileInRepo(
     `decisions/${dateStr}.md`,
     decisionLine,
@@ -487,7 +534,7 @@ async function handleRejectSubmission(payload: any): Promise<void> {
 - **Agent:** \`${agent}\`
 - **Reviewer / Actor:** ${actor}
 - **Task / Reference:** ${targetLink}
-- **Reason for Rejection:** ${cleanReason}
+- **Reason for Rejection:** ${cleanReason}${cleanSignal ? `\n- **Signal That Should Have Caught It:** ${cleanSignal}` : ""}
 `;
   const rejRes = await appendFileInRepo(
     `rejections/${dateStr}.md`,
@@ -515,7 +562,7 @@ async function handleRejectSubmission(payload: any): Promise<void> {
   if (decRes.success && rejRes.success) {
     if (messageTs && config.slackBotToken) {
       try {
-        const rejectText = `❌ *Proposal Rejected by ${actor} at ${timeStr} IST*\n*Reason:* ${reason}\n_Recorded in \`rejections/${dateStr}.md\` and \`decisions/${dateStr}.md\`._`;
+        const rejectText = `❌ *Proposal Rejected by ${actor} at ${timeStr} IST*\n*Reason:* ${reason}${missedSignal ? `\n*Missed Signal:* ${missedSignal}` : ""}\n_Recorded in \`rejections/${dateStr}.md\` and \`decisions/${dateStr}.md\`._`;
         await slackClient.chat.postMessage({
           channel,
           thread_ts: messageTs,

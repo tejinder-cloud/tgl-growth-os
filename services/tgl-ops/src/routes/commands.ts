@@ -99,6 +99,51 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // Direct /task @prospect-researcher invocation without pipes
+    if (
+      trimmedText.toLowerCase() === "@prospect-researcher" ||
+      trimmedText.toLowerCase().startsWith("@prospect-researcher run") ||
+      (trimmedText.toLowerCase().startsWith("@prospect-researcher") && !trimmedText.includes("|"))
+    ) {
+      const responseUrl = req.body.response_url;
+      res.status(200).json({
+        response_type: "ephemeral",
+        text: "⏳ Prospect Researcher: Starting autonomous research run for next metro in rotation…",
+      });
+
+      (async () => {
+        try {
+          const { runProspectResearch } = await import("../agents/prospect-researcher/worker.js");
+          const result = await runProspectResearch({ postToSlack: true });
+          const replyText = `✅ Prospect Researcher run complete for *${result.city}* (${result.category}): *${result.qualifiedCount}* qualified prospects sourced. Review card posted to #revenue.`;
+
+          if (responseUrl) {
+            await fetch(responseUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                response_type: "ephemeral",
+                text: replyText,
+              }),
+            });
+          }
+        } catch (err: any) {
+          console.error("[Task @prospect-researcher Error]", err);
+          if (responseUrl) {
+            await fetch(responseUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                response_type: "ephemeral",
+                text: `❌ Error running @prospect-researcher: ${err.message}`,
+              }),
+            });
+          }
+        }
+      })();
+      return;
+    }
+
     const parts = trimmedText.split("|").map((p: string) => p.trim());
     if (parts.length < 3) {
       res.json({
@@ -258,25 +303,32 @@ ${matchedAgent.reviewer}
           title: titleSnippet,
         });
 
-        // Trigger autonomous issue runner if agent has autorun: true (web-builder)
+        // Trigger autonomous issue runner if agent has autorun: true
         if (matchedAgent.autorun === true) {
-          const { addLabelsToIssue } = await import("../lib/github-client.js");
-          await addLabelsToIssue(issue.number, ["status:in-progress"]);
+          if (matchedAgent.name === "prospect-researcher") {
+            const { runProspectResearch } = await import("../agents/prospect-researcher/worker.js");
+            runProspectResearch({ postToSlack: true }).catch((err) => {
+              console.error("[Prospect Researcher Trigger Error]:", err);
+            });
+          } else {
+            const { addLabelsToIssue } = await import("../lib/github-client.js");
+            await addLabelsToIssue(issue.number, ["status:in-progress"]);
 
-          const { runIssueTask } = await import("../runner/index.js");
-          runIssueTask({
-            number: issue.number,
-            title: `[TASK]: ${titleSnippet}`,
-            body: issueBody,
-            labels: [`for:${matchedAgent.name}`, `door:${matchedDoor}`, "type:build", "status:in-progress"],
-            html_url: issue.html_url,
-            agentName: matchedAgent.name,
-            door: matchedDoor,
-            slackChannel: targetChannel,
-            slackThreadTs: cardTs,
-          }).catch((err) => {
-            console.error(`[Runner Trigger Error on Task #${issue.number}]:`, err);
-          });
+            const { runIssueTask } = await import("../runner/index.js");
+            runIssueTask({
+              number: issue.number,
+              title: `[TASK]: ${titleSnippet}`,
+              body: issueBody,
+              labels: [`for:${matchedAgent.name}`, `door:${matchedDoor}`, "type:build", "status:in-progress"],
+              html_url: issue.html_url,
+              agentName: matchedAgent.name,
+              door: matchedDoor,
+              slackChannel: targetChannel,
+              slackThreadTs: cardTs,
+            }).catch((err) => {
+              console.error(`[Runner Trigger Error on Task #${issue.number}]:`, err);
+            });
+          }
         }
 
         const confirmationText = `✅ Task created: <${issue.html_url}|#${issue.number} ${titleSnippet}>\nPosted to ${targetChannel} for @${matchedAgent.name}.${matchedAgent.autorun ? "\n_Autonomous runner triggered._" : ""}`;
