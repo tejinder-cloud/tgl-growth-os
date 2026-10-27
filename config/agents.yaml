@@ -13,7 +13,8 @@
   channel: "#revenue"
   trigger: "Weekly list manufacture schedule, mention @prospect-researcher"
   reviewer: "Sales Desk"
-  status: planned
+  status: active
+  autorun: true
 
 - name: outreach-sequencer
   department: revenue
