@@ -1,7 +1,7 @@
 {
   "date": "2026-10-28",
-  "posted": false,
-  "standupTs": "1793104200.779189",
+  "posted": true,
+  "standupTs": "1793190601.236499",
   "channel": "C0ASF13879Q",
   "compiledAt": "2026-10-28T12:20:13.525Z",
   "digestText": "*📊 The Growth Lab — Daily Standup Digest | 2026-10-28 17:50 IST*\n──────────────────────────────────────────\n*🚪 Product Doors:*\n• *AEO:* no data yet | *AI:* no data yet | *TrueLead:* no data yet | *Core:* operational\n\n*🚨 Blockers (Ranked):*\n• _None reported today._\n\n*⏳ Approvals Pending:*\n• *[TASK]: Make the site faster* (@web-builder, 47h) — <https://itsthegrowthlab.slack.com/archives/C0BATS9F99B/p1793022401273409|View card>\n\n*📋 Agent Reports:*\n• _No agent logs recorded today._\n\n_Active agents: reply in-thread with your 4 lines: Did · Blocked · Need · Tomorrow._",
@@ -12,5 +12,7 @@
     "totalCostUsd": 0.0199,
     "costLine": "Standup compilation: 1364 input, 1051 output (claude-sonnet-5-5) · Cost: $0.0199 USD"
   },
-  "source": "cron"
+  "source": "cron",
+  "postedAt": "2026-10-28T12:30:01.641Z",
+  "threadPromptTs": "1793190601.545579"
 }
