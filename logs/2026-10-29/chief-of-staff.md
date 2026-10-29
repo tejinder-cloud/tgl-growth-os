@@ -30,3 +30,4 @@
 - 18:38 IST — Intake classification [report]: 530 input, 73 output · Cost: $0.0027
 - 18:38 IST — Intake classification [report]: 530 input, 73 output · Cost: $0.0027
 - 18:38 IST — Intake classification [ambiguous]: 537 input, 125 output · Cost: $0.0035
+- 18:38 IST — Intake classification [question]: 546 input, 343 output · Cost: $0.0068
