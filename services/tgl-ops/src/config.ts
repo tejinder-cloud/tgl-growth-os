@@ -56,7 +56,7 @@ export const config: AppConfig = {
   standupChannelId: (process.env.STANDUP_CHANNEL_ID || "#standup").trim(),
   alertsChannelId: (process.env.ALERTS_CHANNEL_ID || "#alerts").trim(),
   opsChannelId: (process.env.OPS_CHANNEL_ID || "#ops").trim(),
-  architectChannelId: (process.env.ARCHITECT_CHANNEL_ID || "#architect").trim(),
+  architectChannelId: (process.env.ARCHITECT_CHANNEL_ID || "").trim(),
   timezone: (process.env.TIMEZONE || "Asia/Kolkata").trim(),
   repoRoot: REPO_ROOT,
 };
@@ -104,5 +104,9 @@ export function validateConfig(): void {
     if (isTestMode()) {
       console.warn("[TGL Ops WARNING] Running in test mode with mocks.");
     }
+  }
+
+  if (!config.architectChannelId) {
+    console.warn("[Boot] ARCHITECT_CHANNEL_ID is not configured — Chief of Staff #architect intake is disabled.");
   }
 }

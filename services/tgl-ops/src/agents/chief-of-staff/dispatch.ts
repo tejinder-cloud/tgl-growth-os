@@ -243,34 +243,38 @@ ${entry.depends_on.join(", ") || "None"}
   if (activeEntriesWithHour.length > 0) {
     const architectChannel = isTest
       ? (config.opsChannelId || "#ops")
-      : (config.architectChannelId || "#architect");
+      : config.architectChannelId;
 
-    const hourSummaryLines = activeEntriesWithHour
-      .map((e) => `• *Day ${e.day} (@${e.agent}):* ${e.architect_hour}`)
-      .join("\n");
+    if (!architectChannel) {
+      console.warn("[Plan Dispatch] ARCHITECT_CHANNEL_ID not configured; skipping morning architect hour card.");
+    } else {
+      const hourSummaryLines = activeEntriesWithHour
+        .map((e) => `• *Day ${e.day} (@${e.agent}):* ${e.architect_hour}`)
+        .join("\n");
 
-    const carriedNotice =
-      carriedForwardEntries.length > 0
-        ? `\n\n_Note: ${carriedForwardEntries.length} tasks carried forward: ${carriedForwardEntries.map((c) => `Day ${c.day}`).join(", ")}._`
-        : "";
+      const carriedNotice =
+        carriedForwardEntries.length > 0
+          ? `\n\n_Note: ${carriedForwardEntries.length} tasks carried forward: ${carriedForwardEntries.map((c) => `Day ${c.day}`).join(", ")}._`
+          : "";
 
-    const cardRes = await postCard({
-      channel: architectChannel,
-      agent: "chief-of-staff",
-      door: "core",
-      title: `Your hour today (${dateStr})`,
-      summary: `*Your hour today:*\n${hourSummaryLines}${carriedNotice}`,
-      links: [
-        { label: "PROJECT-PLAN.md", url: `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/PROJECT-PLAN.md` },
-        { label: "config/plan.yaml", url: `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/config/plan.yaml` },
-      ],
-      actions: ["discuss"],
-    }).catch((err) => {
-      console.warn("[Architect Hour Card Warning]", err);
-      return { ok: false, ts: undefined };
-    });
+      const cardRes = await postCard({
+        channel: architectChannel,
+        agent: "chief-of-staff",
+        door: "core",
+        title: `Your hour today (${dateStr})`,
+        summary: `*Your hour today:*\n${hourSummaryLines}${carriedNotice}`,
+        links: [
+          { label: "PROJECT-PLAN.md", url: `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/PROJECT-PLAN.md` },
+          { label: "config/plan.yaml", url: `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/config/plan.yaml` },
+        ],
+        actions: ["discuss"],
+      }).catch((err) => {
+        console.warn("[Architect Hour Card Warning]", err);
+        return { ok: false, ts: undefined };
+      });
 
-    architectCardTs = cardRes?.ts;
+      architectCardTs = cardRes?.ts;
+    }
   }
 
   console.log(`[Plan Dispatch Complete] Dispatched: ${dispatchedEntries.length} | Skipped: ${skippedCount} | Carried Forward: ${carriedForwardEntries.length}`);

@@ -16,7 +16,7 @@ import { isProtectedPath } from "./runner/tools.js";
 import { verifyCiChecks } from "./runner/runner.js";
 import { getAgentCostCap, checkAgentCostCap, getAgentsCostStatusForStandup } from "./lib/cost-cap.js";
 import { createProposalIssue } from "./lib/proposal.js";
-import { classifyArchitectMessage, compileArchitectReport } from "./agents/chief-of-staff/intake.js";
+import { classifyArchitectMessage, compileArchitectReport, pollChiefOfStaffIntake, resetImFailureLoggedForTests } from "./agents/chief-of-staff/intake.js";
 import { gatherStandupMaterial, formatGatheredText } from "./agents/chief-of-staff/gather.js";
 import { synthesizeStandupDigest } from "./agents/chief-of-staff/anthropic.js";
 
@@ -314,6 +314,13 @@ async function runTaskP07VerificationSuite(): Promise<void> {
   const reportText = await compileArchitectReport({ testMode: true });
   if (!reportText.includes("Total LLM Spend Today") || !reportText.includes("Plan Entries Active")) {
     throw new Error(`Test 7.5 Failed: Report text missing required metrics: ${reportText}`);
+  }
+
+  // 6. Test pollChiefOfStaffIntake resilience
+  resetImFailureLoggedForTests();
+  const intakeRun1 = await pollChiefOfStaffIntake({ testMode: true });
+  if (typeof intakeRun1.polledCount !== "number" || typeof intakeRun1.processedCount !== "number") {
+    throw new Error(`Test 7.6 Failed: Invalid intake result: ${JSON.stringify(intakeRun1)}`);
   }
 
   console.log(`  ✓ Task classifier: "Build new dental block" → category="task", agent="web-builder"`);

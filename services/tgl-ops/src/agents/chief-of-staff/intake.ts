@@ -186,6 +186,12 @@ export async function compileArchitectReport(options?: { testMode?: boolean }): 
 _All figures verified from Supabase, logs/, and runtime ledger._`;
 }
 
+let hasLoggedImFailure = false;
+
+export function resetImFailureLoggedForTests(): void {
+  hasLoggedImFailure = false;
+}
+
 /**
  * Polls #architect channel and direct bot DMs for Architect messages.
  * Classifies and dispatches each message.
@@ -208,7 +214,10 @@ export async function pollChiefOfStaffIntake(options?: { testMode?: boolean }): 
   const state = loadIntakeState(dateStr, isTest);
   const channelsToPoll: string[] = [];
 
-  if (config.architectChannelId) {
+  // Read channel strictly from ARCHITECT_CHANNEL_ID, never by channel name (e.g. #architect)
+  if (config.architectChannelId && !config.architectChannelId.startsWith("#")) {
+    channelsToPoll.push(config.architectChannelId);
+  } else if (isTest && config.architectChannelId) {
     channelsToPoll.push(config.architectChannelId);
   }
 
@@ -224,8 +233,15 @@ export async function pollChiefOfStaffIntake(options?: { testMode?: boolean }): 
         }
       }
     } catch (err: any) {
-      console.warn("[Intake] Error listing IM channels:", err.message);
+      if (!hasLoggedImFailure) {
+        console.warn(`[Intake] IM access unavailable (${err.message}) — polling #architect channel only.`);
+        hasLoggedImFailure = true;
+      }
     }
+  }
+
+  if (channelsToPoll.length === 0) {
+    return { polledCount: 0, processedCount: 0 };
   }
 
   let polledCount = 0;
@@ -241,7 +257,15 @@ export async function pollChiefOfStaffIntake(options?: { testMode?: boolean }): 
         });
         messages = history.messages || [];
       } catch (err: any) {
-        console.warn(`[Intake] Error reading channel ${channel}:`, err.message);
+        if (channel === config.architectChannelId) {
+          console.warn(`[Intake] Error reading architect channel ${channel}:`, err.message);
+        } else {
+          if (!hasLoggedImFailure) {
+            console.warn(`[Intake] Error reading IM channel ${channel} (${err.message}) — continuing with #architect channel only.`);
+            hasLoggedImFailure = true;
+          }
+        }
+        continue; // Never fail the whole intake because DMs or an individual channel are unavailable
       }
     }
 
