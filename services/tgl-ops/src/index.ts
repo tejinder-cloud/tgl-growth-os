@@ -190,6 +190,11 @@ app.listen(config.port, () => {
   console.log(`📦 GitHub Repo: ${config.githubOwner}/${config.githubRepo}`);
   console.log(`💬 Slack Approvals Channel: ${config.approvalsChannelId}`);
   console.log(`💬 Slack Standup Channel: ${config.standupChannelId}`);
+  if (config.architectChannelId) {
+    console.log(`💬 Slack Architect Channel: ${config.architectChannelId}`);
+  } else {
+    console.warn(`⚠️  Slack Architect Channel: ARCHITECT_CHANNEL_ID not set — intake will not poll #architect`);
+  }
   console.log(`=======================================================`);
 });
 
