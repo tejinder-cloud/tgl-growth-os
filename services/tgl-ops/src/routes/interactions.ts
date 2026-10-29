@@ -301,8 +301,28 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
     }
   }
 
+  // 1b. If this is a proposal approval, convert it to a plan entry
+  let proposalPlanEntry: any = null;
+  if (meta.type === "proposal") {
+    try {
+      const { addProposalToPlan } = await import("../lib/plan.js");
+      proposalPlanEntry = await addProposalToPlan({
+        title: meta.title || cleanSummary,
+        brief: meta.brief || cleanSummary,
+        agent,
+        door: meta.door || "core",
+        architect_hour: meta.architect_hour || `Review deliverable: ${meta.title || cleanSummary}`,
+      });
+      console.log(`[Action Approve] Converted proposal to Plan Day ${proposalPlanEntry.day} (${proposalPlanEntry.date})`);
+    } catch (err: any) {
+      console.error("[Action Approve] Failed to convert proposal to plan:", err.message);
+    }
+  }
+
   // 2. PR merge succeeded (or not a PR)
-  const decisionLine = `- ${timeStr} IST · ${actor} · APPROVE · ${agent} · ${cleanSummary} · ${targetLink}`;
+  const decisionLine = proposalPlanEntry
+    ? `- ${timeStr} IST · ${actor} · APPROVE · ${agent} · Proposal converted to Plan Day ${proposalPlanEntry.day} (${proposalPlanEntry.date}): ${cleanSummary} · ${targetLink}`
+    : `- ${timeStr} IST · ${actor} · APPROVE · ${agent} · ${cleanSummary} · ${targetLink}`;
 
   if (linkedIssueNum) {
     await closeIssue(
@@ -314,7 +334,13 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
     await removeLabelFromIssue(linkedIssueNum, "status:in-progress");
     await addLabelsToIssue(linkedIssueNum, ["approved:yes", "status:completed"]);
   } else if (issueNum) {
-    await addLabelsToIssue(issueNum, ["approved:yes"]);
+    if (meta.type === "proposal") {
+      await closeIssue(issueNum, `Closed upon Architect approval by ${actor}. Scheduled for Plan Day ${proposalPlanEntry?.day || "scheduled"}.`);
+      await removeLabelFromIssue(issueNum, "status:in-progress");
+      await addLabelsToIssue(issueNum, ["approved:yes", "status:approved", "plan:scheduled"]);
+    } else {
+      await addLabelsToIssue(issueNum, ["approved:yes"]);
+    }
   }
 
   // If this is a prospect research batch, update status of prospects to 'reviewed'
@@ -340,7 +366,9 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
       try {
         const originalBlocks = payload.message?.blocks || [];
         const statusNote =
-          agent === "prospect-researcher"
+          proposalPlanEntry
+            ? `✅ *Proposal Approved by ${actor} at ${timeStr} IST*\nConverted to Plan Day ${proposalPlanEntry.day} (${proposalPlanEntry.date}). Recorded in \`decisions/${dateStr}.md\`.`
+            : agent === "prospect-researcher"
             ? `✅ *Prospects Approved by ${actor} at ${timeStr} IST*\n_Status updated to \`reviewed\` for outreach handoff. Recorded in \`decisions/${dateStr}.md\`._`
             : prNum
             ? `✅ *Approved and Squash-Merged by ${actor} at ${timeStr} IST*\n_Recorded in \`decisions/${dateStr}.md\`._`

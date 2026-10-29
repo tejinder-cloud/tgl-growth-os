@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    name: Build & Test Suites
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: services/tgl-ops/package-lock.json
+
+      - name: Install dependencies
+        run: npm --prefix services/tgl-ops ci
+
+      - name: Build TypeScript (tsc)
+        run: npm --prefix services/tgl-ops run build
+
+      - name: Run test suite
+        run: npm --prefix services/tgl-ops test
+        env:
+          TGL_TEST_MODE: "1"
+          NODE_ENV: "test"
+          ANTHROPIC_MODEL: "claude-sonnet-4-5"
+          ANTHROPIC_PRICE_IN: "3.00"
+          ANTHROPIC_PRICE_OUT: "15.00"
+

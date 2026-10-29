@@ -4,17 +4,57 @@
 - name: chief-of-staff
   department: office-of-the-architect
   channel: "#standup"
-  trigger: "Daily 17:50 IST compilation, Monday 07:00 scorecard, mention @chief-of-staff"
+  trigger: "Daily 09:00 plan dispatch, 17:50 IST compilation, 18:00 broadcast, 18:15 silence check, Monday 09:00 scorecard, mention @chief-of-staff"
   reviewer: "Architect"
   status: active
+  daily_cost_cap_usd: 0.50
+  routines:
+    - name: daily_plan_dispatch
+      frequency: daily
+      schedule: "0 9 * * 1-5"
+      description: "09:00 IST Morning plan dispatch from config/plan.yaml"
+    - name: daily_standup_gather
+      frequency: daily
+      schedule: "50 17 * * *"
+      description: "17:50 IST operational material gather & Anthropic synthesis"
+    - name: daily_standup_broadcast
+      frequency: daily
+      schedule: "0 18 * * *"
+      description: "18:00 IST broadcast digest to #standup & initiate thread"
+    - name: daily_silence_check
+      frequency: daily
+      schedule: "15 18 * * *"
+      description: "18:15 IST silence audit on active reporting agents"
+    - name: monday_scorecard
+      frequency: weekly
+      schedule: "0 9 * * 1"
+      description: "Monday 09:00 IST cross-door scorecard to #architect"
+    - name: architect_intake_poll
+      frequency: continuous
+      schedule: "*/2 * * * *"
+      description: "Poll #architect and bot DMs every 2 minutes for tasks, reports, questions, and decisions"
 
 - name: prospect-researcher
   department: revenue
   channel: "#revenue"
-  trigger: "Weekly list manufacture schedule, mention @prospect-researcher"
+  trigger: "Daily 09:30 IST autonomous research batch, Friday 17:00 CSV export, mention @prospect-researcher"
   reviewer: "Sales Desk"
   status: active
   autorun: true
+  daily_cost_cap_usd: 2.00
+  routines:
+    - name: daily_research_run
+      frequency: daily
+      schedule: "30 9 * * 1-5"
+      description: "Sourcing & qualifying 20 prospects for next metro in rotation"
+    - name: weekly_csv_export
+      frequency: weekly
+      schedule: "0 17 * * 5"
+      description: "Friday 17:00 IST full weekly prospect CSV export to #revenue"
+    - name: monday_pipeline_rescore
+      frequency: weekly
+      schedule: "0 8 * * 1"
+      description: "Monday 08:00 IST pipeline hygiene re-scoring"
 
 - name: outreach-sequencer
   department: revenue
@@ -22,6 +62,12 @@
   trigger: "New qualified prospects from Supabase, mention @outreach-sequencer"
   reviewer: "Sales Desk"
   status: planned
+  daily_cost_cap_usd: 1.00
+  routines:
+    - name: daily_outreach_dispatch
+      frequency: daily
+      schedule: "0 10 * * 1-5"
+      description: "Dispatch 25 personalized outbound sequence touches"
 
 - name: sales-desk
   department: revenue
@@ -29,6 +75,12 @@
   trigger: "Inbound replies, calendar bookings, mention @sales-desk"
   reviewer: "Chief of Staff"
   status: planned
+  daily_cost_cap_usd: 1.00
+  routines:
+    - name: daily_calendar_dossier_prep
+      frequency: daily
+      schedule: "0 8 * * 1-5"
+      description: "Compile prospect dossiers 4h before calls"
 
 - name: aeo-audit-engine
   department: doors-aeo
@@ -36,6 +88,12 @@
   trigger: "Audit form submission, mention @aeo-audit-engine"
   reviewer: "Delivery QA"
   status: planned
+  daily_cost_cap_usd: 1.00
+  routines:
+    - name: daily_citation_tracking
+      frequency: daily
+      schedule: "0 6 * * *"
+      description: "Daily automated citation tracking runs per active brand"
 
 - name: aeo-strategist
   department: aeo-delivery
@@ -43,6 +101,12 @@
   trigger: "Start managed AEO trigger, monthly review cycle, mention @aeo-strategist"
   reviewer: "Creative Director"
   status: planned
+  daily_cost_cap_usd: 1.00
+  routines:
+    - name: monthly_competitor_refresh
+      frequency: monthly
+      schedule: "0 9 1 * *"
+      description: "Monthly citing sources competitor gap refresh"
 
 - name: content-writer
   department: marketing
@@ -50,6 +114,12 @@
   trigger: "Weekly editorial calendar, mention @content-writer"
   reviewer: "Creative Director"
   status: planned
+  daily_cost_cap_usd: 1.00
+  routines:
+    - name: weekly_editorial_batch
+      frequency: weekly
+      schedule: "0 10 * * 2,4"
+      description: "Produce 4 posts a week (2 AEO) on Tuesday and Thursday"
 
 - name: repurposer-publisher
   department: marketing
@@ -57,6 +127,12 @@
   trigger: "Approved blog post from Editor, mention @repurposer-publisher"
   reviewer: "Creative Director"
   status: planned
+  daily_cost_cap_usd: 1.00
+  routines:
+    - name: daily_social_queue_sweep
+      frequency: daily
+      schedule: "30 11 * * 1-5"
+      description: "Schedule derivative snippets into Buffer"
 
 - name: web-builder
   department: marketing
@@ -65,6 +141,20 @@
   reviewer: "Creative Director"
   status: active
   autorun: true
+  daily_cost_cap_usd: 3.00
+  routines:
+    - name: daily_plan_issue
+      frequency: daily
+      schedule: "0 9 * * 1-5"
+      description: "Pick up and execute daily plan issue from 09:00 dispatch"
+    - name: weekly_lighthouse_sweep
+      frequency: weekly
+      schedule: "0 8 * * 1"
+      description: "Weekly Lighthouse + link sweep of thegrowthlab.co.in with proposal card if score < 90"
+    - name: monthly_dependency_pr
+      frequency: monthly
+      schedule: "0 9 1 * *"
+      description: "Monthly dependency sweep & security update PR"
 
 - name: creative-director
   department: marketing
@@ -72,6 +162,16 @@
   trigger: "Review requests from Web Builder/Content Writer, mention @creative-director"
   reviewer: "Architect"
   status: planned
+  daily_cost_cap_usd: 1.00
+  routines:
+    - name: daily_pr_review
+      frequency: daily
+      schedule: "0 16 * * 1-5"
+      description: "Review pending PRs and visual assets before deploy"
+    - name: weekly_brand_audit
+      frequency: weekly
+      schedule: "0 10 * * 3"
+      description: "Wednesday brand token, typography, and paper-and-ink alignment audit"
 
 - name: video-team
   department: marketing
@@ -79,6 +179,12 @@
   trigger: "Issue labeled for:video-team, mention @video-team"
   reviewer: "Creative Director"
   status: planned
+  daily_cost_cap_usd: 1.00
+  routines:
+    - name: weekly_video_render_check
+      frequency: weekly
+      schedule: "0 12 * * 5"
+      description: "Check Remotion asset renders and pipeline"
 
 - name: finance
   department: finance
@@ -86,6 +192,12 @@
   trigger: "Deal won event, monthly close cycle (3rd), mention @finance"
   reviewer: "Architect"
   status: planned
+  daily_cost_cap_usd: 1.00
+  routines:
+    - name: monthly_close
+      frequency: monthly
+      schedule: "0 9 3 * *"
+      description: "Monthly close pack, cash-reserve tracker, cost-per-brand audit"
 
 - name: people-ops
   department: people
@@ -93,3 +205,9 @@
   trigger: "Monthly review cycle (14th), new agent onboarding, mention @people-ops"
   reviewer: "Chief of Staff"
   status: planned
+  daily_cost_cap_usd: 1.00
+  routines:
+    - name: monthly_skill_audit
+      frequency: monthly
+      schedule: "0 9 14 * *"
+      description: "Monthly audit of all agent skill files against standard"

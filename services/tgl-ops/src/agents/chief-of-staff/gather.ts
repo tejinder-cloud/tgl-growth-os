@@ -5,6 +5,8 @@ import { octokit } from "../../lib/github-client.js";
 import { slackClient } from "../../lib/slack-client.js";
 import { loadDoorConfig } from "../../lib/agents.js";
 import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
+import { getAgentsCostStatusForStandup, type AgentCostCapInfo } from "../../lib/cost-cap.js";
+import { loadPlanEntries } from "../../lib/plan.js";
 
 export interface LogEntry {
   agent: string;
@@ -36,6 +38,21 @@ export interface OpenPR {
   ageDays: number;
 }
 
+export interface OpenProposal {
+  number: number;
+  title: string;
+  agent: string;
+  body: string;
+  url: string;
+}
+
+export interface CarriedForwardPlanEntry {
+  day: number;
+  date: string;
+  agent: string;
+  title: string;
+}
+
 export interface GatheredData {
   date: string;
   compileTime?: string;
@@ -44,6 +61,9 @@ export interface GatheredData {
   inProgressIssues: InProgressIssue[];
   openPrs: OpenPR[];
   doors: { name: string; scorecardLines: string[] }[];
+  openProposals: OpenProposal[];
+  agentCostStatuses: AgentCostCapInfo[];
+  carriedForwardPlanEntries: CarriedForwardPlanEntry[];
   rawSummaryText: string;
 }
 
@@ -300,7 +320,70 @@ export async function gatherStandupMaterial(
     }
   }
 
-  // 7. Format raw material string for LLM user prompt
+  // 7. Gather open proposals (issues labelled type:proposal)
+  const openProposals: OpenProposal[] = [];
+  if (config.githubToken) {
+    try {
+      const propRes = await octokit.issues.listForRepo({
+        owner: config.githubOwner,
+        repo: config.githubRepo,
+        labels: "type:proposal",
+        state: "open",
+        per_page: 30,
+      });
+
+      for (const p of propRes.data) {
+        if (p.pull_request) continue;
+        const forLabel = p.labels.find((l) => typeof l !== "string" && l.name?.startsWith("for:"));
+        const agent = typeof forLabel !== "string" && forLabel?.name ? forLabel.name.replace(/^for:/, "") : "unknown";
+        openProposals.push({
+          number: p.number,
+          title: p.title,
+          agent,
+          body: p.body || "",
+          url: p.html_url,
+        });
+      }
+    } catch (err: any) {
+      console.warn("[Gather] Error listing open proposals:", err.message);
+    }
+  }
+
+  // 8. Gather agent cost caps & spend statuses
+  let agentCostStatuses: AgentCostCapInfo[] = [];
+  try {
+    agentCostStatuses = await getAgentsCostStatusForStandup({ testMode: isTest });
+  } catch (err: any) {
+    console.warn("[Gather] Error fetching agent cost statuses:", err.message);
+  }
+
+  // 9. Gather carried forward plan entries (entries up to date whose issues are in-progress)
+  const carriedForwardPlanEntries: CarriedForwardPlanEntry[] = [];
+  try {
+    const allEntries = await loadPlanEntries({ testMode: isTest });
+    for (const entry of allEntries) {
+      if (entry.date <= date) {
+        const matchingInProgress = inProgressIssues.some(
+          (iss) =>
+            iss.agent === entry.agent &&
+            (iss.title.toLowerCase().includes(entry.title.toLowerCase().slice(0, 20)) ||
+              entry.title.toLowerCase().includes(iss.title.toLowerCase().slice(0, 20)))
+        );
+        if (matchingInProgress) {
+          carriedForwardPlanEntries.push({
+            day: entry.day,
+            date: entry.date,
+            agent: entry.agent,
+            title: entry.title,
+          });
+        }
+      }
+    }
+  } catch (err: any) {
+    console.warn("[Gather] Error checking carried forward entries:", err.message);
+  }
+
+  // 10. Format raw material string for LLM user prompt
   const rawSummaryText = formatGatheredText({
     date,
     compileTime,
@@ -309,6 +392,9 @@ export async function gatherStandupMaterial(
     inProgressIssues,
     openPrs,
     doors,
+    openProposals,
+    agentCostStatuses,
+    carriedForwardPlanEntries,
   });
 
   return {
@@ -319,11 +405,14 @@ export async function gatherStandupMaterial(
     inProgressIssues,
     openPrs,
     doors,
+    openProposals,
+    agentCostStatuses,
+    carriedForwardPlanEntries,
     rawSummaryText,
   };
 }
 
-function formatGatheredText(data: Omit<GatheredData, "rawSummaryText">): string {
+export function formatGatheredText(data: Omit<GatheredData, "rawSummaryText">): string {
   const parts: string[] = [];
   parts.push(`OPERATIONAL LOGS & STATUS FOR DATE: ${data.date} (${data.compileTime || "18:00"} IST)`);
   parts.push("=================================================");
@@ -373,6 +462,37 @@ function formatGatheredText(data: Omit<GatheredData, "rawSummaryText">): string 
   parts.push("\n### 5. DOORS TRACKED:");
   for (const d of data.doors) {
     parts.push(`- Door: ${d.name} | Metrics: ${d.scorecardLines.join(", ")}`);
+  }
+
+  // 6. Open Proposals
+  parts.push("\n### 6. OPEN PROPOSALS (`type:proposal`):");
+  if (data.openProposals.length === 0) {
+    parts.push("None open.");
+  } else {
+    for (const p of data.openProposals) {
+      parts.push(`- #${p.number} "${p.title}" by @${p.agent} · ${p.url}`);
+    }
+  }
+
+  // 7. Agent Spend & Cost Caps
+  parts.push("\n### 7. AGENT SPEND & DAILY COST CAPS:");
+  if (data.agentCostStatuses.length === 0) {
+    parts.push("All agents within normal limits.");
+  } else {
+    for (const s of data.agentCostStatuses) {
+      const flag = s.isOver80Percent ? " ⚠️ OVER 80% DAILY CAP" : "";
+      parts.push(`- @${s.agent}: $${s.currentSpendUsd.toFixed(2)} / $${s.capUsd.toFixed(2)} (${Math.round(s.percentage)}%)${flag}`);
+    }
+  }
+
+  // 8. Carried Forward Plan Entries
+  parts.push("\n### 8. UNFINISHED PLAN ENTRIES CARRIED FORWARD:");
+  if (data.carriedForwardPlanEntries.length === 0) {
+    parts.push("None carried forward.");
+  } else {
+    for (const c of data.carriedForwardPlanEntries) {
+      parts.push(`- Day ${c.day} (@${c.agent}): "${c.title}"`);
+    }
   }
 
   return parts.join("\n");

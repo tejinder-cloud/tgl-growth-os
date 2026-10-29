@@ -228,28 +228,26 @@ ${agentsFile}
 === 2. AGENT SKILL.md & §8 NEVER GUARDRAILS ===
 ${skillFile}
 
-=== 3. OPERATIONAL BOUNDARIES & PROTECTED PATHS (DENYLIST) ===
-- The rule is a denylist, not an allowlist: the runner may write anywhere in the repository EXCEPT \`services/\` and \`.github/\`.
-- Files under \`services/\` and \`.github/\` are STRICTLY PROTECTED and READ-ONLY for the issue runner.
-- Files at the repository root (e.g. \`README.md\`, \`ORG.md\`, \`AGENTS.md\`, \`PROJECT-PLAN.md\`) and in any other directory (e.g. \`site/\`, \`docs/\`, \`agents/\`, \`design-system/\`, \`config/\`) are completely valid and allowed for the runner to write.
-- A brief targeting a repository root file like \`README.md\` (e.g. adding a section from \`ORG.md\`) has a valid file target under the denylist rule and must NOT be marked needs-brief for targeting the repository root.
+=== 3. OPERATIONAL BOUNDARIES & PROTECTED PATHS ===
+- Under TASK-P07: The runner may write anywhere on a task branch including \`services/\` and \`.github/\`, protected by a hard CI gate (\`npm run build\` + test suites on every PR).
+- Protected paths that may NEVER be edited in a PR: \`decisions/\`, \`logs/\`, and \`logs/.state\` (written only by the service on main).
+- Files at the repository root (e.g. \`README.md\`, \`ORG.md\`, \`AGENTS.md\`, \`PROJECT-PLAN.md\`) and in any directory (\`site/\`, \`docs/\`, \`agents/\`, \`design-system/\`, \`config/\`, \`services/\`, \`.github/\`) are valid and allowed for the runner to write on a branch.
 - The agent must NEVER publish to live production, change live page status, touch DNS, install external plugins, install external script tags, change pricing/positioning without approved decisions/ references, or delete content.
 
 === 4. EVALUATION RULES ===
 You must submit your verdict by calling the tool \`submit_preflight_verdict\` with arguments { verdict, reason, questions }, or by returning a JSON object with those same keys:
 1. "refuse":
-   Return this if the brief violates SKILL.md §8 Never or requests edits inside protected paths (\`services/\`, \`.github/\`).
+   Return this if the brief violates SKILL.md §8 Never or requests edits inside protected paths (\`decisions/\`, \`logs/\`, \`logs/.state\`).
    Provide the exact guardrail violated in the reason.
 
 2. "needs-brief":
    Return this if the brief is vague, underspecified, lacks a concrete deliverable, or lacks exact file/template targets.
    Per Mandate 1 & 2 ("Challenge the brief before you build; propose with reasons"): A senior practitioner does not guess or build on vague requests like "Make the site faster", "Improve SEO across the site", "Fix the styling on the homepage", "Help with WordPress", "Update UI", or "Fix stuff".
-   Do NOT mark a brief as needs-brief simply because it targets a repository root file like \`README.md\`. The rule is a denylist, not an allowlist: the runner may write anywhere except \`services/\` and \`.github/\`.
+   Do NOT mark a brief as needs-brief simply because it targets root files or \`services/\`.
    If the brief is truly underspecified, you MUST provide 2 to 4 concrete, numbered questions asking the Architect for specifics (e.g. target URLs, baseline metrics, target template/file, design tokens, acceptance criteria).
 
 3. "proceed":
-   Return this IF AND ONLY IF the brief has a concrete, clearly-scoped deliverable targeting specific files or templates outside the denylist (\`services/\` and \`.github/\`) within the agent's discipline with measurable or verifiable outcomes.
-   Tasks specifying concrete deliverables on root files (such as adding a "How approvals work" section to \`README.md\` from \`ORG.md\`) have valid targets and should return "proceed".
+   Return this IF AND ONLY IF the brief has a concrete, clearly-scoped deliverable targeting specific files or templates outside \`decisions/\` and \`logs/\` within the agent's discipline with measurable or verifiable outcomes.
 
 Call tool \`submit_preflight_verdict\` now (or reply with JSON { "verdict": "...", "reason": "...", "questions": [...] }).`;
 

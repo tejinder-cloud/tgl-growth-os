@@ -24,6 +24,8 @@ import {
   pollStandupReplies,
   checkAndRunStartupCatchup,
 } from "./agents/chief-of-staff/worker.js";
+import { execute0900PlanDispatch } from "./agents/chief-of-staff/dispatch.js";
+import { pollChiefOfStaffIntake } from "./agents/chief-of-staff/intake.js";
 
 import {
   setupProcessErrorHandlers,
@@ -35,6 +37,24 @@ import {
 setupProcessErrorHandlers();
 
 // Scheduled Chief of Staff Jobs (node-cron configured for Asia/Kolkata)
+// Mon–Fri 09:00 IST: Daily Plan Dispatch & Morning Architect Hour Card
+cron.schedule(
+  "0 9 * * 1-5",
+  wrapCronJob("09:00 IST Plan Dispatch", async () => {
+    await execute0900PlanDispatch();
+  }),
+  { timezone: config.timezone }
+);
+
+// Every 2 minutes: Chief of Staff Architect Intake Polling (#architect & DMs)
+cron.schedule(
+  "*/2 * * * *",
+  wrapCronJob("CoS Architect Intake Polling", async () => {
+    await pollChiefOfStaffIntake();
+  }),
+  { timezone: config.timezone }
+);
+
 // 17:50 IST: Gather operational material & Anthropic synthesis
 cron.schedule(
   "50 17 * * *",

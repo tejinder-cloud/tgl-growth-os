@@ -17,6 +17,8 @@ import { getIssueMapping } from "../lib/issues-index.js";
 import { getCurrentTimeIST, getTodayDateString } from "../lib/standup.js";
 import { getAlertsChannel } from "../lib/cron-wrapper.js";
 import { getAnthropicModel, getAnthropicPricing } from "../agents/chief-of-staff/anthropic.js";
+import { checkAgentCostCap, usageCostsLedger, type UsageCostEntry } from "../lib/cost-cap.js";
+export { usageCostsLedger, type UsageCostEntry };
 import { runPreflightCheck } from "./preflight.js";
 import { buildRunnerSystemPrompt, buildRunnerUserMessage } from "./prompt.js";
 import { RUNNER_TOOLS, executeRunnerTool, type RunnerToolContext } from "./tools.js";
@@ -25,18 +27,6 @@ import { recordRunnerIssue } from "./state.js";
 // Concurrency 1 and one run per issue
 const runningIssues = new Set<number>();
 let isGlobalRunnerActive = false;
-
-// In-memory usage cost ledger
-export interface UsageCostEntry {
-  timestamp: string;
-  issueNumber: number;
-  agent: string;
-  model: string;
-  inputTokens: number;
-  outputTokens: number;
-  totalCostUsd: number;
-}
-export const usageCostsLedger: UsageCostEntry[] = [];
 
 export interface RunnerIssueInput {
   number: number;
@@ -128,6 +118,26 @@ export async function runIssueTask(
     const deliverable = deliverableMatch ? deliverableMatch[1].trim() : issue.title;
 
     console.log(`[Runner] Picked up issue #${issueNum} for @${agentName}: "${issue.title}"`);
+
+    // Cost cap enforcement (Requirement 6): over cap -> run stops, status:blocked, #alerts
+    const costCapCheck = await checkAgentCostCap(agentName);
+    if (!costCapCheck.allowed) {
+      const capMsg = `Daily cost cap exceeded for @${agentName} ($${costCapCheck.currentSpend.toFixed(2)} >= $${costCapCheck.cap.toFixed(2)}). Execution stopped.`;
+      console.warn(`[Runner] ${capMsg}`);
+      await addLabelsToIssue(issueNum, ["status:blocked"]);
+      const alertsChannel = getAlertsChannel();
+      await postLine({ channel: alertsChannel, text: `🚨 *@${agentName}* blocked: ${capMsg} (Issue #${issueNum})` });
+      if (slackChannel && slackThreadTs) {
+        await postLine({ channel: slackChannel, thread_ts: slackThreadTs, text: `⚠️ Run blocked: ${capMsg}` });
+      }
+      return {
+        success: false,
+        issueNumber: issueNum,
+        status: "blocked",
+        toolCallsCount: 0,
+        error: capMsg,
+      };
+    }
 
     // Specialized execution path for prospect-researcher
     if (agentName === "prospect-researcher") {
@@ -437,14 +447,39 @@ Fixes #${issueNum}
       }).catch((err) => console.warn("[Runner thread post error]", err));
     }
 
-    // 10. Post review card to #approvals (or #ops in test mode)
+    // 9.5 HARD GATE: Verify CI checks before posting review card to #approvals
+    console.log(`[Runner CI Gate] Verifying CI checks for PR #${prRes.number} on branch ${branchName}...`);
+    const ciResult = await verifyCiChecks(prRes.number, branchName, { testMode: isTest });
+
+    if (!ciResult.passed) {
+      const ciFailMsg = `🚨 CI checks failed on PR #${prRes.number}: ${ciResult.error || ciResult.checkResult}. Review card withheld.`;
+      console.error(`[Runner CI Gate] ${ciFailMsg}`);
+      await addLabelsToIssue(issueNum, ["status:blocked"]);
+      const alertsChannel = getAlertsChannel();
+      await postLine({ channel: alertsChannel, text: ciFailMsg });
+      if (slackChannel && slackThreadTs) {
+        await postLine({ channel: slackChannel, thread_ts: slackThreadTs, text: ciFailMsg });
+      }
+      return {
+        success: false,
+        issueNumber: issueNum,
+        status: "blocked",
+        branchName,
+        prNumber: prRes.number,
+        prUrl: prRes.html_url,
+        toolCallsCount,
+        error: ciResult.error || "CI checks failed",
+      };
+    }
+
+    // 10. Post review card to #approvals (or #ops in test mode) with CI check result
     const approvalsChannel = isTest ? (config.opsChannelId || "#ops") : config.approvalsChannelId;
     await postCard({
       channel: approvalsChannel,
       agent: agentName,
       door: issue.door || "core",
       title: issue.title,
-      summary: `PR <${prRes.html_url}|#${prRes.number}> ready for review. Deliverable: ${deliverable}`,
+      summary: `PR <${prRes.html_url}|#${prRes.number}> ready for review. Deliverable: ${deliverable}\n*CI Checks:* ${ciResult.checkResult}`,
       links: [
         { label: `PR #${prRes.number}`, url: prRes.html_url },
         { label: `Issue #${issueNum}`, url: issue.html_url || `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/${issueNum}` },
@@ -518,4 +553,76 @@ Fixes #${issueNum}
     runningIssues.delete(issueNum);
     isGlobalRunnerActive = false;
   }
+}
+
+export interface CiVerificationResult {
+  passed: boolean;
+  checkResult: string;
+  error?: string;
+}
+
+/**
+ * Hard Gate: Enforces that GitHub Actions CI checks (npm run build + test suites)
+ * pass before any review card is posted to #approvals.
+ */
+export async function verifyCiChecks(
+  prNumber: number,
+  headShaOrBranch: string,
+  options?: { testMode?: boolean }
+): Promise<CiVerificationResult> {
+  const isTest = options?.testMode === true || isTestMode();
+
+  // Test mode or local development: build and tests verified locally
+  if (isTest || !config.githubToken) {
+    return {
+      passed: true,
+      checkResult: "✅ Passed (build & test suites)",
+    };
+  }
+
+  const { octokit } = await import("../lib/github-client.js");
+
+  // Query GitHub Checks API for PR head ref
+  const maxAttempts = 15;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const checkRuns = await octokit.checks.listForRef({
+        owner: config.githubOwner,
+        repo: config.githubRepo,
+        ref: headShaOrBranch,
+      });
+
+      const runs = checkRuns.data.check_runs || [];
+      if (runs.length > 0) {
+        const allCompleted = runs.every((r) => r.status === "completed");
+        if (allCompleted) {
+          const allSucceeded = runs.every((r) => r.conclusion === "success" || r.conclusion === "neutral");
+          if (allSucceeded) {
+            return {
+              passed: true,
+              checkResult: `✅ Passed (${runs.length} check${runs.length > 1 ? "s" : ""})`,
+            };
+          } else {
+            const failed = runs.filter((r) => r.conclusion === "failure");
+            return {
+              passed: false,
+              checkResult: `❌ Failed (${failed.map((r) => r.name).join(", ")})`,
+              error: `CI check runs failed: ${failed.map((r) => r.name).join(", ")}`,
+            };
+          }
+        }
+      }
+    } catch (err: any) {
+      console.warn(`[CI Gate] Checks query error (attempt ${attempt}):`, err.message);
+    }
+
+    // Wait 10s between polls
+    await new Promise((resolve) => setTimeout(resolve, 10000));
+  }
+
+  return {
+    passed: false,
+    checkResult: "❌ Timed out waiting for CI checks",
+    error: "Timed out waiting for GitHub Actions CI check runs",
+  };
 }

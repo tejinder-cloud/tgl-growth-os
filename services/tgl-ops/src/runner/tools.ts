@@ -47,13 +47,13 @@ export const RUNNER_TOOLS: Anthropic.Tool[] = [
   },
   {
     name: "write_file",
-    description: "Creates or updates a file directly on the working branch. The rule is a denylist, not an allowlist: the runner may write anywhere except services/ and .github/.",
+    description: "Creates or updates a file directly on the working branch. The runner may write to services/, .github/, and site/app files. Protected paths: decisions/ and logs/ (written only by service on main).",
     input_schema: {
       type: "object",
       properties: {
         path: {
           type: "string",
-          description: "Relative path to file, e.g. README.md",
+          description: "Relative path to file, e.g. services/tgl-ops/src/index.ts or README.md",
         },
         content: {
           type: "string",
@@ -80,11 +80,22 @@ export const RUNNER_TOOLS: Anthropic.Tool[] = [
 ];
 
 /**
- * Checks if a relative path is under protected directories in v1.
+ * Checks if a relative path is under protected directories.
+ * Under TASK-P07: Runner may now write to services/ and .github/ on a branch behind CI.
+ * Protected directories that may NEVER be written in a PR (written only by service on main):
+ * - decisions/
+ * - logs/ (and logs/.state)
  */
 export function isProtectedPath(filePath: string): boolean {
   const clean = filePath.replace(/\\/g, "/").replace(/^\.?\//, "");
-  return clean.startsWith("services/") || clean.startsWith(".github/") || clean === "services" || clean === ".github";
+  return (
+    clean.startsWith("decisions/") ||
+    clean.startsWith("logs/") ||
+    clean === "decisions" ||
+    clean === "logs" ||
+    clean === ".git" ||
+    clean.startsWith(".git/")
+  );
 }
 
 /**
@@ -127,9 +138,9 @@ export async function executeRunnerTool(
     const content = String(input.content ?? "");
     if (!rawPath) return "ERROR: path is required";
 
-    // Enforce denylist rule: write anywhere except services/ and .github/
+    // Enforce protected path rule: decisions/ and logs/ written only by service on main
     if (isProtectedPath(rawPath)) {
-      return `REFUSAL: Path '${rawPath}' is protected by denylist. The rule is a denylist, not an allowlist: the runner may write anywhere except services/ and .github/.`;
+      return `REFUSAL: Path '${rawPath}' is protected. decisions/, logs/ and logs/.state are written only by the service on main and must never be edited in a PR.`;
     }
 
     if (virtualFiles) {
