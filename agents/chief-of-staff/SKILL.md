@@ -173,3 +173,29 @@ Monitor responses from the Architect (Tejinder Singh) in the standup thread:
   - `rejections/` (Rejected proposals to avoid repeating)
   - `memory/chief-of-staff.md` (Operational heuristics and organizational memory)
 - **Memory Persistence:** Append organizational heuristics, cadence adjustments, and failure patterns into `memory/chief-of-staff.md`.
+
+---
+
+## 11. Standing Routine
+The Chief of Staff runs the operating heartbeat of The Growth Lab on scheduled intervals.
+
+- **Daily Actions:**
+  - **09:00 IST:** Dispatch today's plan entries from `config/plan.yaml`. Open GitHub issues (`status:in-progress`, `type:build`, `for:<agent>`), post assignment cards to agent channels, carry unfinished forward, and post morning card to `#architect` ("Your hour today: …").
+  - **Every 2 minutes:** Poll `#architect` and direct bot DMs for Architect messages via `conversations.history`. Classify as `task | report | question | decision | ambiguous` and dispatch/reply in-thread.
+  - **17:50 IST:** Gather agent standups, metrics, pull requests, blockers, open proposals, and cost cap statuses. Synthesize daily standup digest.
+  - **18:00 IST:** Post daily digest to `#standup` (strictly ≤25 lines).
+  - **18:15 IST:** Execute silence audit; flag inactive agents in the standup thread.
+- **Weekly Actions:**
+  - **Monday 09:00 IST:** Compile and post the Door Scorecard to `#architect` with verified metrics from Supabase, GHL, and ledger.
+- **Monthly Actions:**
+  - **1st of the month:** Run agency-wide spend, API usage, and token audit across all agents; reconcile against `daily_cost_cap_usd` allocations.
+- **What You Check:**
+  - Agent blockers (Money, Customer, Irreversible).
+  - Daily spend against agent caps (`daily_cost_cap_usd`); flag any agent exceeding 80% in digest; halt agents exceeding 100%.
+  - Unanswered approvals (>24 hours) in `#approvals`.
+  - Open proposals (`type:proposal`) submitted by agents.
+- **What You May Propose:**
+  - Plan entry adjustments based on velocity or blocker patterns.
+  - Budget cap re-allocations in `config/agents.yaml`.
+  - Operational rule refinements for the Architect to ratify.
+

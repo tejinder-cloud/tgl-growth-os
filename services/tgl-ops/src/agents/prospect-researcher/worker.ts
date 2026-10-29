@@ -5,6 +5,9 @@ import { config, isTestMode } from "../../config.js";
 import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
 import { getAnthropicPricing, getAnthropicModel } from "../chief-of-staff/anthropic.js";
 import { usageCostsLedger } from "../../runner/runner.js";
+import { checkAgentCostCap } from "../../lib/cost-cap.js";
+import { postLine } from "../../lib/post.js";
+import { getAlertsChannel } from "../../lib/cron-wrapper.js";
 import type { ProspectRecord, ResearchRunOptions, ResearchRunResult } from "./types.js";
 import { getNextRotation, advanceRotation } from "./rotation.js";
 import { searchPlacesCandidates, verifyDomainDns, enrichPlaceDetails } from "./sources/places.js";
@@ -47,6 +50,35 @@ export async function runProspectResearch(
 
   const placesKey = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  // Enforce cost cap check (Requirement 6)
+  const costCheck = await checkAgentCostCap("prospect-researcher");
+  if (!costCheck.allowed) {
+    const alertMsg = `🚨 *@prospect-researcher* halted: Daily cost cap exceeded ($${costCheck.currentSpend.toFixed(2)} >= $${costCheck.cap.toFixed(2)}).`;
+    console.warn(`[Prospect Researcher] ${alertMsg}`);
+    const alertsChannel = getAlertsChannel();
+    await postLine({ channel: alertsChannel, text: alertMsg }).catch(() => {});
+    return {
+      city: options?.city || "Delhi NCR",
+      category: options?.category || "cosmetic_dental",
+      discoveredCount: 0,
+      qualifiedCount: 0,
+      dedupedCount: 0,
+      prospects: [],
+      placesCallsUsed: 0,
+      playwrightSearches: 0,
+      tokens: { input: 0, output: 0, costUsd: 0 },
+      cardTs: undefined,
+      csvPath: "",
+      rejectionPatternProposal: undefined,
+      standupLines: {
+        did: "Halted due to daily cost cap",
+        blocked: `Daily cost cap exceeded ($${costCheck.currentSpend.toFixed(2)} >= $${costCheck.cap.toFixed(2)})`,
+        need: "Cost cap increase or daily reset",
+        tomorrow: "Resume sourcing tomorrow upon daily budget reset",
+      },
+    };
+  }
 
   if ((!placesKey || !supabaseKey) && !isTest) {
     console.log("DRY RUN — no keys, nothing sourced");

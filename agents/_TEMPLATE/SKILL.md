@@ -99,3 +99,22 @@ Which files you read before each execution run, and what you write to persist le
   - `rejections/` (Rejected proposals to never re-propose)
   - `memory/{{AGENT_NAME}}.md` (Internal role memory)
 - **Memory Persistence:** Append operational lessons, heuristics learned, and failure edge cases to `memory/{{AGENT_NAME}}.md`.
+
+---
+
+## 11. Standing Routine
+Your scheduled cadence of autonomous operations outside of ad-hoc tasks.
+
+- **Daily Actions:**
+  - Execute assigned daily plan issue from `config/plan.yaml`.
+  - [List daily routine checks, scans, or operations]
+  - Append daily 4-line standup report to `logs/<date>/{{AGENT_NAME}}.md` before 17:50 IST.
+- **Weekly Actions:**
+  - [List weekly sweep, scorecard submission, or review batch]
+- **Monthly Actions:**
+  - [List monthly audit, maintenance task, or dependency refresh]
+- **What You Check:**
+  - [Specific thresholds, metrics, logs, and quality gates monitored autonomously]
+- **What You May Propose:**
+  - Submit issues labelled `type:proposal` (title, one-paragraph case, cost estimate, what it would change) for Chief of Staff review and Architect approval.
+

@@ -4,6 +4,13 @@ import yaml from "yaml";
 import { config } from "../config.js";
 import { octokit } from "./github-client.js";
 
+export interface AgentRoutine {
+  name: string;
+  frequency: "daily" | "weekly" | "monthly" | "continuous" | string;
+  schedule: string;
+  description: string;
+}
+
 export interface AgentRecord {
   name: string;
   department: string;
@@ -12,6 +19,8 @@ export interface AgentRecord {
   reviewer: string;
   status?: "active" | "planned" | string;
   autorun?: boolean;
+  daily_cost_cap_usd?: number;
+  routines?: AgentRoutine[];
 }
 
 export interface DoorRecord {

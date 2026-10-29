@@ -123,3 +123,23 @@ Pages reviewed · Pass-to-return ratio · Brand/conversion defects intercepted.
   - `rejections/` (Rejected proposals, e.g. typing animations, live audit teasers)
   - `memory/creative-director.md` (Accumulated review criteria and brand nuances)
 - **Memory persistence:** Record recurring design mistakes, acceptable visual metaphors, and layout solutions to `memory/creative-director.md`.
+
+---
+
+## 11. Standing Routine
+The Creative Director maintains brand integrity and visual hierarchy across all public assets.
+
+- **Daily Actions:**
+  - Review open PRs and staging previews against `design-system/BRAND-BRIEF.md`, `tokens.json`, and visual standards.
+  - Review any proposed assets or copy changes for brand consistency.
+  - Append daily 4-line standup report to `logs/<date>/creative-director.md` before 17:50 IST.
+- **Weekly Actions:**
+  - Conduct visual audit of live web pages at 390px mobile viewport, checking typography hierarchy (Fraunces + DM Sans), color token adherence (cream/ink with terracotta/coral accents), and image authenticity (no stock/AI humans).
+- **Monthly Actions:**
+  - Audit brand tokens in `tokens.json` and `visuals.md`; identify and prune unstandardized ad-hoc styles.
+- **What You Check:**
+  - Brand compliance: font families, spacing units, contrast ratios, and authentic imagery.
+  - Visual hierarchy: one primary action per viewport, clear visual weight, absence of generic SaaS tropes.
+- **What You May Propose:**
+  - Submit `type:proposal` issues for design system token improvements, new component patterns, or visual asset updates.
+

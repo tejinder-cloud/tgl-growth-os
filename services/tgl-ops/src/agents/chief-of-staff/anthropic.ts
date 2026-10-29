@@ -4,6 +4,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { config } from "../../config.js";
 import { appendFileInRepo } from "../../lib/github-client.js";
 import { getCurrentTimeIST } from "../../lib/standup.js";
+import { checkAgentCostCap } from "../../lib/cost-cap.js";
 import type { GatheredData } from "./gather.js";
 
 export interface SynthesisResult {
@@ -107,7 +108,8 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
   2. Per-Door Headline Numbers (AEO, AI, TrueLead, Core): either real count/metric or "no data yet".
   3. Ranked Blockers: strictly ordered by [Money] > [Customer] > [Irreversible] > [Everything else]. If none, "• None reported today."
   4. Pending Approvals: list each card from #approvals without decisions/ line, with direct link. If none, "• None pending."
-  5. Agent Standup Lines: strictly one single terse line per reporting agent (Did · Tomorrow).
+  5. Open Proposals & Warnings: list open proposals (#<num> [@<agent>]: <title>) where approve converts to plan entry. Flag any agent at >=80% of daily cost cap. State any carried forward plan entries.
+  6. Agent Standup Lines: strictly one single terse line per reporting agent (Did · Tomorrow).
 - HARD CAP: The entire message MUST be 25 lines or fewer. Count your lines carefully.
 - FACTUAL FIDELITY: Never invent a number, metric, or status not present in the material.
 `;
@@ -115,6 +117,21 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
   let digestText = "";
   let inputTokens = 0;
   let outputTokens = 0;
+
+  // Enforce daily cost cap check before making Anthropic API call
+  const costCheck = await checkAgentCostCap("chief-of-staff");
+  if (!costCheck.allowed) {
+    console.warn(`[Chief of Staff] Daily cost cap exceeded ($${costCheck.currentSpend.toFixed(2)} >= $${costCheck.cap.toFixed(2)}). Using deterministic synthesis.`);
+    digestText = generateDeterministicDigest(data);
+    return {
+      digestText: enforceLineCap(digestText, 25),
+      model: modelName,
+      inputTokens: 0,
+      outputTokens: 0,
+      totalCostUsd: 0,
+      loggedCost: false,
+    };
+  }
 
   if (config.anthropicApiKey) {
     try {
@@ -255,12 +272,33 @@ function generateDeterministicDigest(data: GatheredData): string {
     }
   }
 
-  // 4. One line per reporting agent
+  // 4. Open Proposals & Warnings
+  if (data.openProposals && data.openProposals.length > 0) {
+    lines.push("\n*💡 Open Proposals:*");
+    for (const p of data.openProposals.slice(0, 2)) {
+      lines.push(`• *#${p.number}* (@${p.agent}): ${p.title.replace(/^\[PROPOSAL\]:\s*/i, "")}`);
+    }
+  }
+
+  const over80 = (data.agentCostStatuses || []).filter((s) => s.isOver80Percent);
+  if (over80.length > 0) {
+    for (const s of over80) {
+      lines.push(`• ⚠️ *@${s.agent}* at ${Math.round(s.percentage)}% of daily cost cap ($${s.currentSpendUsd.toFixed(2)} / $${s.capUsd.toFixed(2)})`);
+    }
+  }
+
+  if (data.carriedForwardPlanEntries && data.carriedForwardPlanEntries.length > 0) {
+    for (const c of data.carriedForwardPlanEntries.slice(0, 2)) {
+      lines.push(`• ⏩ *Carried forward:* Day ${c.day} (@${c.agent}) "${c.title.slice(0, 35)}"`);
+    }
+  }
+
+  // 5. One line per reporting agent
   lines.push("\n*📋 Agent Reports:*");
   if (data.logs.length === 0) {
     lines.push("• _No agent logs recorded today._");
   } else {
-    for (const log of data.logs.slice(0, 5)) {
+    for (const log of data.logs.slice(0, 4)) {
       const firstLine = log.content.split("\n")[0].replace(/^[-•#\s]+/, "").slice(0, 60);
       lines.push(`• *\`@${log.agent}\`*: ${firstLine || "Work logged"}`);
     }

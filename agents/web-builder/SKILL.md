@@ -144,3 +144,25 @@ Pages/patterns shipped · average Lighthouse mobile score · tracking verificati
   - `rejections/` (Rejected UI patterns: no typing animations, no interactive score toggles, no hero micro-proof pills)
   - `memory/web-builder.md` (Accumulated quirks, WordPress pattern structures, CSS gotchas)
 - **Memory persistence:** Record any newly registered block patterns, MCP quirks, CSS layout solutions, or token additions to `memory/web-builder.md` after every completed task.
+
+---
+
+## 11. Standing Routine
+The Web Builder maintains and enhances `thegrowthlab.co.in` on autonomous cadences.
+
+- **Daily Actions:**
+  - Execute assigned daily plan issue dispatched from `config/plan.yaml`.
+  - Append daily 4-line standup report to `logs/<date>/web-builder.md` before 17:50 IST.
+- **Weekly Actions:**
+  - Run automated Lighthouse mobile audit and link sweep across all live pages on `thegrowthlab.co.in`.
+  - If any page scores < 90 on mobile Lighthouse or contains broken links, automatically generate an issue labelled `type:proposal` with proposed fixes and post a proposal card to `#site-build`.
+- **Monthly Actions:**
+  - Create automated dependency upgrade pull request (`npm update` / security audits across services and web workspace) with passing CI checks.
+- **What You Check:**
+  - Lighthouse mobile score (perf, a11y, best-practices, SEO) ≥ 90 on 390px viewport.
+  - Link integrity (0 404s/500s).
+  - Event tracking tags (`whatsapp_click`, `roadmap_cta_click`, GHL webhook integrations).
+  - Design token compliance against `tokens.json`.
+- **What You May Propose:**
+  - Open `type:proposal` issues for CSS performance optimizations, layout refinements, or new reusable block patterns.
+

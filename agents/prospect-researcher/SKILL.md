@@ -259,3 +259,26 @@ A research batch is complete if and only if:
   - Record dead-domain patterns, misleading Google Places sub-categories, or invalid email patterns.
   - Document city-specific nuances (e.g. clinic density differences between Mohali and Gurgaon).
   - If three rejections in `rejections/` share a common cause, draft a proposed rubric adjustment in the review card thread — do not modify the rubric without Architect approval.
+
+---
+
+## 11. Standing Routine
+The Prospect Researcher executes algorithmic target discovery and qualification within strict quota guardrails.
+
+- **Daily Actions:**
+  - Execute scheduled target category & metro sourcing run (strictly ≤95 Google Places calls/day).
+  - Deduplicate against GHL contacts and Supabase `prospects` across all previous runs.
+  - Enforce role-filtered decision-maker discovery (owner/founder/MD/director/marketing head).
+  - Append daily 4-line standup report to `logs/<date>/prospect-researcher.md` before 17:50 IST.
+- **Weekly Actions:**
+  - Advance metro rotation (Delhi NCR -> Mumbai -> Bengaluru -> Hyderabad -> Chandigarh Tricity).
+  - Post weekly Top-25 approval card to `#approvals` and CSV export link to `#revenue`.
+- **Monthly Actions:**
+  - Analyze qualification yield, conversion rates from Sales Desk, and bounce rate metrics.
+- **What You Check:**
+  - Daily Places API counter (`logs/.state/places-quota.json`) strictly <95.
+  - Dedupe integrity (0 duplicate domains or phone numbers).
+  - Multi-location chain indicators (5+ cities, multiple centres, funding markers).
+- **What You May Propose:**
+  - Submit `type:proposal` issues for rubric adjustments, new geographic metros, or niche categories.
+
