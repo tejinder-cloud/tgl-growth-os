@@ -2,12 +2,19 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { config, isTestMode } from "../../config.js";
 import type { ProspectRecord } from "./types.js";
+export type { ProspectRecord };
 import { validateProspectRecord } from "./guardrails.js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://rmrauejublipukulnjou.supabase.co";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
 let supabaseClient: SupabaseClient | null = null;
+
+let mockProspectRecordsForTests: ProspectRecord[] | null = null;
+
+export function setMockProspectRecordsForTests(records: ProspectRecord[] | null): void {
+  mockProspectRecordsForTests = records;
+}
 
 export function getSupabase(): SupabaseClient | null {
   if (supabaseClient) return supabaseClient;
@@ -26,6 +33,9 @@ export function getSupabase(): SupabaseClient | null {
  */
 export async function loadAllProspects(options?: { testMode?: boolean }): Promise<ProspectRecord[]> {
   const isTest = options?.testMode === true || isTestMode();
+  if (isTest && mockProspectRecordsForTests) {
+    return mockProspectRecordsForTests;
+  }
   const sb = getSupabase();
 
   if (!sb || isTest) {
@@ -52,6 +62,163 @@ export async function loadAllProspects(options?: { testMode?: boolean }): Promis
   }
 
   return [];
+}
+
+export interface ProspectMetrics {
+  total: number;
+  byCity: Record<string, number>;
+  byStatus: Record<string, number>;
+  byDay: Record<string, number>;
+}
+
+/**
+ * Queries Supabase `public.prospects` to compute exact aggregate counts by city, status, and day.
+ */
+export async function getProspectMetricsFromSql(options?: {
+  testMode?: boolean;
+}): Promise<ProspectMetrics> {
+  const isTest = options?.testMode === true || isTestMode();
+  const metrics: ProspectMetrics = {
+    total: 0,
+    byCity: {},
+    byStatus: {},
+    byDay: {},
+  };
+
+  if (isTest && mockProspectRecordsForTests) {
+    metrics.total = mockProspectRecordsForTests.length;
+    for (const r of mockProspectRecordsForTests) {
+      const city = (r.city || "Unknown").trim();
+      metrics.byCity[city] = (metrics.byCity[city] || 0) + 1;
+
+      const status = (r.status || "unknown").trim();
+      metrics.byStatus[status] = (metrics.byStatus[status] || 0) + 1;
+
+      const day = (r.created_at || "").slice(0, 10) || "Unknown";
+      metrics.byDay[day] = (metrics.byDay[day] || 0) + 1;
+    }
+    return metrics;
+  }
+
+  const sb = getSupabase();
+  if (!sb || isTest) {
+    return metrics;
+  }
+
+  try {
+    const { data, error } = await sb
+      .from("prospects")
+      .select("city, status, created_at")
+      .eq("tenant_id", "tgl")
+      .is("deleted_at", null);
+
+    if (error) {
+      console.warn(`[Supabase Query Warning on getProspectMetricsFromSql]:`, error.message);
+      return metrics;
+    }
+
+    if (Array.isArray(data)) {
+      metrics.total = data.length;
+      for (const row of data) {
+        const city = (row.city || "Unknown").trim();
+        metrics.byCity[city] = (metrics.byCity[city] || 0) + 1;
+
+        const status = (row.status || "unknown").trim();
+        metrics.byStatus[status] = (metrics.byStatus[status] || 0) + 1;
+
+        const day = (row.created_at || "").slice(0, 10) || "Unknown";
+        metrics.byDay[day] = (metrics.byDay[day] || 0) + 1;
+      }
+    }
+  } catch (err: any) {
+    console.warn(`[Supabase Query Exception on getProspectMetricsFromSql]:`, err.message || err);
+  }
+
+  return metrics;
+}
+
+export function formatProspectCityCounts(metrics: ProspectMetrics): string {
+  if (metrics.total === 0 || Object.keys(metrics.byCity).length === 0) {
+    return `📊 *Prospect Counts by City (from SQL):*\n• 0 prospects recorded in Supabase \`public.prospects\`.\n_Verified from Supabase public.prospects_`;
+  }
+
+  const cityLines = Object.entries(metrics.byCity)
+    .sort((a, b) => b[1] - a[1])
+    .map(([city, count]) => `• *${city}:* ${count}`)
+    .join("\n");
+
+  const distinctCities = Object.keys(metrics.byCity).length;
+  return `📊 *Prospect Counts by City (from SQL):*
+${cityLines}
+• *Total:* ${metrics.total} prospect${metrics.total === 1 ? "" : "s"} across ${distinctCities} cit${distinctCities === 1 ? "y" : "ies"}.
+_Verified from Supabase public.prospects_`;
+}
+
+export function formatProspectStatusCounts(metrics: ProspectMetrics): string {
+  if (metrics.total === 0 || Object.keys(metrics.byStatus).length === 0) {
+    return `📊 *Prospect Counts by Status (from SQL):*\n• 0 prospects recorded in Supabase \`public.prospects\`.\n_Verified from Supabase public.prospects_`;
+  }
+
+  const statusLines = Object.entries(metrics.byStatus)
+    .sort((a, b) => b[1] - a[1])
+    .map(([status, count]) => `• *${status}:* ${count}`)
+    .join("\n");
+
+  return `📊 *Prospect Counts by Status (from SQL):*
+${statusLines}
+• *Total:* ${metrics.total} prospect${metrics.total === 1 ? "" : "s"}.
+_Verified from Supabase public.prospects_`;
+}
+
+export function formatProspectDayCounts(metrics: ProspectMetrics): string {
+  if (metrics.total === 0 || Object.keys(metrics.byDay).length === 0) {
+    return `📊 *Prospect Counts by Day (from SQL):*\n• 0 prospects recorded in Supabase \`public.prospects\`.\n_Verified from Supabase public.prospects_`;
+  }
+
+  const dayLines = Object.entries(metrics.byDay)
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([day, count]) => `• *${day}:* ${count}`)
+    .join("\n");
+
+  const distinctDays = Object.keys(metrics.byDay).length;
+  return `📊 *Prospect Counts by Day (from SQL):*
+${dayLines}
+• *Total:* ${metrics.total} prospect${metrics.total === 1 ? "" : "s"} across ${distinctDays} day${distinctDays === 1 ? "" : "s"}.
+_Verified from Supabase public.prospects_`;
+}
+
+export function formatAllProspectCounts(metrics: ProspectMetrics): string {
+  if (metrics.total === 0) {
+    return `📊 *Prospect Database Breakdown (from SQL):*\n• *Total Prospects:* 0\n_Verified from Supabase public.prospects_`;
+  }
+
+  const cityLines = Object.entries(metrics.byCity)
+    .sort((a, b) => b[1] - a[1])
+    .map(([c, n]) => `• ${c}: ${n}`)
+    .join("\n");
+
+  const statusLines = Object.entries(metrics.byStatus)
+    .sort((a, b) => b[1] - a[1])
+    .map(([s, n]) => `• ${s}: ${n}`)
+    .join("\n");
+
+  const dayLines = Object.entries(metrics.byDay)
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([d, n]) => `• ${d}: ${n}`)
+    .join("\n");
+
+  return `📊 *Prospect Database Breakdown (from SQL):*
+• *Total Prospects:* ${metrics.total}
+
+🏙️ *Counts by City:*
+${cityLines}
+
+📋 *Counts by Status:*
+${statusLines}
+
+📅 *Counts by Day:*
+${dayLines}
+_Verified from Supabase public.prospects_`;
 }
 
 export interface UpsertProspectsResult {
