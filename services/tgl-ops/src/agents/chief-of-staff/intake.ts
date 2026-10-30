@@ -230,10 +230,21 @@ export async function compileArchitectReport(options?: { testMode?: boolean }): 
   const totalSpend = ledgerSummary.totalSpendUsd;
   const runsCount = ledgerSummary.runsCount;
 
-  let spendLine = `• *Total LLM Spend Today:* ${formatCostUsd(totalSpend)} (${runsCount} call${runsCount === 1 ? "" : "s"}`;
   const agentBreakdown = Object.entries(ledgerSummary.byAgent)
-    .map(([ag, info]) => `@${ag}: ${formatCostUsd(info.spendUsd)} [${info.runs}]`)
+    .map(([ag, info]) => {
+      const parts = [];
+      if (info.llmSpendUsd > 0) parts.push(`${formatCostUsd(info.llmSpendUsd)} LLM`);
+      if (info.apiSpendUsd > 0) parts.push(`${formatCostUsd(info.apiSpendUsd)} API`);
+      const typeStr = parts.length > 1 ? ` (${parts.join(" + ")})` : "";
+      return `@${ag}: ${formatCostUsd(info.spendUsd)}${typeStr} [${info.runs}]`;
+    })
     .join(", ");
+
+  let spendLine = `• *Total LLM Spend Today:* ${formatCostUsd(totalSpend)} (${runsCount} call${runsCount === 1 ? "" : "s"}`;
+  if (ledgerSummary.apiSpendUsd > 0) {
+    spendLine = `• *Total Spend Today (Total LLM Spend Today ${formatCostUsd(ledgerSummary.llmSpendUsd)} + API ${formatCostUsd(ledgerSummary.apiSpendUsd)}):* ${formatCostUsd(totalSpend)} (${runsCount} call${runsCount === 1 ? "" : "s"}`;
+  }
+
   if (agentBreakdown) {
     spendLine += ` · ${agentBreakdown})`;
   } else {
@@ -293,20 +304,32 @@ export async function answerArchitectQuestion(
     }
 
     const callLines = summary.entries
-      .slice(-10)
+      .slice(-15)
       .map((e, idx) => {
         const timePart = e.timestamp.includes("T") ? e.timestamp.split("T")[1].slice(0, 5) + " IST" : "";
         const issuePart = e.issueNumber > 0 ? ` · #${e.issueNumber}` : "";
-        return `  ${idx + 1}. ${timePart ? `${timePart} · ` : ""}@${e.agent}${issuePart}: ${formatCostUsd(e.totalCostUsd)} (${e.inputTokens} in, ${e.outputTokens} out · ${e.model})`;
+        const typePart = e.costType === "api" ? ` [API: ${e.apiName || e.model}]` : ` [LLM: ${e.model}]`;
+        const detailsPart = e.details ? ` (${e.details})` : (e.inputTokens || e.outputTokens ? ` (${e.inputTokens} in, ${e.outputTokens} out)` : "");
+        return `  ${idx + 1}. ${timePart ? `${timePart} · ` : ""}@${e.agent}${issuePart}: ${formatCostUsd(e.totalCostUsd)}${typePart}${detailsPart}`;
       })
       .join("\n");
 
     const agentBreakdown = Object.entries(summary.byAgent)
-      .map(([ag, info]) => `• *@${ag}:* ${formatCostUsd(info.spendUsd)} (${info.runs} call${info.runs === 1 ? "" : "s"})`)
+      .map(([ag, info]) => {
+        const parts = [];
+        if (info.llmSpendUsd > 0) parts.push(`${formatCostUsd(info.llmSpendUsd)} LLM`);
+        if (info.apiSpendUsd > 0) parts.push(`${formatCostUsd(info.apiSpendUsd)} API`);
+        const typeStr = parts.length > 1 ? ` (${parts.join(" + ")})` : "";
+        return `• *@${ag}:* ${formatCostUsd(info.spendUsd)}${typeStr} (${info.runs} call${info.runs === 1 ? "" : "s"})`;
+      })
       .join("\n");
 
+    const typeTotals = summary.apiSpendUsd > 0
+      ? ` (${formatCostUsd(summary.llmSpendUsd)} LLM + ${formatCostUsd(summary.apiSpendUsd)} API)`
+      : "";
+
     return `💰 *LLM Spend & Cost Ledger Today (${dateStr}):*
-• *Total Spend:* ${formatCostUsd(summary.totalSpendUsd)} across ${summary.runsCount} call${summary.runsCount === 1 ? "" : "s"}
+• *Total Spend:* ${formatCostUsd(summary.totalSpendUsd)} across ${summary.runsCount} call${summary.runsCount === 1 ? "" : "s"}${typeTotals}
 
 *By Agent:*
 ${agentBreakdown}

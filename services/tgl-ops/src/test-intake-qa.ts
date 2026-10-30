@@ -23,6 +23,8 @@ import {
   formatCostUsd,
   getCostLedgerSummary,
   recordCostEntry,
+  recordApiSpend,
+  loadCostLedgerFromState,
   resetCostLedgerForTests,
 } from "./lib/cost-cap.js";
 
@@ -360,6 +362,124 @@ async function runIntakeQaTests() {
   console.log("  ✓ Poll processed 'counts by status' query and answered from SQL");
   console.log("  ✓ Poll processed 'daily report' and delivered verified ops report");
   console.log("✅ [Test 5 Passed] End-to-end intake poll verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 6: Unified Multi-Agent Cost Ledger (Anthropic LLM + API Spend)
+  // Verifies prospect-researcher (13:23) and runner #53 attempt (09:00)
+  // -------------------------------------------------------------------------
+  console.log("[Test 6] Testing unified multi-agent cost ledger with Anthropic & API spend...");
+
+  resetCostLedgerForTests();
+
+  // 1. Simulate state loading with historical runs (runner #53 attempt at 09:00 IST)
+  loadCostLedgerFromState({ testMode: true, includeHistoricalRuns: true } as any);
+
+  const runnerEntry = usageCostsLedger.find((e) => e.agent === "web-builder" && e.issueNumber === 53);
+  if (!runnerEntry) {
+    throw new Error("Test 6 Failed: Runner Issue #53 attempt at 09:00 IST missing from ledger.");
+  }
+  if (runnerEntry.totalCostUsd !== 0.0067) {
+    throw new Error(`Test 6 Failed: Runner Issue #53 cost mismatch: expected 0.0067, got ${runnerEntry.totalCostUsd}`);
+  }
+
+  // 2. Record prospect-researcher 13:23 IST run (LLM + Places API)
+  recordCostEntry(
+    {
+      timestamp: "2026-10-30T13:23:00.000Z",
+      issueNumber: 0,
+      agent: "prospect-researcher",
+      model: "claude-3-5-sonnet",
+      inputTokens: 1500,
+      outputTokens: 400,
+      totalCostUsd: 0.0105,
+      costType: "llm",
+      details: "prospect-researcher run: Delhi NCR · hospitals",
+    },
+    { testMode: true }
+  );
+
+  recordApiSpend({
+    timestamp: "2026-10-30T13:23:00.000Z",
+    agent: "prospect-researcher",
+    apiName: "google-places-api",
+    totalCostUsd: 0.032,
+    details: "1 Google Places API call(s)",
+    options: { testMode: true },
+  });
+
+  // 3. Record chief-of-staff intake call
+  recordCostEntry(
+    {
+      timestamp: "2026-10-30T13:28:00.000Z",
+      issueNumber: 0,
+      agent: "chief-of-staff",
+      model: "claude-3-5-sonnet",
+      inputTokens: 525,
+      outputTokens: 73,
+      totalCostUsd: 0.0027,
+      costType: "llm",
+      details: "intake classification",
+    },
+    { testMode: true }
+  );
+
+  const unifiedSummary = getCostLedgerSummary("2026-10-30", { testMode: true });
+
+  // Verify total runs
+  if (unifiedSummary.runsCount !== 4) {
+    throw new Error(`Test 6 Failed: Expected 4 ledger entries (1 runner, 2 researcher, 1 chief-of-staff), got ${unifiedSummary.runsCount}`);
+  }
+
+  // Verify total spend = 0.0067 + 0.0105 + 0.0320 + 0.0027 = 0.0519
+  const expectedUnifiedTotal = Number((0.0067 + 0.0105 + 0.032 + 0.0027).toFixed(4));
+  if (unifiedSummary.totalSpendUsd !== expectedUnifiedTotal) {
+    throw new Error(`Test 6 Failed: Expected total spend $${expectedUnifiedTotal}, got $${unifiedSummary.totalSpendUsd}`);
+  }
+
+  // Verify LLM spend and API spend breakdown
+  const expectedLlm = Number((0.0067 + 0.0105 + 0.0027).toFixed(4)); // 0.0199
+  const expectedApi = 0.0320;
+  if (unifiedSummary.llmSpendUsd !== expectedLlm) {
+    throw new Error(`Test 6 Failed: Expected LLM spend $${expectedLlm}, got $${unifiedSummary.llmSpendUsd}`);
+  }
+  if (unifiedSummary.apiSpendUsd !== expectedApi) {
+    throw new Error(`Test 6 Failed: Expected API spend $${expectedApi}, got $${unifiedSummary.apiSpendUsd}`);
+  }
+
+  // Verify per-agent accounting
+  if (!unifiedSummary.byAgent["web-builder"] || unifiedSummary.byAgent["web-builder"].spendUsd !== 0.0067) {
+    throw new Error(`Test 6 Failed: Missing or incorrect web-builder spend: ${JSON.stringify(unifiedSummary.byAgent["web-builder"])}`);
+  }
+  if (!unifiedSummary.byAgent["prospect-researcher"] || unifiedSummary.byAgent["prospect-researcher"].spendUsd !== 0.0425) {
+    throw new Error(`Test 6 Failed: Missing or incorrect prospect-researcher spend: ${JSON.stringify(unifiedSummary.byAgent["prospect-researcher"])}`);
+  }
+  if (!unifiedSummary.byAgent["chief-of-staff"] || unifiedSummary.byAgent["chief-of-staff"].spendUsd !== 0.0027) {
+    throw new Error(`Test 6 Failed: Missing or incorrect chief-of-staff spend: ${JSON.stringify(unifiedSummary.byAgent["chief-of-staff"])}`);
+  }
+
+  // 4. Test question answering
+  const spendQ = await answerArchitectQuestion("what did we spend today?", { testMode: true });
+  if (!spendQ.includes("$0.0519 across 4 calls")) {
+    throw new Error(`Test 6 Failed: Answer missing total spend:\n${spendQ}`);
+  }
+  if (!spendQ.includes("@web-builder") || !spendQ.includes("#53") || !spendQ.includes("$0.0067")) {
+    throw new Error(`Test 6 Failed: Answer missing runner #53 attempt:\n${spendQ}`);
+  }
+  if (!spendQ.includes("@prospect-researcher") || !spendQ.includes("$0.0105") || !spendQ.includes("$0.0320")) {
+    throw new Error(`Test 6 Failed: Answer missing prospect-researcher LLM or API run:\n${spendQ}`);
+  }
+  if (!spendQ.includes("[API: google-places-api]")) {
+    throw new Error(`Test 6 Failed: Answer missing API tag for Google Places:\n${spendQ}`);
+  }
+
+  console.log("  ✓ Runner Issue #53 attempt at 09:00 IST ($0.0067) present in ledger");
+  console.log("  ✓ Prospect Researcher 13:23 IST run (LLM $0.0105 + Places API $0.0320) present in ledger");
+  console.log("  ✓ Chief of Staff intake calls tracked in same ledger");
+  console.log("  ✓ Unified total spend: $0.0519 across 4 calls ($0.0199 LLM + $0.0320 API)");
+  console.log("  ✓ By Agent breakdown: @web-builder $0.0067, @prospect-researcher $0.0425, @chief-of-staff $0.0027");
+  console.log("  ✓ 'what did we spend today?' answers with complete multi-agent ledger and API entries");
+  console.log("✅ [Test 6 Passed] Unified multi-agent cost ledger verified.\n");
   passed++;
 
   // Clean up

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
-import { config } from "../config.js";
+import { config, isTestMode } from "../config.js";
 import { getAnthropicModel } from "../agents/chief-of-staff/anthropic.js";
 import { callAnthropicWithCostCap } from "../lib/cost-cap.js";
 
@@ -272,6 +272,7 @@ ${body || "(No additional body provided)"}`;
         tools: PREFLIGHT_TOOLS,
         tool_choice: { type: "auto" },
       },
+      options: { testMode: isTestMode() },
     });
   } catch (apiErr: any) {
     console.warn(`[Pre-flight Anthropic API error on Issue #${issueNumber}]:`, apiErr?.message || apiErr);
