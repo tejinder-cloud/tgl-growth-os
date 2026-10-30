@@ -20,6 +20,8 @@ export interface ProspectSignals {
   review_surge: boolean;
   branch_count: number;
   ad_library_url?: string;
+  chain_evidence?: string[];
+  places_brand_count?: number;
   raw_signals?: Record<string, any>;
 }
 

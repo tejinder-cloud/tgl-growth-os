@@ -1,8 +1,18 @@
 // services/tgl-ops/src/agents/prospect-researcher/sources/website-scraper.ts
 /**
  * Scrapes clinic website for mailto: addresses and doctor/owner names
- * on Homepage, /about, /doctors, /team, and /contact pages (Playbook D).
+ * on Homepage, /about, /doctors, /team, and /contact pages (Playbook D),
+ * and detects chain signals (5+ cities, locations/centres pages, funding).
+ * Uses Apify cheerio-scraper when APIFY_API_TOKEN is present, falling back to direct fetch.
  */
+
+export interface ChainSignals {
+  citiesFound: string[];
+  hasLocationsPage: boolean;
+  locationsUrl?: string;
+  fundingMatches: string[];
+  evidence: string[];
+}
 
 export interface ScrapedWebsiteResult {
   emails: string[];
@@ -10,6 +20,7 @@ export interface ScrapedWebsiteResult {
   primaryDoctorName?: string;
   doctorRole?: string;
   pagesScraped: string[];
+  chainSignals: ChainSignals;
 }
 
 const GENERIC_EMAIL_PREFIXES = new Set([
@@ -21,8 +32,108 @@ const GENERIC_EMAIL_PREFIXES = new Set([
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
 
+export const MAJOR_INDIAN_CITIES = [
+  "delhi", "new delhi", "gurgaon", "gurugram", "noida", "greater noida", "faridabad", "ghaziabad",
+  "mumbai", "navi mumbai", "thane", "pune", "nagpur", "nashik", "aurangabad",
+  "bengaluru", "bangalore", "mysore", "mangalore", "hyderabad", "secunderabad",
+  "chennai", "coimbatore", "madurai", "kolkata", "howrah", "ahmedabad", "surat",
+  "vadodara", "rajkot", "chandigarh", "mohali", "panchkula", "jaipur", "jodhpur",
+  "udaipur", "lucknow", "kanpur", "agra", "varanasi", "prayagraj", "indore",
+  "bhopal", "patna", "bhubaneswar", "cuttack", "kochi", "cochin", "thiruvananthapuram",
+  "visakhapatnam", "vijayawada", "guwahati", "dehradun", "ludhiana", "amritsar", "jalandhar", "ranchi", "raipur"
+];
+
+export const FUNDING_PATTERNS = [
+  /\bseries\s+[a-f]\b/i,
+  /\bfunded\s+by\b/i,
+  /\bventure\s+capital\b/i,
+  /\bventure[- ]backed\b/i,
+  /\braised\s+(?:\$|usd|inr|rs\.?|₹)\s*\d+/i,
+  /\b(?:sequoia|tiger\s+global|elevation\s+capital|matrix\s+partners|accel|softbank|chiratae|nexus\s+venture|lightspeed|peak\s+xv)\b/i,
+  /\bunicorn\b/i,
+];
+
 /**
- * Scrapes the clinic's public website for mailto: emails and doctor/owner names.
+ * Extracts chain signals from accumulated HTML across scraped pages.
+ */
+export function extractChainSignalsFromHtml(
+  html: string,
+  urlsScraped: string[]
+): ChainSignals {
+  const lowerText = html.toLowerCase().replace(/<[^>]+>/g, " ");
+
+  // 1. Detect Indian cities
+  const matchedCities = new Set<string>();
+  for (const city of MAJOR_INDIAN_CITIES) {
+    const cityRegex = new RegExp(`\\b${city}\\b`, "i");
+    if (cityRegex.test(lowerText)) {
+      matchedCities.add(city);
+    }
+  }
+  const citiesFound = Array.from(matchedCities);
+
+  // 2. Detect Locations pages from scraped URLs or HTML links
+  let hasLocationsPage = false;
+  let locationsUrl: string | undefined;
+
+  for (const u of urlsScraped) {
+    const pathLower = u.toLowerCase();
+    if (
+      pathLower.includes("/location") ||
+      pathLower.includes("/centre") ||
+      pathLower.includes("/center") ||
+      pathLower.includes("/branch") ||
+      pathLower.includes("/clinic") ||
+      pathLower.includes("/find-a-") ||
+      pathLower.includes("/cities")
+    ) {
+      hasLocationsPage = true;
+      locationsUrl = u;
+      break;
+    }
+  }
+
+  if (!hasLocationsPage) {
+    const linkMatch = html.match(/href=["']([^"'#\s>]+(?:locations?|centres?|centers?|branches?)[^"'#\s>]*)["']/i);
+    if (linkMatch) {
+      hasLocationsPage = true;
+      locationsUrl = linkMatch[1];
+    }
+  }
+
+  // 3. Detect Funding mentions
+  const fundingMatches: string[] = [];
+  for (const pattern of FUNDING_PATTERNS) {
+    const match = lowerText.match(pattern);
+    if (match) {
+      fundingMatches.push(match[0].trim());
+    }
+  }
+
+  const evidence: string[] = [];
+  if (citiesFound.length >= 5) {
+    evidence.push(`Website lists ${citiesFound.length} cities: ${citiesFound.slice(0, 8).join(", ")}`);
+  }
+  if (hasLocationsPage && locationsUrl) {
+    evidence.push(`Locations/centres page found: ${locationsUrl}`);
+  }
+  if (fundingMatches.length > 0) {
+    evidence.push(`Funding mentions detected: ${fundingMatches.join(", ")}`);
+  }
+
+  return {
+    citiesFound,
+    hasLocationsPage,
+    locationsUrl,
+    fundingMatches,
+    evidence,
+  };
+}
+
+/**
+ * Scrapes the clinic's public website for mailto: emails, doctor/owner names,
+ * and chain signals. Uses Apify cheerio-scraper if APIFY_API_TOKEN is set,
+ * otherwise falls back to direct fetch.
  */
 export async function scrapeClinicWebsite(
   websiteUrl: string,
@@ -32,6 +143,12 @@ export async function scrapeClinicWebsite(
     emails: [],
     doctorNames: [],
     pagesScraped: [],
+    chainSignals: {
+      citiesFound: [],
+      hasLocationsPage: false,
+      fundingMatches: [],
+      evidence: [],
+    },
   };
 
   if (!websiteUrl) {
@@ -55,31 +172,79 @@ export async function scrapeClinicWebsite(
     result.doctorNames.push(nameFromCompany);
   }
 
-  // 2. Fetch Homepage HTML
-  const homeHtml = await fetchHtmlWithTimeout(baseUrl.toString(), 5000);
-  if (!homeHtml) {
-    return result;
-  }
-  result.pagesScraped.push(baseUrl.toString());
+  let combinedHtml = "";
+  const apifyToken = process.env.APIFY_API_TOKEN;
 
-  // Extract from homepage
-  extractEmailsFromHtml(homeHtml, result.emails);
-  extractDoctorNamesFromHtml(homeHtml, result.doctorNames);
+  // 2. Try Apify cheerio-scraper if token is present
+  if (apifyToken) {
+    try {
+      console.log(`[Apify Scraper] Running apify~cheerio-scraper for ${baseUrl.toString()}`);
+      const targetSubpages = [
+        baseUrl.toString(),
+        new URL("/about", baseUrl).toString(),
+        new URL("/contact", baseUrl).toString(),
+        new URL("/doctors", baseUrl).toString(),
+        new URL("/locations", baseUrl).toString(),
+      ];
 
-  // 3. Find subpage links matching /about, /doctors, /team, /contact
-  const subpageUrls = findCandidateSubpages(homeHtml, baseUrl);
+      const apifyRes = await fetch(
+        `https://api.apify.com/v2/acts/apify~cheerio-scraper/run-sync-get-dataset-items?token=${apifyToken}&timeout=30`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            startUrls: targetSubpages.map((u) => ({ url: u })),
+            maxRequestsPerCrawl: 5,
+            pageFunction:
+              "async function pageFunction(context) { const { $, request } = context; return { url: request.url, html: $.html() || '', text: $('body').text() || '' }; }",
+          }),
+          signal: AbortSignal.timeout(35000),
+        }
+      );
 
-  // Fetch up to 3 candidate subpages in parallel
-  if (subpageUrls.length > 0) {
-    const promises = subpageUrls.slice(0, 3).map(async (url) => {
-      const html = await fetchHtmlWithTimeout(url, 5000);
-      if (html) {
-        result.pagesScraped.push(url);
-        extractEmailsFromHtml(html, result.emails);
-        extractDoctorNamesFromHtml(html, result.doctorNames);
+      if (apifyRes.ok) {
+        const items = (await apifyRes.json()) as any;
+        if (Array.isArray(items) && items.length > 0) {
+          for (const item of items) {
+            if (item.url && !result.pagesScraped.includes(item.url)) {
+              result.pagesScraped.push(item.url);
+            }
+            if (item.html) {
+              combinedHtml += " " + item.html;
+              extractEmailsFromHtml(item.html, result.emails);
+              extractDoctorNamesFromHtml(item.html, result.doctorNames);
+            }
+          }
+        }
       }
-    });
-    await Promise.allSettled(promises);
+    } catch (err: any) {
+      console.warn(`[Apify Cheerio Scraper Warning for ${baseUrl.hostname}]:`, err.message || err);
+    }
+  }
+
+  // 3. Fallback to direct fetch if Apify returned 0 pages or no token
+  if (result.pagesScraped.length === 0) {
+    const homeHtml = await fetchHtmlWithTimeout(baseUrl.toString(), 5000);
+    if (homeHtml) {
+      result.pagesScraped.push(baseUrl.toString());
+      combinedHtml += " " + homeHtml;
+      extractEmailsFromHtml(homeHtml, result.emails);
+      extractDoctorNamesFromHtml(homeHtml, result.doctorNames);
+
+      const subpageUrls = findCandidateSubpages(homeHtml, baseUrl);
+      if (subpageUrls.length > 0) {
+        const promises = subpageUrls.slice(0, 4).map(async (url) => {
+          const html = await fetchHtmlWithTimeout(url, 5000);
+          if (html) {
+            result.pagesScraped.push(url);
+            combinedHtml += " " + html;
+            extractEmailsFromHtml(html, result.emails);
+            extractDoctorNamesFromHtml(html, result.doctorNames);
+          }
+        });
+        await Promise.allSettled(promises);
+      }
+    }
   }
 
   // Deduplicate emails and doctor names
@@ -88,8 +253,11 @@ export async function scrapeClinicWebsite(
 
   if (result.doctorNames.length > 0) {
     result.primaryDoctorName = result.doctorNames[0];
-    result.doctorRole = determineDoctorRole(result.primaryDoctorName, homeHtml);
+    result.doctorRole = determineDoctorRole(result.primaryDoctorName, combinedHtml);
   }
+
+  // Extract chain signals from combined HTML and visited pages
+  result.chainSignals = extractChainSignalsFromHtml(combinedHtml, result.pagesScraped);
 
   return result;
 }
@@ -192,8 +360,6 @@ function isValidNonGenericEmail(email: string): boolean {
 export function extractDoctorNamesFromHtml(html: string, targetArray: string[]): void {
   if (!html) return;
 
-  // Look for Dr. [First] [Last] patterns in HTML
-  // Examples: Dr. Raman Sharma, Dr. Ankit Gupta, Dr. (Prof.) Rajesh
   const doctorRegex = /\b(Dr\.?\s+(?:\[?[A-Z][a-z]+\]?\.?\s*){1,3})\b/g;
   let match: RegExpExecArray | null;
   while ((match = doctorRegex.exec(html)) !== null) {
@@ -205,29 +371,21 @@ export function extractDoctorNamesFromHtml(html: string, targetArray: string[]):
   }
 }
 
-function cleanDoctorName(name: string): string {
-  let cleaned = name.replace(/\s+/g, " ").trim();
-  if (!cleaned.startsWith("Dr.") && cleaned.startsWith("Dr")) {
-    cleaned = cleaned.replace(/^Dr\b/, "Dr.");
-  }
-  // Strip trailing 's or '
-  cleaned = cleaned.replace(/'s\b/gi, "").replace(/'\b/g, "");
+function cleanDoctorName(raw: string): string {
+  if (!raw) return "";
+  const parts = raw.split(/\s+/).filter(Boolean);
+  if (parts.length < 2) return "";
 
-  // Strip trailing organizational words (e.g. "Dental", "Clinic", "Hospital")
   const orgWords = [
-    "dental", "clinic", "hospital", "centre", "center", "care", "team",
-    "implant", "orthodontics", "multispeciality", "speciality", "surgery", "institute"
+    "clinic", "hospital", "centre", "center", "care", "dental", "team",
+    "healthcare", "institute", "health", "speciality", "surgery"
   ];
-  const parts = cleaned.split(" ");
-  while (parts.length > 2) {
-    const last = parts[parts.length - 1].toLowerCase();
-    if (orgWords.includes(last)) {
-      parts.pop();
-    } else {
-      break;
-    }
+
+  // Strip trailing org words (e.g. "Dr. Kathuria Dental" -> "Dr. Kathuria")
+  while (parts.length > 2 && orgWords.includes(parts[parts.length - 1].toLowerCase())) {
+    parts.pop();
   }
-  // If 2 parts and second is an org word (e.g. "Dr. Dental"), return empty
+
   if (parts.length === 2 && orgWords.includes(parts[1].toLowerCase())) {
     return "";
   }
@@ -269,7 +427,6 @@ function deduplicateNames(names: string[]): string[] {
 
 function determineDoctorRole(doctorName: string, html: string): string {
   const lowerHtml = html.toLowerCase();
-  const lowerName = doctorName.toLowerCase().replace(/^dr\.?\s*/, "");
 
   if (lowerHtml.includes("founder") || lowerHtml.includes("co-founder")) {
     return "Founder & Lead Doctor";
@@ -294,7 +451,10 @@ function findCandidateSubpages(html: string, baseUrl: URL): string[] {
   const hrefRegex = /<a\s+[^>]*href=["']([^"'#\s>]+)["']/gi;
   let match: RegExpExecArray | null;
 
-  const priorityKeywords = ["about", "doctor", "team", "dentist", "specialist", "founder", "contact"];
+  const priorityKeywords = [
+    "about", "doctor", "team", "dentist", "specialist", "founder", "contact",
+    "locations", "centres", "centers", "branches", "clinics"
+  ];
 
   while ((match = hrefRegex.exec(html)) !== null) {
     const href = match[1].trim();
@@ -304,7 +464,6 @@ function findCandidateSubpages(html: string, baseUrl: URL): string[] {
 
     try {
       const resolved = new URL(href, baseUrl);
-      // Ensure same hostname
       if (resolved.hostname !== baseUrl.hostname) {
         continue;
       }
@@ -316,13 +475,12 @@ function findCandidateSubpages(html: string, baseUrl: URL): string[] {
         }
       }
     } catch {
-      // invalid URL, continue
+      // ignore
     }
   }
 
-  // Fallback paths to try if no links found in HTML
   if (candidateUrls.length === 0) {
-    const fallbacks = ["/about", "/about-us", "/doctors", "/our-doctors", "/our-team", "/contact"];
+    const fallbacks = ["/about", "/about-us", "/doctors", "/our-doctors", "/our-team", "/contact", "/locations"];
     for (const fb of fallbacks) {
       candidateUrls.push(new URL(fb, baseUrl).toString());
     }

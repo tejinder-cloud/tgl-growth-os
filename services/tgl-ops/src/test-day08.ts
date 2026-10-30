@@ -6,12 +6,22 @@ import {
   extractEmailsFromHtml,
   extractDoctorNamesFromHtml,
   extractDoctorName,
+  extractChainSignalsFromHtml,
 } from "./agents/prospect-researcher/sources/website-scraper.js";
 import {
   checkMetaAdLibrary,
   resetMetaAdsBrowserState,
 } from "./agents/prospect-researcher/sources/meta-ads.js";
-import { evaluateProspectRubric } from "./agents/prospect-researcher/rubric.js";
+import {
+  evaluateProspectRubric,
+  checkPlaybookCDisqualification,
+} from "./agents/prospect-researcher/rubric.js";
+import { isDecisionMakerRole } from "./agents/prospect-researcher/sources/enrichment.js";
+import {
+  advanceRotation,
+  loadRotationState,
+  saveRotationState,
+} from "./agents/prospect-researcher/rotation.js";
 import { validateProspectRecord, isRolePlaceholderName } from "./agents/prospect-researcher/guardrails.js";
 import type { ProspectSignals, DecisionMaker } from "./agents/prospect-researcher/types.js";
 
@@ -298,6 +308,157 @@ async function runDay08Tests() {
   console.log(`  ✓ Missing DNS pass rejected: ${val5.reason}`);
 
   console.log("✅ [Test 4 Passed] Hard write gate protects against fabrication and supports owner-run businesses.\n");
+
+  // -------------------------------------------------------------------------
+  // Test 5: Chain Detection by Signal (not hardcoded name list)
+  // -------------------------------------------------------------------------
+  console.log("[Test 5] Testing signal-based chain detection (Playbook C)...");
+
+  // 5A: Multi-city HTML signal extraction (5+ cities)
+  const chainHtml = `
+    <html>
+      <body>
+        <nav>
+          <a href="/locations">Our Centres</a>
+        </nav>
+        <footer>
+          <p>We are present in: Delhi, Mumbai, Bengaluru, Hyderabad, Pune, Chennai, Kolkata, Ahmedabad.</p>
+          <p>Backed by Tiger Global and Sequoia Capital. Raised Series D funding in 2024.</p>
+        </footer>
+      </body>
+    </html>
+  `;
+  const chainSignals = extractChainSignalsFromHtml(chainHtml, ["https://example.com/locations"]);
+  if (chainSignals.citiesFound.length < 5) {
+    throw new Error(`Test 5.1 Failed: expected 5+ cities detected, got ${chainSignals.citiesFound.length}`);
+  }
+  if (!chainSignals.hasLocationsPage) {
+    throw new Error(`Test 5.2 Failed: expected locations page detected`);
+  }
+  if (chainSignals.fundingMatches.length === 0) {
+    throw new Error(`Test 5.3 Failed: expected funding mentions detected`);
+  }
+  console.log(`  ✓ Extracted chain signals: cities=${chainSignals.citiesFound.length}, locations=${chainSignals.hasLocationsPage}, funding=${chainSignals.fundingMatches.join(", ")}`);
+
+  // 5B: Pristyn Care evaluated strictly by signals (not domain list)
+  const pristynSignals: ProspectSignals = {
+    meta_ads_active: true,
+    meta_ad_count: 10,
+    gbp_reviews: 1200,
+    gbp_owner_replies: true,
+    hiring_marketing: true,
+    review_surge: true,
+    branch_count: 8,
+    chain_evidence: chainSignals.evidence,
+    places_brand_count: 6,
+  };
+  const pristynCheck = checkPlaybookCDisqualification("Pristyn Care", "pristyncare.com", pristynSignals);
+  if (!pristynCheck.disqualified) {
+    throw new Error(`Test 5.4 Failed: Pristyn Care should be disqualified by signal evidence`);
+  }
+  console.log(`  ✓ Pristyn Care disqualified by signals: ${pristynCheck.reason}`);
+
+  // 5C: Local single-doctor clinic with no chain signals passes
+  const localClinicSignals: ProspectSignals = {
+    meta_ads_active: false,
+    meta_ad_count: 0,
+    gbp_reviews: 80,
+    gbp_owner_replies: true,
+    hiring_marketing: false,
+    review_surge: false,
+    branch_count: 1,
+    places_brand_count: 1,
+  };
+  const localCheck = checkPlaybookCDisqualification("Dr. Kathuria Dental Clinic", "drkathuria.com", localClinicSignals);
+  if (localCheck.disqualified) {
+    throw new Error(`Test 5.5 Failed: local clinic should not be disqualified`);
+  }
+  console.log(`  ✓ Local clinic passes Playbook C without false positive.`);
+  console.log("✅ [Test 5 Passed] Chain detection operates purely on signal evidence.\n");
+
+  // -------------------------------------------------------------------------
+  // Test 6: Playbook D Decision-Maker Role Enforcement
+  // -------------------------------------------------------------------------
+  console.log("[Test 6] Testing Playbook D role enforcement...");
+
+  // Non-DM roles must be rejected
+  if (isDecisionMakerRole("Assistant")) {
+    throw new Error(`Test 6.1 Failed: 'Assistant' must not be recognized as DM`);
+  }
+  if (isDecisionMakerRole("Consultant Gastroenterologist")) {
+    throw new Error(`Test 6.2 Failed: 'Consultant Gastroenterologist' must not be recognized as DM`);
+  }
+  if (isDecisionMakerRole("Staff Nurse")) {
+    throw new Error(`Test 6.3 Failed: 'Staff Nurse' must not be recognized as DM`);
+  }
+
+  // Approved DM roles must be recognized
+  if (!isDecisionMakerRole("Owner / Lead Doctor")) {
+    throw new Error(`Test 6.4 Failed: 'Owner / Lead Doctor' must be recognized as DM`);
+  }
+  if (!isDecisionMakerRole("Medical Director")) {
+    throw new Error(`Test 6.5 Failed: 'Medical Director' must be recognized as DM`);
+  }
+  if (!isDecisionMakerRole("Marketing Head")) {
+    throw new Error(`Test 6.6 Failed: 'Marketing Head' must be recognized as DM`);
+  }
+  if (!isDecisionMakerRole("Managing Director")) {
+    throw new Error(`Test 6.7 Failed: 'Managing Director' must be recognized as DM`);
+  }
+  console.log(`  ✓ Decision-maker roles accurately validated per Playbook D.`);
+
+  // 6D: Rubric scoring for "DM unknown" yields Dim 5 = 0 pts
+  const unknownDM: DecisionMaker = {
+    name: "DM unknown",
+    role: "DM unknown",
+    email: "consultant@clinic.com",
+    source: "contact found, DM unknown (hunter:status: deliverable)",
+  };
+  const evalUnknown = evaluateProspectRubric({
+    company: "Metro Advanced Dental",
+    domain: "metrodental.com",
+    category: "cosmetic_dental",
+    signals: {
+      meta_ads_active: true,
+      meta_ad_count: 4,
+      gbp_reviews: 600,
+      gbp_owner_replies: true,
+      hiring_marketing: true,
+      review_surge: true,
+      branch_count: 2,
+    },
+    decisionMaker: unknownDM,
+  });
+  const dim5UnknownReason = evalUnknown.fitReasons.find((r) => r.startsWith("Dim 5"));
+  if (!dim5UnknownReason || !dim5UnknownReason.includes("0 pts")) {
+    throw new Error(`Test 6.8 Failed: expected Dim 5 to score 0 pts for DM unknown, got: ${dim5UnknownReason}`);
+  }
+  console.log(`  ✓ DM unknown scores 0 pts on Dim 5: ${dim5UnknownReason}`);
+  console.log("✅ [Test 6 Passed] Playbook D roles enforced strictly.\n");
+
+  // -------------------------------------------------------------------------
+  // Test 7: Rotation Advances City and Category
+  // -------------------------------------------------------------------------
+  console.log("[Test 7] Testing rotation advancement...");
+  saveRotationState({
+    version: 1,
+    currentCityIndex: 0,
+    currentCategoryIndex: 0,
+    completedRunsCount: 0,
+    lastRunAt: new Date().toISOString(),
+  }, { testMode: true });
+
+  const state1 = loadRotationState({ testMode: true });
+  if (state1.currentCityIndex !== 0 || state1.currentCategoryIndex !== 0) {
+    throw new Error(`Test 7.1 Failed: initial state index mismatch`);
+  }
+
+  const advanced = advanceRotation({ testMode: true });
+  if (advanced.currentCityIndex !== 1 || advanced.currentCategoryIndex !== 1) {
+    throw new Error(`Test 7.2 Failed: both city and category must advance on scheduled run, got city=${advanced.currentCityIndex}, cat=${advanced.currentCategoryIndex}`);
+  }
+  console.log(`  ✓ Advanced rotation: city index ${state1.currentCityIndex} -> ${advanced.currentCityIndex}, category index ${state1.currentCategoryIndex} -> ${advanced.currentCategoryIndex}`);
+  console.log("✅ [Test 7 Passed] Rotation advances city and category on each run.\n");
 
   console.log("==========================================================================");
   console.log("🎉 ALL LIVE RUN #48 DEFECT FIX TESTS PASSED CLEANLY!");

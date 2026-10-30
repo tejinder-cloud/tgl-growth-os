@@ -16,6 +16,8 @@ export interface RawPlaceCandidate {
   rawApiResponseExcerpt?: string;
   dnsVerified?: boolean;
   dnsIp?: string;
+  placesBrandCount?: number;
+  brandPrefix?: string;
 }
 
 const PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || "";

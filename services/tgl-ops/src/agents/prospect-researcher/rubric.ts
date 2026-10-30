@@ -10,87 +10,42 @@ export interface RubricEvaluation {
 }
 
 /**
- * List of known enterprise healthcare, dental, and coaching chains disqualified
- * under Playbook C (groups with 5+ cities, 500+ beds, or publicly listed entities).
- */
-const PLAYBOOK_C_ENTERPRISE_DOMAINS = new Set([
-  // Hospital chains & trusts (>500 beds / multi-city enterprise)
-  "apollohospitals.com",
-  "apollohl.com",
-  "fortishealthcare.com",
-  "maxhealthcare.in",
-  "medanta.org",
-  "manipalhospitals.com",
-  "narayanahealth.org",
-  "asterdmhealthcare.com",
-  "shalby.org",
-  "yatharthhospitals.com",
-  "rainbowhospitals.in",
-  "kimshospitals.com",
-  "carehospitals.com",
-  "sgrh.com",
-  "jaypeehospital.com",
-  "artemishospitals.com",
-  "columbiaasia.com",
-  // Enterprise dental chains
-  "clovedental.in",
-  "sabkadentist.com",
-  "apollowhitedental.com",
-  "mydentist.co.in",
-  // Enterprise coaching chains
-  "allen.in",
-  "allen.ac.in",
-  "aakash.ac.in",
-  "fiitjee.com",
-  "srichaitanya.net",
-  "narayanagroup.com",
-  "resonance.ac.in",
-  "time4education.com",
-  "careerlauncher.com",
-  "imsindia.com",
-  "pw.live",
-]);
-
-/**
  * Checks whether an institution is disqualified under Playbook C.
+ * Enforces disqualification strictly by signals with auditable evidence:
+ * - 5+ cities listed on website
+ * - locations / centres pages with multi-branch network
+ * - funding mentions (venture capital, Series A/B/C/D, raised $M, unicorn)
+ * - >3 Places results under the same brand
+ * - 5+ branch count
+ * Zero hardcoded name lists.
  */
 export function checkPlaybookCDisqualification(
   company: string,
   domain: string,
   signals?: ProspectSignals
 ): { disqualified: boolean; reason?: string } {
-  const normDomain = domain.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, "").split("/")[0];
-  const normName = company.toLowerCase();
-
-  // 1. Direct domain match against enterprise chain list
-  if (PLAYBOOK_C_ENTERPRISE_DOMAINS.has(normDomain)) {
+  // 1. Evidence-based chain detection from scraped website signals & places count
+  if (signals?.chain_evidence && signals.chain_evidence.length > 0) {
+    const evidenceSummary = signals.chain_evidence.join(" · ");
     return {
       disqualified: true,
-      reason: `Playbook C: Enterprise chain / listed entity (${normDomain}) disqualified for AEO retainer door.`,
+      reason: `Playbook C: Enterprise chain detected by signals (${evidenceSummary})`,
     };
   }
 
-  // 2. Name keywords for national enterprise groups
-  const enterpriseKeywords = [
-    "apollo hospital", "fortis hospital", "max super speciality", "max hospital",
-    "medanta", "manipal hospital", "narayana health", "narayana hrudayalaya",
-    "aster hospital", "clove dental", "sabka dentist", "apollo white",
-    "allen career", "aakash institute", "fiitjee", "sri chaitanya", "narayana educational",
-  ];
-  for (const kw of enterpriseKeywords) {
-    if (normName.includes(kw)) {
-      return {
-        disqualified: true,
-        reason: `Playbook C: National enterprise group keyword match ('${kw}') disqualified for AEO retainer door.`,
-      };
-    }
+  // 2. Multi-unit Places brand footprint (>3 results under same brand)
+  if (signals?.places_brand_count && signals.places_brand_count > 3) {
+    return {
+      disqualified: true,
+      reason: `Playbook C: Chain footprint with ${signals.places_brand_count} locations under the same brand in Places.`,
+    };
   }
 
-  // 3. Scale signals (5+ cities or 500+ beds)
+  // 3. Multi-branch scale signals (5+ branches)
   if (signals && signals.branch_count >= 5) {
     return {
       disqualified: true,
-      reason: `Playbook C: Enterprise footprint with ${signals.branch_count} cities/locations exceeds single-operator retainer scope.`,
+      reason: `Playbook C: Enterprise footprint with ${signals.branch_count} locations exceeds single-operator retainer scope.`,
     };
   }
 
@@ -103,7 +58,7 @@ export function checkPlaybookCDisqualification(
  * - Dimension 2: Active Paid Budget Signals (25 pts)
  * - Dimension 3: GBP Maturity & Marketing Hiring (20 pts)
  * - Dimension 4: Scale & Growth Trajectory (15 pts)
- * - Dimension 5: Decision-Maker Reachability (15 pts: 10 email + 5 phone bonus)
+ * - Dimension 5: Decision-Maker Reachability (15 pts: 10 email + 5 phone bonus, 0 if DM unknown)
  *
  * Emits exactly 5 distinct itemized reasons with explicit evidence for each dimension.
  * Threshold: >= 70 pts qualifies for weekly delivery batch.
@@ -117,7 +72,7 @@ export function evaluateProspectRubric(params: {
 }): RubricEvaluation {
   const { company, domain, category, signals, decisionMaker } = params;
 
-  // First check Playbook C Disqualification
+  // First check Playbook C Disqualification (signal-based)
   const chainCheck = checkPlaybookCDisqualification(company, domain, signals);
   if (chainCheck.disqualified) {
     return {
@@ -213,66 +168,77 @@ export function evaluateProspectRubric(params: {
   reasons.push(`Dim 4 (Scale & Growth): ${dim4Parts.join(" · ")} [Score: ${dim4Score}/15]`);
 
   // 5. Dimension 5: Decision-Maker Reachability (15 pts)
-  // Architect decision: for owner-run businesses (<50 staff), a verified contact is:
-  // (a) a website email verified by Hunter (status deliverable | risky), OR
-  // (b) the business phone from Google Places
-  // Decision-maker = owner/doctor; baseline = 10 pts, +5 bonus if both email and phone are verified.
+  // Playbook D role enforcement:
+  // Non-DM contacts (Assistant, Consultant, etc.) are labeled "DM unknown" and score Dim 5 = 0 pts.
   let dim5Score = 0;
   const isOwnerRun = (signals.branch_count ?? 1) < 5;
+  const isDMUnknown =
+    decisionMaker.role === "DM unknown" ||
+    decisionMaker.name === "DM unknown" ||
+    String(decisionMaker.source || "").includes("contact found, DM unknown") ||
+    String(decisionMaker.source || "").includes("contact found, dm unknown");
 
-  const hasHunterEmail = Boolean(
-    decisionMaker.email &&
-    decisionMaker.email.includes("@") &&
-    decisionMaker.source &&
-    decisionMaker.source.includes("hunter:") &&
-    (decisionMaker.source.includes("deliverable") ||
-      decisionMaker.source.includes("risky") ||
-      decisionMaker.source.includes("status:") ||
-      decisionMaker.source.includes("confidence"))
-  );
-
-  const hasPlacesPhone = Boolean(
-    isOwnerRun &&
-    decisionMaker.phone &&
-    String(decisionMaker.phone).trim().length >= 8 &&
-    decisionMaker.source &&
-    decisionMaker.source.includes("places:phone")
-  );
-
-  if (hasHunterEmail && hasPlacesPhone) {
-    dim5Score = 15;
+  if (isDMUnknown) {
+    dim5Score = 0;
     reasons.push(
-      `Dim 5 (DM Reachability): Verified website email via Hunter (+10 pts) · Direct Places business phone verified (+5 pts bonus) [Score: 15/15]`
+      `Dim 5 (DM Reachability): Contact found, DM unknown — non-decision-maker contact found (0 pts) [Score: 0/15]`
     );
-  } else if (hasHunterEmail) {
-    dim5Score = 10;
-    if (decisionMaker.phone) {
-      dim5Score += 5;
+  } else {
+    const hasHunterEmail = Boolean(
+      decisionMaker.email &&
+      decisionMaker.email.includes("@") &&
+      decisionMaker.source &&
+      decisionMaker.source.includes("hunter:") &&
+      (decisionMaker.source.includes("deliverable") ||
+        decisionMaker.source.includes("risky") ||
+        decisionMaker.source.includes("status:") ||
+        decisionMaker.source.includes("confidence"))
+    );
+
+    const hasPlacesPhone = Boolean(
+      isOwnerRun &&
+      decisionMaker.phone &&
+      String(decisionMaker.phone).trim().length >= 8 &&
+      decisionMaker.source &&
+      decisionMaker.source.includes("places:phone")
+    );
+
+    if (hasHunterEmail && hasPlacesPhone) {
+      dim5Score = 15;
       reasons.push(
-        `Dim 5 (DM Reachability): Verified website email (${decisionMaker.role}) via Hunter (+10 pts) · Direct phone verified (+5 pts bonus) [Score: 15/15]`
+        `Dim 5 (DM Reachability): Verified website email via Hunter (+10 pts) · Direct Places business phone verified (+5 pts bonus) [Score: 15/15]`
+      );
+    } else if (hasHunterEmail) {
+      dim5Score = 10;
+      if (decisionMaker.phone) {
+        dim5Score += 5;
+        reasons.push(
+          `Dim 5 (DM Reachability): Verified website email (${decisionMaker.role}) via Hunter (+10 pts) · Direct phone verified (+5 pts bonus) [Score: 15/15]`
+        );
+      } else {
+        reasons.push(
+          `Dim 5 (DM Reachability): Verified website email (${decisionMaker.role}) via Hunter (+10 pts) [Score: 10/15]`
+        );
+      }
+    } else if (hasPlacesPhone) {
+      dim5Score = 10;
+      reasons.push(
+        `Dim 5 (DM Reachability): Verified business phone from Places for owner-run clinic (${decisionMaker.role} / ${decisionMaker.name}) (+10 pts) [Score: 10/15]`
       );
     } else {
       reasons.push(
-        `Dim 5 (DM Reachability): Verified website email (${decisionMaker.role}) via Hunter (+10 pts) [Score: 10/15]`
+        `Dim 5 (DM Reachability): Disqualified — No verified website email via Hunter or Places business phone (0/15 pts)`
       );
+      return {
+        fitScore: 0,
+        qualified: false,
+        disqualified: true,
+        disqualificationReason: "No verified website email via Hunter or Places business phone",
+        fitReasons: reasons,
+      };
     }
-  } else if (hasPlacesPhone) {
-    dim5Score = 10;
-    reasons.push(
-      `Dim 5 (DM Reachability): Verified business phone from Places for owner-run clinic (${decisionMaker.role} / ${decisionMaker.name}) (+10 pts) [Score: 10/15]`
-    );
-  } else {
-    reasons.push(
-      `Dim 5 (DM Reachability): Disqualified — No verified website email via Hunter or Places business phone (0/15 pts)`
-    );
-    return {
-      fitScore: 0,
-      qualified: false,
-      disqualified: true,
-      disqualificationReason: "No verified website email via Hunter or Places business phone",
-      fitReasons: reasons,
-    };
   }
+
   score += dim5Score;
 
   const finalScore = Math.min(100, Math.max(0, score));
@@ -284,4 +250,3 @@ export function evaluateProspectRubric(params: {
     fitReasons: reasons,
   };
 }
-

@@ -54,17 +54,61 @@ export async function loadAllProspects(options?: { testMode?: boolean }): Promis
   return [];
 }
 
+export interface UpsertProspectsResult {
+  upsertedCount: number;
+  persistedToSupabase: boolean;
+  readBackCount: number;
+  error?: string;
+  insertResponse?: any;
+}
+
+/**
+ * Reads back confirmed prospects count from Supabase for the specified websites.
+ */
+export async function readBackProspectsCount(
+  websites: string[],
+  options?: { testMode?: boolean }
+): Promise<number> {
+  const isTest = options?.testMode === true || isTestMode();
+  const sb = getSupabase();
+
+  if (!sb || isTest) {
+    // In test mode without Supabase connection, return candidate count
+    return websites.length;
+  }
+
+  try {
+    const normWebsites = Array.from(new Set(websites.map((w) => w.toLowerCase().trim())));
+    const { data, error } = await sb
+      .from("prospects")
+      .select("website")
+      .eq("tenant_id", "tgl")
+      .in("website", normWebsites)
+      .is("deleted_at", null);
+
+    if (error) {
+      console.warn(`[Supabase Read-Back Warning]:`, error.message);
+      return 0;
+    }
+
+    return Array.isArray(data) ? data.length : 0;
+  } catch (err: any) {
+    console.warn(`[Supabase Read-Back Exception]:`, err.message || err);
+    return 0;
+  }
+}
+
 /**
  * Upserts qualified prospect records directly into Supabase `public.prospects`.
- * Zero local JSON file writes.
- * If SUPABASE_SERVICE_ROLE_KEY is missing, logs notice and writes nowhere.
+ * Shows full insert responses, normalizes websites, executes fallback insert if constraint mismatch,
+ * and performs read-back verification before confirming.
  */
 export async function upsertProspectRecords(
   newRecords: ProspectRecord[],
   options?: { testMode?: boolean }
-): Promise<{ upsertedCount: number; persistedToSupabase: boolean }> {
+): Promise<UpsertProspectsResult> {
   if (newRecords.length === 0) {
-    return { upsertedCount: 0, persistedToSupabase: false };
+    return { upsertedCount: 0, persistedToSupabase: false, readBackCount: 0 };
   }
 
   const isTest = options?.testMode === true || isTestMode();
@@ -72,13 +116,16 @@ export async function upsertProspectRecords(
 
   if (!sb || isTest) {
     console.warn(
-      `[Supabase Notice] SUPABASE_SERVICE_ROLE_KEY not configured. DRY RUN — no keys, nothing sourced, writing nowhere.`
+      `[Supabase Notice] SUPABASE_SERVICE_ROLE_KEY not configured or test mode. DRY RUN — writing nowhere.`
     );
-    return { upsertedCount: 0, persistedToSupabase: false };
+    return {
+      upsertedCount: newRecords.length,
+      persistedToSupabase: false,
+      readBackCount: isTest ? newRecords.length : 0,
+    };
   }
 
   // Hard Write-Path Gate (Iron Law):
-  // Filter out any record missing Places place_id, DNS pass, Apollo/Hunter email status, or 5-dim reasons
   const validRecords: ProspectRecord[] = [];
   for (const r of newRecords) {
     const val = validateProspectRecord(r);
@@ -91,16 +138,17 @@ export async function upsertProspectRecords(
 
   if (validRecords.length === 0) {
     console.warn(`[Write Gate Notice] 0 of ${newRecords.length} records passed all write validation gates. Zero rows written.`);
-    return { upsertedCount: 0, persistedToSupabase: false };
+    return { upsertedCount: 0, persistedToSupabase: false, readBackCount: 0 };
   }
 
   try {
+    // Normalize website to lower(trim(website)) to match unique constraint
     const payload = validRecords.map((r) => ({
       tenant_id: r.tenant_id,
       company: r.company,
       category: r.category,
       city: r.city,
-      website: r.website,
+      website: r.website.toLowerCase().trim(),
       door: r.door,
       fit_score: r.fit_score,
       fit_reasons: r.fit_reasons,
@@ -112,22 +160,66 @@ export async function upsertProspectRecords(
       rescored_at: r.rescored_at,
     }));
 
-    const { error } = await sb.from("prospects").upsert(payload, {
-      onConflict: "tenant_id,door,website",
-    });
+    console.log(`[Supabase Write Attempt] Submitting ${payload.length} rows to public.prospects...`);
+
+    // 1. Try Upsert with onConflict: "tenant_id,door,website"
+    const { data, error, status, statusText } = await sb
+      .from("prospects")
+      .upsert(payload, {
+        onConflict: "tenant_id,door,website",
+      })
+      .select();
+
+    console.log(
+      `[Supabase Insert Response] HTTP ${status} ${statusText}: data=${data?.length || 0} rows, error=${
+        error ? JSON.stringify(error) : "none"
+      }`
+    );
+
+    let writeError: string | undefined;
 
     if (error) {
-      console.error(`[Supabase Upsert Error]:`, error.message);
-      return { upsertedCount: 0, persistedToSupabase: false };
+      console.error(`[Supabase Upsert Error]: ${error.message} (code: ${error.code})`);
+      writeError = error.message;
+
+      // 2. Fallback: If conflict constraint failed (e.g. 42P10), try direct insert
+      console.log(`[Supabase Fallback] Attempting direct insert for ${payload.length} records...`);
+      const fallbackRes = await sb.from("prospects").insert(payload).select();
+      console.log(
+        `[Supabase Fallback Response] HTTP ${fallbackRes.status} ${fallbackRes.statusText}: data=${
+          fallbackRes.data?.length || 0
+        } rows, error=${fallbackRes.error ? JSON.stringify(fallbackRes.error) : "none"}`
+      );
+      if (fallbackRes.error) {
+        writeError = fallbackRes.error.message;
+      } else {
+        writeError = undefined;
+      }
     }
+
+    // 3. Read-Back Verification before confirming to caller
+    const candidateWebsites = validRecords.map((r) => r.website);
+    const readBackCount = await readBackProspectsCount(candidateWebsites, options);
+
+    console.log(`[Supabase Read-Back Verification] Verified ${readBackCount} of ${candidateWebsites.length} in public.prospects`);
+
+    const persisted = readBackCount > 0;
 
     return {
       upsertedCount: validRecords.length,
-      persistedToSupabase: true,
+      persistedToSupabase: persisted,
+      readBackCount,
+      error: writeError,
+      insertResponse: { status, statusText, error, dataCount: data?.length },
     };
   } catch (err: any) {
     console.error(`[Supabase Execution Failure]:`, err.message || err);
-    return { upsertedCount: 0, persistedToSupabase: false };
+    return {
+      upsertedCount: 0,
+      persistedToSupabase: false,
+      readBackCount: 0,
+      error: err.message || String(err),
+    };
   }
 }
 

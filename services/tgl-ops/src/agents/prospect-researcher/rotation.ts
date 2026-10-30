@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { config, isTestMode } from "../../config.js";
 import type { RotationCity, RotationCategory, RotationState } from "./types.js";
+import { putFileInRepo } from "../../lib/github-client.js";
 
 export const ROTATION_CITIES: RotationCity[] = [
   "Delhi NCR",
@@ -65,6 +66,17 @@ export function saveRotationState(
   }
 
   fs.writeFileSync(filePath, JSON.stringify(state, null, 2) + "\n", "utf8");
+
+  // In production, persist state to GitHub repo so ephemeral container restarts retain state
+  if (!test && config.githubToken) {
+    putFileInRepo(
+      ROTATION_STATE_FILE,
+      JSON.stringify(state, null, 2) + "\n",
+      "chore(state): advance prospect rotation state"
+    ).catch((err) => {
+      console.warn(`[Rotation State Sync Warning]:`, err.message || err);
+    });
+  }
 }
 
 /**
@@ -95,15 +107,12 @@ export function getNextRotation(options?: {
 }
 
 /**
- * Advances the rotation indices and updates state.
+ * Advances both city and category on each scheduled run.
  */
 export function advanceRotation(options?: { testMode?: boolean }): RotationState {
   const state = loadRotationState(options);
   state.currentCityIndex = (state.currentCityIndex + 1) % ROTATION_CITIES.length;
-  // If we cycled through all 5 cities, advance category
-  if (state.currentCityIndex === 0) {
-    state.currentCategoryIndex = (state.currentCategoryIndex + 1) % ROTATION_CATEGORIES.length;
-  }
+  state.currentCategoryIndex = (state.currentCategoryIndex + 1) % ROTATION_CATEGORIES.length;
   state.completedRunsCount += 1;
   state.lastRunAt = new Date().toISOString();
   saveRotationState(state, options);

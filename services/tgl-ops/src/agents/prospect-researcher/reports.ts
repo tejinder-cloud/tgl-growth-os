@@ -86,12 +86,14 @@ export async function postTop25ReviewCard(params: {
   category: string;
   prospects: ProspectRecord[];
   csvPath: string;
+  savedCount?: number;
   rejectionProposal?: string;
   options?: { testMode?: boolean };
 }): Promise<{ cardTs?: string; channel?: string }> {
-  const { city, category, prospects, csvPath, rejectionProposal, options } = params;
+  const { city, category, prospects, csvPath, savedCount, rejectionProposal, options } = params;
   const isTest = options?.testMode === true || isTestMode();
   const targetChannel = isTest ? (config.opsChannelId || "#ops") : "#revenue";
+  const dateStr = getTodayDateString();
 
   const top25 = [...prospects].sort((a, b) => b.fit_score - a.fit_score).slice(0, 25);
 
@@ -100,7 +102,14 @@ export async function postTop25ReviewCard(params: {
     return `*${idx + 1}. <${p.website}|${p.company}>* (Score: *${p.fit_score}*) · ${p.city}\n   ↳ *${p.decision_maker.name}* (${p.decision_maker.role}) · \`${p.decision_maker.email}\`${phoneTag}\n   ↳ _${p.fit_reasons[0] || "Qualified"}_`;
   });
 
-  const summary = `*Top 25 Prospects — ${city} (${category})*\n*Total Qualified Batch:* ${prospects.length} accounts (Fit score ≥ 70)\n\n${lines.slice(0, 8).join("\n\n")}\n\n_(+${Math.max(0, top25.length - 8)} more in attached CSV below)_`;
+  const writtenToSupabase =
+    typeof savedCount === "number" && savedCount > 0
+      ? `*Written to Supabase:* ${savedCount}`
+      : "*Written to Supabase:* 0 saved";
+
+  const summary = `*Top 25 Prospects — ${city} (${category})*\n*Total Qualified Batch:* ${prospects.length} accounts (Fit score ≥ 70)\n${writtenToSupabase}\n\n${lines.slice(0, 8).join("\n\n")}\n\n_(+${Math.max(0, top25.length - 8)} more in attached CSV below)_`;
+
+  const runLogUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/logs/${dateStr}/prospect-researcher.md`;
 
   const cardPayload = {
     channel: targetChannel,
@@ -109,11 +118,11 @@ export async function postTop25ReviewCard(params: {
     title: `Top 25 Prospects — ${city} (${category})`,
     summary,
     links: [
+      { label: "Run Log", url: runLogUrl },
       { label: "SKILL.md", url: `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/agents/prospect-researcher/SKILL.md` },
       { label: "Door AEO", url: `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/config/doors/aeo.yaml` },
     ],
     actions: ["approve", "reject", "discuss"] as ("approve" | "reject" | "discuss")[],
-    issue: `prospects-${city.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
     extraMeta: {
       city,
       category,

@@ -116,12 +116,14 @@ export function checkAndConsumePlacesQuota(
 export function isRolePlaceholderName(name: string, isOwnerRun?: boolean): boolean {
   if (!name || typeof name !== "string") return true;
   const rawTrimmed = name.trim();
-  // Architect decision: for owner-run businesses (<50 staff), decision-maker = owner/doctor
+  // Allowed explicit markers: DM unknown for Playbook D, and owner/doctor for owner-run clinics
   if (
-    isOwnerRun &&
-    (rawTrimmed === "Owner / Lead Doctor" ||
-      rawTrimmed === "Lead Doctor / Clinic Owner" ||
-      rawTrimmed === "Owner / Doctor")
+    rawTrimmed === "DM unknown" ||
+    rawTrimmed === "Contact found, DM unknown" ||
+    (isOwnerRun &&
+      (rawTrimmed === "Owner / Lead Doctor" ||
+        rawTrimmed === "Lead Doctor / Clinic Owner" ||
+        rawTrimmed === "Owner / Doctor"))
   ) {
     return false;
   }
@@ -196,17 +198,25 @@ export function validateProspectRecord(p: any): { valid: boolean; reason?: strin
   }
 
   const dmSource = String(dm.source || "").toLowerCase();
+  const isDMUnknown =
+    dm.role === "DM unknown" ||
+    dm.name === "DM unknown" ||
+    dmSource.includes("contact found, dm unknown");
+
   const hasHunterEmail =
     Boolean(dm.email && dm.email.includes("@")) &&
     dmSource.includes("hunter:") &&
-    (dmSource.includes("deliverable") || dmSource.includes("risky") || dmSource.includes("status:"));
+    (dmSource.includes("deliverable") ||
+      dmSource.includes("risky") ||
+      dmSource.includes("status:") ||
+      isDMUnknown);
 
   const hasPlacesPhone =
     Boolean(dm.phone && String(dm.phone).trim().length >= 8) &&
     dmSource.includes("places:phone") &&
     hasPlacesId;
 
-  if (!hasHunterEmail && !hasPlacesPhone) {
+  if (!hasHunterEmail && !hasPlacesPhone && !isDMUnknown) {
     return {
       valid: false,
       reason: `Contact not verified: requires Hunter-verified website email or Places business phone for owner-run business (source: '${dm.source || "none"}')`,
