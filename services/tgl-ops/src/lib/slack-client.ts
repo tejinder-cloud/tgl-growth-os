@@ -1,5 +1,5 @@
 import { WebClient } from "@slack/web-api";
-import { config } from "../config.js";
+import { config, isTestMode } from "../config.js";
 import { getArchitectConfig } from "./org.js";
 
 export const slackClient = new WebClient(config.slackBotToken || "xoxb-mock-token");
@@ -72,6 +72,33 @@ export async function getActorDisplayName(user: any): Promise<string> {
   }
 
   return finalName;
+}
+
+let cachedBotIdentity: { userId?: string; botId?: string } | null = null;
+
+export async function getBotIdentity(): Promise<{ userId?: string; botId?: string }> {
+  if (cachedBotIdentity) {
+    return cachedBotIdentity;
+  }
+  if (!config.slackBotToken || isTestMode()) {
+    cachedBotIdentity = { userId: "U_BOT_DEFAULT", botId: "B_BOT_DEFAULT" };
+    return cachedBotIdentity;
+  }
+  try {
+    const auth = await slackClient.auth.test();
+    cachedBotIdentity = {
+      userId: auth.user_id as string | undefined,
+      botId: auth.bot_id as string | undefined,
+    };
+    return cachedBotIdentity;
+  } catch (err: any) {
+    console.warn("[Slack] Could not fetch bot identity via auth.test():", err.message);
+    return {};
+  }
+}
+
+export function setBotIdentityForTests(identity: { userId?: string; botId?: string } | null): void {
+  cachedBotIdentity = identity;
 }
 
 

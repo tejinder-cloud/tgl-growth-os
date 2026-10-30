@@ -17,7 +17,7 @@ import { getIssueMapping } from "../lib/issues-index.js";
 import { getCurrentTimeIST, getTodayDateString } from "../lib/standup.js";
 import { getAlertsChannel } from "../lib/cron-wrapper.js";
 import { getAnthropicModel, getAnthropicPricing } from "../agents/chief-of-staff/anthropic.js";
-import { checkAgentCostCap, usageCostsLedger, type UsageCostEntry } from "../lib/cost-cap.js";
+import { checkAgentCostCap, callAnthropicWithCostCap, usageCostsLedger, type UsageCostEntry } from "../lib/cost-cap.js";
 export { usageCostsLedger, type UsageCostEntry };
 import { runPreflightCheck } from "./preflight.js";
 import { buildRunnerSystemPrompt, buildRunnerUserMessage } from "./prompt.js";
@@ -323,13 +323,17 @@ export async function runIssueTask(
         throw new Error("Runner execution exceeded 15 minutes hard timeout limit.");
       }
 
-      const response = await anthropic.messages.create({
-        model: modelName,
-        max_tokens: 4096,
-        system: systemPrompt,
-        messages,
-        tools: RUNNER_TOOLS,
-        tool_choice: { type: "auto" },
+      const response = await callAnthropicWithCostCap({
+        agent: agentName,
+        issueNumber: issueNum,
+        params: {
+          model: modelName,
+          max_tokens: 4096,
+          system: systemPrompt,
+          messages,
+          tools: RUNNER_TOOLS,
+          tool_choice: { type: "auto" },
+        },
       });
 
       totalInputTokens += response.usage?.input_tokens || 0;
@@ -395,16 +399,6 @@ export async function runIssueTask(
         `chore(log): record ${agentName} run for #${issueNum}`
       ).catch((err) => console.warn("[Runner log append warning]", err));
     }
-
-    usageCostsLedger.push({
-      timestamp: new Date().toISOString(),
-      issueNumber: issueNum,
-      agent: agentName,
-      model: modelName,
-      inputTokens: totalInputTokens,
-      outputTokens: totalOutputTokens,
-      totalCostUsd,
-    });
 
     // 8. Open PR with filled PR template
     const prTitle = `feat(${agentName}): ${issue.title.replace(/^\[TASK\]:\s*/i, "")} (#${issueNum})`;

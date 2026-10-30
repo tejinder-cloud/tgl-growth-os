@@ -1,10 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
+import Anthropic from "@anthropic-ai/sdk";
 import { config, isTestMode } from "../config.js";
 import { loadAgents, type AgentRecord } from "./agents.js";
 import { postLine } from "./post.js";
 import { getAlertsChannel } from "./cron-wrapper.js";
 import { getTodayDateString, getCurrentTimeIST } from "./standup.js";
+import { getAnthropicPricing } from "./anthropic-pricing.js";
 
 // In-memory usage cost ledger
 export interface UsageCostEntry {
@@ -161,4 +163,65 @@ export async function getAgentsCostStatusForStandup(
   }
 
   return statuses;
+}
+
+export interface CappedAnthropicCallParams {
+  agent: string;
+  issueNumber?: number;
+  params: Anthropic.MessageCreateParamsNonStreaming;
+  options?: { testMode?: boolean };
+}
+
+/**
+ * Capped wrapper for all Anthropic calls across the entire service.
+ * Enforces the agent's daily cost cap before making the call.
+ * Upon response, calculates the exact cost and immediately records it to usageCostsLedger
+ * so subsequent checks within the same run or across polls reflect the spend immediately.
+ * Throws an error if the agent is over their daily cost cap.
+ */
+export async function callAnthropicWithCostCap(
+  callParams: CappedAnthropicCallParams
+): Promise<Anthropic.Message> {
+  // 1. Enforce daily cost cap check before making Anthropic API call
+  const costCheck = await checkAgentCostCap(callParams.agent, 0.0001, callParams.options);
+  if (!costCheck.allowed) {
+    const errorMsg = `Agent @${callParams.agent} exceeded daily cost cap ($${costCheck.currentSpend.toFixed(2)} / $${costCheck.cap.toFixed(2)} limit). LLM call blocked.`;
+    console.error(`[Cost Cap Blocked] ${errorMsg}`);
+    throw new Error(errorMsg);
+  }
+
+  // 2. Execute Anthropic API call
+  const anthropic = new Anthropic({ apiKey: config.anthropicApiKey });
+  const response = (await anthropic.messages.create({
+    ...callParams.params,
+    stream: false,
+  })) as Anthropic.Message;
+
+  // 3. Compute cost using configured pricing
+  const inputTokens = response.usage?.input_tokens || 0;
+  const outputTokens = response.usage?.output_tokens || 0;
+  let priceIn = 3.0;
+  let priceOut = 15.0;
+  try {
+    const pricing = getAnthropicPricing();
+    priceIn = pricing.priceInPerMTok;
+    priceOut = pricing.priceOutPerMTok;
+  } catch {}
+
+  const totalCostUsd = Number(
+    ((inputTokens * priceIn + outputTokens * priceOut) / 1_000_000).toFixed(4)
+  );
+
+  // 4. Record immediately into in-memory ledger
+  usageCostsLedger.push({
+    timestamp: new Date().toISOString(),
+    issueNumber: callParams.issueNumber || 0,
+    agent: callParams.agent,
+    model: response.model,
+    inputTokens,
+    outputTokens,
+    totalCostUsd,
+  });
+
+  return response;
 }

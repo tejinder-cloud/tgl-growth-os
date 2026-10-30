@@ -3,6 +3,7 @@ import path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import { config } from "../config.js";
 import { getAnthropicModel } from "../agents/chief-of-staff/anthropic.js";
+import { callAnthropicWithCostCap } from "../lib/cost-cap.js";
 
 export interface PreflightResult {
   verdict: "proceed" | "needs-brief" | "refuse";
@@ -260,13 +261,17 @@ ${body || "(No additional body provided)"}`;
 
   let response: Anthropic.Message | undefined;
   try {
-    response = await anthropic.messages.create({
-      model: modelName,
-      max_tokens: 1024,
-      system: systemPrompt,
-      messages: [{ role: "user", content: userPrompt }],
-      tools: PREFLIGHT_TOOLS,
-      tool_choice: { type: "auto" },
+    response = await callAnthropicWithCostCap({
+      agent: agentName || "unknown",
+      issueNumber,
+      params: {
+        model: modelName,
+        max_tokens: 1024,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userPrompt }],
+        tools: PREFLIGHT_TOOLS,
+        tool_choice: { type: "auto" },
+      },
     });
   } catch (apiErr: any) {
     console.warn(`[Pre-flight Anthropic API error on Issue #${issueNumber}]:`, apiErr?.message || apiErr);

@@ -4,7 +4,9 @@ import Anthropic from "@anthropic-ai/sdk";
 import { config } from "../../config.js";
 import { appendFileInRepo } from "../../lib/github-client.js";
 import { getCurrentTimeIST } from "../../lib/standup.js";
-import { checkAgentCostCap } from "../../lib/cost-cap.js";
+import { checkAgentCostCap, callAnthropicWithCostCap } from "../../lib/cost-cap.js";
+import { getAnthropicModel, getAnthropicPricing } from "../../lib/anthropic-pricing.js";
+export { getAnthropicModel, getAnthropicPricing };
 import type { GatheredData } from "./gather.js";
 
 export interface SynthesisResult {
@@ -14,45 +16,6 @@ export interface SynthesisResult {
   outputTokens: number;
   totalCostUsd: number;
   loggedCost: boolean;
-}
-
-/**
- * Reads Anthropic model from ANTHROPIC_MODEL environment variable.
- * Fallback: fails loudly with a descriptive error — no hard-coded default allowed.
- */
-export function getAnthropicModel(): string {
-  const modelName = process.env.ANTHROPIC_MODEL?.trim();
-  if (!modelName) {
-    throw new Error(
-      "Missing required environment variable ANTHROPIC_MODEL. Model must not be hard-coded (fallback: fail loudly, no default allowed)."
-    );
-  }
-  return modelName;
-}
-
-/**
- * Reads token pricing (USD per MTok) from ANTHROPIC_PRICE_IN and ANTHROPIC_PRICE_OUT environment variables.
- * Fallback: fails loudly with a descriptive error if missing or invalid.
- */
-export function getAnthropicPricing(): { priceInPerMTok: number; priceOutPerMTok: number } {
-  const priceInRaw = process.env.ANTHROPIC_PRICE_IN?.trim();
-  const priceOutRaw = process.env.ANTHROPIC_PRICE_OUT?.trim();
-
-  if (!priceInRaw || isNaN(Number(priceInRaw))) {
-    throw new Error(
-      "Missing or invalid required environment variable ANTHROPIC_PRICE_IN. Must be USD price per MTok (e.g. '3.00')."
-    );
-  }
-  if (!priceOutRaw || isNaN(Number(priceOutRaw))) {
-    throw new Error(
-      "Missing or invalid required environment variable ANTHROPIC_PRICE_OUT. Must be USD price per MTok (e.g. '15.00')."
-    );
-  }
-
-  return {
-    priceInPerMTok: Number(priceInRaw),
-    priceOutPerMTok: Number(priceOutRaw),
-  };
 }
 
 /**
@@ -135,17 +98,20 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
 
   if (config.anthropicApiKey) {
     try {
-      const anthropic = new Anthropic({ apiKey: config.anthropicApiKey });
-      const response = await anthropic.messages.create({
-        model: modelName,
-        max_tokens: 2000,
-        system: systemPrompt,
-        messages: [
-          {
-            role: "user",
-            content: `Synthesize the 18:00 IST Standup Digest from today's gathered operational material:\n\n${data.rawSummaryText}`,
-          },
-        ],
+      const response = await callAnthropicWithCostCap({
+        agent: "chief-of-staff",
+        params: {
+          model: modelName,
+          max_tokens: 2000,
+          system: systemPrompt,
+          messages: [
+            {
+              role: "user",
+              content: `Synthesize the 18:00 IST Standup Digest from today's gathered operational material:\n\n${data.rawSummaryText}`,
+            },
+          ],
+        },
+        options: { testMode: isTest },
       });
 
       if (response.stop_reason === "max_tokens") {
