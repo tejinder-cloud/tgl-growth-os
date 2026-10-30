@@ -6,7 +6,8 @@ import { slackClient, getActorDisplayName, getBotIdentity } from "../../lib/slac
 import { postLine, postCard } from "../../lib/post.js";
 import { createIssue, appendFileInRepo } from "../../lib/github-client.js";
 import { loadAgents, findAgentByName } from "../../lib/agents.js";
-import { loadPlanEntries } from "../../lib/plan.js";
+import { loadPlanEntries, getCurrentPlanDay } from "../../lib/plan.js";
+import { dispatchPlanDay, isEntryAlreadyIssued } from "./dispatch.js";
 import {
   checkAgentCostCap,
   callAnthropicWithCostCap,
@@ -20,7 +21,7 @@ import {
 import { getAnthropicModel, getAnthropicPricing } from "./anthropic.js";
 import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
 
-export type IntakeClassification = "task" | "report" | "question" | "decision" | "ambiguous";
+export type IntakeClassification = "task" | "report" | "question" | "decision" | "dispatch" | "ambiguous";
 
 export interface IntakeClassificationResult {
   category: IntakeClassification;
@@ -29,6 +30,7 @@ export interface IntakeClassificationResult {
   clarifyingQuestion?: string;
   decisionText?: string;
   door?: string;
+  targetDay?: number;
   confidence: number;
 }
 
@@ -118,11 +120,24 @@ export async function classifyArchitectMessage(
 
   // Test mode deterministic classifier if no API key
   if (isTest && !config.anthropicApiKey) {
-    const text = messageText.toLowerCase();
+    const text = messageText.toLowerCase().trim();
     let cat: IntakeClassification = "question";
     let agent = "web-builder";
+    let targetDay: number | undefined;
 
-    if (/^build|^create|^implement|^fix|^deploy|^task:/i.test(text)) {
+    if (/^(?:go\b|say go|day\s*(\d+)|dispatch\s*(?:day\s*)?(\d+)?)/i.test(text)) {
+      cat = "dispatch";
+      const match = text.match(/(?:day\s*|dispatch\s*(?:day\s*)?)(\d+)/i);
+      targetDay = match ? parseInt(match[1], 10) : undefined;
+      return {
+        category: "dispatch",
+        agent: "chief-of-staff",
+        brief: messageText,
+        confidence: 0.98,
+        targetDay,
+        tokens: { input: 100, output: 50, costUsd: 0.001 },
+      };
+    } else if (/^build|^create|^implement|^fix|^deploy|^task:/i.test(text)) {
       cat = "task";
       if (/research|prospect|lead|places/i.test(text)) agent = "prospect-researcher";
       else if (/copy|design|brand|visual/i.test(text)) agent = "creative-director";
@@ -158,6 +173,7 @@ export async function classifyArchitectMessage(
       agent,
       brief: messageText,
       confidence: 0.95,
+      targetDay,
       decisionText: cat === "decision" ? messageText : undefined,
       clarifyingQuestion: cat === "ambiguous" ? "Could you clarify the exact scope and target files for this request?" : undefined,
       tokens: { input: 100, output: 50, costUsd: 0.001 },
@@ -165,20 +181,23 @@ export async function classifyArchitectMessage(
   }
 
   const prompt = `You are the intake classifier for The Growth Lab's Chief of Staff.
-Your job is to read an inbound message from the Architect (Tejinder Singh) and classify it into exactly one of five categories:
-1. "task": The Architect is requesting work to be built, fixed, updated, researched, or executed.
+Your job is to read an inbound message from the Architect (Tejinder Singh) and classify it into exactly one of six categories:
+1. "dispatch": The Architect is triggering or directing the dispatch of a plan day (e.g. "go", "say go", "day 8", "day 9", "dispatch day 9", "proceed with day 8").
+   - Extract "targetDay" as an integer if a specific day is named (e.g. 9 for "day 9"). If just "go", omit or leave null.
+2. "task": The Architect is requesting work to be built, fixed, updated, researched, or executed.
    - Extract the best matching agent name (e.g. web-builder, creative-director, prospect-researcher, chief-of-staff, video-team, etc.).
    - Rewrite the brief in that agent's professional craft terms.
-2. "report": The Architect is requesting a report or using the directive "Report ..." (e.g. "report", "Report current spend", "daily report", "ops report", "status report", "compile report"). Reserve the "report" category strictly for requests asking for a report. Queries asking for counts without asking for a report (e.g. "counts by city", "counts by status", "counts by day", "what did we spend today?", "how many prospects in Delhi?") are "question", NOT "report".
-3. "question": The Architect is asking a question or querying metrics without requesting a report (e.g. "counts by city", "counts by status", "counts by day", "what did we spend today?", "how many prospects in Delhi?").
-4. "decision": The Architect is stating a strategic or architectural decision to be permanently recorded.
-5. "ambiguous": The message is vague, underspecified, or ambiguous. Provide exactly one sharp clarifying question.
+3. "report": The Architect is requesting a report or using the directive "Report ..." (e.g. "report", "Report current spend", "daily report", "ops report", "status report", "compile report"). Reserve the "report" category strictly for requests asking for a report. Queries asking for counts without asking for a report (e.g. "counts by city", "counts by status", "counts by day", "what did we spend today?", "how many prospects in Delhi?") are "question", NOT "report".
+4. "question": The Architect is asking a question or querying metrics without requesting a report (e.g. "counts by city", "counts by status", "counts by day", "what did we spend today?", "how many prospects in Delhi?").
+5. "decision": The Architect is stating a strategic or architectural decision to be permanently recorded.
+6. "ambiguous": The message is vague, underspecified, or ambiguous. Provide exactly one sharp clarifying question.
 
 Message: "${messageText}"
 
 Respond ONLY with a JSON object:
 {
-  "category": "task" | "report" | "question" | "decision" | "ambiguous",
+  "category": "dispatch" | "task" | "report" | "question" | "decision" | "ambiguous",
+  "targetDay": number (optional, for dispatch),
   "agent": "string (for tasks)",
   "door": "core" | "aeo" | "ai" | "truelead",
   "brief": "rewritten brief in agent terms (for tasks)",
@@ -211,6 +230,7 @@ Respond ONLY with a JSON object:
     door: parsed.door || "core",
     brief: parsed.brief || messageText,
     decisionText: parsed.decisionText,
+    targetDay: parsed.targetDay ? Number(parsed.targetDay) : undefined,
     clarifyingQuestion: parsed.clarifyingQuestion,
     confidence: parsed.confidence || 0.9,
     tokens: { input: inputTokens, output: outputTokens, costUsd },
@@ -586,10 +606,34 @@ export async function pollChiefOfStaffIntake(options?: {
           const allPlan = await loadPlanEntries({ testMode: isTest });
           const plannedEntry = allPlan.find((e) => e.agent === rawAgent);
           const arrivalNote = plannedEntry
-            ? `Agent \`@${rawAgent}\` arrives on *Plan Day ${plannedEntry.day}* (${plannedEntry.date}).`
+            ? `Agent \`@${rawAgent}\` arrives on *Plan Day ${plannedEntry.day}*.`
             : `Agent \`@${rawAgent}\` is not yet provisioned in the roster.`;
 
           const replyText = `${arrivalNote}\n*Nearest available action:* \`@chief-of-staff\` can coordinate manually or \`@web-builder\` can scaffold.`;
+          await postLine({ channel, text: replyText, thread_ts: threadTs });
+        }
+      } else if (classification.category === "dispatch") {
+        let targetDay = classification.targetDay;
+        if (!targetDay) {
+          const curDay = await getCurrentPlanDay({ testMode: isTest });
+          const all = await loadPlanEntries({ testMode: isTest });
+          const curEntry = all.find((e) => e.day === curDay);
+          const curIssued = curEntry ? await isEntryAlreadyIssued(curEntry, { testMode: isTest }) : false;
+          targetDay = curIssued ? curDay + 1 : curDay;
+        }
+
+        const dispatchRes = await dispatchPlanDay(targetDay, { testMode: isTest });
+        if (dispatchRes.status === "dispatched") {
+          const replyText = `🚀 *Plan Day ${targetDay} Dispatched:*\n• *Title:* ${dispatchRes.entry?.title}\n• *Assigned Agent:* \`@${dispatchRes.assignedAgent}\`\n• *Issue:* <${dispatchRes.issueUrl}|#${dispatchRes.issueNumber}>\n• *Expected Completion:* ~1–2 hours`;
+          await postLine({ channel, text: replyText, thread_ts: threadTs });
+        } else if (dispatchRes.status === "already-issued") {
+          const replyText = `⚠️ *Plan Day ${targetDay} Already Issued:*\n• *Title:* ${dispatchRes.entry?.title}\n• *Issue:* <${dispatchRes.issueUrl}|#${dispatchRes.issueNumber}>\n${dispatchRes.reason}`;
+          await postLine({ channel, text: replyText, thread_ts: threadTs });
+        } else if (dispatchRes.status === "blocked") {
+          const replyText = `🛑 *Plan Day ${targetDay} Blocked:*\n${dispatchRes.reason}`;
+          await postLine({ channel, text: replyText, thread_ts: threadTs });
+        } else {
+          const replyText = `❓ *Plan Day ${targetDay} Dispatch Failed:*\n${dispatchRes.reason || "Not found in config/plan.yaml"}`;
           await postLine({ channel, text: replyText, thread_ts: threadTs });
         }
       } else if (classification.category === "report") {

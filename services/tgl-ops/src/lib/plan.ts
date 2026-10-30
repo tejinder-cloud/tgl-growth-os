@@ -6,26 +6,69 @@ import { octokit } from "./github-client.js";
 
 export interface PlanEntry {
   day: number;
-  date: string;
+  date?: string;
   agent: string;
   door: string;
   title: string;
   brief: string;
   definition_of_done: string[];
-  depends_on: number[];
+  depends_on: (number | string)[];
   architect_hour: string;
 }
 
 export interface PlanFileContent {
   version: number;
   generated_at: string;
-  start_date: string;
+  start_date?: string;
   days_count: number;
   plan: PlanEntry[];
 }
 
 const PLAN_FILE_PATH = "config/plan.yaml";
 const TEST_PLAN_FILE_PATH = "logs/.test/plan.yaml";
+const PLAN_PROGRESS_PATH = "logs/.state/plan-progress.json";
+const TEST_PLAN_PROGRESS_PATH = "logs/.test/.state/plan-progress.json";
+
+export function getPlanProgressPath(testMode: boolean): string {
+  if (testMode) {
+    return path.join(config.repoRoot, TEST_PLAN_PROGRESS_PATH);
+  }
+  return path.join(config.repoRoot, PLAN_PROGRESS_PATH);
+}
+
+export async function getCurrentPlanDay(options?: { testMode?: boolean }): Promise<number> {
+  const isTest = options?.testMode === true || isTestMode();
+  const filePath = getPlanProgressPath(isTest);
+  if (fs.existsSync(filePath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      if (typeof data.currentDay === "number") return data.currentDay;
+    } catch {}
+  }
+  return 8; // Default start at Day 8
+}
+
+export async function setCurrentPlanDay(day: number, options?: { testMode?: boolean }): Promise<void> {
+  const isTest = options?.testMode === true || isTestMode();
+  const filePath = getPlanProgressPath(isTest);
+  try {
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify({ currentDay: day, updatedAt: new Date().toISOString() }, null, 2) + "\n", "utf8");
+  } catch (err) {
+    console.warn("[Plan Progress Save Warning]", err);
+  }
+}
+
+export function isTrueLeadParked(): boolean {
+  try {
+    const doorPath = path.join(config.repoRoot, "config/doors/truelead.yaml");
+    if (fs.existsSync(doorPath)) {
+      const content = fs.readFileSync(doorPath, "utf8");
+      return /status:\s*parked/i.test(content);
+    }
+  } catch {}
+  return true;
+}
 
 export function getPlanFilePath(testMode: boolean): string {
   if (testMode) {
@@ -103,12 +146,16 @@ export async function savePlanEntries(
   options?: { testMode?: boolean }
 ): Promise<boolean> {
   const isTest = options?.testMode === true || isTestMode();
+  const cleanEntries = entries.map((e) => {
+    const copy: any = { ...e };
+    delete copy.date;
+    return copy;
+  });
   const fileContent: PlanFileContent = {
     version: 1,
     generated_at: new Date().toISOString(),
-    start_date: entries[0]?.date || "2026-10-30",
-    days_count: entries.length,
-    plan: entries,
+    days_count: cleanEntries.length,
+    plan: cleanEntries,
   };
   const serialized = stringify(fileContent);
 
@@ -202,18 +249,8 @@ export async function addProposalToPlan(
   const maxDay = entries.reduce((max, e) => (e.day > max ? e.day : max), 0);
   const nextDay = maxDay + 1;
 
-  // Calculate next working day after latest date
-  const latestDateStr = entries[entries.length - 1]?.date || "2027-01-22";
-  const nextDate = new Date(latestDateStr);
-  nextDate.setDate(nextDate.getDate() + 1);
-  while (nextDate.getDay() === 0 || nextDate.getDay() === 6) {
-    nextDate.setDate(nextDate.getDate() + 1);
-  }
-  const dateStr = nextDate.toISOString().split("T")[0];
-
   const newEntry: PlanEntry = {
     day: nextDay,
-    date: dateStr,
     agent: proposal.agent,
     door: proposal.door || "core",
     title: proposal.title,

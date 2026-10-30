@@ -4,38 +4,19 @@ import { stringify } from "yaml";
 
 export interface PlanEntry {
   day: number;
-  date: string;
   agent: string;
   door: string;
   title: string;
   brief: string;
   definition_of_done: string[];
-  depends_on: number[];
+  depends_on: (number | string)[];
   architect_hour: string;
 }
-
-// Generate working days starting from 2026-10-30
-function getWorkingDays(startDateStr: string, totalCount: number): string[] {
-  const dates: string[] = [];
-  const cur = new Date(startDateStr);
-  while (dates.length < totalCount) {
-    const dayOfWeek = cur.getDay(); // 0 is Sun, 6 is Sat
-    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-      dates.push(cur.toISOString().split("T")[0]);
-    }
-    cur.setDate(cur.getDate() + 1);
-  }
-  return dates;
-}
-
-const workingDates = getWorkingDays("2026-10-30", 61); // Days 8 through 68 = 61 working days
-const getDate = (dayNum: number): string => workingDates[dayNum - 8];
 
 export const PLAN_ENTRIES: PlanEntry[] = [
   // Phase 1 — Revenue pod + audit engine (Days 8–15)
   {
     day: 8,
-    date: getDate(8),
     agent: "aeo-audit-engine",
     door: "aeo",
     title: "AEO Audit Engine SKILL.md + short-form engine",
@@ -48,25 +29,23 @@ export const PLAN_ENTRIES: PlanEntry[] = [
     depends_on: [],
     architect_hour: "Approve prompt rules; review 3 one-pagers (yours + 2 prospects).",
   },
-  {
+    {
     day: 9,
-    date: getDate(9),
     agent: "aeo-audit-engine",
     door: "aeo",
-    title: "Full engine: 10 prompts × 5 engines + 6-page PDF",
-    brief: "Full engine: 10 prompts × 5 engines (AI Overviews + Copilot via Playwright), sentiment, hallucination detection, competitor citations, 6-page PDF; Supabase runs/answers/citations.",
+    title: "TrueVisible MVP sprint kick-off & Full audit engine (10 prompts × 5 engines)",
+    brief: "Architect-sprint track begins: truevisible-app repo, schema per SPEC §11, auth, wizard, dashboard skeleton (owned by Architect). Audit engine: 10 prompts × 5 engines (AI Overviews + Copilot via Playwright), sentiment, hallucination detection, competitor citations, 6-page PDF; Supabase runs/answers/citations.",
     definition_of_done: [
-      "10 prompts × 5 engines (including Google AI Overviews & Copilot via Playwright)",
-      "Sentiment and hallucination detection algorithms implemented",
-      "Supabase schema stores runs, answers, citations",
-      "6-page PDF generated with complete citation audit",
+      "Architect-sprint track launched: truevisible-app repository initialized with Next.js/Vercel",
+      "Supabase schema scaffolded per SPEC §11 (tenants, prompts, runs, answers, citations, usage_costs)",
+      "Auth and wizard skeleton established for TrueVisible app",
+      "10 prompts × 5 engines evaluated by aeo-audit-engine with 6-page PDF",
     ],
     depends_on: [8],
-    architect_hour: "Review TGL's full audit — our baseline, 0% expected.",
+    architect_hour: "Architect-sprint: init truevisible-app repo, auth & wizard skeleton. Review TGL full audit baseline.",
   },
   {
     day: 10,
-    date: getDate(10),
     agent: "outreach-sequencer",
     door: "aeo",
     title: "Outreach Sequencer SKILL.md + 5-touch worker",
@@ -80,24 +59,23 @@ export const PLAN_ENTRIES: PlanEntry[] = [
     depends_on: [8],
     architect_hour: "Edit the five templates; connect LinkedIn in GrowthLab Engine.",
   },
-  {
+    {
     day: 11,
-    date: getDate(11),
     agent: "web-builder",
     door: "aeo",
-    title: "/aeo landing page + audit form + GHL pipeline",
-    brief: "/aeo page + audit form + GHL 'AEO' pipeline + WhatsApp alert templates.",
+    title: "/aeo landing page + audit form + Rahul Meta campaign (₹500/day)",
+    brief: "/aeo page + audit form + GHL 'AEO' pipeline + WhatsApp alert templates; Rahul launches Meta campaign → /aeo audit (₹500/day).",
     definition_of_done: [
       "/aeo responsive page built with paper-and-ink visual system",
       "Interactive audit request form writes lead to GHL AEO pipeline",
       "WhatsApp alert templates submitted and tested",
+      "Rahul launches Meta ad campaign driving traffic to /aeo audit at ₹500/day",
     ],
     depends_on: [8],
-    architect_hour: "Approve copy; submit templates.",
+    architect_hour: "Approve /aeo copy and ₹500/day Meta ad budget; submit WhatsApp templates.",
   },
   {
     day: 12,
-    date: getDate(12),
     agent: "sales-desk",
     door: "aeo",
     title: "Sales Desk SKILL.md + worker + proposal template",
@@ -113,7 +91,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 13,
-    date: getDate(13),
     agent: "finance",
     door: "core",
     title: "Finance SKILL.md + v1: GST invoices & ledger",
@@ -129,7 +106,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 14,
-    date: getDate(14),
     agent: "outreach-sequencer",
     door: "aeo",
     title: "Outreach live: 25/day + Delivery QA",
@@ -144,7 +120,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 15,
-    date: getDate(15),
     agent: "chief-of-staff",
     door: "core",
     title: "Gate 1 Review & Cross-Door Scorecard v1",
@@ -161,7 +136,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   // Phase 2 — TrueVisible v1 + AEO delivery (Days 16–33)
   {
     day: 16,
-    date: getDate(16),
     agent: "web-builder",
     door: "aeo",
     title: "Supabase schema per SPEC §11 with RLS & usage_costs",
@@ -176,7 +150,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 17,
-    date: getDate(17),
     agent: "aeo-audit-engine",
     door: "aeo",
     title: "Citation Tracker: daily runs per brand",
@@ -191,7 +164,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 18,
-    date: getDate(18),
     agent: "web-builder",
     door: "aeo",
     title: "Auth + onboarding wizard (3 steps) in paper-and-ink",
@@ -206,7 +178,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 19,
-    date: getDate(19),
     agent: "aeo-strategist",
     door: "aeo",
     title: "Setup-verification queue",
@@ -221,7 +192,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 20,
-    date: getDate(20),
     agent: "web-builder",
     door: "aeo",
     title: "TrueVisible Dashboard: Overview tab",
@@ -236,7 +206,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 21,
-    date: getDate(21),
     agent: "web-builder",
     door: "aeo",
     title: "TrueVisible Dashboard: Prompts, Citations & Settings tabs",
@@ -251,7 +220,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 22,
-    date: getDate(22),
     agent: "web-builder",
     door: "aeo",
     title: "Recommendations with assets + Start managed AEO button",
@@ -266,7 +234,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 23,
-    date: getDate(23),
     agent: "outreach-sequencer",
     door: "aeo",
     title: "Automated client reports (email + dashboard via Resend)",
@@ -281,7 +248,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 24,
-    date: getDate(24),
     agent: "web-builder",
     door: "aeo",
     title: "Monthly PDF generator via Playwright + GA4 Impact tab",
@@ -296,7 +262,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 25,
-    date: getDate(25),
     agent: "chief-of-staff",
     door: "aeo",
     title: "Alerts engine (hallucination & competitor overtake) + WhatsApp",
@@ -309,24 +274,24 @@ export const PLAN_ENTRIES: PlanEntry[] = [
     depends_on: [17],
     architect_hour: "Approve alert copy; set thresholds.",
   },
-  {
+    {
     day: 26,
-    date: getDate(26),
-    agent: "finance",
+    agent: "web-builder",
     door: "aeo",
-    title: "Billing engine: Razorpay subscriptions, trials, invoices",
-    brief: "Billing: Razorpay subscriptions (INR+GST / USD no GST), trial logic (14d, 10 prompts, no card), paywall, invoices.",
+    title: "Gate 2 Target: TrueVisible v1 launch — /truevisible page, Meta trial switch & Google Search",
+    brief: "Gate 2 target achieved: /truevisible product page live; switch Meta campaign to trial + launch Google Search; Razorpay subscriptions, 14-day trial paywall, automated tax invoices.",
     definition_of_done: [
-      "14-day free trial engine with 10 prompt cap enforced",
-      "Razorpay recurring subscription webhook handler for INR and USD",
-      "Automatic tax invoice PDF generated and emailed upon payment",
+      "Gate 2 target verified: TrueVisible v1 operational and accepting user sign-ups",
+      "/truevisible product page deployed with 14-day trial CTA, interactive preview, and pricing",
+      "Meta ad campaign switched from /aeo audit to TrueVisible 14-day trial",
+      "Google Search campaign launched targeting high-intent AEO, AI visibility, and brand search terms",
+      "Razorpay recurring subscriptions (INR/USD) and 14-day trial paywall verified live",
     ],
-    depends_on: [13, 18],
-    architect_hour: "Test a trial → paid conversion with a test card.",
+    depends_on: [18, 20, 21, 22, 25],
+    architect_hour: "Gate 2 sign-off: walk /truevisible on phone, test trial signup, approve Google Search keywords and Meta ad switch.",
   },
   {
     day: 27,
-    date: getDate(27),
     agent: "web-builder",
     door: "aeo",
     title: "Agency multi-tenant data model",
@@ -341,7 +306,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 28,
-    date: getDate(28),
     agent: "web-builder",
     door: "aeo",
     title: "Execution paths: WordPress via MCP, Shopify/Webflow adapters",
@@ -356,7 +320,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 29,
-    date: getDate(29),
     agent: "aeo-strategist",
     door: "aeo",
     title: "AEO Strategist + Implementer: 90-day execution on TGL site",
@@ -371,7 +334,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 30,
-    date: getDate(30),
     agent: "aeo-strategist",
     door: "aeo",
     title: "Competitor Intelligence: citing sources & monthly refresh",
@@ -386,7 +348,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 31,
-    date: getDate(31),
     agent: "sales-desk",
     door: "aeo",
     title: "Customer Success v1 + Trial Concierge",
@@ -401,7 +362,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 32,
-    date: getDate(32),
     agent: "chief-of-staff",
     door: "core",
     title: "Compliance audit & legal contracts pack",
@@ -417,7 +377,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 33,
-    date: getDate(33),
     agent: "chief-of-staff",
     door: "core",
     title: "Gate 2 Load Test: TGL + 3 dummy tenants",
@@ -434,7 +393,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   // Phase 3 — Marketing engine, umbrella site, Mission Control (Days 34–46)
   {
     day: 34,
-    date: getDate(34),
     agent: "content-writer",
     door: "core",
     title: "Content Writer + Editor SKILL.md",
@@ -449,7 +407,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 35,
-    date: getDate(35),
     agent: "content-writer",
     door: "aeo",
     title: "Writer + Editor workers & first 2 AEO posts",
@@ -464,7 +421,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 36,
-    date: getDate(36),
     agent: "repurposer-publisher",
     door: "marketing",
     title: "Repurposer/Publisher worker & social scheduling",
@@ -477,39 +433,36 @@ export const PLAN_ENTRIES: PlanEntry[] = [
     depends_on: [35],
     architect_hour: "Connect Buffer; approve post 1 + derivatives.",
   },
-  {
+    {
     day: 37,
-    date: getDate(37),
     agent: "web-builder",
     door: "core",
-    title: "Homepage rebuilt as umbrella + /truevisible product page",
-    brief: "Homepage rebuilt as the umbrella; BRAND-BRIEF §1/§2/§7 rewritten; /truevisible product page with trial CTA; comparison page (dated, verified).",
+    title: "Homepage rebuilt as umbrella + comparison page",
+    brief: "Homepage rebuilt as the umbrella; BRAND-BRIEF §1/§2/§7 rewritten; competitor comparison page (dated, verified).",
     definition_of_done: [
       "Homepage updated with umbrella positioning and paper-and-ink visual system",
-      "/truevisible product page live with interactive trial CTA",
       "Competitor comparison page published with dated, screenshot-verified claims",
+      "Internal routing mapped between umbrella homepage and /truevisible /aeo doors",
     ],
     depends_on: [33],
     architect_hour: "Approve homepage + comparison copy.",
   },
-  {
+    {
     day: 38,
-    date: getDate(38),
     agent: "web-builder",
     door: "ai",
-    title: "/ai draft + /coaching reorganization + /truelead waitlist",
-    brief: "/ai draft; /coaching moved under TrueLead; /truelead waitlist.",
+    title: "/ai draft + /coaching reorganization",
+    brief: "/ai draft; /coaching moved under parked TrueLead directory; waitlist deferred until TrueVisible ships.",
     definition_of_done: [
       "/ai solutions landing page drafted",
       "/coaching URL routing restructured under TrueLead domain hierarchy",
-      "/truelead waitlist page deployed with lead capture",
+      "TrueLead waitlist deferred while door remains parked",
     ],
     depends_on: [37],
     architect_hour: "Approve /ai copy and page layouts.",
   },
   {
     day: 39,
-    date: getDate(39),
     agent: "creative-director",
     door: "core",
     title: "Creative Director cold review & token audit",
@@ -522,24 +475,23 @@ export const PLAN_ENTRIES: PlanEntry[] = [
     depends_on: [37, 38],
     architect_hour: "Decide what it escalates.",
   },
-  {
+    {
     day: 40,
-    date: getDate(40),
-    agent: "sales-desk",
-    door: "aeo",
-    title: "Ads Analyst + Creative Producer: Meta campaign v1",
-    brief: "Ads Analyst + Creative Producer: Meta campaign → TrueVisible trial; ₹400/day.",
+    agent: "ads-analyst",
+    door: "marketing",
+    title: "Ads Analyst SKILL.md + ChatGPT Ads self-serve eligibility & account setup",
+    brief: "Ads Analyst's first task: verify ChatGPT ads self-serve/India eligibility and open the account; audit Meta trial campaign and Google Search performance.",
     definition_of_done: [
-      "Ad creative hooks and visual posters generated from paper-and-ink assets",
-      "Meta campaign configured targeting coaching and surgical healthcare founders",
-      "UTM tracking parameters mapped to GHL and GA4 conversions",
+      "agents/ads-analyst/SKILL.md created following 11-section standard",
+      "Verification report on ChatGPT ads self-serve platform availability and India account eligibility",
+      "ChatGPT ads account created or waitlist registered with billing details",
+      "Review of live Meta and Google Search campaigns with ROAS and CPL optimization notes",
     ],
-    depends_on: [37],
-    architect_hour: "Approve creatives; set budget.",
+    depends_on: [26, 37],
+    architect_hour: "Approve ChatGPT ads setup and eligibility report; confirm account verification.",
   },
   {
     day: 41,
-    date: getDate(41),
     agent: "web-builder",
     door: "core",
     title: "Mission Control v1: Doors, pipelines & standup SLA",
@@ -554,7 +506,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 42,
-    date: getDate(42),
     agent: "web-builder",
     door: "core",
     title: "Mission Control v2: Financials & run cost ledgers",
@@ -569,7 +520,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 43,
-    date: getDate(43),
     agent: "web-builder",
     door: "core",
     title: "Mission Control v3: Approvals queue & alert feed",
@@ -584,7 +534,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 44,
-    date: getDate(44),
     agent: "content-writer",
     door: "marketing",
     title: "Community monitoring agent: LinkedIn/Reddit/Quora",
@@ -599,7 +548,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 45,
-    date: getDate(45),
     agent: "people-ops",
     door: "people",
     title: "People Ops: skill-file audit & performance records",
@@ -614,7 +562,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 46,
-    date: getDate(46),
     agent: "chief-of-staff",
     door: "core",
     title: "Gate 3 Review: Marketing engine & Mission Control",
@@ -629,81 +576,74 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
 
   // Phase 4 — TrueLead + TGL AI doors (Days 47–58)
-  {
+    {
     day: 47,
-    date: getDate(47),
     agent: "web-builder",
     door: "truelead",
-    title: "Product QA runs TrueLead 5-step gate from fresh account",
-    brief: "Product QA runs the TrueLead 5-step gate from a fresh account.",
+    title: "Product QA runs TrueLead 5-step gate from fresh account (Parked)",
+    brief: "Parked until TrueVisible ships (depends on architect-unpark). Product QA runs the TrueLead 5-step gate from a fresh account.",
     definition_of_done: [
       "Automated test script executes 5-step TrueLead onboarding gate",
-      "Lead scoring latency verified < 15 seconds",
-      "Defect list categorized into sprint backlog",
+      "Meta Lead Ads integration verified in test sandbox",
+      "Caller outcome logging flows validated",
     ],
-    depends_on: [46],
-    architect_hour: "Fix list → your sprint backlog.",
+    depends_on: ["architect-unpark"],
+    architect_hour: "Walk the caller card; log one lead outcome.",
   },
   {
     day: 48,
-    date: getDate(48),
     agent: "sales-desk",
     door: "truelead",
-    title: "TrueLead Trial Concierge implementation",
-    brief: "TrueLead Trial Concierge; TrueLead door growth plan (Part 1).",
+    title: "TrueLead Trial Concierge implementation (Parked)",
+    brief: "Parked until TrueVisible ships (depends on architect-unpark). TrueLead Trial Concierge; TrueLead door growth plan (Part 1).",
     definition_of_done: [
-      "Trial Concierge interactive onboarding logic deployed",
-      "Automated qualification heuristics for coaching leads configured",
+      "Trial Concierge automated onboarding sequence",
+      "Lead validation health checks established",
     ],
-    depends_on: [47],
+    depends_on: ["architect-unpark"],
     architect_hour: "Review TrueLead onboarding copy.",
   },
   {
     day: 49,
-    date: getDate(49),
     agent: "sales-desk",
     door: "truelead",
-    title: "TrueLead Door growth plan execution",
-    brief: "TrueLead Trial Concierge; TrueLead door growth plan (Part 2).",
+    title: "TrueLead Door growth plan execution (Parked)",
+    brief: "Parked until TrueVisible ships (depends on architect-unpark). TrueLead Trial Concierge; TrueLead door growth plan (Part 2).",
     definition_of_done: [
-      "Outbound prospect list targeted for coaching institutes",
+      "Target list of 50 performance agencies compiled",
       "Custom TrueLead demo flow initialized",
     ],
-    depends_on: [48],
+    depends_on: ["architect-unpark"],
     architect_hour: "Approve TrueLead growth plan targets.",
   },
   {
     day: 50,
-    date: getDate(50),
     agent: "sales-desk",
     door: "truelead",
-    title: "TrueLead Door growth plan sign-off",
-    brief: "TrueLead door growth plan sign-off (Part 3).",
+    title: "TrueLead Door growth plan sign-off (Parked)",
+    brief: "Parked until TrueVisible ships (depends on architect-unpark). TrueLead door growth plan sign-off (Part 3).",
     definition_of_done: [
       "TrueLead pricing and packaging validated with finance",
-      "Sign-off recorded in decisions/",
+      "Final sales collateral published",
     ],
-    depends_on: [49],
+    depends_on: ["architect-unpark"],
     architect_hour: "Approve TrueLead door plan.",
   },
   {
     day: 51,
-    date: getDate(51),
-    agent: "chief-of-staff",
+    agent: "web-builder",
     door: "truelead",
-    title: "Gate run #2: TrueLead waitlist becomes trial",
-    brief: "Gate run #2 → waitlist becomes trial if pass.",
+    title: "Gate run #2: TrueLead waitlist becomes trial (Parked)",
+    brief: "Parked until TrueVisible ships (depends on architect-unpark). Gate run #2: waitlist becomes trial; product qa runs from fresh account.",
     definition_of_done: [
       "TrueLead 5-step gate passes with zero blockers",
-      "Waitlist leads converted to active trial accounts",
-      "Welcome sequences dispatched",
+      "Waitlist conversion sequence triggered",
     ],
-    depends_on: [50],
-    architect_hour: "Decide on waitlist trial opening.",
+    depends_on: ["architect-unpark"],
+    architect_hour: "Gate run #2 sign-off.",
   },
   {
     day: 52,
-    date: getDate(52),
     agent: "web-builder",
     door: "ai",
     title: "AI Readiness Audit engine development",
@@ -717,7 +657,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 53,
-    date: getDate(53),
     agent: "web-builder",
     door: "ai",
     title: "/ai landing page deployment & demo flow",
@@ -731,7 +670,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 54,
-    date: getDate(54),
     agent: "sales-desk",
     door: "ai",
     title: "TGL AI Growth Plan sign-off",
@@ -745,7 +683,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 55,
-    date: getDate(55),
     agent: "sales-desk",
     door: "core",
     title: "Upsell Proposal Builder across doors",
@@ -759,7 +696,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 56,
-    date: getDate(56),
     agent: "video-team",
     door: "marketing",
     title: "Video Team final delivery & hero integration",
@@ -774,7 +710,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 57,
-    date: getDate(57),
     agent: "sales-desk",
     door: "marketing",
     title: "Second Meta Campaign launch for readier door",
@@ -788,7 +723,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 58,
-    date: getDate(58),
     agent: "chief-of-staff",
     door: "core",
     title: "Gate 4 Review: Three doors live with pipelines",
@@ -804,7 +738,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   // Phase 5 — Hardening (Days 59–68)
   {
     day: 59,
-    date: getDate(59),
     agent: "web-builder",
     door: "core",
     title: "Security Hardening: Secrets rotation & RLS audit",
@@ -818,7 +751,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 60,
-    date: getDate(60),
     agent: "web-builder",
     door: "core",
     title: "Security Hardening: Token scopes & monitoring",
@@ -832,7 +764,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 61,
-    date: getDate(61),
     agent: "web-builder",
     door: "core",
     title: "Security Hardening: Automated database backups",
@@ -846,7 +777,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 62,
-    date: getDate(62),
     agent: "chief-of-staff",
     door: "core",
     title: "Security & Infrastructure hardening sign-off",
@@ -860,7 +790,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 63,
-    date: getDate(63),
     agent: "people-ops",
     door: "people",
     title: "People Ops Monthly Review: Performance records",
@@ -874,7 +803,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 64,
-    date: getDate(64),
     agent: "people-ops",
     door: "people",
     title: "People Ops Monthly Review: Bench/retire decisions",
@@ -888,7 +816,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 65,
-    date: getDate(65),
     agent: "people-ops",
     door: "people",
     title: "People Ops Monthly Review: Founder-hours ledger",
@@ -902,7 +829,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 66,
-    date: getDate(66),
     agent: "finance",
     door: "finance",
     title: "Finance Monthly Close: Cost per brand vs price",
@@ -916,7 +842,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 67,
-    date: getDate(67),
     agent: "finance",
     door: "finance",
     title: "Finance Monthly Close: Agency plan go/no-go",
@@ -930,7 +855,6 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 68,
-    date: getDate(68),
     agent: "chief-of-staff",
     door: "core",
     title: "90-Day Door Reviews & Handover: Gate 5",
@@ -959,12 +883,12 @@ export function renderProjectPlanMarkdown(entries: PlanEntry[]): string {
     list
       .map(
         (e) =>
-          `| ${e.day} | ${e.date} | \`@${e.agent}\` | **${e.title}**: ${e.brief} | ${e.architect_hour} |`
+          `| ${e.day} | \`@${e.agent}\` | **${e.title}**: ${e.brief} | ${e.architect_hour} |`
       )
       .join("\n");
 
   return `# PROJECT PLAN v2 — Building The Growth Lab's agent company
-**23 October 2026 · 68 working days · Architect time: one hour per working day (TrueLead MVP sprint separate, ~2h/day, days 1–10)**
+**23 October 2026 · 68 days · Architect time: one hour per day (TrueVisible MVP sprint separate, ~2h/day, from Day 9)**
 
 "Build" = agents. "Your hour" = the only thing you do. Phase gates are hard.
 
@@ -973,39 +897,39 @@ export function renderProjectPlanMarkdown(entries: PlanEntry[]): string {
 ---
 
 ## Phase 0 — Foundations & plumbing (Days 1–5)
-| Day | Date | Agent | Build | Your hour |
-|---|---|---|---|---|
-| 1 | 2026-10-23 | \`@web-builder\` | Repo restructure to ORG.md layout; skill-file template; \`config/doors/*.yaml\`; \`products/truevisible/\` folder | Create Slack workspace + channels, GitHub org and push repo, Railway project, Supabase project. Paste IDs to \`config/\`. |
-| 2 | 2026-10-24 | \`@chief-of-staff\` | TGL Ops Slack bot (Block Kit, approve/reject); approval webhook on Railway → \`decisions/\` → next agent | Create Slack app; scopes; paste bot token to Railway secrets; approve the test message. |
-| 3 | 2026-10-25 | \`@chief-of-staff\` | GitHub issue queue (\`for:\`, \`door:\` labels); Actions for logs/standup; \`@agent\` mention listener | API keys: Anthropic, OpenAI, Google AI, Perplexity → secrets. |
-| 4 | 2026-10-26 | \`@chief-of-staff\` | Chief of Staff (skill file + worker): 18:00 digest, thread template, silence flag | Review skill file (10 min); watch the first 18:00 standup. |
-| 5 | 2026-10-27 | \`@chief-of-staff\` | End-to-end test: Slack → issue → agent → PR → approval → \`decisions/\` | **Gate 0:** approve one task from your phone without opening a file. |
+| Day | Agent | Build | Your hour |
+|---|---|---|---|
+| 1 | \`@web-builder\` | Repo restructure to ORG.md layout; skill-file template; \`config/doors/*.yaml\`; \`products/truevisible/\` folder | Create Slack workspace + channels, GitHub org and push repo, Railway project, Supabase project. Paste IDs to \`config/\`. |
+| 2 | \`@chief-of-staff\` | TGL Ops Slack bot (Block Kit, approve/reject); approval webhook on Railway → \`decisions/\` → next agent | Create Slack app; scopes; paste bot token to Railway secrets; approve the test message. |
+| 3 | \`@chief-of-staff\` | GitHub issue queue (\`for:\`, \`door:\` labels); Actions for logs/standup; \`@agent\` mention listener | API keys: Anthropic, OpenAI, Google AI, Perplexity → secrets. |
+| 4 | \`@chief-of-staff\` | Chief of Staff (skill file + worker): 18:00 digest, thread template, silence flag | Review skill file (10 min); watch the first 18:00 standup. |
+| 5 | \`@chief-of-staff\` | End-to-end test: Slack → issue → agent → PR → approval → \`decisions/\` | **Gate 0:** approve one task from your phone without opening a file. |
 
 ## Phase 1 — Revenue pod + audit engine (Days 6–15)
-| Day | Date | Agent | Build | Your hour |
-|---|---|---|---|---|
-| 6 | 2026-10-28 | \`@prospect-researcher\` | Prospect Researcher SKILL.md | Approve; create Google Places key, Apollo, Hunter accounts. |
-| 7 | 2026-10-29 | \`@prospect-researcher\` | Prospect Researcher worker → Supabase \`prospects\` → GHL; first 100 names | Review 25; reject 5 with reasons (it learns). |
+| Day | Agent | Build | Your hour |
+|---|---|---|---|
+| 6 | \`@prospect-researcher\` | Prospect Researcher SKILL.md | Approve; create Google Places key, Apollo, Hunter accounts. |
+| 7 | \`@prospect-researcher\` | Prospect Researcher worker → Supabase \`prospects\` → GHL; first 100 names | Review 25; reject 5 with reasons (it learns). |
 ${renderRows(phase1)}
 
 ## Phase 2 — TrueVisible v1 + AEO delivery (Days 16–33)
-| Day | Date | Agent | Build | Your hour |
-|---|---|---|---|---|
+| Day | Agent | Build | Your hour |
+|---|---|---|---|
 ${renderRows(phase2)}
 
 ## Phase 3 — Marketing engine, umbrella site, Mission Control (Days 34–46)
-| Day | Date | Agent | Build | Your hour |
-|---|---|---|---|---|
+| Day | Agent | Build | Your hour |
+|---|---|---|---|
 ${renderRows(phase3)}
 
-## Phase 4 — TrueLead + TGL AI doors (Days 47–58)
-| Day | Date | Agent | Build | Your hour |
-|---|---|---|---|---|
+## Phase 4 — TrueLead (Parked) + TGL AI doors (Days 47–58)
+| Day | Agent | Build | Your hour |
+|---|---|---|---|
 ${renderRows(phase4)}
 
 ## Phase 5 — Hardening (Days 59–68)
-| Day | Date | Agent | Build | Your hour |
-|---|---|---|---|---|
+| Day | Agent | Build | Your hour |
+|---|---|---|---|
 ${renderRows(phase5)}
 
 ---
@@ -1020,7 +944,6 @@ export function executePlanGeneration(repoRoot: string): void {
   const yamlContent = stringify({
     version: 1,
     generated_at: new Date().toISOString(),
-    start_date: "2026-10-30",
     days_count: PLAN_ENTRIES.length,
     plan: PLAN_ENTRIES,
   });
