@@ -3,3 +3,4 @@
 - 17:50 IST — Standup compilation: 2498 input, 1524 output (claude-sonnet-5-5) · Cost: $0.0304
 - 19:20 IST — Intake classification [question]: 680 input, 73 output · Cost: $0.0031
 - 19:24 IST — Intake classification [question]: 678 input, 73 output · Cost: $0.0031
+- 20:20 IST — Intake classification [dispatch]: 818 input, 37 output · Cost: $0.0030
