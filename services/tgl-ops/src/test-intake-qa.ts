@@ -80,6 +80,22 @@ async function runIntakeQaTests() {
   // -------------------------------------------------------------------------
   console.log("[Test 2] Testing SQL aggregation for prospect counts...");
 
+  const defaultDm = {
+    name: "Dr. Test",
+    role: "Owner",
+    email: "test@example.com",
+    source: "website",
+  };
+  const defaultSignals = {
+    meta_ads_active: false,
+    meta_ad_count: 0,
+    gbp_reviews: 10,
+    gbp_owner_replies: true,
+    hiring_marketing: false,
+    review_surge: false,
+    branch_count: 1,
+  };
+
   const mockProspects: ProspectRecord[] = [
     {
       tenant_id: "tgl",
@@ -90,9 +106,12 @@ async function runIntakeQaTests() {
       door: "aeo",
       fit_score: 85,
       fit_reasons: ["Strong AEO gap"],
+      decision_maker: defaultDm,
+      signals: defaultSignals,
       status: "reviewed",
       source_refs: ["https://apexhospital.in"],
       created_at: "2026-10-30T09:30:00.000Z",
+      rescored_at: "2026-10-30T09:30:00.000Z",
     },
     {
       tenant_id: "tgl",
@@ -103,9 +122,12 @@ async function runIntakeQaTests() {
       door: "aeo",
       fit_score: 90,
       fit_reasons: ["Missing local schema"],
+      decision_maker: defaultDm,
+      signals: defaultSignals,
       status: "reviewed",
       source_refs: ["https://caredental.in"],
       created_at: "2026-10-30T09:31:00.000Z",
+      rescored_at: "2026-10-30T09:31:00.000Z",
     },
     {
       tenant_id: "tgl",
@@ -116,9 +138,12 @@ async function runIntakeQaTests() {
       door: "aeo",
       fit_score: 75,
       fit_reasons: ["Competitive search queries"],
+      decision_maker: defaultDm,
+      signals: defaultSignals,
       status: "new",
       source_refs: ["https://cityeyecentre.in"],
       created_at: "2026-10-29T10:00:00.000Z",
+      rescored_at: "2026-10-29T10:00:00.000Z",
     },
     {
       tenant_id: "tgl",
@@ -129,9 +154,12 @@ async function runIntakeQaTests() {
       door: "aeo",
       fit_score: 60,
       fit_reasons: ["Chain signal"],
+      decision_maker: defaultDm,
+      signals: defaultSignals,
       status: "rejected",
       source_refs: ["https://globalivf.in"],
       created_at: "2026-10-28T11:00:00.000Z",
+      rescored_at: "2026-10-28T11:00:00.000Z",
     },
   ];
 

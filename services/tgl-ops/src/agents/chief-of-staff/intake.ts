@@ -169,8 +169,8 @@ Your job is to read an inbound message from the Architect (Tejinder Singh) and c
 1. "task": The Architect is requesting work to be built, fixed, updated, researched, or executed.
    - Extract the best matching agent name (e.g. web-builder, creative-director, prospect-researcher, chief-of-staff, video-team, etc.).
    - Rewrite the brief in that agent's professional craft terms.
-2. "report": The Architect is requesting the daily or operational status report (e.g. "report", "daily report", "ops report", "status report", "compile report"). NOTE: Specific data inquiries asking for counts (e.g. counts by city, counts by status, counts by day) or specific spend figures are "question", NOT "report". Reserve the "report" template strictly for general report requests.
-3. "question": The Architect is asking a specific factual or data inquiry (e.g. counts by city, counts by status, counts by day, spend today, code/plan status, or database metrics).
+2. "report": The Architect is requesting a report or using the directive "Report ..." (e.g. "report", "Report current spend", "daily report", "ops report", "status report", "compile report"). Reserve the "report" category strictly for requests asking for a report. Queries asking for counts without asking for a report (e.g. "counts by city", "counts by status", "counts by day", "what did we spend today?", "how many prospects in Delhi?") are "question", NOT "report".
+3. "question": The Architect is asking a question or querying metrics without requesting a report (e.g. "counts by city", "counts by status", "counts by day", "what did we spend today?", "how many prospects in Delhi?").
 4. "decision": The Architect is stating a strategic or architectural decision to be permanently recorded.
 5. "ambiguous": The message is vague, underspecified, or ambiguous. Provide exactly one sharp clarifying question.
 

@@ -2,6 +2,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { config, isTestMode } from "../../config.js";
 import type { ProspectRecord } from "./types.js";
+export type { ProspectRecord };
 import { validateProspectRecord } from "./guardrails.js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://rmrauejublipukulnjou.supabase.co";
