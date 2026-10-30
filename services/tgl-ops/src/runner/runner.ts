@@ -224,6 +224,31 @@ export async function runIssueTask(
 
     console.log(`[Runner Pre-flight Verdict on Issue #${issueNum}]: ${preflight.verdict} — ${preflight.reason}`);
 
+    // Log pre-flight run to agent daily log
+    const pfInTok = preflight.tokens?.input || 0;
+    const pfOutTok = preflight.tokens?.output || 0;
+    let pfPriceIn = 3.0;
+    let pfPriceOut = 15.0;
+    try {
+      const p = getAnthropicPricing();
+      pfPriceIn = p.priceInPerMTok;
+      pfPriceOut = p.priceOutPerMTok;
+    } catch {}
+    const pfCostUsd = Number(((pfInTok * pfPriceIn + pfOutTok * pfPriceOut) / 1_000_000).toFixed(4));
+    const pfLogLine = `- ${timeStr} IST — Issue #${issueNum} pre-flight (${preflight.verdict}): ${pfInTok} input, ${pfOutTok} output · Cost: $${pfCostUsd.toFixed(4)}`;
+
+    if (isTest) {
+      const testLogPath = path.join(config.repoRoot, `logs/.test/${agentName}.md`);
+      fs.mkdirSync(path.dirname(testLogPath), { recursive: true });
+      fs.appendFileSync(testLogPath, pfLogLine + "\n", "utf8");
+    } else {
+      await appendFileInRepo(
+        `logs/${dateStr}/${agentName}.md`,
+        pfLogLine,
+        `chore(log): record ${agentName} preflight for #${issueNum}`
+      ).catch((err) => console.warn("[Runner log append warning]", err));
+    }
+
     // Format verdict message for threads
     const verdictTitle =
       preflight.verdict === "proceed"

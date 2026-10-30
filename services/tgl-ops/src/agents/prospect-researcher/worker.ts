@@ -4,8 +4,7 @@ import path from "node:path";
 import { config, isTestMode } from "../../config.js";
 import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
 import { getAnthropicPricing, getAnthropicModel } from "../chief-of-staff/anthropic.js";
-import { usageCostsLedger } from "../../runner/runner.js";
-import { checkAgentCostCap } from "../../lib/cost-cap.js";
+import { checkAgentCostCap, recordCostEntry, recordApiSpend, usageCostsLedger } from "../../lib/cost-cap.js";
 import { postLine } from "../../lib/post.js";
 import { getAlertsChannel } from "../../lib/cron-wrapper.js";
 import type { ProspectRecord, ResearchRunOptions, ResearchRunResult } from "./types.js";
@@ -394,18 +393,35 @@ export async function runProspectResearch(
     (estimatedInputTokens / 1_000_000) * pricing.priceInPerMTok +
     (estimatedOutputTokens / 1_000_000) * pricing.priceOutPerMTok;
 
-  // Append to in-memory ledger
-  usageCostsLedger.push({
-    timestamp: new Date().toISOString(),
-    issueNumber: 0,
-    agent: "prospect-researcher",
-    model,
-    inputTokens: estimatedInputTokens,
-    outputTokens: estimatedOutputTokens,
-    totalCostUsd: Number(runCostUsd.toFixed(4)),
-  });
-
   const quota = getPlacesQuotaState(options);
+
+  // Record LLM run cost into unified cost ledger and persist to state
+  recordCostEntry(
+    {
+      timestamp: new Date().toISOString(),
+      issueNumber: 0,
+      agent: "prospect-researcher",
+      model,
+      inputTokens: estimatedInputTokens,
+      outputTokens: estimatedOutputTokens,
+      totalCostUsd: Number(runCostUsd.toFixed(4)),
+      costType: "llm",
+      details: `prospect-researcher run: ${city} · ${category}`,
+    },
+    options
+  );
+
+  // Record Google Places API spend into unified cost ledger ($0.032 per call)
+  if (quota.count > 0) {
+    const placesCostUsd = Number((quota.count * 0.032).toFixed(4));
+    recordApiSpend({
+      agent: "prospect-researcher",
+      apiName: "google-places-api",
+      totalCostUsd: placesCostUsd,
+      details: `${quota.count} Google Places API call(s)`,
+      options,
+    });
+  }
 
   // 9. Format Daily Standup Log
   const shortfallReason =
