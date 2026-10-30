@@ -4,10 +4,32 @@ import fs from "node:fs";
 
 dotenv.config();
 
-// Determine repo root (assumes services/tgl-ops is two directories down from repo root)
-export const REPO_ROOT = process.env.REPO_ROOT
-  ? path.resolve(process.env.REPO_ROOT)
-  : path.resolve(__dirname, "../../..");
+function findRepoRoot(): string {
+  if (process.env.REPO_ROOT) {
+    return path.resolve(process.env.REPO_ROOT);
+  }
+  let cur = process.cwd();
+  for (let i = 0; i < 5; i++) {
+    if (
+      fs.existsSync(path.join(cur, "config/agents.yaml")) ||
+      fs.existsSync(path.join(cur, "PROJECT-PLAN.md")) ||
+      fs.existsSync(path.join(cur, "AGENTS.md"))
+    ) {
+      return cur;
+    }
+    const parent = path.dirname(cur);
+    if (parent === cur) break;
+    cur = parent;
+  }
+  try {
+    return path.resolve(__dirname, "../../..");
+  } catch {
+    return process.cwd();
+  }
+}
+
+// Determine repo root (checks markers or falls back to parent directory)
+export const REPO_ROOT = findRepoRoot();
 
 export interface AppConfig {
   port: number;

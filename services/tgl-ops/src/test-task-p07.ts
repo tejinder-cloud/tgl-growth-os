@@ -16,7 +16,15 @@ import { isProtectedPath } from "./runner/tools.js";
 import { verifyCiChecks } from "./runner/runner.js";
 import { getAgentCostCap, checkAgentCostCap, getAgentsCostStatusForStandup } from "./lib/cost-cap.js";
 import { createProposalIssue } from "./lib/proposal.js";
-import { classifyArchitectMessage, compileArchitectReport, pollChiefOfStaffIntake, resetImFailureLoggedForTests } from "./agents/chief-of-staff/intake.js";
+import {
+  classifyArchitectMessage,
+  compileArchitectReport,
+  pollChiefOfStaffIntake,
+  resetIntakeStateForTests,
+  setBootTimestampForTests,
+  loadIntakeState,
+} from "./agents/chief-of-staff/intake.js";
+import { setBotIdentityForTests } from "./lib/slack-client.js";
 import { gatherStandupMaterial, formatGatheredText } from "./agents/chief-of-staff/gather.js";
 import { synthesizeStandupDigest } from "./agents/chief-of-staff/anthropic.js";
 
@@ -316,19 +324,86 @@ async function runTaskP07VerificationSuite(): Promise<void> {
     throw new Error(`Test 7.5 Failed: Report text missing required metrics: ${reportText}`);
   }
 
-  // 6. Test pollChiefOfStaffIntake resilience
-  resetImFailureLoggedForTests();
-  const intakeRun1 = await pollChiefOfStaffIntake({ testMode: true });
-  if (typeof intakeRun1.polledCount !== "number" || typeof intakeRun1.processedCount !== "number") {
-    throw new Error(`Test 7.6 Failed: Invalid intake result: ${JSON.stringify(intakeRun1)}`);
+  // 6. Test deduplication: the same message polled five times produces one reply
+  resetIntakeStateForTests();
+  setBotIdentityForTests({ userId: "U_BOT_123", botId: "B_BOT_123" });
+  setBootTimestampForTests("1730210000.000000");
+
+  const testChannel = "C_TEST_ARCHITECT";
+  const originalArchitectChannel = config.architectChannelId;
+  config.architectChannelId = testChannel;
+
+  const mockMsg = {
+    ts: "1730210010.000000",
+    text: "Report current spend today",
+    user: "U_ARCHITECT_TEJINDER",
+  };
+
+  let totalProcessed = 0;
+  for (let pollIdx = 1; pollIdx <= 5; pollIdx++) {
+    const res = await pollChiefOfStaffIntake({
+      testMode: true,
+      mockMessages: [mockMsg],
+    });
+    totalProcessed += res.processedCount;
+    if (pollIdx === 1) {
+      if (res.processedCount !== 1) {
+        throw new Error(`Test 7.6 Failed: Expected 1 reply on first poll, got ${res.processedCount}`);
+      }
+    } else {
+      if (res.processedCount !== 0) {
+        throw new Error(`Test 7.6 Failed: Expected 0 replies on poll #${pollIdx}, got ${res.processedCount}`);
+      }
+    }
   }
+
+  if (totalProcessed !== 1) {
+    throw new Error(`Test 7.6 Failed: Expected exactly 1 total reply across 5 polls, got ${totalProcessed}`);
+  }
+  console.log(`  ✓ Deduplication verified: the same message polled five times produces exactly one reply`);
+
+  // 7. Test bot messages and thread replies authored by bot are ignored
+  const botMsg = {
+    ts: "1730210020.000000",
+    text: "• Assigned Agent: @web-builder",
+    user: "U_BOT_123",
+    bot_id: "B_BOT_123",
+  };
+  const botPoll = await pollChiefOfStaffIntake({
+    testMode: true,
+    mockMessages: [botMsg],
+  });
+  if (botPoll.processedCount !== 0) {
+    throw new Error(`Test 7.7 Failed: Bot's own message was not ignored (processed: ${botPoll.processedCount})`);
+  }
+  console.log(`  ✓ Bot's own messages and thread replies it authored are strictly ignored`);
+
+  // 8. Test boot starts from "now", ignoring older channel history
+  resetIntakeStateForTests();
+  setBootTimestampForTests("1730210500.000000"); // Boot at 500
+  const oldMsg = {
+    ts: "1730210400.000000", // Arrived before boot at 400
+    text: "Build something old",
+    user: "U_ARCHITECT_TEJINDER",
+  };
+  const bootPoll = await pollChiefOfStaffIntake({
+    testMode: true,
+    mockMessages: [oldMsg],
+  });
+  if (bootPoll.processedCount !== 0) {
+    throw new Error(`Test 7.8 Failed: Messages prior to boot were processed on boot (processed: ${bootPoll.processedCount})`);
+  }
+  console.log(`  ✓ Boot baseline verified: starts from "now", ignores older channel history`);
+
+  // Restore config
+  config.architectChannelId = originalArchitectChannel;
 
   console.log(`  ✓ Task classifier: "Build new dental block" → category="task", agent="web-builder"`);
   console.log(`  ✓ Report classifier: "Report current spend" → category="report"`);
   console.log(`  ✓ Decision classifier: "Decision: sticky CTA" → category="decision"`);
   console.log(`  ✓ Ambiguous classifier: "Maybe..." → category="ambiguous" with clarifying question`);
   console.log(`  ✓ compileArchitectReport produces fully sourced metrics with 0 estimates`);
-  console.log("✅ [Test 7 Passed] Chief of Staff intake classifier & reporting verified.\n");
+  console.log("✅ [Test 7 Passed] Chief of Staff intake classifier, dedupe & reporting verified.\n");
   passedTests++;
 
   // -------------------------------------------------------------------------

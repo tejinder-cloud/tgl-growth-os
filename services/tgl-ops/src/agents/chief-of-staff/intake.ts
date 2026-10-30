@@ -2,12 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import { config, isTestMode } from "../../config.js";
-import { slackClient, getActorDisplayName } from "../../lib/slack-client.js";
+import { slackClient, getActorDisplayName, getBotIdentity } from "../../lib/slack-client.js";
 import { postLine, postCard } from "../../lib/post.js";
 import { createIssue, appendFileInRepo } from "../../lib/github-client.js";
 import { loadAgents, findAgentByName } from "../../lib/agents.js";
 import { loadPlanEntries } from "../../lib/plan.js";
-import { checkAgentCostCap } from "../../lib/cost-cap.js";
+import { checkAgentCostCap, callAnthropicWithCostCap } from "../../lib/cost-cap.js";
 import { getAnthropicModel, getAnthropicPricing } from "./anthropic.js";
 import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
 import { usageCostsLedger } from "../../runner/runner.js";
@@ -24,34 +24,74 @@ export interface IntakeClassificationResult {
   confidence: number;
 }
 
-export interface IntakeProcessedState {
-  processedMessageIds: string[];
+export interface IntakeState {
+  version: number;
+  lastProcessedTsByChannel: Record<string, string>;
   lastPolledAt: string;
 }
 
-function getIntakeStateFilePath(dateStr: string, testMode: boolean): string {
+function getIntakeStateFilePath(testMode: boolean): string {
   if (testMode) {
-    return path.join(config.repoRoot, `logs/.test/intake-${dateStr}.json`);
+    return path.join(config.repoRoot, "logs/.test/.state/intake.json");
   }
-  return path.join(config.repoRoot, `logs/.state/intake-${dateStr}.json`);
+  return path.join(config.repoRoot, "logs/.state/intake.json");
 }
 
-export function loadIntakeState(dateStr: string, testMode = isTestMode()): IntakeProcessedState {
-  const filePath = getIntakeStateFilePath(dateStr, testMode);
+let inMemoryLastProcessedTsByChannel: Record<string, string> = {};
+let processBootTs: string = (Date.now() / 1000).toFixed(6);
+let isBootInitialized = false;
+
+export function setBootTimestampForTests(ts: string): void {
+  processBootTs = ts;
+  isBootInitialized = false;
+}
+
+export function resetIntakeStateForTests(): void {
+  inMemoryLastProcessedTsByChannel = {};
+  isBootInitialized = false;
+  hasLoggedImFailure = false;
+  const testPath = getIntakeStateFilePath(true);
+  if (fs.existsSync(testPath)) {
+    try {
+      fs.unlinkSync(testPath);
+    } catch {}
+  }
+}
+
+export function loadIntakeState(testMode = isTestMode()): IntakeState {
+  const filePath = getIntakeStateFilePath(testMode);
+  let state: IntakeState = {
+    version: 1,
+    lastProcessedTsByChannel: { ...inMemoryLastProcessedTsByChannel },
+    lastPolledAt: new Date().toISOString(),
+  };
+
   if (fs.existsSync(filePath)) {
     try {
       const raw = fs.readFileSync(filePath, "utf8");
-      return JSON.parse(raw);
-    } catch {}
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed.lastProcessedTsByChannel === "object") {
+        state = {
+          version: parsed.version || 1,
+          lastProcessedTsByChannel: { ...inMemoryLastProcessedTsByChannel, ...parsed.lastProcessedTsByChannel },
+          lastPolledAt: parsed.lastPolledAt || new Date().toISOString(),
+        };
+      }
+    } catch (err) {
+      console.warn("[Intake State Load Warning]", err);
+    }
   }
-  return { processedMessageIds: [], lastPolledAt: new Date().toISOString() };
+
+  inMemoryLastProcessedTsByChannel = { ...state.lastProcessedTsByChannel };
+  return state;
 }
 
-export function saveIntakeState(dateStr: string, state: IntakeProcessedState, testMode = isTestMode()): void {
-  const filePath = getIntakeStateFilePath(dateStr, testMode);
+export function saveIntakeState(state: IntakeState, testMode = isTestMode()): void {
+  inMemoryLastProcessedTsByChannel = { ...state.lastProcessedTsByChannel };
+  const filePath = getIntakeStateFilePath(testMode);
   try {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
-    fs.writeFileSync(filePath, JSON.stringify(state, null, 2), "utf8");
+    fs.writeFileSync(filePath, JSON.stringify(state, null, 2) + "\n", "utf8");
   } catch (err) {
     console.warn("[Intake State Save Warning]", err);
   }
@@ -99,7 +139,6 @@ export async function classifyArchitectMessage(
     };
   }
 
-  const anthropic = new Anthropic({ apiKey: config.anthropicApiKey });
   const prompt = `You are the intake classifier for The Growth Lab's Chief of Staff.
 Your job is to read an inbound message from the Architect (Tejinder Singh) and classify it into exactly one of five categories:
 1. "task": The Architect is requesting work to be built, fixed, updated, researched, or executed.
@@ -123,10 +162,14 @@ Respond ONLY with a JSON object:
   "confidence": number between 0 and 1
 }`;
 
-  const res = await anthropic.messages.create({
-    model: modelName,
-    max_tokens: 500,
-    messages: [{ role: "user", content: prompt }],
+  const res = await callAnthropicWithCostCap({
+    agent: "chief-of-staff",
+    params: {
+      model: modelName,
+      max_tokens: 500,
+      messages: [{ role: "user", content: prompt }],
+    },
+    options: { testMode: isTest },
   });
 
   const rawText = res.content[0]?.type === "text" ? res.content[0].text : "{}";
@@ -196,7 +239,10 @@ export function resetImFailureLoggedForTests(): void {
  * Polls #architect channel and direct bot DMs for Architect messages.
  * Classifies and dispatches each message.
  */
-export async function pollChiefOfStaffIntake(options?: { testMode?: boolean }): Promise<{
+export async function pollChiefOfStaffIntake(options?: {
+  testMode?: boolean;
+  mockMessages?: any[];
+}): Promise<{
   polledCount: number;
   processedCount: number;
 }> {
@@ -211,7 +257,8 @@ export async function pollChiefOfStaffIntake(options?: { testMode?: boolean }): 
     return { polledCount: 0, processedCount: 0 };
   }
 
-  const state = loadIntakeState(dateStr, isTest);
+  // 2. Read intake state before poll
+  const state = loadIntakeState(isTest);
   const channelsToPoll: string[] = [];
 
   // Read channel strictly from ARCHITECT_CHANNEL_ID, never by channel name (e.g. #architect)
@@ -244,17 +291,32 @@ export async function pollChiefOfStaffIntake(options?: { testMode?: boolean }): 
     return { polledCount: 0, processedCount: 0 };
   }
 
+  // 3. On boot, start from "now", not from channel history
+  if (!isBootInitialized) {
+    for (const channel of channelsToPoll) {
+      if (!state.lastProcessedTsByChannel[channel] || Number(state.lastProcessedTsByChannel[channel]) < Number(processBootTs)) {
+        state.lastProcessedTsByChannel[channel] = processBootTs;
+      }
+    }
+    saveIntakeState(state, isTest);
+    isBootInitialized = true;
+  }
+
+  const botIdentity = await getBotIdentity();
   let polledCount = 0;
   let processedCount = 0;
 
   for (const channel of channelsToPoll) {
+    let lastTs = state.lastProcessedTsByChannel[channel];
     let messages: any[] = [];
+
     if (config.slackBotToken && !isTest) {
       try {
-        const history = await slackClient.conversations.history({
-          channel,
-          limit: 10,
-        });
+        const historyParams: any = { channel, limit: 20 };
+        if (lastTs) {
+          historyParams.oldest = lastTs;
+        }
+        const history = await slackClient.conversations.history(historyParams);
         messages = history.messages || [];
       } catch (err: any) {
         if (channel === config.architectChannelId) {
@@ -267,26 +329,46 @@ export async function pollChiefOfStaffIntake(options?: { testMode?: boolean }): 
         }
         continue; // Never fail the whole intake because DMs or an individual channel are unavailable
       }
+    } else if (isTest && options?.mockMessages) {
+      messages = options.mockMessages;
     }
 
-    for (const msg of messages) {
-      polledCount++;
-      const msgId = `${channel}-${msg.ts}`;
+    // Sort ascending by ts (oldest first) so messages are processed in chronological order
+    const sortedMessages = [...messages].sort((a, b) => Number(a.ts) - Number(b.ts));
 
-      // Skip already processed messages
-      if (state.processedMessageIds.includes(msgId)) {
+    for (const msg of sortedMessages) {
+      polledCount++;
+
+      // 1. Never process a message older than or equal to last processed ts
+      if (lastTs && Number(msg.ts) <= Number(lastTs)) {
         continue;
       }
 
-      // Ignore bot messages
-      if (msg.bot_id || msg.app_id || msg.subtype === "bot_message") {
-        state.processedMessageIds.push(msgId);
+      // 2. Ignore the bot's own messages and thread replies it authored
+      const isBotAuthor = Boolean(
+        msg.bot_id ||
+        msg.app_id ||
+        msg.subtype === "bot_message" ||
+        (botIdentity.userId && msg.user === botIdentity.userId) ||
+        (botIdentity.botId && msg.bot_id === botIdentity.botId)
+      );
+
+      if (isBotAuthor) {
+        if (!lastTs || Number(msg.ts) > Number(lastTs)) {
+          lastTs = msg.ts;
+          state.lastProcessedTsByChannel[channel] = lastTs;
+          saveIntakeState(state, isTest);
+        }
         continue;
       }
 
       const text = msg.text?.trim() || "";
       if (!text) {
-        state.processedMessageIds.push(msgId);
+        if (!lastTs || Number(msg.ts) > Number(lastTs)) {
+          lastTs = msg.ts;
+          state.lastProcessedTsByChannel[channel] = lastTs;
+          saveIntakeState(state, isTest);
+        }
         continue;
       }
 
@@ -368,13 +450,18 @@ export async function pollChiefOfStaffIntake(options?: { testMode?: boolean }): 
         });
       }
 
-      state.processedMessageIds.push(msgId);
+      if (!lastTs || Number(msg.ts) > Number(lastTs)) {
+        lastTs = msg.ts;
+        state.lastProcessedTsByChannel[channel] = lastTs;
+        saveIntakeState(state, isTest);
+      }
       processedCount++;
     }
   }
 
+  // 4. Write after poll
   state.lastPolledAt = new Date().toISOString();
-  saveIntakeState(dateStr, state, isTest);
+  saveIntakeState(state, isTest);
 
   return { polledCount, processedCount };
 }
