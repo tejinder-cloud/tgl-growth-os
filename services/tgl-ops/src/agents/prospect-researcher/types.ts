@@ -22,6 +22,8 @@ export interface ProspectSignals {
   ad_library_url?: string;
   chain_evidence?: string[];
   places_brand_count?: number;
+  is_large_org?: boolean;
+  brand_prefix?: string;
   raw_signals?: Record<string, any>;
 }
 

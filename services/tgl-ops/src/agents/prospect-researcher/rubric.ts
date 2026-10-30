@@ -1,5 +1,6 @@
 // services/tgl-ops/src/agents/prospect-researcher/rubric.ts
 import type { ProspectSignals, DecisionMaker } from "./types.js";
+import { isDecisionMakerRole } from "./sources/enrichment.js";
 
 export interface RubricEvaluation {
   fitScore: number;
@@ -171,8 +172,13 @@ export function evaluateProspectRubric(params: {
   // Playbook D role enforcement:
   // Non-DM contacts (Assistant, Consultant, etc.) are labeled "DM unknown" and score Dim 5 = 0 pts.
   let dim5Score = 0;
-  const isOwnerRun = (signals.branch_count ?? 1) < 5;
+  const isLargeOrg = Boolean(signals.is_large_org);
+  const isOwnerRun = (signals.branch_count ?? 1) < 5 && !isLargeOrg;
+
+  const roleApproved = isDecisionMakerRole(decisionMaker.role, isLargeOrg);
+
   const isDMUnknown =
+    !roleApproved ||
     decisionMaker.role === "DM unknown" ||
     decisionMaker.name === "DM unknown" ||
     String(decisionMaker.source || "").includes("contact found, DM unknown") ||
@@ -181,7 +187,7 @@ export function evaluateProspectRubric(params: {
   if (isDMUnknown) {
     dim5Score = 0;
     reasons.push(
-      `Dim 5 (DM Reachability): Contact found, DM unknown — non-decision-maker contact found (0 pts) [Score: 0/15]`
+      `Dim 5 (DM Reachability): Contact found, DM unknown — role '${decisionMaker.role || "unknown"}' is not an approved DM for ${isLargeOrg ? "large organisation (≥50 staff)" : "small clinic (<50 staff)"} (0 pts) [Score: 0/15]`
     );
   } else {
     const hasHunterEmail = Boolean(

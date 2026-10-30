@@ -7,6 +7,7 @@ import {
   extractDoctorNamesFromHtml,
   extractDoctorName,
   extractChainSignalsFromHtml,
+  extractBrandToken,
 } from "./agents/prospect-researcher/sources/website-scraper.js";
 import {
   checkMetaAdLibrary,
@@ -16,7 +17,7 @@ import {
   evaluateProspectRubric,
   checkPlaybookCDisqualification,
 } from "./agents/prospect-researcher/rubric.js";
-import { isDecisionMakerRole } from "./agents/prospect-researcher/sources/enrichment.js";
+import { isDecisionMakerRole, isCandidateOrgSizeGe50 } from "./agents/prospect-researcher/sources/enrichment.js";
 import {
   advanceRotation,
   loadRotationState,
@@ -374,66 +375,184 @@ async function runDay08Tests() {
     throw new Error(`Test 5.5 Failed: local clinic should not be disqualified`);
   }
   console.log(`  ✓ Local clinic passes Playbook C without false positive.`);
-  console.log("✅ [Test 5 Passed] Chain detection operates purely on signal evidence.\n");
 
-  // -------------------------------------------------------------------------
-  // Test 6: Playbook D Decision-Maker Role Enforcement
-  // -------------------------------------------------------------------------
-  console.log("[Test 6] Testing Playbook D role enforcement...");
+  // 5D: Max Saket deep URL & root domain brand counting test (Architect defect fix)
+  const maxDeepUrl = "https://www.maxhealthcare.in/hospital-network/max-super-speciality-hospital-saket";
+  const tokenSaket = extractBrandToken("Max Super Speciality Hospital, Saket", maxDeepUrl);
+  const tokenSmart = extractBrandToken("Max Smart Super Speciality Hospital", "https://www.maxhealthcare.in/hospital-network/max-smart");
+  const tokenMulti = extractBrandToken("Max Multi Speciality Centre, Panchsheel Park", "https://www.maxhealthcare.in/hospital-network/max-multi");
 
-  // Non-DM roles must be rejected
-  if (isDecisionMakerRole("Assistant")) {
-    throw new Error(`Test 6.1 Failed: 'Assistant' must not be recognized as DM`);
+  if (tokenSaket.brand !== "max" || tokenSmart.brand !== "max" || tokenMulti.brand !== "max") {
+    throw new Error(`Test 5.6 Failed: expected all Max variants to resolve brand 'max', got: ${tokenSaket.brand}, ${tokenSmart.brand}, ${tokenMulti.brand}`);
   }
-  if (isDecisionMakerRole("Consultant Gastroenterologist")) {
-    throw new Error(`Test 6.2 Failed: 'Consultant Gastroenterologist' must not be recognized as DM`);
-  }
-  if (isDecisionMakerRole("Staff Nurse")) {
-    throw new Error(`Test 6.3 Failed: 'Staff Nurse' must not be recognized as DM`);
+  if (tokenSaket.rootDomain !== "maxhealthcare.in") {
+    throw new Error(`Test 5.7 Failed: expected root domain maxhealthcare.in, got ${tokenSaket.rootDomain}`);
   }
 
-  // Approved DM roles must be recognized
-  if (!isDecisionMakerRole("Owner / Lead Doctor")) {
-    throw new Error(`Test 6.4 Failed: 'Owner / Lead Doctor' must be recognized as DM`);
+  // Root domain HTML check for Max Healthcare
+  const maxRootHtml = `
+    <html>
+      <body>
+        <nav><a href="/hospital-network">Our Hospitals</a></nav>
+        <section class="locations">
+          <h2>Max Hospital Network</h2>
+          <p>Hospitals located across Delhi, Gurgaon, Noida, Mohali, Dehradun, Bathinda, Mumbai.</p>
+        </section>
+      </body>
+    </html>
+  `;
+  const maxSignalsExtracted = extractChainSignalsFromHtml(maxRootHtml, ["https://www.maxhealthcare.in/hospital-network"]);
+  if (maxSignalsExtracted.citiesFound.length < 5) {
+    throw new Error(`Test 5.8 Failed: root domain maxhealthcare.in must detect 5+ cities, got: ${maxSignalsExtracted.citiesFound.length}`);
   }
-  if (!isDecisionMakerRole("Medical Director")) {
-    throw new Error(`Test 6.5 Failed: 'Medical Director' must be recognized as DM`);
-  }
-  if (!isDecisionMakerRole("Marketing Head")) {
-    throw new Error(`Test 6.6 Failed: 'Marketing Head' must be recognized as DM`);
-  }
-  if (!isDecisionMakerRole("Managing Director")) {
-    throw new Error(`Test 6.7 Failed: 'Managing Director' must be recognized as DM`);
-  }
-  console.log(`  ✓ Decision-maker roles accurately validated per Playbook D.`);
 
-  // 6D: Rubric scoring for "DM unknown" yields Dim 5 = 0 pts
-  const unknownDM: DecisionMaker = {
-    name: "DM unknown",
-    role: "DM unknown",
-    email: "consultant@clinic.com",
-    source: "contact found, DM unknown (hunter:status: deliverable)",
+  const maxSaketSignals: ProspectSignals = {
+    meta_ads_active: true,
+    meta_ad_count: 12,
+    gbp_reviews: 3500,
+    gbp_owner_replies: true,
+    hiring_marketing: true,
+    review_surge: true,
+    branch_count: 4,
+    places_brand_count: 3,
+    chain_evidence: [
+      ...maxSignalsExtracted.evidence,
+      `Found 3 Places results sharing brand 'max' (root domain: maxhealthcare.in)`
+    ],
   };
-  const evalUnknown = evaluateProspectRubric({
-    company: "Metro Advanced Dental",
-    domain: "metrodental.com",
-    category: "cosmetic_dental",
+
+  // Crucial check: chain_evidence must NOT be null or empty
+  if (!maxSaketSignals.chain_evidence || maxSaketSignals.chain_evidence.length === 0) {
+    throw new Error(`Test 5.9 Failed: Max Saket chain_evidence must NOT be null or empty`);
+  }
+
+  const maxCheck = checkPlaybookCDisqualification("Max Super Speciality Hospital, Saket", maxDeepUrl, maxSaketSignals);
+  if (!maxCheck.disqualified) {
+    throw new Error(`Test 5.10 Failed: Max Saket must be disqualified under Playbook C`);
+  }
+  console.log(`  ✓ Max Saket disqualified by root domain & brand Places signals (chain_evidence present): ${maxCheck.reason}`);
+  console.log("✅ [Test 5 Passed] Chain detection operates purely on signal evidence and root domain.\n");
+
+  // -------------------------------------------------------------------------
+  // Test 6: Playbook D Decision-Maker Role Enforcement by Org Size
+  // -------------------------------------------------------------------------
+  console.log("[Test 6] Testing Playbook D role enforcement by organisation size...");
+
+  // 6A: <50 staff (small / owner-run clinics & institutes)
+  if (!isDecisionMakerRole("Owner / Lead Doctor", false)) {
+    throw new Error(`Test 6.1 Failed: 'Owner / Lead Doctor' must be approved for <50 staff`);
+  }
+  if (!isDecisionMakerRole("Principal", false)) {
+    throw new Error(`Test 6.2 Failed: 'Principal' must be approved for <50 staff`);
+  }
+  if (!isDecisionMakerRole("Managing Director", false)) {
+    throw new Error(`Test 6.3 Failed: 'Managing Director' must be approved for <50 staff`);
+  }
+  // In <50 staff, CEO / Marketing Head / Administrator are NOT approved (owner unilateral)
+  if (isDecisionMakerRole("CEO", false)) {
+    throw new Error(`Test 6.4 Failed: 'CEO' must NOT be approved for <50 staff`);
+  }
+  if (isDecisionMakerRole("Hospital Administrator", false)) {
+    throw new Error(`Test 6.5 Failed: 'Hospital Administrator' must NOT be approved for <50 staff`);
+  }
+  if (isDecisionMakerRole("Head of Marketing", false)) {
+    throw new Error(`Test 6.6 Failed: 'Head of Marketing' must NOT be approved for <50 staff`);
+  }
+  if (isDecisionMakerRole("Assistant", false)) {
+    throw new Error(`Test 6.7 Failed: 'Assistant' must NOT be approved for <50 staff`);
+  }
+  if (isDecisionMakerRole("Consultant Gastroenterologist", false)) {
+    throw new Error(`Test 6.8 Failed: 'Consultant Gastroenterologist' must NOT be approved for <50 staff`);
+  }
+  console.log(`  ✓ <50 staff DM roles validated: strictly owner/founder/MD/lead doctor/principal.`);
+
+  // 6B: ≥50 staff (growing institutes / hospitals): add CEO, COO, GM, VP Operations/Administration, hospital administrator, head of marketing
+  if (!isDecisionMakerRole("CEO", true)) {
+    throw new Error(`Test 6.9 Failed: 'CEO' must be approved for ≥50 staff`);
+  }
+  if (!isDecisionMakerRole("COO", true)) {
+    throw new Error(`Test 6.10 Failed: 'COO' must be approved for ≥50 staff`);
+  }
+  if (!isDecisionMakerRole("GM", true)) {
+    throw new Error(`Test 6.11 Failed: 'GM' must be approved for ≥50 staff`);
+  }
+  if (!isDecisionMakerRole("VP Operations", true)) {
+    throw new Error(`Test 6.12 Failed: 'VP Operations' must be approved for ≥50 staff`);
+  }
+  if (!isDecisionMakerRole("VP Administration", true)) {
+    throw new Error(`Test 6.13 Failed: 'VP Administration' must be approved for ≥50 staff`);
+  }
+  if (!isDecisionMakerRole("Hospital Administrator", true)) {
+    throw new Error(`Test 6.14 Failed: 'Hospital Administrator' must be approved for ≥50 staff`);
+  }
+  if (!isDecisionMakerRole("Head of Marketing", true)) {
+    throw new Error(`Test 6.15 Failed: 'Head of Marketing' must be approved for ≥50 staff`);
+  }
+  // Non-DM roles remain strictly rejected for ≥50 staff
+  if (isDecisionMakerRole("Assistant", true)) {
+    throw new Error(`Test 6.16 Failed: 'Assistant' must NOT be approved for ≥50 staff`);
+  }
+  if (isDecisionMakerRole("Consultant Gastroenterologist", true)) {
+    throw new Error(`Test 6.17 Failed: 'Consultant Gastroenterologist' must NOT be approved for ≥50 staff`);
+  }
+  console.log(`  ✓ ≥50 staff DM roles validated: CEO, COO, GM, VP Ops/Admin, Hospital Admin, Head of Marketing added; non-DMs rejected.`);
+
+  // 6C: Rubric scoring with organisation size
+  // Hospital with Hospital Administrator -> scores Dim 5 = 10 pts
+  const hospitalAdminEval = evaluateProspectRubric({
+    company: "Apex City Hospital",
+    domain: "apexhospital.in",
+    category: "hospitals",
     signals: {
       meta_ads_active: true,
-      meta_ad_count: 4,
-      gbp_reviews: 600,
+      meta_ad_count: 5,
+      gbp_reviews: 650,
       gbp_owner_replies: true,
       hiring_marketing: true,
       review_surge: true,
-      branch_count: 2,
+      branch_count: 1,
+      is_large_org: true,
     },
-    decisionMaker: unknownDM,
+    decisionMaker: {
+      name: "Dr. Vikram Seth",
+      role: "Hospital Administrator",
+      email: "v.seth@apexhospital.in",
+      source: "hunter:verified (status: deliverable)",
+    },
   });
-  const dim5UnknownReason = evalUnknown.fitReasons.find((r) => r.startsWith("Dim 5"));
-  if (!dim5UnknownReason || !dim5UnknownReason.includes("0 pts")) {
-    throw new Error(`Test 6.8 Failed: expected Dim 5 to score 0 pts for DM unknown, got: ${dim5UnknownReason}`);
+  const adminDim5 = hospitalAdminEval.fitReasons.find((r) => r.startsWith("Dim 5"));
+  if (!adminDim5 || !adminDim5.includes("10/15") && !adminDim5.includes("10 pts")) {
+    throw new Error(`Test 6.18 Failed: Hospital Administrator for hospital must score Dim 5, got: ${adminDim5}`);
   }
-  console.log(`  ✓ DM unknown scores 0 pts on Dim 5: ${dim5UnknownReason}`);
+  console.log(`  ✓ Hospital Administrator for hospital scores Dim 5: ${adminDim5}`);
+
+  // Hospital with Consultant Gastroenterologist -> scores Dim 5 = 0 pts
+  const consultantEval = evaluateProspectRubric({
+    company: "Apex City Hospital",
+    domain: "apexhospital.in",
+    category: "hospitals",
+    signals: {
+      meta_ads_active: true,
+      meta_ad_count: 5,
+      gbp_reviews: 650,
+      gbp_owner_replies: true,
+      hiring_marketing: true,
+      review_surge: true,
+      branch_count: 1,
+      is_large_org: true,
+    },
+    decisionMaker: {
+      name: "Dr. Alok Verma",
+      role: "Consultant Gastroenterologist",
+      email: "a.verma@apexhospital.in",
+      source: "hunter:verified (status: deliverable)",
+    },
+  });
+  const consultantDim5 = consultantEval.fitReasons.find((r) => r.startsWith("Dim 5"));
+  if (!consultantDim5 || !consultantDim5.includes("0 pts")) {
+    throw new Error(`Test 6.19 Failed: Consultant Gastroenterologist must score 0 pts on Dim 5, got: ${consultantDim5}`);
+  }
+  console.log(`  ✓ Consultant Gastroenterologist scores 0 pts on Dim 5: ${consultantDim5}`);
   console.log("✅ [Test 6 Passed] Playbook D roles enforced strictly.\n");
 
   // -------------------------------------------------------------------------
