@@ -20,6 +20,171 @@ export interface UsageCostEntry {
 }
 export const usageCostsLedger: UsageCostEntry[] = [];
 
+/**
+ * Formats a USD amount accurately.
+ * Never rounds non-zero spend below $0.01 down to "$0.00".
+ */
+export function formatCostUsd(amount: number): string {
+  if (isNaN(amount) || amount <= 0) return "$0.00";
+  if (amount < 0.01) {
+    return `$${amount.toFixed(4)}`;
+  }
+  if (amount < 1.0) {
+    return `$${amount.toFixed(4)}`;
+  }
+  return `$${amount.toFixed(2)}`;
+}
+
+function getCostLedgerFilePath(testMode: boolean): string {
+  if (testMode) {
+    return path.join(config.repoRoot, "logs/.test/.state/cost-ledger.json");
+  }
+  return path.join(config.repoRoot, "logs/.state/cost-ledger.json");
+}
+
+export function saveCostLedgerToState(options?: { testMode?: boolean }): void {
+  const isTest = options?.testMode === true || isTestMode();
+  const filePath = getCostLedgerFilePath(isTest);
+  try {
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify(usageCostsLedger, null, 2) + "\n", "utf8");
+  } catch (err) {
+    console.warn("[Cost Ledger Save Warning]", err);
+  }
+}
+
+export function loadCostLedgerFromState(options?: { testMode?: boolean }): UsageCostEntry[] {
+  const isTest = options?.testMode === true || isTestMode();
+  const filePath = getCostLedgerFilePath(isTest);
+  if (fs.existsSync(filePath)) {
+    try {
+      const raw = fs.readFileSync(filePath, "utf8");
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        for (const item of parsed) {
+          const exists = usageCostsLedger.some(
+            (e) =>
+              e.timestamp === item.timestamp &&
+              e.agent === item.agent &&
+              e.issueNumber === item.issueNumber
+          );
+          if (!exists) {
+            usageCostsLedger.push(item);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("[Cost Ledger Load Warning]", err);
+    }
+  }
+
+  // Also sync from logs/<date>/*.md for any recorded run costs written on main or another process
+  const date = getTodayDateString();
+  const logDir = path.join(config.repoRoot, isTest ? "logs/.test" : `logs/${date}`);
+  if (fs.existsSync(logDir)) {
+    try {
+      const files = fs.readdirSync(logDir).filter((f) => f.endsWith(".md"));
+      for (const f of files) {
+        const agentName = f.replace(/\.md$/, "");
+        const content = fs.readFileSync(path.join(logDir, f), "utf8");
+        const lines = content.split("\n");
+        for (const line of lines) {
+          const m = line.match(/(?:Cost|Estimated Run Cost):\s*\$([0-9.]+)/i);
+          if (m) {
+            const costUsd = parseFloat(m[1]) || 0;
+            const tokMatch = line.match(/(\d+)\s+input,\s*(\d+)\s+output/i);
+            const inTok = tokMatch ? parseInt(tokMatch[1], 10) : 0;
+            const outTok = tokMatch ? parseInt(tokMatch[2], 10) : 0;
+            const timeMatch = line.match(/(\d{1,2}:\d{2})\s*IST/i);
+            const timeStr = timeMatch ? timeMatch[1] : "00:00";
+            const syntheticTs = `${date}T${timeStr}:00.000Z`;
+            const exists = usageCostsLedger.some(
+              (e) =>
+                e.agent === agentName &&
+                Math.abs(e.totalCostUsd - costUsd) < 0.0001 &&
+                e.timestamp.startsWith(date)
+            );
+            if (!exists && costUsd > 0) {
+              usageCostsLedger.push({
+                timestamp: syntheticTs,
+                issueNumber: 0,
+                agent: agentName,
+                model: "claude-3-5-sonnet",
+                inputTokens: inTok,
+                outputTokens: outTok,
+                totalCostUsd: Number(costUsd.toFixed(4)),
+              });
+            }
+          }
+        }
+      }
+    } catch {}
+  }
+
+  return usageCostsLedger;
+}
+
+export function recordCostEntry(entry: UsageCostEntry, options?: { testMode?: boolean }): void {
+  usageCostsLedger.push(entry);
+  saveCostLedgerToState(options);
+}
+
+export function resetCostLedgerForTests(): void {
+  usageCostsLedger.length = 0;
+  const testPath = getCostLedgerFilePath(true);
+  if (fs.existsSync(testPath)) {
+    try {
+      fs.unlinkSync(testPath);
+    } catch {}
+  }
+  const testLogDir = path.join(config.repoRoot, "logs/.test");
+  if (fs.existsSync(testLogDir)) {
+    try {
+      const files = fs.readdirSync(testLogDir);
+      for (const f of files) {
+        if (f.endsWith(".md")) {
+          fs.unlinkSync(path.join(testLogDir, f));
+        }
+      }
+    } catch {}
+  }
+}
+
+export function getCostLedgerSummary(
+  dateStr?: string,
+  options?: { testMode?: boolean }
+): {
+  totalSpendUsd: number;
+  runsCount: number;
+  entries: UsageCostEntry[];
+  byAgent: Record<string, { spendUsd: number; runs: number }>;
+  formattedSummary: string;
+} {
+  const date = dateStr || getTodayDateString();
+  loadCostLedgerFromState(options);
+
+  const entriesToday = usageCostsLedger.filter((e) => e.timestamp.startsWith(date));
+  const totalSpendUsd = Number(entriesToday.reduce((sum, e) => sum + e.totalCostUsd, 0).toFixed(4));
+  const runsCount = entriesToday.length;
+
+  const byAgent: Record<string, { spendUsd: number; runs: number }> = {};
+  for (const e of entriesToday) {
+    if (!byAgent[e.agent]) {
+      byAgent[e.agent] = { spendUsd: 0, runs: 0 };
+    }
+    byAgent[e.agent].spendUsd = Number((byAgent[e.agent].spendUsd + e.totalCostUsd).toFixed(4));
+    byAgent[e.agent].runs++;
+  }
+
+  return {
+    totalSpendUsd,
+    runsCount,
+    entries: entriesToday,
+    byAgent,
+    formattedSummary: `Total spend: ${formatCostUsd(totalSpendUsd)} across ${runsCount} call${runsCount === 1 ? "" : "s"}`,
+  };
+}
+
 export interface AgentCostCapInfo {
   agent: string;
   capUsd: number;
@@ -212,8 +377,8 @@ export async function callAnthropicWithCostCap(
     ((inputTokens * priceIn + outputTokens * priceOut) / 1_000_000).toFixed(4)
   );
 
-  // 4. Record immediately into in-memory ledger
-  usageCostsLedger.push({
+  // 4. Record immediately into ledger & persist state
+  recordCostEntry({
     timestamp: new Date().toISOString(),
     issueNumber: callParams.issueNumber || 0,
     agent: callParams.agent,
@@ -221,7 +386,7 @@ export async function callAnthropicWithCostCap(
     inputTokens,
     outputTokens,
     totalCostUsd,
-  });
+  }, callParams.options);
 
   return response;
 }

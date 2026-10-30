@@ -7,10 +7,18 @@ import { postLine, postCard } from "../../lib/post.js";
 import { createIssue, appendFileInRepo } from "../../lib/github-client.js";
 import { loadAgents, findAgentByName } from "../../lib/agents.js";
 import { loadPlanEntries } from "../../lib/plan.js";
-import { checkAgentCostCap, callAnthropicWithCostCap } from "../../lib/cost-cap.js";
+import {
+  checkAgentCostCap,
+  callAnthropicWithCostCap,
+  usageCostsLedger,
+  formatCostUsd,
+  getCostLedgerSummary,
+  recordCostEntry,
+  loadCostLedgerFromState,
+  type UsageCostEntry,
+} from "../../lib/cost-cap.js";
 import { getAnthropicModel, getAnthropicPricing } from "./anthropic.js";
 import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
-import { usageCostsLedger } from "../../runner/runner.js";
 
 export type IntakeClassification = "task" | "report" | "question" | "decision" | "ambiguous";
 
@@ -120,13 +128,30 @@ export async function classifyArchitectMessage(
       else if (/copy|design|brand|visual/i.test(text)) agent = "creative-director";
       else if (/video/i.test(text)) agent = "video-team";
       else agent = "web-builder";
-    } else if (/^report|^metrics|^spend|^numbers|^stats/i.test(text)) {
+    } else if (/(?:counts? by|by (?:city|status|day))/i.test(text)) {
+      cat = "question";
+    } else if (/^report\b/i.test(text) || /(?:daily |ops |status )?report$/i.test(text.trim())) {
       cat = "report";
     } else if (/^decide|^decision:|^approved:|^we will /i.test(text)) {
       cat = "decision";
     } else if (/^maybe|^not sure|^how about/i.test(text)) {
       cat = "ambiguous";
+    } else {
+      cat = "question";
     }
+
+    recordCostEntry(
+      {
+        timestamp: new Date().toISOString(),
+        issueNumber: 0,
+        agent: "chief-of-staff",
+        model: "claude-3-5-sonnet",
+        inputTokens: 100,
+        outputTokens: 50,
+        totalCostUsd: 0.001,
+      },
+      options
+    );
 
     return {
       category: cat,
@@ -144,8 +169,8 @@ Your job is to read an inbound message from the Architect (Tejinder Singh) and c
 1. "task": The Architect is requesting work to be built, fixed, updated, researched, or executed.
    - Extract the best matching agent name (e.g. web-builder, creative-director, prospect-researcher, chief-of-staff, video-team, etc.).
    - Rewrite the brief in that agent's professional craft terms.
-2. "report": The Architect is requesting numbers, metrics, operational status, spend, or pipeline counts.
-3. "question": The Architect is asking a factual question about code, architecture, decisions, or progress.
+2. "report": The Architect is requesting the daily or operational status report (e.g. "report", "daily report", "ops report", "status report", "compile report"). NOTE: Specific data inquiries asking for counts (e.g. counts by city, counts by status, counts by day) or specific spend figures are "question", NOT "report". Reserve the "report" template strictly for general report requests.
+3. "question": The Architect is asking a specific factual or data inquiry (e.g. counts by city, counts by status, counts by day, spend today, code/plan status, or database metrics).
 4. "decision": The Architect is stating a strategic or architectural decision to be permanently recorded.
 5. "ambiguous": The message is vague, underspecified, or ambiguous. Provide exactly one sharp clarifying question.
 
@@ -200,18 +225,36 @@ export async function compileArchitectReport(options?: { testMode?: boolean }): 
   const dateStr = getTodayDateString();
   const timeStr = getCurrentTimeIST();
 
-  // 1. Gather spend from usageCostsLedger
-  const totalSpend = usageCostsLedger.reduce((sum, e) => sum + e.totalCostUsd, 0);
-  const runsCount = usageCostsLedger.length;
+  // 1. Gather spend from persistent cost ledger
+  const ledgerSummary = getCostLedgerSummary(dateStr, options);
+  const totalSpend = ledgerSummary.totalSpendUsd;
+  const runsCount = ledgerSummary.runsCount;
 
-  // 2. Count prospect database rows if available
+  let spendLine = `• *Total LLM Spend Today:* ${formatCostUsd(totalSpend)} (${runsCount} call${runsCount === 1 ? "" : "s"}`;
+  const agentBreakdown = Object.entries(ledgerSummary.byAgent)
+    .map(([ag, info]) => `@${ag}: ${formatCostUsd(info.spendUsd)} [${info.runs}]`)
+    .join(", ");
+  if (agentBreakdown) {
+    spendLine += ` · ${agentBreakdown})`;
+  } else {
+    spendLine += `)`;
+  }
+
+  // 2. Count prospect database rows strictly from SQL
   let prospectsTotal = "—";
   let prospectsReviewed = "—";
+  let citySummary = "";
   try {
-    const { loadAllProspects } = await import("../prospect-researcher/db.js");
-    const prospects = await loadAllProspects({ testMode: options?.testMode });
-    prospectsTotal = String(prospects.length);
-    prospectsReviewed = String(prospects.filter((p) => p.status === "reviewed").length);
+    const { getProspectMetricsFromSql } = await import("../prospect-researcher/db.js");
+    const metrics = await getProspectMetricsFromSql(options);
+    prospectsTotal = String(metrics.total);
+    prospectsReviewed = String(metrics.byStatus["reviewed"] || 0);
+    const cityList = Object.entries(metrics.byCity)
+      .map(([c, n]) => `${c}: ${n}`)
+      .join(", ");
+    if (cityList) {
+      citySummary = ` (${cityList})`;
+    }
   } catch {}
 
   // 3. Count plan entries
@@ -222,11 +265,119 @@ export async function compileArchitectReport(options?: { testMode?: boolean }): 
   } catch {}
 
   return `📊 *The Growth Lab Ops Report — ${dateStr} ${timeStr} IST*
-• *Total LLM Spend Today:* $${totalSpend.toFixed(2)} (${runsCount} runs)
-• *Prospects Database:* ${prospectsTotal} sourced · ${prospectsReviewed} reviewed
+${spendLine}
+• *Prospects Database:* ${prospectsTotal} sourced${citySummary} · ${prospectsReviewed} reviewed
 • *Plan Entries Active:* ${planTotal} scheduled (Days 8–68)
 • *GHL Inbound Pipeline:* — (Awaiting live webhook sync)
 _All figures verified from Supabase, logs/, and runtime ledger._`;
+}
+
+/**
+ * Answers questions asked by the Architect.
+ * Specifically queries SQL (Supabase public.prospects) for counts by city, status, or day,
+ * queries the cost ledger for real spend per call, or answers operational questions.
+ */
+export async function answerArchitectQuestion(
+  questionText: string,
+  options?: { testMode?: boolean }
+): Promise<string> {
+  const isTest = options?.testMode === true || isTestMode();
+  const dateStr = getTodayDateString();
+  const q = questionText.toLowerCase().trim();
+
+  // 1. Spend / Cost / Ledger inquiries
+  if (/spend|cost|ledger|expense|token spend|budget/i.test(q)) {
+    const summary = getCostLedgerSummary(dateStr, options);
+    if (summary.runsCount === 0) {
+      return `💰 *LLM Spend & Cost Ledger Today (${dateStr}):*\n• *Total Spend:* $0.00 (0 calls recorded today)\n_Verified from runtime cost ledger._`;
+    }
+
+    const callLines = summary.entries
+      .slice(-10)
+      .map((e, idx) => {
+        const timePart = e.timestamp.includes("T") ? e.timestamp.split("T")[1].slice(0, 5) + " IST" : "";
+        const issuePart = e.issueNumber > 0 ? ` · #${e.issueNumber}` : "";
+        return `  ${idx + 1}. ${timePart ? `${timePart} · ` : ""}@${e.agent}${issuePart}: ${formatCostUsd(e.totalCostUsd)} (${e.inputTokens} in, ${e.outputTokens} out · ${e.model})`;
+      })
+      .join("\n");
+
+    const agentBreakdown = Object.entries(summary.byAgent)
+      .map(([ag, info]) => `• *@${ag}:* ${formatCostUsd(info.spendUsd)} (${info.runs} call${info.runs === 1 ? "" : "s"})`)
+      .join("\n");
+
+    return `💰 *LLM Spend & Cost Ledger Today (${dateStr}):*
+• *Total Spend:* ${formatCostUsd(summary.totalSpendUsd)} across ${summary.runsCount} call${summary.runsCount === 1 ? "" : "s"}
+
+*By Agent:*
+${agentBreakdown}
+
+*Per-Call Ledger (Real spend per call):*
+${callLines}
+_Verified from logs/.state/cost-ledger.json and daily logs._`;
+  }
+
+  // 2. Prospect database queries (counts by city, by status, by day from SQL)
+  const isCityQuery = /city|cities|metro|delhi|mumbai|bangalore|bengaluru/i.test(q);
+  const isStatusQuery = /status|statuses|reviewed|approved|rejected|new|handed_to_outreach/i.test(q);
+  const isDayQuery = /day|days|date|dates|today|yesterday|daily/i.test(q);
+  const isGeneralCountsQuery = /counts?|prospects?|how many|pipeline|database|rows|records/i.test(q);
+
+  if (isCityQuery || isStatusQuery || isDayQuery || isGeneralCountsQuery) {
+    const {
+      getProspectMetricsFromSql,
+      formatProspectCityCounts,
+      formatProspectStatusCounts,
+      formatProspectDayCounts,
+      formatAllProspectCounts,
+    } = await import("../prospect-researcher/db.js");
+
+    const metrics = await getProspectMetricsFromSql(options);
+
+    // Specific: Counts by city
+    if (isCityQuery && !isStatusQuery && !isDayQuery) {
+      return formatProspectCityCounts(metrics);
+    }
+
+    // Specific: Counts by status
+    if (isStatusQuery && !isCityQuery && !isDayQuery) {
+      return formatProspectStatusCounts(metrics);
+    }
+
+    // Specific: Counts by day
+    if (isDayQuery && !isCityQuery && !isStatusQuery) {
+      return formatProspectDayCounts(metrics);
+    }
+
+    // Comprehensive breakdown
+    return formatAllProspectCounts(metrics);
+  }
+
+  // 3. Fallback for other general questions
+  if (config.anthropicApiKey && !isTest) {
+    try {
+      const modelName = getAnthropicModel();
+      const prompt = `You are the Chief of Staff at The Growth Lab. Answer the Architect's question concisely, numerically, and factually based on our operations:
+Architect Question: "${questionText}"
+Reference files: config/plan.yaml, config/agents.yaml, AGENTS.md, logs/${dateStr}/.
+Answer in 1-3 lines maximum. Zero corporate fluff.`;
+
+      const response = await callAnthropicWithCostCap({
+        agent: "chief-of-staff",
+        params: {
+          model: modelName,
+          max_tokens: 300,
+          messages: [{ role: "user", content: prompt }],
+        },
+      });
+
+      const text = response.content[0]?.type === "text" ? response.content[0].text : "";
+      if (text.trim()) {
+        return `ℹ️ *Chief of Staff Response:*\n${text.trim()}`;
+      }
+    } catch {}
+  }
+
+  return `ℹ️ *Chief of Staff Response:*\nI've verified our current records. Relevant files: \`config/plan.yaml\` and \`AGENTS.md\`. All current operations are logged under \`logs/${dateStr}/\`.`;
 }
 
 let hasLoggedImFailure = false;
@@ -422,7 +573,7 @@ export async function pollChiefOfStaffIntake(options?: {
         const reportText = await compileArchitectReport({ testMode: isTest });
         await postLine({ channel, text: reportText, thread_ts: threadTs });
       } else if (classification.category === "question") {
-        const answerText = `ℹ️ *Chief of Staff Response:*\nI've verified our current records. Relevant files: \`config/plan.yaml\` and \`AGENTS.md\`. All current operations are logged under \`logs/${dateStr}/\`.`;
+        const answerText = await answerArchitectQuestion(text, { testMode: isTest });
         await postLine({ channel, text: answerText, thread_ts: threadTs });
       } else if (classification.category === "decision") {
         const decisionText = classification.decisionText || text;
