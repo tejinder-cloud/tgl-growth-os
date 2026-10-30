@@ -2,5 +2,15 @@
   "date": "2026-10-30",
   "posted": false,
   "standupTs": "1793277000.618349",
-  "channel": "C0ASF13879Q"
+  "channel": "C0ASF13879Q",
+  "compiledAt": "2026-10-30T12:20:15.913Z",
+  "digestText": "*📊 The Growth Lab — Daily Standup Digest | 2026-10-30 17:50 IST*\n──────────────────────────────────────────\n*🚪 Product Doors:*\n• *AEO:* no data yet | *AI:* no data yet | *TrueLead:* no data yet | *Core:* operational\n\n*🚨 Blockers (Ranked):*\n• _None reported today._\n\n*⏳ Approvals Pending:*\n• *[TASK]: Make the site faster* (@web-builder, 95h) — <https://itsthegrowthlab.slack.com/archives/C0BATS9F99B/p1793022401273409|View card>\n\n*📋 Agent Reports:*\n• *`@chief-of-staff`*: 12:50 IST — Intake classification [report]: 528 input, 73 ou\n• *`@prospect-researcher`*: Run — 13:23 IST (Delhi NCR · hospitals)\n\n_Active agents: reply in-thread with your 4 lines: Did · Blocked · Need · Tomorrow._",
+  "synthesis": {
+    "model": "claude-sonnet-5-5",
+    "inputTokens": 2498,
+    "outputTokens": 1524,
+    "totalCostUsd": 0.0304,
+    "costLine": "Standup compilation: 2498 input, 1524 output (claude-sonnet-5-5) · Cost: $0.0304 USD"
+  },
+  "source": "cron"
 }
