@@ -6,7 +6,7 @@ import { slackClient } from "../../lib/slack-client.js";
 import { loadDoorConfig } from "../../lib/agents.js";
 import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
 import { getAgentsCostStatusForStandup, type AgentCostCapInfo } from "../../lib/cost-cap.js";
-import { loadPlanEntries } from "../../lib/plan.js";
+import { loadPlanEntries, getCurrentPlanDay } from "../../lib/plan.js";
 
 export interface LogEntry {
   agent: string;
@@ -48,7 +48,7 @@ export interface OpenProposal {
 
 export interface CarriedForwardPlanEntry {
   day: number;
-  date: string;
+  date?: string;
   agent: string;
   title: string;
 }
@@ -357,12 +357,13 @@ export async function gatherStandupMaterial(
     console.warn("[Gather] Error fetching agent cost statuses:", err.message);
   }
 
-  // 9. Gather carried forward plan entries (entries up to date whose issues are in-progress)
+  // 9. Gather carried forward plan entries (entries up to current plan day whose issues are in-progress)
   const carriedForwardPlanEntries: CarriedForwardPlanEntry[] = [];
   try {
     const allEntries = await loadPlanEntries({ testMode: isTest });
+    const currentDay = await getCurrentPlanDay({ testMode: isTest });
     for (const entry of allEntries) {
-      if (entry.date <= date) {
+      if (entry.day <= currentDay) {
         const matchingInProgress = inProgressIssues.some(
           (iss) =>
             iss.agent === entry.agent &&

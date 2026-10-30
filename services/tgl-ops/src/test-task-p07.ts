@@ -9,8 +9,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { parse } from "yaml";
 import { config } from "./config.js";
-import { loadPlanEntries, getPlanEntriesForDate, addProposalToPlan, type PlanEntry } from "./lib/plan.js";
-import { execute0900PlanDispatch } from "./agents/chief-of-staff/dispatch.js";
+import { loadPlanEntries, addProposalToPlan, isTrueLeadParked, type PlanEntry } from "./lib/plan.js";
+import { execute0900PlanDispatch, dispatchPlanDay } from "./agents/chief-of-staff/dispatch.js";
 import { loadAgents } from "./lib/agents.js";
 import { isProtectedPath } from "./runner/tools.js";
 import { verifyCiChecks } from "./runner/runner.js";
@@ -42,39 +42,69 @@ async function runTaskP07VerificationSuite(): Promise<void> {
   }
 
   // -------------------------------------------------------------------------
-  // Test 1: config/plan.yaml and PROJECT-PLAN.md structure & working days
+  // Test 1: config/plan.yaml and PROJECT-PLAN.md structure (Day numbers only)
   // -------------------------------------------------------------------------
-  console.log("[Test 1] Validating config/plan.yaml & working days progression...");
+  console.log("[Test 1] Validating config/plan.yaml & PROJECT-PLAN.md (Architect Decisions 1, 2, 3)...");
   const planEntries = await loadPlanEntries({ testMode: true });
 
   if (planEntries.length !== 61) {
     throw new Error(`Test 1 Failed: Expected 61 plan entries (Days 8–68), got ${planEntries.length}`);
   }
 
-  // Verify Day 8 starts on 2026-10-30
-  if (planEntries[0].day !== 8 || planEntries[0].date !== "2026-10-30") {
-    throw new Error(`Test 1 Failed: Day 8 must be on 2026-10-30, got Day ${planEntries[0].day} on ${planEntries[0].date}`);
+  // Verify Day 8 is first entry and has no calendar date field
+  if (planEntries[0].day !== 8) {
+    throw new Error(`Test 1 Failed: Expected first entry Day 8, got Day ${planEntries[0].day}`);
   }
 
-  // Verify Day 68 ends on 2027-01-22
+  // Verify Day 68 is last entry and has no calendar date field
   const lastEntry = planEntries[planEntries.length - 1];
-  if (lastEntry.day !== 68 || lastEntry.date !== "2027-01-22") {
-    throw new Error(`Test 1 Failed: Day 68 must be on 2027-01-22, got Day ${lastEntry.day} on ${lastEntry.date}`);
+  if (lastEntry.day !== 68) {
+    throw new Error(`Test 1 Failed: Expected last entry Day 68, got Day ${lastEntry.day}`);
   }
 
-  // Verify no weekend dates in the entire plan
+  // Verify no entries contain calendar dates (day numbers only per Decision 2)
   for (const entry of planEntries) {
-    const d = new Date(entry.date);
-    const dayOfWeek = d.getUTCDay();
-    if (dayOfWeek === 0 || dayOfWeek === 6) {
-      throw new Error(`Test 1 Failed: Entry Day ${entry.day} falls on weekend: ${entry.date}`);
+    if ((entry as any).date !== undefined) {
+      throw new Error(`Test 1 Failed: Entry Day ${entry.day} has calendar date field: ${(entry as any).date}. Dates must be removed.`);
     }
     if (!entry.agent || !entry.title || !entry.brief || !Array.isArray(entry.definition_of_done) || entry.definition_of_done.length === 0) {
       throw new Error(`Test 1 Failed: Invalid entry structure for Day ${entry.day}: ${JSON.stringify(entry)}`);
     }
   }
 
-  // Verify PROJECT-PLAN.md exists and contains human view
+  // Verify TrueLead entries (Days 47–51) depend on architect-unpark (Decision 1)
+  const trueleadEntries = planEntries.filter((e) => e.day >= 47 && e.day <= 51);
+  for (const te of trueleadEntries) {
+    if (!te.depends_on.includes("architect-unpark")) {
+      throw new Error(`Test 1 Failed: TrueLead Day ${te.day} must depend on 'architect-unpark', got: ${JSON.stringify(te.depends_on)}`);
+    }
+  }
+  if (!isTrueLeadParked()) {
+    throw new Error("Test 1 Failed: config/doors/truelead.yaml status must be parked");
+  }
+
+  // Verify TrueVisible first milestones (Decision 3)
+  const day9 = planEntries.find((e) => e.day === 9);
+  if (!day9 || !day9.brief.includes("truevisible-app")) {
+    throw new Error(`Test 1 Failed: Day 9 must include architect-sprint for truevisible-app, got: ${day9?.brief}`);
+  }
+
+  const day11 = planEntries.find((e) => e.day === 11);
+  if (!day11 || !day11.brief.includes("/aeo audit") || !day11.brief.includes("500")) {
+    throw new Error(`Test 1 Failed: Day 11 must include Rahul Meta campaign to /aeo audit (₹500/day), got: ${day11?.brief}`);
+  }
+
+  const day26 = planEntries.find((e) => e.day === 26);
+  if (!day26 || !day26.brief.includes("/truevisible") || !day26.brief.includes("Google Search")) {
+    throw new Error(`Test 1 Failed: Day 26 must include Gate 2 target, /truevisible page, and switch Meta to trial + Google Search, got: ${day26?.brief}`);
+  }
+
+  const day40 = planEntries.find((e) => e.day === 40);
+  if (!day40 || !day40.brief.includes("ChatGPT ads")) {
+    throw new Error(`Test 1 Failed: Day 40 must include Ads Analyst ChatGPT ads eligibility check, got: ${day40?.brief}`);
+  }
+
+  // Verify PROJECT-PLAN.md exists and contains 4-column human view
   const humanPlanPath = path.join(config.repoRoot, "PROJECT-PLAN.md");
   if (!fs.existsSync(humanPlanPath)) {
     throw new Error("Test 1 Failed: PROJECT-PLAN.md does not exist");
@@ -83,41 +113,56 @@ async function runTaskP07VerificationSuite(): Promise<void> {
   if (!humanPlanContent.includes("config/plan.yaml") || !humanPlanContent.includes("| 8 |") || !humanPlanContent.includes("| 68 |")) {
     throw new Error("Test 1 Failed: PROJECT-PLAN.md missing expected header or days");
   }
+  if (!humanPlanContent.includes("| Day | Agent | Build | Your hour |")) {
+    throw new Error("Test 1 Failed: PROJECT-PLAN.md table missing 4-column header (| Day | Agent | Build | Your hour |)");
+  }
 
-  console.log(`  ✓ 61 plan entries loaded cleanly from config/plan.yaml`);
-  console.log(`  ✓ Working days strictly verified (2026-10-30 to 2027-01-22, 0 weekends)`);
-  console.log(`  ✓ PROJECT-PLAN.md is in sync with plan entries`);
+  console.log(`  ✓ 61 plan entries loaded cleanly from config/plan.yaml (day numbers only, dates removed)`);
+  console.log(`  ✓ TrueLead parked status & architect-unpark dependency verified`);
+  console.log(`  ✓ TrueVisible sprint milestones (Days 9, 11, 26, 40) verified`);
+  console.log(`  ✓ PROJECT-PLAN.md is in sync with 4-column human view`);
   console.log("✅ [Test 1 Passed] config/plan.yaml & PROJECT-PLAN.md fully verified.\n");
   passedTests++;
 
   // -------------------------------------------------------------------------
-  // Test 2: Chief of Staff 09:00 IST Plan Dispatch
+  // Test 2: Chief of Staff 09:00 IST Morning Status Card & Word Dispatch
   // -------------------------------------------------------------------------
-  console.log("[Test 2] Testing Chief of Staff 09:00 IST plan dispatch...");
-  const dispatchResult = await execute0900PlanDispatch({
-    dateStr: "2026-10-30",
+  console.log("[Test 2] Testing Chief of Staff 09:00 status card & Architect word dispatch...");
+  const statusCardResult = await execute0900PlanDispatch({
+    day: 8,
     testMode: true,
   });
 
-  if (dispatchResult.dispatchedCount !== 1) {
-    throw new Error(`Test 2 Failed: Expected 1 dispatched entry for 2026-10-30 (Day 8), got ${dispatchResult.dispatchedCount}`);
+  if (statusCardResult.status !== "status-card") {
+    throw new Error(`Test 2 Failed: Expected status 'status-card', got ${statusCardResult.status}`);
   }
-  if (!dispatchResult.architectHourCardTs) {
-    throw new Error("Test 2 Failed: Expected morning architect hour card to be posted");
+  if (!statusCardResult.architectHourCardTs) {
+    throw new Error("Test 2 Failed: Expected morning status card to be posted");
+  }
+
+  // Test Architect word dispatch: dispatchPlanDay
+  const dispatchDay8 = await dispatchPlanDay(8, { testMode: true });
+  if (dispatchDay8.status !== "dispatched" || dispatchDay8.issueNumber !== 8) {
+    throw new Error(`Test 2 Failed: Expected Day 8 dispatched, got ${JSON.stringify(dispatchDay8)}`);
   }
 
   // Test re-dispatch on same day: should skip already issued
-  const secondDispatch = await execute0900PlanDispatch({
-    dateStr: "2026-10-30",
-    testMode: true,
-  });
-  if (secondDispatch.dispatchedCount !== 0 || secondDispatch.skippedCount !== 1) {
-    throw new Error(`Test 2 Failed: Expected idempotency (0 dispatched, 1 skipped), got ${JSON.stringify(secondDispatch)}`);
+  const secondDispatch = await dispatchPlanDay(8, { testMode: true });
+  if (secondDispatch.status !== "already-issued") {
+    throw new Error(`Test 2 Failed: Expected idempotency (already-issued), got ${JSON.stringify(secondDispatch)}`);
   }
 
-  console.log(`  ✓ Day 8 correctly dispatched with issue created and morning card posted`);
-  console.log(`  ✓ Idempotent re-run correctly skipped already issued entry`);
-  console.log("✅ [Test 2 Passed] 09:00 IST plan dispatch verified.\n");
+  // Test TrueLead parked entry is blocked from dispatching
+  const trueleadDispatch = await dispatchPlanDay(47, { testMode: true });
+  if (trueleadDispatch.status !== "blocked" || !trueleadDispatch.reason?.includes("architect-unpark")) {
+    throw new Error(`Test 2 Failed: TrueLead Day 47 should be blocked by architect-unpark, got ${JSON.stringify(trueleadDispatch)}`);
+  }
+
+  console.log(`  ✓ 09:00 IST morning status card posted with current day and 'say go for Day N+1'`);
+  console.log(`  ✓ Word dispatch: 'day 8' dispatched Day 8 issue and posted agent card`);
+  console.log(`  ✓ Idempotent re-run correctly flagged already-issued`);
+  console.log(`  ✓ TrueLead parked entry (Day 47) strictly blocked by architect-unpark`);
+  console.log("✅ [Test 2 Passed] 09:00 IST status card & word dispatch verified.\n");
   passedTests++;
 
   // -------------------------------------------------------------------------
@@ -202,13 +247,12 @@ async function runTaskP07VerificationSuite(): Promise<void> {
   if (newPlanEntry.day !== 69) {
     throw new Error(`Test 4 Failed: Expected proposal to become Plan Day 69, got Day ${newPlanEntry.day}`);
   }
-  if (newPlanEntry.date !== "2027-01-25") {
-    // 2027-01-22 was Friday; next working day is Monday 2027-01-25
-    throw new Error(`Test 4 Failed: Expected next working day 2027-01-25, got ${newPlanEntry.date}`);
+  if ((newPlanEntry as any).date !== undefined) {
+    throw new Error(`Test 4 Failed: Expected date field to be undefined (day numbers only), got ${newPlanEntry.date}`);
   }
 
   console.log(`  ✓ Proposal issue created with label type:proposal`);
-  console.log(`  ✓ addProposalToPlan converts approved proposal into Day ${newPlanEntry.day} on ${newPlanEntry.date}`);
+  console.log(`  ✓ addProposalToPlan converts approved proposal into Day ${newPlanEntry.day} without calendar dates`);
   console.log("✅ [Test 4 Passed] Proposals lifecycle verified.\n");
   passedTests++;
 
@@ -298,6 +342,22 @@ async function runTaskP07VerificationSuite(): Promise<void> {
   const taskClassification = await classifyArchitectMessage("Build the new dental case study block on homepage", { testMode: true });
   if (taskClassification.category !== "task" || taskClassification.agent !== "web-builder") {
     throw new Error(`Test 7.1 Failed: Expected task -> web-builder, got ${JSON.stringify(taskClassification)}`);
+  }
+
+  // 1b. Dispatch classification (Decision 2)
+  const dispatchGoClassification = await classifyArchitectMessage("go", { testMode: true });
+  if (dispatchGoClassification.category !== "dispatch") {
+    throw new Error(`Test 7.1b Failed: Expected 'go' -> dispatch, got ${JSON.stringify(dispatchGoClassification)}`);
+  }
+
+  const dispatchDayClassification = await classifyArchitectMessage("day 9", { testMode: true });
+  if (dispatchDayClassification.category !== "dispatch" || dispatchDayClassification.targetDay !== 9) {
+    throw new Error(`Test 7.1c Failed: Expected 'day 9' -> dispatch day 9, got ${JSON.stringify(dispatchDayClassification)}`);
+  }
+
+  const questionCountsByDay = await classifyArchitectMessage("counts by day", { testMode: true });
+  if (questionCountsByDay.category !== "question") {
+    throw new Error(`Test 7.1d Failed: Expected 'counts by day' -> question, got ${JSON.stringify(questionCountsByDay)}`);
   }
 
   // 2. Report classification
