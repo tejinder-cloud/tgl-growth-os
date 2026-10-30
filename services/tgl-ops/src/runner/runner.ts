@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import Anthropic from "@anthropic-ai/sdk";
 import { config, isTestMode } from "../config.js";
-import { findAgentByName, type AgentRecord } from "../lib/agents.js";
+import { findAgentByName, getAgentRunnerLimits, type AgentRecord } from "../lib/agents.js";
 import {
   createBranch,
   createPullRequest,
@@ -108,14 +108,30 @@ export async function runIssueTask(
   try {
     // 2. Identify agent
     const agentLabel = issue.labels.find((l) => l.startsWith("for:"));
-    const rawAgentName = issue.agentName || (agentLabel ? agentLabel.replace(/^for:/, "") : "web-builder");
-    const agentRecord = await findAgentByName(rawAgentName);
-    const agentName = agentRecord?.name || rawAgentName;
-    const reviewer = agentRecord?.reviewer || "Creative Director";
+    let rawAgentName = issue.agentName || (agentLabel ? agentLabel.replace(/^for:/, "") : "web-builder");
 
     // Extract deliverable
     const deliverableMatch = issue.body.match(/###\s*deliverable\s*([\s\S]*?)(?=###|$)/i);
     const deliverable = deliverableMatch ? deliverableMatch[1].trim() : issue.title;
+
+    // Item B mandate: plan entries whose DoD creates agents/<x>/SKILL.md or new service code
+    // are dispatched to web-builder, not to the agent being created.
+    const createsAgentSkillOrService =
+      /agents\/[^/]+\/SKILL\.md/i.test(deliverable) ||
+      /agents\/[^/]+\/SKILL\.md/i.test(issue.body) ||
+      /services\//i.test(deliverable) ||
+      /services\//i.test(issue.body) ||
+      /service code/i.test(deliverable) ||
+      /service code/i.test(issue.body);
+
+    if (createsAgentSkillOrService && rawAgentName !== "web-builder") {
+      console.log(`[Runner Build Mandate] Re-routing issue #${issueNum} from @${rawAgentName} to @web-builder (creates skill/service code).`);
+      rawAgentName = "web-builder";
+    }
+
+    const agentRecord = await findAgentByName(rawAgentName);
+    const agentName = agentRecord?.name || rawAgentName;
+    const reviewer = agentRecord?.reviewer || "Creative Director";
 
     console.log(`[Runner] Picked up issue #${issueNum} for @${agentName}: "${issue.title}"`);
 
@@ -291,8 +307,11 @@ export async function runIssueTask(
     let totalInputTokens = 0;
     let totalOutputTokens = 0;
     let toolCallsCount = 0;
-    const MAX_TOOL_CALLS = 25;
+    const runnerLimits = getAgentRunnerLimits(agentRecord);
+    const MAX_TOOL_CALLS = runnerLimits.maxToolCalls;
+    const MAX_RUNTIME_MS = runnerLimits.timeoutMs;
     const modelName = getAnthropicModel();
+    let hitLimit = false;
 
     const systemPrompt = buildRunnerSystemPrompt(agentName, branchName);
     const userMessage = buildRunnerUserMessage({
@@ -316,11 +335,12 @@ export async function runIssueTask(
     ];
 
     const startTime = Date.now();
-    const MAX_RUNTIME_MS = 15 * 60 * 1000; // 15 minutes hard limit
 
     while (toolCallsCount < MAX_TOOL_CALLS) {
-      if (Date.now() - startTime > MAX_RUNTIME_MS) {
-        throw new Error("Runner execution exceeded 15 minutes hard timeout limit.");
+      if (Date.now() - startTime >= MAX_RUNTIME_MS) {
+        console.warn(`[Runner Limit Reached] Execution reached ${runnerLimits.timeoutMinutes}m timeout (${toolCallsCount} calls). Preserving progress.`);
+        hitLimit = true;
+        break;
       }
 
       const response = await callAnthropicWithCostCap({
@@ -352,12 +372,14 @@ export async function runIssueTask(
       // Process tool calls
       const toolResultBlocks: Anthropic.ToolResultBlockParam[] = [];
       for (const toolUse of toolUseBlocks) {
-        toolCallsCount++;
-        if (toolCallsCount > MAX_TOOL_CALLS) {
-          throw new Error(`Tool call hard limit reached (${MAX_TOOL_CALLS} calls).`);
+        if (toolCallsCount >= MAX_TOOL_CALLS) {
+          console.warn(`[Runner Limit Reached] Reached ${MAX_TOOL_CALLS} tool calls limit. Preserving progress.`);
+          hitLimit = true;
+          break;
         }
 
-        console.log(`[Runner Tool Call #${toolCallsCount}] ${toolUse.name}(${JSON.stringify(toolUse.input)})`);
+        toolCallsCount++;
+        console.log(`[Runner Tool Call #${toolCallsCount}/${MAX_TOOL_CALLS}] ${toolUse.name}(${JSON.stringify(toolUse.input)})`);
         const resultStr = await executeRunnerTool(toolUse.name, toolUse.input, toolContext);
 
         toolResultBlocks.push({
@@ -368,10 +390,92 @@ export async function runIssueTask(
       }
 
       messages.push({ role: "user", content: toolResultBlocks });
+      if (hitLimit) break;
     }
 
-    if (toolCallsCount >= MAX_TOOL_CALLS) {
-      throw new Error(`Tool call limit reached (${MAX_TOOL_CALLS} calls).`);
+    if (hitLimit) {
+      console.log(`[Runner Partial Run] Preserving progress for issue #${issueNum} on branch ${branchName}...`);
+
+      let priceIn = 3.0;
+      let priceOut = 15.0;
+      try {
+        const p = getAnthropicPricing();
+        priceIn = p.priceInPerMTok;
+        priceOut = p.priceOutPerMTok;
+      } catch {}
+
+      const totalCostUsd = Number(
+        ((totalInputTokens * priceIn + totalOutputTokens * priceOut) / 1_000_000).toFixed(4)
+      );
+
+      const logLine = `- ${timeStr} IST — Issue #${issueNum} partial run: ${totalInputTokens} input, ${totalOutputTokens} output (${modelName}) · Cost: $${totalCostUsd.toFixed(4)} [Limit: ${toolCallsCount}/${MAX_TOOL_CALLS} calls]`;
+      if (isTest) {
+        const testLogPath = path.join(config.repoRoot, `logs/.test/${agentName}.md`);
+        fs.mkdirSync(path.dirname(testLogPath), { recursive: true });
+        fs.appendFileSync(testLogPath, logLine + "\n", "utf8");
+      } else {
+        await appendFileInRepo(
+          `logs/${dateStr}/${agentName}.md`,
+          logLine,
+          `chore(log): record ${agentName} partial run for #${issueNum}`
+        ).catch((err) => console.warn("[Runner log append warning]", err));
+      }
+
+      // Open or update draft PR
+      const draftPrTitle = `[DRAFT] feat(${agentName}): ${issue.title.replace(/^\[TASK\]:\s*/i, "")} (#${issueNum})`;
+      const draftPrBody = `## Summary
+Partial progress for issue #${issueNum} autonomously committed by issue runner.
+
+Work in progress — fixes #${issueNum}
+
+## Run Status
+• Tool calls made: ${toolCallsCount} / ${MAX_TOOL_CALLS}
+• Branch: \`${branchName}\`
+• Status: partial — continuing on next run
+`;
+      const draftPr = await createPullRequest({
+        title: draftPrTitle,
+        body: draftPrBody,
+        head: branchName,
+        base: "main",
+        draft: true,
+        labels: [`for:${agentName}`, "type:build"],
+      });
+
+      // Post "partial — continuing"
+      const targetChannel = slackChannel || (isTest ? (config.opsChannelId || "#ops") : config.approvalsChannelId);
+      if (slackThreadTs) {
+        await postLine({
+          channel: targetChannel,
+          thread_ts: slackThreadTs,
+          text: `⏳ *[partial — continuing]* Runner reached agent limit (${toolCallsCount}/${MAX_TOOL_CALLS} tool calls, ${runnerLimits.timeoutMinutes} min). Progress saved to draft PR <${draftPr.html_url}|#${draftPr.number}> on branch \`${branchName}\`. Next run will resume on this branch.`,
+        }).catch((err) => console.warn("[Runner thread post error]", err));
+      }
+
+      if (!isTest) {
+        await addCommentToIssue(
+          issueNum,
+          `⏳ **[partial — continuing]** Runner reached agent limit (${toolCallsCount}/${MAX_TOOL_CALLS} calls). Progress saved to draft PR #${draftPr.number} on branch \`${branchName}\`. Next run will resume on this branch.`
+        ).catch((err) => console.warn("[Runner comment error]", err));
+      }
+
+      // Keep issue status in-progress so next catch-up run resumes on branch
+      await addLabelsToIssue(issueNum, ["status:in-progress"]).catch(() => {});
+
+      return {
+        success: true,
+        issueNumber: issueNum,
+        status: "completed",
+        branchName,
+        prNumber: draftPr.number,
+        prUrl: draftPr.html_url,
+        toolCallsCount,
+        tokens: {
+          input: totalInputTokens,
+          output: totalOutputTokens,
+          costUsd: totalCostUsd,
+        },
+      };
     }
 
     // 7. Calculate cost & log run

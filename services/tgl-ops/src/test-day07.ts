@@ -1,6 +1,9 @@
 // services/tgl-ops/src/test-day07.ts
 process.env.TGL_TEST_MODE = "1";
 process.env.NODE_ENV = "test";
+process.env.ANTHROPIC_PRICE_IN = "3.00";
+process.env.ANTHROPIC_PRICE_OUT = "15.00";
+process.env.ANTHROPIC_MODEL = "claude-sonnet-4-5";
 
 import { parseResearchBrief } from "./agents/prospect-researcher/rotation.js";
 import { runIssueTask } from "./runner/runner.js";

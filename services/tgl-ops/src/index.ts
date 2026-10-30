@@ -109,8 +109,17 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
-import { runProspectResearch } from "./agents/prospect-researcher/worker.js";
+import { runProspectResearch, rescoreProspects } from "./agents/prospect-researcher/worker.js";
 import { exportWeeklyProspectsCsv } from "./agents/prospect-researcher/reports.js";
+
+// Monday 07:00 IST: Prospect Researcher Playbook G Pipeline Re-Score
+cron.schedule(
+  "0 7 * * 1",
+  wrapCronJob("Monday 07:00 IST Playbook G Pipeline Re-Score", async () => {
+    await rescoreProspects();
+  }),
+  { timezone: config.timezone }
+);
 
 // Mon–Fri 09:30 IST: Prospect Researcher Autonomous Run
 cron.schedule(

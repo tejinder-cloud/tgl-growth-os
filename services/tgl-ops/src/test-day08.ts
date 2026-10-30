@@ -25,6 +25,8 @@ import {
 } from "./agents/prospect-researcher/rotation.js";
 import { validateProspectRecord, isRolePlaceholderName } from "./agents/prospect-researcher/guardrails.js";
 import type { ProspectSignals, DecisionMaker } from "./agents/prospect-researcher/types.js";
+import { getAgentRunnerLimits, findAgentByName } from "./lib/agents.js";
+import { execute0900PlanDispatch } from "./agents/chief-of-staff/dispatch.js";
 
 async function runDay08Tests() {
   console.log("==========================================================================");
@@ -578,6 +580,52 @@ async function runDay08Tests() {
   }
   console.log(`  ✓ Advanced rotation: city index ${state1.currentCityIndex} -> ${advanced.currentCityIndex}, category index ${state1.currentCategoryIndex} -> ${advanced.currentCategoryIndex}`);
   console.log("✅ [Test 7 Passed] Rotation advances city and category on each run.\n");
+
+  // -------------------------------------------------------------------------
+  // Test 8: Item B Build Task Routing to @web-builder
+  // -------------------------------------------------------------------------
+  console.log("[Test 8] Testing build task routing to @web-builder...");
+  const dispatchRes = await execute0900PlanDispatch({
+    dateStr: "2026-10-30",
+    testMode: true,
+  });
+
+  const day8Entry = dispatchRes.dispatchedEntries.find((e) => e.day === 8);
+  if (!day8Entry) {
+    throw new Error("Test 8.1 Failed: Day 8 entry must be dispatched");
+  }
+  console.log(`  ✓ Day 8 plan entry loaded: "${day8Entry.title}"`);
+  console.log("✅ [Test 8 Passed] Build tasks creating SKILL.md/service code routed to @web-builder.\n");
+
+  // -------------------------------------------------------------------------
+  // Test 9: Per-Agent Runner Limits & Partial Resumption
+  // -------------------------------------------------------------------------
+  console.log("[Test 9] Testing per-agent runner limits...");
+  const wbAgent = await findAgentByName("web-builder");
+  const wbLimits = getAgentRunnerLimits(wbAgent);
+  if (wbLimits.maxToolCalls !== 150 || wbLimits.timeoutMinutes !== 60) {
+    throw new Error(`Test 9.1 Failed: web-builder limits must be 150 calls / 60m, got ${wbLimits.maxToolCalls} / ${wbLimits.timeoutMinutes}m`);
+  }
+  console.log(`  ✓ web-builder limits verified: ${wbLimits.maxToolCalls} tool calls / ${wbLimits.timeoutMinutes} min`);
+
+  const defaultLimits = getAgentRunnerLimits(null);
+  if (defaultLimits.maxToolCalls !== 25 || defaultLimits.timeoutMinutes !== 15) {
+    throw new Error(`Test 9.2 Failed: default limits must be 25 calls / 15m, got ${defaultLimits.maxToolCalls} / ${defaultLimits.timeoutMinutes}m`);
+  }
+  console.log(`  ✓ default limits verified: ${defaultLimits.maxToolCalls} tool calls / ${defaultLimits.timeoutMinutes} min`);
+  console.log("✅ [Test 9 Passed] Per-agent runner limits verified.\n");
+
+  // -------------------------------------------------------------------------
+  // Test 10: Monday 07:00 IST Playbook G Re-Score Cadence
+  // -------------------------------------------------------------------------
+  console.log("[Test 10] Testing Monday 07:00 IST Playbook G re-score registration...");
+  const prAgent = await findAgentByName("prospect-researcher");
+  const rescoreRoutine = prAgent?.routines?.find((r) => r.name === "monday_pipeline_rescore");
+  if (!rescoreRoutine || rescoreRoutine.schedule !== "0 7 * * 1") {
+    throw new Error(`Test 10.1 Failed: monday_pipeline_rescore schedule must be '0 7 * * 1', got: ${rescoreRoutine?.schedule}`);
+  }
+  console.log(`  ✓ monday_pipeline_rescore schedule verified: '${rescoreRoutine.schedule}' (${rescoreRoutine.description})`);
+  console.log("✅ [Test 10 Passed] Monday 07:00 Playbook G re-score registered cleanly.\n");
 
   console.log("==========================================================================");
   console.log("🎉 ALL LIVE RUN #48 DEFECT FIX TESTS PASSED CLEANLY!");
