@@ -166,6 +166,10 @@ export async function scrapeClinicWebsite(
     return result;
   }
 
+  // Root domain URL for enterprise chain detection (e.g. https://www.maxhealthcare.in)
+  const rootDomainUrl = `${baseUrl.protocol}//${baseUrl.hostname}`;
+  const isDeepUrl = baseUrl.pathname.length > 1;
+
   // 1. Check clinic company name for doctor name (e.g. "Dr. Kathuria's Dental Clinic")
   const nameFromCompany = extractDoctorName(companyName);
   if (nameFromCompany) {
@@ -178,13 +182,14 @@ export async function scrapeClinicWebsite(
   // 2. Try Apify cheerio-scraper if token is present
   if (apifyToken) {
     try {
-      console.log(`[Apify Scraper] Running apify~cheerio-scraper for ${baseUrl.toString()}`);
+      console.log(`[Apify Scraper] Running apify~cheerio-scraper for ${baseUrl.toString()} (root: ${rootDomainUrl})`);
       const targetSubpages = [
+        rootDomainUrl,
+        new URL("/locations", rootDomainUrl).toString(),
+        new URL("/hospital-network", rootDomainUrl).toString(),
+        new URL("/about", rootDomainUrl).toString(),
         baseUrl.toString(),
-        new URL("/about", baseUrl).toString(),
-        new URL("/contact", baseUrl).toString(),
         new URL("/doctors", baseUrl).toString(),
-        new URL("/locations", baseUrl).toString(),
       ];
 
       const apifyRes = await fetch(
@@ -193,8 +198,8 @@ export async function scrapeClinicWebsite(
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            startUrls: targetSubpages.map((u) => ({ url: u })),
-            maxRequestsPerCrawl: 5,
+            startUrls: Array.from(new Set(targetSubpages)).map((u) => ({ url: u })),
+            maxRequestsPerCrawl: 6,
             pageFunction:
               "async function pageFunction(context) { const { $, request } = context; return { url: request.url, html: $.html() || '', text: $('body').text() || '' }; }",
           }),
@@ -222,18 +227,20 @@ export async function scrapeClinicWebsite(
     }
   }
 
-  // 3. Fallback to direct fetch if Apify returned 0 pages or no token
+  // 3. Fallback to direct fetch: ALWAYS fetch root domain for chain detection, plus deep listing
   if (result.pagesScraped.length === 0) {
-    const homeHtml = await fetchHtmlWithTimeout(baseUrl.toString(), 5000);
-    if (homeHtml) {
-      result.pagesScraped.push(baseUrl.toString());
-      combinedHtml += " " + homeHtml;
-      extractEmailsFromHtml(homeHtml, result.emails);
-      extractDoctorNamesFromHtml(homeHtml, result.doctorNames);
+    // 3A. Fetch Root Domain homepage first for chain signals (e.g. maxhealthcare.in)
+    const rootHtml = await fetchHtmlWithTimeout(rootDomainUrl, 5000);
+    if (rootHtml) {
+      result.pagesScraped.push(rootDomainUrl);
+      combinedHtml += " " + rootHtml;
+      extractEmailsFromHtml(rootHtml, result.emails);
+      extractDoctorNamesFromHtml(rootHtml, result.doctorNames);
 
-      const subpageUrls = findCandidateSubpages(homeHtml, baseUrl);
-      if (subpageUrls.length > 0) {
-        const promises = subpageUrls.slice(0, 4).map(async (url) => {
+      // Root domain subpages for locations / network
+      const rootSubpages = findCandidateSubpages(rootHtml, new URL(rootDomainUrl));
+      if (rootSubpages.length > 0) {
+        const rootPromises = rootSubpages.slice(0, 3).map(async (url) => {
           const html = await fetchHtmlWithTimeout(url, 5000);
           if (html) {
             result.pagesScraped.push(url);
@@ -242,7 +249,32 @@ export async function scrapeClinicWebsite(
             extractDoctorNamesFromHtml(html, result.doctorNames);
           }
         });
-        await Promise.allSettled(promises);
+        await Promise.allSettled(rootPromises);
+      }
+    }
+
+    // 3B. Fetch deep URL (if different from rootDomainUrl) to extract local branch doctor & contact
+    if (isDeepUrl) {
+      const deepHtml = await fetchHtmlWithTimeout(baseUrl.toString(), 5000);
+      if (deepHtml) {
+        result.pagesScraped.push(baseUrl.toString());
+        combinedHtml += " " + deepHtml;
+        extractEmailsFromHtml(deepHtml, result.emails);
+        extractDoctorNamesFromHtml(deepHtml, result.doctorNames);
+
+        const subpageUrls = findCandidateSubpages(deepHtml, baseUrl);
+        if (subpageUrls.length > 0) {
+          const deepPromises = subpageUrls.slice(0, 2).map(async (url) => {
+            const html = await fetchHtmlWithTimeout(url, 5000);
+            if (html) {
+              result.pagesScraped.push(url);
+              combinedHtml += " " + html;
+              extractEmailsFromHtml(html, result.emails);
+              extractDoctorNamesFromHtml(html, result.doctorNames);
+            }
+          });
+          await Promise.allSettled(deepPromises);
+        }
       }
     }
   }
@@ -487,4 +519,68 @@ function findCandidateSubpages(html: string, baseUrl: URL): string[] {
   }
 
   return candidateUrls;
+}
+
+/**
+ * Extracts normalized brand token and root domain from company name and website URL.
+ * Strips hospital qualifiers, branch localities, and punctuation.
+ */
+export function extractBrandToken(name: string, website?: string): { brand: string; rootDomain: string } {
+  let rootDomain = "";
+  if (website) {
+    try {
+      let clean = website.trim();
+      if (!clean.startsWith("http://") && !clean.startsWith("https://")) clean = `https://${clean}`;
+      rootDomain = new URL(clean).hostname.toLowerCase().replace(/^www\./, "");
+    } catch {
+      // ignore
+    }
+  }
+
+  // Normalize name by removing commas, punctuation, branch locations
+  let norm = name
+    .toLowerCase()
+    .replace(/[,()\-–]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  // Strip generic adjectives and healthcare terms
+  const stopWords = [
+    "super speciality", "superspeciality", "super specialty", "multispeciality",
+    "multi speciality", "multispecialty", "smart", "speciality", "specialty",
+    "hospital", "hospitals", "clinic", "clinics", "centre", "centres", "center",
+    "centers", "institute", "institutes", "healthcare", "health", "care",
+    "nursing home", "dental", "eye", "ivf", "fertility", "medical", "medicare"
+  ];
+
+  for (const sw of stopWords) {
+    norm = norm.replace(new RegExp(`\\b${sw}\\b`, "gi"), " ");
+  }
+
+  // Remove city / locality words from name (e.g. saket, delhi, gurgaon, noida, patparganj)
+  const locationWords = [
+    "saket", "patparganj", "shalimar bagh", "vaishali", "gurgaon", "gurugram", "noida",
+    "faridabad", "delhi", "mumbai", "bengaluru", "bangalore", "dwarka", "rohini", "lajpat nagar",
+    "panchsheel park", "south ex", "chandigarh", "mohali", "panchkula"
+  ];
+  for (const loc of locationWords) {
+    norm = norm.replace(new RegExp(`\\b${loc}\\b`, "gi"), " ");
+  }
+
+  norm = norm.replace(/\s+/g, " ").trim();
+  const firstWord = norm.split(" ")[0] || "";
+
+  // If first word has at least 3 letters, use that as brand (e.g. "max", "fortis", "apollo", "pristyn")
+  let brand = firstWord.length >= 3 ? firstWord : norm;
+
+  if (rootDomain) {
+    const domainBase = rootDomain.split(".")[0]; // e.g. "maxhealthcare"
+    if (domainBase.startsWith(brand)) {
+      // matches
+    } else if (brand.length < 3 && domainBase.length >= 3) {
+      brand = domainBase;
+    }
+  }
+
+  return { brand, rootDomain };
 }

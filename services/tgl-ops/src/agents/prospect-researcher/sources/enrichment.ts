@@ -14,11 +14,12 @@ export interface EnrichedProspectDetails {
 }
 
 /**
- * Validates whether a given title/position corresponds to an approved Playbook D decision-maker role:
- * owner / founder / MD / director / marketing head.
- * Non-DM roles (Assistant, Consultant Gastroenterologist, Nurse, Clerk, etc.) return false.
+ * Validates whether a given title/position corresponds to an approved Playbook D decision-maker role.
+ * - <50 staff: owner / founder / MD / lead doctor / principal
+ * - ≥50 staff: adds CEO, COO, GM, VP Operations/Administration, hospital administrator, head of marketing
+ * Non-DM roles (Assistant, Consultant, Nurse, etc.) are strictly rejected across both tiers.
  */
-export function isDecisionMakerRole(role: string): boolean {
+export function isDecisionMakerRole(role: string, orgSizeGe50: boolean = false): boolean {
   if (!role || typeof role !== "string") return false;
   const r = role.toLowerCase().trim();
 
@@ -34,36 +35,99 @@ export function isDecisionMakerRole(role: string): boolean {
     r.includes("billing") ||
     r.includes("clerk") ||
     r.includes("coordinator") ||
-    r.includes("executive") ||
     r.includes("technician")
   ) {
-    // Only allowed if explicitly qualified with owner / director
-    if (!r.includes("owner") && !r.includes("founder") && !r.includes("managing director") && !r.includes("medical director")) {
+    // Only allowed if explicitly qualified with owner / founder / managing director
+    if (!r.includes("owner") && !r.includes("founder") && !r.includes("managing director")) {
       return false;
     }
   }
 
-  // Allowed Playbook D Decision-Maker roles:
-  // owner/founder/MD/director/marketing head
-  return (
+  // Tier 1: Approved DM roles for <50 staff (Owner-run clinics and institutes)
+  const isSmallOrgDM =
     r.includes("owner") ||
     r.includes("founder") ||
     r.includes("co-founder") ||
-    r.includes("managing director") ||
     r === "md" ||
-    r.includes("medical director") ||
-    r.includes("clinical director") ||
-    r.includes("executive director") ||
-    r.includes("director") ||
-    r.includes("marketing head") ||
-    r.includes("head of marketing") ||
-    r.includes("chief marketing") ||
-    r.includes("cmo") ||
+    r.includes("managing director") ||
     r.includes("lead doctor") ||
     r.includes("clinic owner") ||
-    r.includes("principal") ||
-    r.includes("chief medical officer")
-  );
+    r.includes("chief doctor") ||
+    r.includes("principal");
+
+  if (isSmallOrgDM) {
+    return true;
+  }
+
+  // Tier 2: For ≥50 staff, add CEO, COO, GM, VP Operations/Administration, hospital administrator, head of marketing
+  if (orgSizeGe50) {
+    const isLargeOrgAddonDM =
+      r === "ceo" ||
+      r.includes("chief executive") ||
+      r === "coo" ||
+      r.includes("chief operating") ||
+      r === "gm" ||
+      r.includes("general manager") ||
+      r.includes("vp operations") ||
+      r.includes("vp administration") ||
+      r.includes("vice president of operations") ||
+      r.includes("vice president operations") ||
+      r.includes("vice president administration") ||
+      r.includes("vice president of administration") ||
+      r.includes("vp ops") ||
+      r.includes("vp admin") ||
+      r.includes("hospital administrator") ||
+      r.includes("medical superintendent") ||
+      r.includes("administrator") ||
+      r.includes("head of marketing") ||
+      r.includes("marketing head") ||
+      r === "cmo" ||
+      r.includes("chief marketing") ||
+      r.includes("marketing director") ||
+      r.includes("vp marketing");
+
+    if (isLargeOrgAddonDM) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Determines whether a candidate organisation is ≥50 staff based on category, name, review volume, and branch count.
+ */
+export function isCandidateOrgSizeGe50(
+  candidate: { name: string; userRatingsTotal?: number; placesBrandCount?: number },
+  category?: string,
+  signals?: { branch_count?: number }
+): boolean {
+  const normName = candidate.name.toLowerCase();
+  const cat = (category || "").toLowerCase();
+
+  // Category hospitals or multi-speciality hospitals are ≥50 staff
+  if (
+    cat === "hospitals" ||
+    cat === "hospital" ||
+    normName.includes("hospital") ||
+    normName.includes("super speciality") ||
+    normName.includes("multispeciality") ||
+    normName.includes("medical centre") ||
+    normName.includes("institute")
+  ) {
+    return true;
+  }
+
+  // High review volume or multi-branch
+  if (
+    (candidate.userRatingsTotal && candidate.userRatingsTotal >= 200) ||
+    (candidate.placesBrandCount && candidate.placesBrandCount >= 2) ||
+    (signals?.branch_count && signals.branch_count >= 2)
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
@@ -113,16 +177,19 @@ export async function enrichCandidateSignals(
     }
   }
 
-  // Check Places brand count signal (>3 places under same brand)
-  if (candidate.placesBrandCount && candidate.placesBrandCount > 3) {
+  // Check Places brand count signal (>1 places under same brand)
+  if (candidate.placesBrandCount && candidate.placesBrandCount > 1) {
     chainEvidence.push(
-      `Found ${candidate.placesBrandCount} Google Places results under brand '${candidate.brandPrefix || candidate.name}'`
+      `Found ${candidate.placesBrandCount} Places results sharing brand '${candidate.brandPrefix || candidate.name}'`
     );
   }
+
+  const orgSizeGe50 = isCandidateOrgSizeGe50(candidate, category);
 
   // 3. Decision Maker Identification (Hunter domain search + /v2/email-verifier + Places phone)
   const decisionMaker = await findVerifiedDecisionMaker(
     candidate,
+    orgSizeGe50,
     websiteDoctorName,
     websiteDoctorRole,
     websiteEmails,
@@ -153,6 +220,8 @@ export async function enrichCandidateSignals(
     ad_library_url: metaAds.adLibraryUrl,
     chain_evidence: chainEvidence.length > 0 ? chainEvidence : undefined,
     places_brand_count: candidate.placesBrandCount,
+    is_large_org: orgSizeGe50,
+    brand_prefix: candidate.brandPrefix,
   };
 
   return {
@@ -174,11 +243,12 @@ interface RankedCandidateEmail {
 
 /**
  * Discovers and validates economic decision-maker via real Hunter API and website scraping.
- * Enforces Playbook D roles (owner/founder/MD/director/marketing head).
+ * Enforces Playbook D roles by organisation size (<50 staff vs ≥50 staff).
  * Non-DM contacts (Assistant, Consultant, etc.) are labeled "DM unknown" and marked "contact found, DM unknown".
  */
 async function findVerifiedDecisionMaker(
   candidate: RawPlaceCandidate,
+  orgSizeGe50: boolean,
   websiteDoctorName?: string,
   websiteDoctorRole?: string,
   websiteEmails: string[] = [],
@@ -203,7 +273,7 @@ async function findVerifiedDecisionMaker(
 
     // Add any emails scraped from clinic website to candidate pool
     for (const wEmail of websiteEmails) {
-      const isRoleDM = isDecisionMakerRole(websiteDoctorRole || "Owner / Lead Doctor");
+      const isRoleDM = isDecisionMakerRole(websiteDoctorRole || "Owner / Lead Doctor", orgSizeGe50);
       candidateEmailPool.push({
         email: wEmail,
         position: websiteDoctorRole || "Owner / Lead Doctor",
@@ -234,7 +304,7 @@ async function findVerifiedDecisionMaker(
 
           const position = String(e.position || "").trim();
           const fullName = `${e.first_name || ""} ${e.last_name || ""}`.trim();
-          const roleIsDM = isDecisionMakerRole(position);
+          const roleIsDM = isDecisionMakerRole(position, orgSizeGe50);
 
           let priority = 0;
           if (roleIsDM) {

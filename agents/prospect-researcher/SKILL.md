@@ -72,11 +72,11 @@ Save pipeline capacity by rejecting low-probability accounts instantly:
 ### Playbook D: Decision-Maker Identification Rules
 Target the economic buyer who can authorise a ₹3,999/mo to ₹9,999/mo software subscription or ₹50,000/mo retainer without a committee:
 1. **Headcount < 50 Staff (Owner-Run Clinics & Institutes):**
-   - Target: **Owner**, **Founder**, **Co-Founder**, **Managing Director (MD)**, **Medical Director** (for clinics/hospitals), **Director / Principal** (for coaching institutes).
-   - *Rationale:* Decisions are personal and unilateral. Reaching the owner directly closes deals in one call.
+   - Target: **Owner**, **Founder**, **Co-Founder**, **Managing Director (MD)**, **Lead Doctor** (for clinics), **Principal** (for coaching institutes).
+   - *Rationale:* Decisions are personal and unilateral. Reaching the owner/doctor directly closes deals in one call.
 2. **Headcount >= 50 Staff (Growing Institute or Hospital):**
-   - Target: **Chief Marketing Officer (CMO)**, **Head of Marketing**, **VP Marketing**, **Marketing Director**, **Growth Lead**.
-   - *Rationale:* The owner is insulated behind layers of executive assistants and medical administrators; the marketing head owns the lead/visibility mandate and holds the budget.
+   - Target: **CEO**, **COO**, **General Manager (GM)**, **VP Operations / VP Administration**, **Hospital Administrator** (or Medical Superintendent), **Head of Marketing** (or CMO).
+   - *Rationale:* In larger facilities, executive, operational, and marketing leaders hold budget and procurement authority. Non-DM roles (Assistant, Consultant, Nurse) remain strictly disqualified.
 3. **Contact Verification Standard (Architect Decision):**
    - **Owner-Run Businesses (<50 Staff):** For owner-run clinics, dental practices, boutique surgical centers, and local coaching branches (<50 staff), an authoritative verified contact is:
      - (a) A website email verified by Hunter (`/v2/email-verifier` status `deliverable` or `risky`), **OR**

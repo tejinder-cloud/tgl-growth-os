@@ -12,6 +12,7 @@
     "test:day05": "tsx src/test-day05.ts",
     "test:day07": "tsx src/test-day07.ts",
     "test:day08": "tsx src/test-day08.ts",
+    "rescore": "tsx src/scripts/rescore-today.ts",
     "sync-labels": "tsx src/scripts/sync-labels.ts"
   },
   "engines": {

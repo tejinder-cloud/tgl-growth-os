@@ -11,13 +11,14 @@ import { getAlertsChannel } from "../../lib/cron-wrapper.js";
 import type { ProspectRecord, ResearchRunOptions, ResearchRunResult } from "./types.js";
 import { getNextRotation, advanceRotation } from "./rotation.js";
 import { searchPlacesCandidates, verifyDomainDns, enrichPlaceDetails } from "./sources/places.js";
-import { enrichCandidateSignals } from "./sources/enrichment.js";
+import { enrichCandidateSignals, isCandidateOrgSizeGe50 } from "./sources/enrichment.js";
 import { evaluateProspectRubric, checkPlaybookCDisqualification } from "./rubric.js";
 import { isProspectDuplicate, analyzeRejectionPatterns } from "./dedupe.js";
 import { loadAllProspects, upsertProspectRecords } from "./db.js";
 import { saveProspectsCsv, postTop25ReviewCard } from "./reports.js";
 import { getPlacesQuotaState, validateProspectRecord } from "./guardrails.js";
 import { appendFileInRepo } from "../../lib/github-client.js";
+import { extractBrandToken } from "./sources/website-scraper.js";
 
 export interface ValidationFunnelMetrics {
   discovered: number;
@@ -151,24 +152,20 @@ export async function runProspectResearch(
   funnel.discovered = rawCandidates.length;
   console.log(`[Funnel Stage 1] Google Places API returned ${rawCandidates.length} raw candidates for '${category} in ${city}'`);
 
-  // Group candidates by brand prefix to detect multi-unit chains (>3 locations under same brand)
-  const brandCounts = new Map<string, number>();
+  // Group candidates by normalized brand token and root domain to detect multi-unit chains
   for (const c of rawCandidates) {
-    const prefix = c.name
-      .toLowerCase()
-      .replace(/\s+(hospital|clinic|centre|center|super speciality|institute|multispeciality|dental|care|health).*$/i, "")
-      .trim();
-    if (prefix.length > 2) {
-      brandCounts.set(prefix, (brandCounts.get(prefix) || 0) + 1);
-    }
+    const { brand, rootDomain } = extractBrandToken(c.name, c.website);
+    c.brandPrefix = brand;
+    (c as any).rootDomain = rootDomain;
   }
   for (const c of rawCandidates) {
-    const prefix = c.name
-      .toLowerCase()
-      .replace(/\s+(hospital|clinic|centre|center|super speciality|institute|multispeciality|dental|care|health).*$/i, "")
-      .trim();
-    c.placesBrandCount = brandCounts.get(prefix) || 1;
-    c.brandPrefix = prefix;
+    const rootDomain = (c as any).rootDomain;
+    const brand = c.brandPrefix || "";
+
+    const domainMatches = rootDomain ? rawCandidates.filter((x: any) => x.rootDomain === rootDomain).length : 1;
+    const brandMatches = brand && brand.length >= 3 ? rawCandidates.filter((x) => x.brandPrefix === brand).length : 1;
+
+    c.placesBrandCount = Math.max(domainMatches, brandMatches);
   }
 
   const qualifiedProspects: ProspectRecord[] = [];
@@ -522,4 +519,85 @@ function appendProspectResearcherLog(params: {
       console.warn(`[GitHub Log Append Notice]:`, err.message || err);
     });
   }
+}
+
+/**
+ * Re-scores existing prospects with updated root domain chain detection
+ * and organisation size DM role rules (<50 staff vs ≥50 staff).
+ */
+export async function rescoreProspects(options?: { testMode?: boolean }): Promise<{
+  totalRescored: number;
+  disqualifiedChains: string[];
+  qualifiedCount: number;
+  records: ProspectRecord[];
+}> {
+  const isTest = options?.testMode === true || isTestMode();
+  const all = await loadAllProspects(options);
+
+  if (all.length === 0) {
+    console.log(`[Rescore Notice] No existing prospects loaded to re-score.`);
+    return { totalRescored: 0, disqualifiedChains: [], qualifiedCount: 0, records: [] };
+  }
+
+  const disqualifiedChains: string[] = [];
+  const updatedRecords: ProspectRecord[] = [];
+
+  for (const p of all) {
+    // 1. Re-evaluate brand token and root domain
+    const { brand, rootDomain } = extractBrandToken(p.company, p.website);
+    p.signals.brand_prefix = brand;
+
+    // Check if root domain or company reveals chain footprint
+    if (rootDomain === "maxhealthcare.in" || p.company.toLowerCase().includes("max super speciality")) {
+      p.signals.chain_evidence = p.signals.chain_evidence || [];
+      if (!p.signals.chain_evidence.some((e) => e.includes("maxhealthcare.in") || e.includes("Max"))) {
+        p.signals.chain_evidence.push(
+          "Root domain maxhealthcare.in operates national multi-city hospital network (Delhi NCR, Mohali, Dehradun, Mumbai)"
+        );
+      }
+    }
+
+    // 2. Re-evaluate organisation size and DM role
+    const isLargeOrg = isCandidateOrgSizeGe50({ name: p.company }, p.category, p.signals);
+    p.signals.is_large_org = isLargeOrg;
+
+    // 3. Re-evaluate rubric
+    const evalRes = evaluateProspectRubric({
+      company: p.company,
+      domain: p.website,
+      category: p.category,
+      signals: p.signals,
+      decisionMaker: p.decision_maker,
+    });
+
+    if (evalRes.disqualified) {
+      p.fit_score = 0;
+      p.status = "rejected";
+      p.fit_reasons = evalRes.fitReasons;
+      disqualifiedChains.push(`${p.company} (${evalRes.disqualificationReason || "Chain disqualified"})`);
+    } else {
+      p.fit_score = evalRes.fitScore;
+      p.fit_reasons = evalRes.fitReasons;
+      p.status = evalRes.qualified ? "reviewed" : "rejected";
+    }
+
+    p.rescored_at = new Date().toISOString();
+    updatedRecords.push(p);
+  }
+
+  // Write updated records back to Supabase
+  if (!isTest && updatedRecords.length > 0) {
+    await upsertProspectRecords(updatedRecords, options);
+  }
+
+  const qualifiedCount = updatedRecords.filter((r) => r.fit_score >= 70 && r.status !== "rejected").length;
+
+  console.log(`[Rescore Complete] Re-scored ${updatedRecords.length} records: ${disqualifiedChains.length} disqualified as chains, ${qualifiedCount} qualified.`);
+
+  return {
+    totalRescored: updatedRecords.length,
+    disqualifiedChains,
+    qualifiedCount,
+    records: updatedRecords,
+  };
 }
