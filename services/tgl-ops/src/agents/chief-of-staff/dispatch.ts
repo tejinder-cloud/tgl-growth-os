@@ -161,16 +161,32 @@ export async function execute0900PlanDispatch(options?: {
       continue;
     }
 
-    // Eligible for dispatch: create issue & post card
-    console.log(`[Plan Dispatch] Dispatching Day ${entry.day}: "${entry.title}" to @${entry.agent}...`);
+    // Item B mandate: plan entries whose DoD creates agents/<x>/SKILL.md or new service code
+    // are dispatched to web-builder, not to the agent being created.
+    const createsAgentSkillOrService =
+      entry.definition_of_done.some(
+        (d) =>
+          /agents\/[^/]+\/SKILL\.md/i.test(d) ||
+          /services\//i.test(d) ||
+          /service code/i.test(d) ||
+          /SKILL\.md/i.test(d)
+      ) ||
+      /agents\/[^/]+\/SKILL\.md/i.test(entry.brief) ||
+      /new service code/i.test(entry.brief);
 
-    const agentRecord = registeredAgents.find((a) => a.name === entry.agent);
+    const assignedAgent = createsAgentSkillOrService ? "web-builder" : entry.agent;
+
+    console.log(
+      `[Plan Dispatch] Dispatching Day ${entry.day}: "${entry.title}" to @${assignedAgent}${assignedAgent !== entry.agent ? ` (routed from @${entry.agent} to @web-builder per build mandate)` : ""}...`
+    );
+
+    const agentRecord = registeredAgents.find((a) => a.name === assignedAgent);
     const targetChannel = isTest
       ? (config.opsChannelId || "#ops")
       : (agentRecord?.channel || config.standupChannelId);
 
     const issueBody = `### for-agent
-${entry.agent}
+${assignedAgent}
 
 ### door
 ${entry.door || "core"}
@@ -196,7 +212,7 @@ ${entry.depends_on.join(", ") || "None"}
         const ghIssue = await createIssue({
           title: `[PLAN-D${entry.day}]: ${entry.title}`,
           body: issueBody,
-          labels: [`for:${entry.agent}`, `door:${entry.door || "core"}`, "type:build", "status:in-progress"],
+          labels: [`for:${assignedAgent}`, `door:${entry.door || "core"}`, "type:build", "status:in-progress"],
         });
         issueNumber = ghIssue.number;
         issueUrl = ghIssue.html_url;
@@ -208,7 +224,7 @@ ${entry.depends_on.join(", ") || "None"}
     // Post card to agent channel
     await postCard({
       channel: targetChannel,
-      agent: entry.agent,
+      agent: assignedAgent,
       door: entry.door || "core",
       title: `Plan Day ${entry.day}: ${entry.title}`,
       summary: `*Brief:* ${entry.brief}\n\n*Definition of Done:*\n${entry.definition_of_done.map((d) => `• ${d}`).join("\n")}`,
@@ -220,7 +236,7 @@ ${entry.depends_on.join(", ") || "None"}
       issue: issueNumber,
       extraMeta: {
         planDay: entry.day,
-        agent: entry.agent,
+        agent: assignedAgent,
       },
     }).catch((err) => console.warn("[Plan Dispatch Card Post Warning]", err));
 

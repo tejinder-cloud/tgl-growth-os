@@ -53,8 +53,8 @@
       description: "Friday 17:00 IST full weekly prospect CSV export to #revenue"
     - name: monday_pipeline_rescore
       frequency: weekly
-      schedule: "0 8 * * 1"
-      description: "Monday 08:00 IST pipeline hygiene re-scoring"
+      schedule: "0 7 * * 1"
+      description: "Monday 07:00 IST Playbook G pipeline hygiene re-scoring"
 
 - name: outreach-sequencer
   department: revenue
@@ -142,6 +142,9 @@
   status: active
   autorun: true
   daily_cost_cap_usd: 3.00
+  runner_limits:
+    max_tool_calls: 150
+    timeout_minutes: 60
   routines:
     - name: daily_plan_issue
       frequency: daily

@@ -11,6 +11,11 @@ export interface AgentRoutine {
   description: string;
 }
 
+export interface AgentRunnerLimits {
+  max_tool_calls: number;
+  timeout_minutes: number;
+}
+
 export interface AgentRecord {
   name: string;
   department: string;
@@ -20,7 +25,22 @@ export interface AgentRecord {
   status?: "active" | "planned" | string;
   autorun?: boolean;
   daily_cost_cap_usd?: number;
+  runner_limits?: AgentRunnerLimits;
   routines?: AgentRoutine[];
+}
+
+export function getAgentRunnerLimits(agent?: AgentRecord | null): {
+  maxToolCalls: number;
+  timeoutMinutes: number;
+  timeoutMs: number;
+} {
+  const maxCalls = agent?.runner_limits?.max_tool_calls || 25;
+  const timeoutMins = agent?.runner_limits?.timeout_minutes || 15;
+  return {
+    maxToolCalls: maxCalls,
+    timeoutMinutes: timeoutMins,
+    timeoutMs: timeoutMins * 60 * 1000,
+  };
 }
 
 export interface DoorRecord {

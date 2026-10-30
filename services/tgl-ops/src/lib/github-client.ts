@@ -500,10 +500,12 @@ export interface CreatePullRequestParams {
   head: string;
   base?: string;
   labels?: string[];
+  draft?: boolean;
 }
 
 /**
  * Opens a Pull Request in the repository and applies labels.
+ * If an open PR already exists for the head branch, it updates and returns it.
  */
 export async function createPullRequest(
   params: CreatePullRequestParams
@@ -517,17 +519,48 @@ export async function createPullRequest(
     };
   }
 
-  const res = await octokit.pulls.create({
-    owner: config.githubOwner,
-    repo: config.githubRepo,
-    title: params.title,
-    head: params.head,
-    base: params.base || "main",
-    body: params.body,
-  });
+  let prNumber: number;
+  let html_url: string;
 
-  const prNumber = res.data.number;
-  const html_url = res.data.html_url;
+  try {
+    const res = await octokit.pulls.create({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      title: params.title,
+      head: params.head,
+      base: params.base || "main",
+      body: params.body,
+      draft: Boolean(params.draft),
+    });
+    prNumber = res.data.number;
+    html_url = res.data.html_url;
+  } catch (err: any) {
+    // If a PR already exists for this branch, locate and update it
+    if (err.status === 422 || String(err.message).includes("already exists")) {
+      const existing = await octokit.pulls.list({
+        owner: config.githubOwner,
+        repo: config.githubRepo,
+        head: `${config.githubOwner}:${params.head}`,
+        state: "open",
+      });
+      if (existing.data.length > 0) {
+        const pr = existing.data[0];
+        prNumber = pr.number;
+        html_url = pr.html_url;
+        await octokit.pulls.update({
+          owner: config.githubOwner,
+          repo: config.githubRepo,
+          pull_number: pr.number,
+          title: params.title,
+          body: params.body,
+        }).catch((updateErr) => console.warn(`[GitHub API] PR update warning #${prNumber}:`, updateErr));
+      } else {
+        throw err;
+      }
+    } else {
+      throw err;
+    }
+  }
 
   if (params.labels && params.labels.length > 0) {
     try {
