@@ -1,6 +1,6 @@
 {
   "date": "2026-10-30",
-  "posted": false,
+  "posted": true,
   "standupTs": "1793277000.618349",
   "channel": "C0ASF13879Q",
   "compiledAt": "2026-10-30T12:20:15.913Z",
@@ -12,5 +12,6 @@
     "totalCostUsd": 0.0304,
     "costLine": "Standup compilation: 2498 input, 1524 output (claude-sonnet-5-5) · Cost: $0.0304 USD"
   },
-  "source": "cron"
+  "source": "cron",
+  "postedAt": "2026-10-29T12:30:00.618Z"
 }
