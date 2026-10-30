@@ -17,6 +17,7 @@ import { isProspectDuplicate, analyzeRejectionPatterns } from "./dedupe.js";
 import { loadAllProspects, upsertProspectRecords } from "./db.js";
 import { saveProspectsCsv, postTop25ReviewCard } from "./reports.js";
 import { getPlacesQuotaState, validateProspectRecord } from "./guardrails.js";
+import { appendFileInRepo } from "../../lib/github-client.js";
 
 export interface ValidationFunnelMetrics {
   discovered: number;
@@ -150,6 +151,26 @@ export async function runProspectResearch(
   funnel.discovered = rawCandidates.length;
   console.log(`[Funnel Stage 1] Google Places API returned ${rawCandidates.length} raw candidates for '${category} in ${city}'`);
 
+  // Group candidates by brand prefix to detect multi-unit chains (>3 locations under same brand)
+  const brandCounts = new Map<string, number>();
+  for (const c of rawCandidates) {
+    const prefix = c.name
+      .toLowerCase()
+      .replace(/\s+(hospital|clinic|centre|center|super speciality|institute|multispeciality|dental|care|health).*$/i, "")
+      .trim();
+    if (prefix.length > 2) {
+      brandCounts.set(prefix, (brandCounts.get(prefix) || 0) + 1);
+    }
+  }
+  for (const c of rawCandidates) {
+    const prefix = c.name
+      .toLowerCase()
+      .replace(/\s+(hospital|clinic|centre|center|super speciality|institute|multispeciality|dental|care|health).*$/i, "")
+      .trim();
+    c.placesBrandCount = brandCounts.get(prefix) || 1;
+    c.brandPrefix = prefix;
+  }
+
   const qualifiedProspects: ProspectRecord[] = [];
   let playwrightSearchesUsed = 0;
 
@@ -165,8 +186,18 @@ export async function runProspectResearch(
       continue;
     }
 
-    // Gate 2: Playbook C Enterprise Chain Disqualification
-    const chainCheck = checkPlaybookCDisqualification(cand.name, cand.website || "");
+    // Gate 2: Playbook C Enterprise Chain Disqualification (by signal)
+    const initialSignals = {
+      meta_ads_active: false,
+      meta_ad_count: 0,
+      gbp_reviews: cand.userRatingsTotal || 0,
+      gbp_owner_replies: false,
+      hiring_marketing: false,
+      review_surge: false,
+      branch_count: cand.placesBrandCount || 1,
+      places_brand_count: cand.placesBrandCount,
+    };
+    const chainCheck = checkPlaybookCDisqualification(cand.name, cand.website || "", initialSignals);
     if (chainCheck.disqualified) {
       funnel.playbookCDisqualified++;
       console.log(`  • [Gate 2 Disqualified] '${cand.name}': ${chainCheck.reason}`);
@@ -225,10 +256,18 @@ export async function runProspectResearch(
     const enrichedDetails = await enrichCandidateSignals(cand, category, options);
     playwrightSearchesUsed++;
 
-    // Gate 6: Required Work Email from Apollo/Hunter API
-    if (!enrichedDetails.decisionMaker.verified || !enrichedDetails.decisionMaker.email) {
+    // Gate 6: Verified Contact (Hunter email OR Places phone for owner-run businesses)
+    const dm = enrichedDetails.decisionMaker;
+    const hasVerifiedContact =
+      dm.verified &&
+      (Boolean(dm.email && dm.email.includes("@")) ||
+        Boolean(dm.phone && dm.source.includes("places:phone")));
+
+    if (!hasVerifiedContact) {
       funnel.emailUnverified++;
-      console.log(`  • [Gate 6 Dropped] '${cand.name}': No verified work email via Apollo or Hunter API (${enrichedDetails.decisionMaker.source})`);
+      console.log(
+        `  • [Gate 6 Dropped] '${cand.name}': No verified contact (Hunter email or Places phone) (${dm.source})`
+      );
       continue;
     }
     funnel.emailVerified++;
@@ -306,7 +345,7 @@ export async function runProspectResearch(
   console.log(`2. Live DNS Passed / Failed:                ${funnel.dnsPassed} passed / ${funnel.dnsFailed} failed`);
   console.log(`3. Playbook C Disqualified (Chains):        ${funnel.playbookCDisqualified}`);
   console.log(`4. Place Details Enriched:                  ${funnel.placeDetailsEnriched}`);
-  console.log(`5. Work Email Verified (Apollo/Hunter):     ${funnel.emailVerified} verified / ${funnel.emailUnverified} dropped`);
+  console.log(`5. Contact Verified (Hunter / Places):       ${funnel.emailVerified} verified / ${funnel.emailUnverified} dropped`);
   console.log(`6. Fit Score >= 70 / Below 70:              ${funnel.scoredGe70} passed / ${funnel.scoredBelow70} sub-cutoff`);
   console.log(`7. Write Gate Validated / Dropped:          ${funnel.writeGatePassed} passed / ${funnel.writeGateFailed} failed`);
   console.log(`8. Deduplicated Out:                        ${funnel.dedupedOut}`);
@@ -314,25 +353,37 @@ export async function runProspectResearch(
   console.log(`🎯 TOTAL QUALIFIED SURVIVORS:               ${qualifiedProspects.length} / ${targetCount} target`);
   console.log(`==========================================================================\n`);
 
-  // 6. Upsert records to Supabase & local state
-  await upsertProspectRecords(qualifiedProspects, options);
+  // 6. Upsert records to Supabase & read-back verification
+  const writeResult = await upsertProspectRecords(qualifiedProspects, options);
+  const savedCount = writeResult.readBackCount;
+
+  // Insert failure alert: if records were qualified but 0 saved in production, alert #alerts
+  if (!isTest && qualifiedProspects.length > 0 && savedCount === 0) {
+    console.error(`[Prospect Researcher Alert] 0 rows saved to Supabase! Alerting #alerts...`);
+    await postLine({
+      channel: config.alertsChannelId || "#alerts",
+      text: `🚨 *[Prospect Researcher Alert]* Supabase write-back failed: 0 of ${qualifiedProspects.length} accounts saved to \`public.prospects\`. Write error: \`${writeResult.error || "Zero rows verified via read-back"}\``,
+    }).catch((err) => console.warn(`[Alert Post Error]:`, err));
+  }
 
   // Advance rotation state unless manual override was used
   if (!rotation.isOverridden) {
     advanceRotation(options);
   }
 
-  // 7. Generate CSV and post Top 25 review card
+  // 7. Generate CSV and post Top 25 review card (lists only rows inserted in that run)
+  const rowsToCard = isTest || savedCount > 0 ? qualifiedProspects : [];
   const csvLabel = `${city}-${category}`;
-  const csvPath = saveProspectsCsv(qualifiedProspects, csvLabel, options);
+  const csvPath = saveProspectsCsv(rowsToCard, csvLabel, options);
 
   let cardTs: string | undefined;
   if (options?.postToSlack !== false && qualifiedProspects.length > 0) {
     const cardRes = await postTop25ReviewCard({
       city,
       category,
-      prospects: qualifiedProspects,
+      prospects: rowsToCard,
       csvPath,
+      savedCount,
       rejectionProposal: rejectionAnalysis.proposedRubricAdjustment,
       options,
     });
@@ -460,4 +511,15 @@ function appendProspectResearcherLog(params: {
 `;
 
   fs.appendFileSync(logFile, logContent.trim() + "\n\n", "utf8");
+
+  // In production, also commit run log to GitHub main
+  if (!isTest && config.githubToken) {
+    appendFileInRepo(
+      `logs/${params.dateStr}/prospect-researcher.md`,
+      logContent.trim() + "\n\n",
+      `chore(log): append prospect-researcher run log for ${params.dateStr}`
+    ).catch((err) => {
+      console.warn(`[GitHub Log Append Notice]:`, err.message || err);
+    });
+  }
 }

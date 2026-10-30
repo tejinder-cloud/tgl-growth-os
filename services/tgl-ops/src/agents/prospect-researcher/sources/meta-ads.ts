@@ -1,7 +1,14 @@
 // services/tgl-ops/src/agents/prospect-researcher/sources/meta-ads.ts
-import { chromium, type Browser } from "playwright";
 
-let sharedBrowser: Browser | null = null;
+let reportedSkipped = false;
+
+export function resetMetaAdsBrowserState(): void {
+  reportedSkipped = false;
+}
+
+export async function closeMetaAdsBrowser(): Promise<void> {
+  // No-op: Apify web-scraper manages browser lifecycles remotely
+}
 
 export interface MetaAdCheckResult {
   active: boolean;
@@ -10,8 +17,9 @@ export interface MetaAdCheckResult {
 }
 
 /**
- * Checks the public Meta Ad Library web page for active ad campaigns using rate-limited Playwright.
- * Ad Library URL is captured and returned as the auditable source reference.
+ * Checks the public Meta Ad Library web page for active ad campaigns using Apify web-scraper.
+ * When APIFY_API_TOKEN is missing, logs notice once and returns clean defaults.
+ * Zero dependency on local Chromium or Playwright binaries in the runtime.
  */
 export async function checkMetaAdLibrary(
   companyName: string,
@@ -35,104 +43,77 @@ export async function checkMetaAdLibrary(
     };
   }
 
-  // Jitter delay between requests (1.0s - 2.5s) to respect rate limits
-  const delayMs = 1000 + Math.floor(Math.random() * 1500);
-  await new Promise((r) => setTimeout(r, delayMs));
-
-  try {
-    if (!sharedBrowser) {
-      sharedBrowser = await chromium.launch({
-        headless: true,
-        args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-      });
+  const apifyToken = process.env.APIFY_API_TOKEN;
+  if (!apifyToken) {
+    if (!reportedSkipped) {
+      console.log(`[Meta Ad Library] skipped: no browser (APIFY_API_TOKEN not configured)`);
+      reportedSkipped = true;
     }
-
-    const context = await sharedBrowser.newContext({
-      userAgent:
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-      viewport: { width: 1280, height: 800 },
-    });
-
-    const page = await context.newPage();
-    try {
-      await page.goto(adLibraryUrl, {
-        waitUntil: "domcontentloaded",
-        timeout: 15000,
-      });
-
-      // Wait 1.5s for initial client hydration
-      await page.waitForTimeout(1500);
-
-      const content = await page.content();
-      const bodyText = await page.innerText("body").catch(() => "");
-
-      const noAdsIndicators = [
-        "0 results",
-        "No results found",
-        "We didn't find any ads",
-        "No ads match your search criteria",
-      ];
-
-      const hasNoAds = noAdsIndicators.some((indicator) =>
-        bodyText.toLowerCase().includes(indicator.toLowerCase())
-      );
-
-      // Estimate active ads count from search summary or card selectors
-      let adCount = 0;
-      let active = false;
-
-      if (!hasNoAds) {
-        // Match numbers like "~12 results" or "4 results"
-        const countMatch = bodyText.match(/~?\s*(\d+)\s+results/i);
-        if (countMatch && countMatch[1]) {
-          adCount = parseInt(countMatch[1], 10);
-          active = adCount > 0;
-        } else {
-          // If search yielded cards
-          const cardCount = await page.locator("div[role='region']").count().catch(() => 0);
-          if (cardCount > 0) {
-            adCount = cardCount;
-            active = true;
-          } else {
-            // Default conservative verification if results loaded
-            active = bodyText.includes("Active") || content.includes("Started running");
-            adCount = active ? 3 : 0;
-          }
-        }
-      }
-
-      await context.close();
-      return {
-        active,
-        adCount,
-        adLibraryUrl,
-      };
-    } catch (pageErr: any) {
-      await context.close().catch(() => {});
-      console.warn(`[Meta Ad Library Navigation Warning on ${companyName}]:`, pageErr.message);
-      // Fallback: estimate from verified registry indicators
-      return {
-        active: true,
-        adCount: 3,
-        adLibraryUrl,
-      };
-    }
-  } catch (browserErr: any) {
-    console.warn(`[Meta Ad Library Browser Launch Warning]:`, browserErr.message);
     return {
-      active: true,
-      adCount: 3,
+      active: false,
+      adCount: 0,
       adLibraryUrl,
     };
   }
-}
 
-/**
- * Closes shared Playwright browser instance on process termination.
- */
-export async function closeMetaAdsBrowser(): Promise<void> {
-  if (sharedBrowser) {
-    await sharedBrowser.close().catch(() => {});
-    sharedBrowser = null;
+  try {
+    console.log(`[Apify Meta Ad Library] Running apify~web-scraper for '${queryTerm}'`);
+    const res = await fetch(
+      `https://api.apify.com/v2/acts/apify~web-scraper/run-sync-get-dataset-items?token=${apifyToken}&timeout=30`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          startUrls: [{ url: adLibraryUrl }],
+          maxRequestsPerCrawl: 1,
+          pageFunction:
+            "async function pageFunction(context) { const { page } = context; await page.waitForTimeout(2000); const bodyText = await page.innerText('body').catch(() => ''); return { bodyText }; }",
+        }),
+        signal: AbortSignal.timeout(35000),
+      }
+    );
+
+    if (res.ok) {
+      const items = (await res.json()) as any;
+      if (Array.isArray(items) && items.length > 0 && items[0].bodyText) {
+        const bodyText = items[0].bodyText as string;
+        const noAdsIndicators = [
+          "0 results",
+          "No results found",
+          "We didn't find any ads",
+          "No ads match your search criteria",
+        ];
+
+        const hasNoAds = noAdsIndicators.some((ind) =>
+          bodyText.toLowerCase().includes(ind.toLowerCase())
+        );
+
+        let adCount = 0;
+        const countMatch = bodyText.match(/~?(\d+)\s+results?/i);
+        if (countMatch) {
+          adCount = parseInt(countMatch[1], 10);
+        } else {
+          const libraryIdMatches = bodyText.match(/Library ID:\s*\d+/gi);
+          if (libraryIdMatches) {
+            adCount = libraryIdMatches.length;
+          }
+        }
+
+        const active = !hasNoAds && adCount > 0;
+        return {
+          active,
+          adCount: active ? adCount : 0,
+          adLibraryUrl,
+        };
+      }
+    }
+  } catch (err: any) {
+    console.warn(`[Apify Meta Scraper Warning]:`, err.message || err);
   }
+
+  return {
+    active: false,
+    adCount: 0,
+    adLibraryUrl,
+  };
 }

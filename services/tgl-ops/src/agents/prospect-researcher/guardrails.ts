@@ -113,9 +113,22 @@ export function checkAndConsumePlacesQuota(
  * Rejects any names that use role/title words instead of actual human names.
  * (e.g. "Dr. Chief Medical Officer", "Medical Director", "Chief Executive", "Admin", "Management")
  */
-export function isRolePlaceholderName(name: string): boolean {
+export function isRolePlaceholderName(name: string, isOwnerRun?: boolean): boolean {
   if (!name || typeof name !== "string") return true;
-  const clean = name.trim().toLowerCase().replace(/[^a-z\s]/g, " ");
+  const rawTrimmed = name.trim();
+  // Allowed explicit markers: DM unknown for Playbook D, and owner/doctor for owner-run clinics
+  if (
+    rawTrimmed === "DM unknown" ||
+    rawTrimmed === "Contact found, DM unknown" ||
+    (isOwnerRun &&
+      (rawTrimmed === "Owner / Lead Doctor" ||
+        rawTrimmed === "Lead Doctor / Clinic Owner" ||
+        rawTrimmed === "Owner / Doctor"))
+  ) {
+    return false;
+  }
+
+  const clean = rawTrimmed.toLowerCase().replace(/[^a-z\s]/g, " ");
   const words = clean.split(/\s+/).filter(Boolean);
   if (words.length === 0) return true;
 
@@ -148,9 +161,11 @@ export function isRolePlaceholderName(name: string): boolean {
  * A prospects row CANNOT be inserted without:
  * (a) a Places place_id from a logged API response
  * (b) a live DNS result
- * (c) an email verification result from Hunter or Apollo stored in decision_maker.source with the API's status
+ * (c) a contact verification result:
+ *     - a Hunter-verified website email (status: deliverable|risky), OR
+ *     - for owner-run businesses (<50 staff), the business phone from Google Places
  * (d) a per-dimension score breakdown in fit_reasons (exactly five entries, one per rubric dimension, each with its evidence)
- * (e) verified non-placeholder human name
+ * (e) verified non-placeholder human name or "Owner / Lead Doctor" for owner-run clinics
  * (f) non-disqualified under Playbook C
  *
  * Any missing item → returns { valid: false, reason } to drop the candidate.
@@ -173,27 +188,44 @@ export function validateProspectRecord(p: any): { valid: boolean; reason?: strin
     return { valid: false, reason: "Missing live DNS verification confirmation in source_refs" };
   }
 
-  // 3. Email verification result from Hunter or Apollo
+  // 3. Contact verification result
+  // Architect decision: for owner-run businesses (<50 staff), a verified contact is:
+  // (a) a website email verified by Hunter (status deliverable | risky), OR
+  // (b) the business phone from Google Places
   const dm = p.decision_maker;
   if (!dm || typeof dm !== "object") {
     return { valid: false, reason: "Missing decision_maker object" };
   }
-  if (!dm.email || !dm.email.includes("@")) {
-    return { valid: false, reason: "Missing required work email address" };
-  }
+
   const dmSource = String(dm.source || "").toLowerCase();
-  const hasEmailApiStatus =
-    (dmSource.includes("apollo:") && (dmSource.includes("verified") || dmSource.includes("status:"))) ||
-    (dmSource.includes("hunter:") && (dmSource.includes("deliverable") || dmSource.includes("valid") || dmSource.includes("confidence")));
-  if (!hasEmailApiStatus) {
+  const isDMUnknown =
+    dm.role === "DM unknown" ||
+    dm.name === "DM unknown" ||
+    dmSource.includes("contact found, dm unknown");
+
+  const hasHunterEmail =
+    Boolean(dm.email && dm.email.includes("@")) &&
+    dmSource.includes("hunter:") &&
+    (dmSource.includes("deliverable") ||
+      dmSource.includes("risky") ||
+      dmSource.includes("status:") ||
+      isDMUnknown);
+
+  const hasPlacesPhone =
+    Boolean(dm.phone && String(dm.phone).trim().length >= 8) &&
+    dmSource.includes("places:phone") &&
+    hasPlacesId;
+
+  if (!hasHunterEmail && !hasPlacesPhone && !isDMUnknown) {
     return {
       valid: false,
-      reason: `Email not verified via Hunter or Apollo API (source: '${dm.source || "none"}')`,
+      reason: `Contact not verified: requires Hunter-verified website email or Places business phone for owner-run business (source: '${dm.source || "none"}')`,
     };
   }
 
   // 4. Placeholder name check
-  if (isRolePlaceholderName(dm.name)) {
+  const isOwnerRun = (p.signals?.branch_count ?? 1) < 5;
+  if (isRolePlaceholderName(dm.name, isOwnerRun)) {
     return {
       valid: false,
       reason: `Placeholder role name rejected: '${dm.name}' contains title/role words instead of a verified person name`,
