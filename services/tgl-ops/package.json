@@ -7,7 +7,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
-    "test": "tsx src/test-task-p07.ts && tsx src/test-intake-qa.ts && tsx src/test-day17.ts",
+    "test": "tsx src/test-task-p07.ts && tsx src/test-intake-qa.ts && tsx src/test-day17.ts && tsx src/test-day19.ts",
     "test:intake-qa": "tsx src/test-intake-qa.ts",
     "test:plumbing": "tsx src/test-plumbing.ts",
     "test:day05": "tsx src/test-day05.ts",
@@ -16,7 +16,8 @@
     "rescore": "tsx src/scripts/rescore-today.ts",
     "sync-labels": "tsx src/scripts/sync-labels.ts",
     "test:day17": "tsx src/test-day17.ts",
-    "citations": "tsx src/scripts/run-citations.ts"
+    "citations": "tsx src/scripts/run-citations.ts",
+    "test:day19": "tsx src/test-day19.ts"
   },
   "engines": {
     "node": ">=22.0.0"

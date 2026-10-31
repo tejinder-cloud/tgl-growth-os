@@ -166,6 +166,17 @@ cron.schedule(
   }
 })();
 
+import { pollSetupQueue } from "./agents/aeo-strategist/worker.js";
+
+// Every 10 minutes: Setup-verification queue — new TrueVisible setups → strategist proposal → #approvals card (plan Day 19)
+cron.schedule(
+  "*/10 * * * *",
+  wrapCronJob("10-min Setup Verification Queue", async () => {
+    await pollSetupQueue();
+  }),
+  { timezone: config.timezone }
+);
+
 import { catchUpRunnerIssues } from "./runner/index.js";
 
 // Every 30 minutes: Catch-up worker for in-progress issues with no PR (Asia/Kolkata)
