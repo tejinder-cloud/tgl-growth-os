@@ -40,6 +40,22 @@ await t("site snapshot: title, decoded description, headings, scripts stripped",
   assert.doesNotMatch(ev.site!.text, /var x/);
   assert.match(ev.site!.text, /Mohali & Kharar/);
 });
+await t("site snapshot: inline CSS, JSON-LD, comments and nav ignored; meta read by attribute, any order", () => {
+  const html = `<html><head><title>Home - The Growth Lab</title>
+    <style>.case-name { font-family: var(--font-display); content: "x"; }</style>
+    <meta content='AI-native lead generation for coaching institutes' name='description'>
+    <script type="application/ld+json">{"@context":"https://schema.org","name":"The Growth Lab"}</script></head>
+    <body><nav><a>Home</a><h2>Menu</h2></nav><!-- <h1>old</h1> --><style>h1{color:red}</style>
+    <h1 class="hero">Leads that <em>show up</em></h1><svg><text>icon</text></svg><h2>How it works</h2><p>We run Meta and Google for coaching institutes.</p>
+    <footer><h3>Contact</h3></footer></body></html>`;
+  const s = extractSite(html, "https://thegrowthlab.co.in/");
+  assert.equal(s.title, "Home - The Growth Lab");
+  assert.equal(s.description, "AI-native lead generation for coaching institutes");
+  assert.deepEqual(s.headings, ["Leads that show up", "How it works"]);
+  assert.doesNotMatch(s.text, /@context|font-family|icon|old|Menu|Contact/);
+  assert.match(s.text, /We run Meta and Google for coaching institutes/);
+  assert.equal(extractSite(`<html><head><meta property="og:description" content="OG only"></head><body></body></html>`, "u").description, "OG only");
+});
 await t("market question is neutral (no brand name)", () => {
   const q = marketQuestion(snap)!;
   assert.match(q, /coaching providers in Mohali for students/);
