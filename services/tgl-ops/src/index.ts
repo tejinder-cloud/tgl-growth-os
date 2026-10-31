@@ -139,6 +139,33 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
+import { runCitationTracking } from "./agents/aeo-audit-engine/worker.js";
+
+// 06:00 IST daily: Citation Tracker — every eligible brand × prompt × engine (config/agents.yaml routine daily_citation_tracking)
+cron.schedule(
+  "0 6 * * *",
+  wrapCronJob("06:00 IST Citation Tracker", async () => {
+    await runCitationTracking();
+  }),
+  { timezone: config.timezone }
+);
+
+// Startup catch-up: if booted after 06:00 IST, run today's tracking now. Idempotent per brand × engine × day,
+// so redeploys never pay twice for a completed run.
+(async () => {
+  const hour = Number(getCurrentTimeIST().slice(0, 2));
+  if (hour < 6) return;
+  try {
+    await runCitationTracking();
+  } catch (err: any) {
+    console.error("[Citation Tracker Startup Catch-Up Error]", err);
+    await postLine({
+      channel: getAlertsChannel(),
+      text: `⚠️ *[Citation Tracker Catch-Up Failure]* at ${getCurrentTimeIST()} IST\n• Error: \`${String(err?.message ?? err).slice(0, 400)}\``,
+    }).catch(() => {});
+  }
+})();
+
 import { catchUpRunnerIssues } from "./runner/index.js";
 
 // Every 30 minutes: Catch-up worker for in-progress issues with no PR (Asia/Kolkata)
