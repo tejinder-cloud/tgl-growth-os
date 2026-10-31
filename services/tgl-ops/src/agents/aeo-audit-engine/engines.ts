@@ -113,7 +113,10 @@ export function parseOpenAI(json: any): { text: string; citations: EngineCitatio
 async function askOpenAI(cfg: EngineConfig, prompt: string, opts: AskOptions): Promise<EngineAnswer> {
   const tool: Record<string, unknown> = { type: "web_search" };
   if (opts.country) tool.user_location = { type: "approximate", country: opts.country, ...(opts.city ? { city: opts.city } : {}) };
-  const json = await postJson(cfg.baseUrl, { authorization: `Bearer ${cfg.apiKey}` }, { model: cfg.model, input: prompt, tools: [tool] }, opts);
+  // Architect, 31 Oct: one web search per question. ChatGPT ran 1–3 searches per prompt at $10/1,000, which put
+  // tenant zero at ~₹640/month for ChatGPT alone (over the ₹600/brand ceiling). Override with AEO_OPENAI_MAX_SEARCHES.
+  const maxSearches = Math.max(1, Number(process.env.AEO_OPENAI_MAX_SEARCHES) || 1);
+  const json = await postJson(cfg.baseUrl, { authorization: `Bearer ${cfg.apiKey}` }, { model: cfg.model, input: prompt, tools: [tool], max_tool_calls: maxSearches }, opts);
   const p = parseOpenAI(json);
   return { engine: "chatgpt", model: cfg.model, ...p, costUsd: computeCostUsd(cfg, p.usage), costSource: "computed", raw: json };
 }
