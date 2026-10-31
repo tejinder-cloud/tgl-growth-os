@@ -8,7 +8,7 @@ import type { AskOptions, EngineAnswer, EngineCitation, EngineConfig, EngineId }
 const ENV: Record<EngineId, { key: string[]; prefix: string; baseUrl: string }> = {
   chatgpt: { key: ["OPENAI_API_KEY"], prefix: "AEO_OPENAI", baseUrl: "https://api.openai.com/v1/responses" },
   gemini: { key: ["GEMINI_API_KEY", "GOOGLE_AI_API_KEY"], prefix: "AEO_GEMINI", baseUrl: "https://generativelanguage.googleapis.com/v1beta" },
-  perplexity: { key: ["PERPLEXITY_API_KEY"], prefix: "AEO_PERPLEXITY", baseUrl: "https://api.perplexity.ai/v1/sonar" },
+  perplexity: { key: ["PERPLEXITY_API_KEY"], prefix: "AEO_PERPLEXITY", baseUrl: "https://api.perplexity.ai/v1/agent" },
 };
 
 /** Reads an engine's settings. Returns the list of missing variables instead of guessing defaults. */
@@ -27,10 +27,19 @@ export function loadEngineConfig(engine: EngineId, env: NodeJS.ProcessEnv = proc
     if (v && isNaN(Number(v))) missing.push(`${spec.prefix}_${name} (not a number)`);
     return Number(v);
   };
-  const model = read("MODEL");
-  const priceIn = num("PRICE_IN");
-  const priceOut = num("PRICE_OUT");
-  const search = num("SEARCH_PRICE_PER_1K");
+  let model: string, priceIn = 0, priceOut = 0, search = 0;
+  if (engine === "perplexity") {
+    // Agent API (Sonar retired 27 Sep 2026): Perplexity's own preset via AEO_PERPLEXITY_EFFORT (e.g. "fast"),
+    // or a specific provider/model via AEO_PERPLEXITY_MODEL. Cost comes back on every response (usage.cost.total_cost).
+    const effort = env.AEO_PERPLEXITY_EFFORT?.trim(), m = env.AEO_PERPLEXITY_MODEL?.trim();
+    if (!effort && !m) missing.push("AEO_PERPLEXITY_EFFORT");
+    model = m || (effort ? `effort:${effort}` : "");
+  } else {
+    model = read("MODEL");
+    priceIn = num("PRICE_IN");
+    priceOut = num("PRICE_OUT");
+    search = num("SEARCH_PRICE_PER_1K");
+  }
   if (missing.length) return { missing };
   return {
     missing,
@@ -139,29 +148,49 @@ async function askGemini(cfg: EngineConfig, prompt: string, opts: AskOptions): P
   return { engine: "gemini", model: cfg.model, ...p, costUsd: computeCostUsd(cfg, p.usage), costSource: "computed", raw: json };
 }
 
-// ── Perplexity: Sonar ────────────────────────────────────────────────────────
+// ── Perplexity: Agent API (POST /v1/agent) ───────────────────────────────────
 export function parsePerplexity(json: any): { text: string; citations: EngineCitation[]; usage: EngineAnswer["usage"]; providerCostUsd: number | null } {
-  const text = String(json?.choices?.[0]?.message?.content ?? "").trim();
-  const sr: any[] = Array.isArray(json?.search_results) ? json.search_results : [];
-  const cites: EngineCitation[] = sr.length
-    ? sr.filter((r) => r?.url).map((r) => ({ url: r.url, title: r.title }))
-    : (Array.isArray(json?.citations) ? json.citations : []).filter((u: any) => typeof u === "string").map((u: string) => ({ url: u }));
+  const out: any[] = Array.isArray(json?.output) ? json.output : [];
+  const parts: string[] = [];
+  const cites: EngineCitation[] = [];
+  const results: EngineCitation[] = [];
+  for (const item of out) {
+    if (item?.type === "message") {
+      for (const c of item.content ?? []) {
+        if (c?.type === "output_text") {
+          parts.push(String(c.text ?? ""));
+          for (const a of c.annotations ?? []) if (a?.url) cites.push({ url: a.url, title: a.title });
+        }
+      }
+    }
+    if (item?.type === "search_results") for (const r of item.results ?? []) if (r?.url) results.push({ url: r.url, title: r.title });
+  }
+  const tc = json?.usage?.tool_calls_details ?? {};
+  const searches = Number(tc.search_web?.invocation ?? tc.web_search?.invocation ?? 0) || 0;
   const cost = json?.usage?.cost?.total_cost;
   return {
-    text,
-    citations: dedupeCitations(cites),
-    usage: { inputTokens: json?.usage?.prompt_tokens ?? 0, outputTokens: json?.usage?.completion_tokens ?? 0, searches: 1 },
+    text: parts.join("\n").trim(),
+    // Sources the answer actually cites; fall back to the search results it read if it cited none inline.
+    citations: dedupeCitations(cites.length ? cites : results),
+    usage: { inputTokens: json?.usage?.input_tokens ?? 0, outputTokens: json?.usage?.output_tokens ?? 0, searches },
     providerCostUsd: typeof cost === "number" && isFinite(cost) ? cost : null,
   };
 }
 
 async function askPerplexity(cfg: EngineConfig, prompt: string, opts: AskOptions): Promise<EngineAnswer> {
-  const json = await postJson(cfg.baseUrl, { authorization: `Bearer ${cfg.apiKey}` }, { model: cfg.model, messages: [{ role: "user", content: prompt }] }, opts);
+  const body: Record<string, unknown> = { input: prompt };
+  if (cfg.model.startsWith("effort:")) body.effort = cfg.model.slice("effort:".length);
+  else {
+    const tool: Record<string, unknown> = { type: "web_search" };
+    if (opts.country) tool.user_location = { country: opts.country, ...(opts.city ? { city: opts.city } : {}) };
+    Object.assign(body, { model: cfg.model, tools: [tool] });
+  }
+  const json = await postJson(cfg.baseUrl, { authorization: `Bearer ${cfg.apiKey}` }, body, opts);
   const p = parsePerplexity(json);
-  const provider = p.providerCostUsd;
+  if (p.providerCostUsd == null) throw new Error("Perplexity returned no usage.cost.total_cost — refusing to record an answer with unknown spend");
   return {
-    engine: "perplexity", model: cfg.model, text: p.text, citations: p.citations, usage: p.usage,
-    costUsd: provider ?? computeCostUsd(cfg, p.usage), costSource: provider != null ? "provider" : "computed", raw: json,
+    engine: "perplexity", model: String(json?.model ?? cfg.model), text: p.text, citations: p.citations, usage: p.usage,
+    costUsd: p.providerCostUsd, costSource: "provider", raw: json,
   };
 }
 

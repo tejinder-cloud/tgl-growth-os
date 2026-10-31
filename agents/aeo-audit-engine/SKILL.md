@@ -23,16 +23,16 @@ You inherit `AGENTS.md` and the TGL Seniority Mandate. You are staff, not a scri
 - **Mentioned** = brand name, a listed variant, or a brand domain appears as a whole word. **Position** = order among brand + tracked competitors. Names under 3 characters don't count (too ambiguous).
 - **Citations:** keep every cited URL; classify the domain (owned / directory / forum / social / news / marketplace / video / reference). Unknown domains stay unclassified — never guess.
 - **Sentiment and hallucinations** are not inferred yet; they stay null ("—") until a reviewed method exists.
-- **Spend:** provider-reported cost when given (Perplexity), else tokens × configured price + searches × fee. Gemini's free grounding allowance is ignored, so spend is an upper bound, never an understatement.
+- **Spend:** provider-reported cost when given (Perplexity Agent API returns `usage.cost.total_cost`; an answer without it is refused, not guessed), else tokens × configured price + searches × fee. Gemini's free grounding allowance is ignored, so spend is an upper bound, never an understatement.
 - **Idempotent:** one live run per brand × engine × day (DB unique index). A failed run may retry; a run stuck "running" 2h+ is marked failed.
 - **Eligible brands:** tenant `tgl` always; others when `setup_status = verified` and the subscription is live (trial not expired, or paid).
 - **Mistakes to avoid:** treating an API answer as identical to the consumer app (it's close, not identical — say "via API with web search"); running unverified setups; hard-coding a model or a price.
 
 ## 4. Tools & Access
-- `services/tgl-ops/src/agents/aeo-audit-engine/engines.ts` — `askEngine(config, prompt)` for `chatgpt` (OpenAI Responses + `web_search`), `gemini` (generateContent + `google_search`), `perplexity` (Sonar).
+- `services/tgl-ops/src/agents/aeo-audit-engine/engines.ts` — `askEngine(config, prompt)` for `chatgpt` (OpenAI Responses + `web_search`), `gemini` (generateContent + `google_search`), `perplexity` (Agent API, `POST /v1/agent`, effort preset — Sonar was retired 27 Sep 2026).
 - `analyze.ts` — `analyzeAnswer`, `analyzeCitation`. `tracker.ts` — `runTracker` (store-agnostic). `store.ts` — Supabase store (service role).
 - `npm run citations [-- <brand-uuid>]` — manual run, same path as the cron.
-- Env: `OPENAI_API_KEY`, `GEMINI_API_KEY`, `PERPLEXITY_API_KEY`, `AEO_<ENGINE>_MODEL|PRICE_IN|PRICE_OUT|SEARCH_PRICE_PER_1K`, `USD_INR_RATE`, `SUPABASE_SERVICE_ROLE_KEY` (see `.env.example`).
+- Env: `OPENAI_API_KEY`, `GEMINI_API_KEY`, `PERPLEXITY_API_KEY`, `AEO_OPENAI_*` / `AEO_GEMINI_*` (MODEL, PRICE_IN, PRICE_OUT, SEARCH_PRICE_PER_1K), `AEO_PERPLEXITY_EFFORT` (or `_MODEL`), `USD_INR_RATE`, `SUPABASE_SERVICE_ROLE_KEY` (see `.env.example`).
 
 ## 5. Inputs / Outputs / Triggers
 - **Inputs:** `brands`, `brand_variants`, `domains`, `competitors` (active), `prompts` (active), `products_icps` (city for search localisation), `subscriptions`.
@@ -49,7 +49,7 @@ You inherit `AGENTS.md` and the TGL Seniority Mandate. You are staff, not a scri
 - [x] Daily automated run scheduled (06:00 IST) with startup catch-up and a manual command.
 - [x] Tenant zero runs: TGL brand with 10 prompts (entered via the TrueVisible wizard, 31 Oct).
 - [x] Spend per brand per engine per day written to `usage_costs` (₹ and $).
-- [x] Fixture tests: `npm run test:day17` (10 checks).
+- [x] Fixture tests: `npm run test:day17` (11 checks).
 - [ ] First live run on production verified by the Architect (needs the API-key variables on tgl-ops).
 
 ## 8. Never

@@ -38,11 +38,14 @@ const geminiFx = {
   }],
   usageMetadata: { promptTokenCount: 50, candidatesTokenCount: 200, thoughtsTokenCount: 100 },
 };
+// Perplexity Agent API (POST /v1/agent) — shape from docs.perplexity.ai quickstart, 31 Oct 2026
 const pplxFx = {
-  choices: [{ message: { content: "Growth Lab works with coaching institutes in Mohali." } }],
-  search_results: [{ url: "https://digitalpundit.in/about", title: "DP" }],
-  citations: ["https://ignored.example"],
-  usage: { prompt_tokens: 20, completion_tokens: 80, cost: { total_cost: 0.0061 } },
+  model: "openai/gpt-5.6-sol",
+  output: [
+    { type: "search_results", queries: ["agency mohali"], results: [{ url: "https://ignored-unless-no-inline.example", title: "x" }] },
+    { type: "message", role: "assistant", content: [{ type: "output_text", text: "Growth Lab works with coaching institutes in Mohali.", annotations: [{ type: "citation", url: "https://digitalpundit.in/about" }] }] },
+  ],
+  usage: { input_tokens: 3681, output_tokens: 780, cost: { currency: "USD", total_cost: 0.0061 }, tool_calls_details: { search_web: { invocation: 1 } } },
 };
 
 async function main() {
@@ -58,10 +61,17 @@ await t("Gemini parser: thinking tokens billed as output, query count, redirect 
   assert.equal(p.usage.searches, 2);
   assert.equal(p.citations[0].domainHint, "reddit.com");
 });
-await t("Perplexity parser: prefers search_results and provider-reported cost", () => {
+await t("Perplexity Agent API parser: inline citations first, provider-reported cost, search count", () => {
   const p = parsePerplexity(pplxFx);
-  assert.equal(p.citations[0].url, "https://digitalpundit.in/about");
+  assert.deepEqual(p.citations.map((c) => c.url), ["https://digitalpundit.in/about"]);
   assert.equal(p.providerCostUsd, 0.0061);
+  assert.equal(p.usage.searches, 1);
+  const noInline = parsePerplexity({ ...pplxFx, output: [pplxFx.output[0], { type: "message", content: [{ type: "output_text", text: "x", annotations: [] }] }] });
+  assert.equal(noInline.citations[0].url, "https://ignored-unless-no-inline.example");
+});
+await t("Perplexity config: needs an effort preset or a model, no price variables", () => {
+  assert.deepEqual(loadEngineConfig("perplexity", { PERPLEXITY_API_KEY: "k" }).missing, ["AEO_PERPLEXITY_EFFORT"]);
+  assert.equal(loadEngineConfig("perplexity", { PERPLEXITY_API_KEY: "k", AEO_PERPLEXITY_EFFORT: "fast" }).config?.model, "effort:fast");
 });
 await t("cost = tokens × price + searches × fee", () => {
   assert.equal(computeCostUsd({ priceInPerMTok: 1, priceOutPerMTok: 4, searchPricePer1k: 10 }, { inputTokens: 1_000_000, outputTokens: 500_000, searches: 2 }), 3.02);
@@ -111,12 +121,13 @@ function memoryStore(brand: TrackedBrand) {
 }
 const env = {
   OPENAI_API_KEY: "k", AEO_OPENAI_MODEL: "gpt-x", AEO_OPENAI_PRICE_IN: "1", AEO_OPENAI_PRICE_OUT: "4", AEO_OPENAI_SEARCH_PRICE_PER_1K: "10",
-  PERPLEXITY_API_KEY: "k", AEO_PERPLEXITY_MODEL: "sonar", AEO_PERPLEXITY_PRICE_IN: "1", AEO_PERPLEXITY_PRICE_OUT: "1", AEO_PERPLEXITY_SEARCH_PRICE_PER_1K: "5",
+  PERPLEXITY_API_KEY: "k", AEO_PERPLEXITY_EFFORT: "fast",
   // Gemini deliberately not configured
 };
 let pplxCalls = 0;
-const fakeFetch: typeof fetch = async (url) => {
+const fakeFetch: typeof fetch = async (url, init) => {
   const u = String(url);
+  if (u.includes("perplexity")) assert.deepEqual(JSON.parse(String(init?.body)), { input: JSON.parse(String(init?.body)).input, effort: "fast" });
   if (u.includes("openai")) return new Response(JSON.stringify(openaiFx), { status: 200 });
   if (u.includes("perplexity")) { pplxCalls++; return pplxCalls === 2 ? new Response("bad", { status: 400 }) : new Response(JSON.stringify(pplxFx), { status: 200 }); }
   return new Response("nope", { status: 404 });
