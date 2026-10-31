@@ -127,6 +127,7 @@ const env = {
 let pplxCalls = 0;
 const fakeFetch: typeof fetch = async (url, init) => {
   const u = String(url);
+  if (u.includes("openai")) assert.equal(JSON.parse(String(init?.body)).max_tool_calls, 1);
   if (u.includes("perplexity")) assert.deepEqual(JSON.parse(String(init?.body)), { input: JSON.parse(String(init?.body)).input, effort: "fast" });
   if (u.includes("openai")) return new Response(JSON.stringify(openaiFx), { status: 200 });
   if (u.includes("perplexity")) { pplxCalls++; return pplxCalls === 2 ? new Response("bad", { status: 400 }) : new Response(JSON.stringify(pplxFx), { status: 200 }); }
