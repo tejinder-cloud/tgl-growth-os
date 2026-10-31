@@ -15,6 +15,7 @@ import { postLine } from "../lib/post.js";
 import { getTodayDateString, getCurrentTimeIST } from "../lib/standup.js";
 import { findAgentByName } from "../lib/agents.js";
 import { runIssueTask } from "../runner/runner.js";
+import { handleSetupAction, handleSetupChangesSubmission } from "../agents/aeo-strategist/worker.js";
 
 export const interactionsRouter = Router();
 
@@ -37,7 +38,9 @@ interactionsRouter.post("/", async (req: Request, res: Response): Promise<void> 
 
     (async () => {
       try {
-        if (action.action_id === "action_approve") {
+        if (typeof action.action_id === "string" && action.action_id.startsWith("setup_")) {
+          await handleSetupAction(payload, action);
+        } else if (action.action_id === "action_approve") {
           await handleApproveAction(payload, action);
         } else if (action.action_id === "action_discuss") {
           await handleDiscussAction(payload, action);
@@ -55,6 +58,11 @@ interactionsRouter.post("/", async (req: Request, res: Response): Promise<void> 
 
   // 2. Handle Modal Submissions (Reject Reason submission)
   if (payload.type === "view_submission") {
+    if (payload.view?.callback_id === "setup_changes_modal") {
+      res.json({ response_action: "clear" });
+      handleSetupChangesSubmission(payload).catch((err) => console.error("[Setup Changes Submission Error]", err));
+      return;
+    }
     if (payload.view?.callback_id === "modal_reject_reason") {
       res.json({ response_action: "clear" });
       (async () => {

@@ -103,6 +103,10 @@
   status: planned
   daily_cost_cap_usd: 1.00
   routines:
+    - name: setup_verification_queue
+      frequency: every 10 minutes
+      schedule: "*/10 * * * *"
+      description: "New TrueVisible setups → evidence + proposal → #approvals card; Architect verifies (SPEC §3, plan Day 19)"
     - name: monthly_competitor_refresh
       frequency: monthly
       schedule: "0 9 1 * *"
