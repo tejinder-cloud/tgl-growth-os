@@ -6,19 +6,38 @@ import type { Evidence, SetupSnapshot, SiteSnapshot } from "./types.js";
 const decode = (s: string) =>
   s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&nbsp;/g, " ");
 
+const clean = (s: string) => decode(s.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
+
+/** Attributes of one tag, e.g. <meta name="description" content="…">, in any order and either quote style. */
+function attrs(tag: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const m of tag.matchAll(/([a-zA-Z:-]+)\s*=\s*("([^"]*)"|'([^']*)')/g)) out[m[1].toLowerCase()] = decode(m[3] ?? m[4] ?? "");
+  return out;
+}
+
+/**
+ * Homepage → what a visitor reads. Code, styles, JSON-LD and comments are removed before anything is read
+ * (31 Oct: thegrowthlab.co.in's inline CSS and schema JSON were being read as the description and body text).
+ */
 export function extractSite(html: string, url: string): SiteSnapshot {
-  const pick = (re: RegExp) => { const m = re.exec(html); return m ? decode(m[1].replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim() : undefined; };
-  const title = pick(/<title[^>]*>([\s\S]*?)<\/title>/i);
-  const description = pick(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i) ?? pick(/<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["']/i);
+  const head = html.match(/<head[\s\S]*?<\/head>/i)?.[0] ?? html.slice(0, 200_000);
+  const metas = [...head.matchAll(/<meta\b[^>]*>/gi)].map((m) => attrs(m[0]));
+  const meta = (key: string) => metas.find((a) => (a.name ?? a.property ?? "").toLowerCase() === key)?.content?.trim() || undefined;
+  const title = clean(head.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? "") || meta("og:title");
+  const description = meta("description") ?? meta("og:description");
+
+  const body = (html.match(/<body[\s\S]*$/i)?.[0] ?? html)
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<(script|style|noscript|svg|template|iframe)\b[\s\S]*?<\/\1>/gi, " ")
+    .replace(/<(nav|footer)\b[\s\S]*?<\/\1>/gi, " ");
   const headings: string[] = [];
-  for (const m of html.matchAll(/<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/gi)) {
-    const h = decode(m[1].replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
+  for (const m of body.matchAll(/<h([1-3])\b[^>]*>([\s\S]*?)<\/h\1>/gi)) {
+    const h = clean(m[2]);
     if (h && h.length < 160 && !headings.includes(h)) headings.push(h);
     if (headings.length >= 20) break;
   }
-  const text = decode(html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<noscript[\s\S]*?<\/noscript>/gi, " ").replace(/<[^>]+>/g, " "))
-    .replace(/\s+/g, " ").trim().slice(0, 3000);
-  return { url, ok: true, title, description, headings, text };
+  const text = clean(body).slice(0, 3000);
+  return { url, ok: true, title: title || undefined, description, headings, text };
 }
 
 export async function fetchSite(domain: string | null, fetchImpl: typeof fetch = fetch): Promise<SiteSnapshot | null> {
@@ -29,7 +48,7 @@ export async function fetchSite(domain: string | null, fetchImpl: typeof fetch =
   try {
     const res = await fetchImpl(url, { redirect: "follow", signal: ctrl.signal, headers: { "user-agent": "Mozilla/5.0 (compatible; TrueVisibleSetupCheck/1.0; +https://thegrowthlab.co.in)" } });
     if (!res.ok) return { url, ok: false, headings: [], text: "", error: `HTTP ${res.status}` };
-    return extractSite((await res.text()).slice(0, 600_000), res.url || url);
+    return extractSite((await res.text()).slice(0, 3_000_000), res.url || url);
   } catch (err: any) {
     return { url, ok: false, headings: [], text: "", error: String(err?.message ?? err).slice(0, 200) };
   } finally {
