@@ -2,5 +2,15 @@
   "date": "2026-11-01",
   "posted": false,
   "standupTs": "1793449801.106509",
-  "channel": "C0ASF13879Q"
+  "channel": "C0ASF13879Q",
+  "compiledAt": "2026-11-01T12:20:14.645Z",
+  "digestText": "*📊 The Growth Lab — Daily Standup Digest | 2026-11-01 17:50 IST*\n──────────────────────────────────────────\n*🚪 Product Doors:*\n• *AEO:* no data yet | *AI:* no data yet | *TrueLead:* no data yet | *Core:* operational\n\n*🚨 Blockers (Ranked):*\n• _None reported today._\n\n*⏳ Approvals Pending:*\n• *Setup check · The Growth Lab* (@web-builder, 27h) — <https://itsthegrowthlab.slack.com/archives/C0BATS9F99B/p1793438422862339|View card>\n• *[TASK]: Make the site faster* (@web-builder, 143h) — <https://itsthegrowthlab.slack.com/archives/C0BATS9F99B/p1793022401273409|View card>\n\n*📋 Agent Reports:*\n• *`@aeo-audit-engine`*: 06:04 IST — Citation Tracker: 1 brand(s) · ChatGPT 10/10, Ge\n\n_Active agents: reply in-thread with your 4 lines: Did · Blocked · Need · Tomorrow._",
+  "synthesis": {
+    "model": "claude-sonnet-5-5",
+    "inputTokens": 1998,
+    "outputTokens": 1210,
+    "totalCostUsd": 0.0241,
+    "costLine": "Standup compilation: 1998 input, 1210 output (claude-sonnet-5-5) · Cost: $0.0241 USD"
+  },
+  "source": "cron"
 }
