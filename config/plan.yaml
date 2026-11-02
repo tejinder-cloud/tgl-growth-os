@@ -1,5 +1,5 @@
 version: 1
-generated_at: 2026-11-02T14:54:32.770Z
+generated_at: 2026-11-02T15:14:05.174Z
 days_count: 61
 plan:
   - day: 8
@@ -121,6 +121,8 @@ plan:
       - 14
     architect_hour: "Gate 1: 100 prospects, ≥50 touched, ≥5 audits delivered, 0 QA failures."
   - day: 16
+    status: completed
+    evidence: truevisible-app
     agent: web-builder
     door: aeo
     title: Supabase schema per SPEC §11 with RLS & usage_costs
@@ -149,6 +151,8 @@ plan:
       - 16
     architect_hour: Add TGL's 10 prompts (I draft).
   - day: 18
+    status: completed
+    evidence: truevisible-app
     agent: web-builder
     door: aeo
     title: Auth + onboarding wizard (3 steps) in paper-and-ink
