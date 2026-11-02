@@ -515,6 +515,12 @@ export function resetImFailureLoggedForTests(): void {
   hasLoggedImFailure = false;
 }
 
+export let lastTriggeredRunnerIssue: number | null = null;
+
+export function resetLastTriggeredRunnerIssueForTests(): void {
+  lastTriggeredRunnerIssue = null;
+}
+
 /**
  * Polls #architect channel and direct bot DMs for Architect messages.
  * Classifies and dispatches each message.
@@ -522,6 +528,7 @@ export function resetImFailureLoggedForTests(): void {
 export async function pollChiefOfStaffIntake(options?: {
   testMode?: boolean;
   mockMessages?: any[];
+  triggerRunnerInTestMode?: boolean;
 }): Promise<{
   polledCount: number;
   processedCount: number;
@@ -720,22 +727,27 @@ export async function pollChiefOfStaffIntake(options?: {
             const doorChannel = `#doors-${door}`;
 
             // 5. Trigger runner
+            lastTriggeredRunnerIssue = issueNum;
             try {
-              const { runIssueTask } = await import("../../runner/runner.js");
-              const issueInput = {
-                number: issueNum,
-                title: existingIssue?.title || `Issue #${issueNum}`,
-                body: existingIssue?.body || "",
-                labels: existingIssue?.labels || ["type:build", "status:in-progress", `for:${assignedAgent}`, `door:${door}`],
-                html_url: existingIssue?.html_url,
-                agentName: assignedAgent,
-                door,
-                slackChannel: channel,
-                slackThreadTs: threadTs,
-              };
-              runIssueTask(issueInput, { testMode: isTest }).catch((err) => {
-                console.warn(`[Intake] Error executing runner for issue #${issueNum}:`, err);
-              });
+              if (!isTest || options?.triggerRunnerInTestMode) {
+                const { runIssueTask } = await import("../../runner/runner.js");
+                const issueInput = {
+                  number: issueNum,
+                  title: existingIssue?.title || `Issue #${issueNum}`,
+                  body: existingIssue?.body || "",
+                  labels: existingIssue?.labels || ["type:build", "status:in-progress", `for:${assignedAgent}`, `door:${door}`],
+                  html_url: existingIssue?.html_url,
+                  agentName: assignedAgent,
+                  door,
+                  slackChannel: channel,
+                  slackThreadTs: threadTs,
+                };
+                runIssueTask(issueInput, { testMode: isTest }).catch((err) => {
+                  console.warn(`[Intake] Error executing runner for issue #${issueNum}:`, err);
+                });
+              } else {
+                console.log(`[Intake Test Mode] Runner triggered for issue #${issueNum} (@${assignedAgent})`);
+              }
             } catch (err: any) {
               console.warn(`[Intake] Could not trigger runner for issue #${issueNum}:`, err?.message || String(err));
             }

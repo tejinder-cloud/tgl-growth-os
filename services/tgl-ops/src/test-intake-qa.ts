@@ -12,6 +12,8 @@ import {
   pollChiefOfStaffIntake,
   resetIntakeStateForTests,
   setBootTimestampForTests,
+  lastTriggeredRunnerIssue,
+  resetLastTriggeredRunnerIssueForTests,
 } from "./agents/chief-of-staff/intake.js";
 import {
   setMockProspectRecordsForTests,
@@ -519,6 +521,7 @@ async function runIntakeQaTests() {
 
   resetMockPostedLines();
   resetIntakeStateForTests();
+  resetLastTriggeredRunnerIssueForTests();
   setBootTimestampForTests("1730300400.000000");
   config.architectChannelId = "C_ARCH_TEST";
 
@@ -555,7 +558,12 @@ async function runIntakeQaTests() {
     throw new Error(`Test 7 Failed: Issue #53 missing 'for:web-builder' label. Labels: ${JSON.stringify(issue53.labels)}`);
   }
 
-  // 3. Verify in-thread reply
+  // 3. Verify runner triggered
+  if (lastTriggeredRunnerIssue !== 53) {
+    throw new Error(`Test 7 Failed: Expected runner triggered for issue #53, got ${lastTriggeredRunnerIssue}`);
+  }
+
+  // 4. Verify in-thread reply
   const lastPostA = mockPostedLines[mockPostedLines.length - 1];
   const expectedReply = "→ @web-builder, #53 resumed, card in #doors-aeo";
   if (!lastPostA || lastPostA.text !== expectedReply) {
