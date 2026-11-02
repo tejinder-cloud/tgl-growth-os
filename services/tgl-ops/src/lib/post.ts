@@ -31,6 +31,11 @@ export interface PostLineOptions {
   thread_ts?: string;
 }
 
+export const mockPostedLines: PostLineOptions[] = [];
+export function resetMockPostedLines(): void {
+  mockPostedLines.length = 0;
+}
+
 export interface PostFileOptions {
   channel: string;
   filePath?: string;
@@ -270,6 +275,7 @@ export async function postCard(options: PostCardOptions): Promise<{ ok: boolean;
  * Automatically splits text over 2,900 chars into multiple blocks (and messages if > 50 blocks).
  */
 export async function postLine(options: PostLineOptions): Promise<{ ok: boolean; ts?: string; error?: string }> {
+  mockPostedLines.push(options);
   const { channel, text, thread_ts } = options;
   const safeText = (text && text.trim()) || " ";
   const chunks = splitTextIntoChunks(safeText, 2900);

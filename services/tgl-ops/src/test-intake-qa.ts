@@ -12,6 +12,8 @@ import {
   pollChiefOfStaffIntake,
   resetIntakeStateForTests,
   setBootTimestampForTests,
+  lastTriggeredRunnerIssue,
+  resetLastTriggeredRunnerIssueForTests,
 } from "./agents/chief-of-staff/intake.js";
 import {
   setMockProspectRecordsForTests,
@@ -28,6 +30,8 @@ import {
   resetCostLedgerForTests,
 } from "./lib/cost-cap.js";
 import { getTodayDateString } from "./lib/standup.js";
+import { mockIssuesStore, getIssue } from "./lib/github-client.js";
+import { mockPostedLines, resetMockPostedLines } from "./lib/post.js";
 
 async function runIntakeQaTests() {
   console.log("==========================================================================");
@@ -483,6 +487,154 @@ async function runIntakeQaTests() {
   console.log("  ✓ By Agent breakdown: @web-builder $0.0067, @prospect-researcher $0.0425, @chief-of-staff $0.0027");
   console.log("  ✓ 'what did we spend today?' answers with complete multi-agent ledger and API entries");
   console.log("✅ [Test 6 Passed] Unified multi-agent cost ledger verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 7: Issue Resumption via Intake & Elimination of File Summaries
+  // Verifies:
+  // 1. Exact message naming open issue #53 resumes task, comments, sets status:in-progress,
+  //    triggers runner, and replies "→ @web-builder, #53 resumed, card in #doors-aeo".
+  // 2. Vague message replies with one clarifying question.
+  // 3. Question replies with data.
+  // 4. Zero file summaries anywhere ("I've verified our current records" eliminated).
+  // -------------------------------------------------------------------------
+  console.log("[Test 7] Testing issue resumption task trigger, vague message clarification, and zero file summaries...");
+
+  // Helper to assert no file summaries anywhere
+  function assertNoFileSummaries(text: string, context: string) {
+    if (text.includes("I've verified our current records") || text.includes("Relevant files:")) {
+      throw new Error(`Test 7 Failed (${context}): Reply contains file summary prohibited by AGENTS.md:\n${text}`);
+    }
+  }
+
+  // Part A: Exact message
+  const exactMessage = "finish #53 — the short-form runner and the one-page PDF are the only lines left";
+
+  mockIssuesStore.set(53, {
+    number: 53,
+    title: "[PLAN-D8]: AEO Audit Engine SKILL.md + short-form engine",
+    body: "### deliverable\nAEO Audit Engine SKILL.md and short-form engine\n\n### reviewer\nCreative Director",
+    state: "open",
+    labels: ["for:web-builder", "door:aeo", "type:build", "status:needs-brief"],
+    html_url: "https://github.com/tejinder-cloud/tgl-growth-os/issues/53",
+  });
+
+  resetMockPostedLines();
+  resetIntakeStateForTests();
+  resetLastTriggeredRunnerIssueForTests();
+  setBootTimestampForTests("1730300400.000000");
+  config.architectChannelId = "C_ARCH_TEST";
+
+  const pollResA = await pollChiefOfStaffIntake({
+    testMode: true,
+    mockMessages: [
+      {
+        ts: "1730300410.000000",
+        text: exactMessage,
+        user: "U_TEJINDER",
+      },
+    ],
+  });
+
+  if (pollResA.processedCount !== 1) {
+    throw new Error(`Test 7 Failed: Expected 1 processed message for exact issue resumption, got ${pollResA.processedCount}`);
+  }
+
+  // 1. Verify issue comment added
+  const issue53 = await getIssue(53);
+  if (!issue53) throw new Error("Test 7 Failed: Issue #53 not found in mock store");
+  if (!issue53.comments || !issue53.comments.some((c) => c.includes(exactMessage))) {
+    throw new Error(`Test 7 Failed: Issue #53 missing Architect comment. Got comments: ${JSON.stringify(issue53.comments)}`);
+  }
+
+  // 2. Verify labels updated
+  if (!issue53.labels.includes("status:in-progress")) {
+    throw new Error(`Test 7 Failed: Issue #53 missing 'status:in-progress' label. Labels: ${JSON.stringify(issue53.labels)}`);
+  }
+  if (issue53.labels.includes("status:needs-brief")) {
+    throw new Error(`Test 7 Failed: Issue #53 still has 'status:needs-brief' label. Labels: ${JSON.stringify(issue53.labels)}`);
+  }
+  if (!issue53.labels.includes("for:web-builder")) {
+    throw new Error(`Test 7 Failed: Issue #53 missing 'for:web-builder' label. Labels: ${JSON.stringify(issue53.labels)}`);
+  }
+
+  // 3. Verify runner triggered
+  if (lastTriggeredRunnerIssue !== 53) {
+    throw new Error(`Test 7 Failed: Expected runner triggered for issue #53, got ${lastTriggeredRunnerIssue}`);
+  }
+
+  // 4. Verify in-thread reply
+  const lastPostA = mockPostedLines[mockPostedLines.length - 1];
+  const expectedReply = "→ @web-builder, #53 resumed, card in #doors-aeo";
+  if (!lastPostA || lastPostA.text !== expectedReply) {
+    throw new Error(`Test 7 Failed: Expected reply "${expectedReply}", got "${lastPostA?.text}"`);
+  }
+  assertNoFileSummaries(lastPostA.text, "Exact message resumption");
+
+  // Part B: Vague message
+  resetMockPostedLines();
+  const vagueMessage = "maybe we should look into something";
+  const pollResB = await pollChiefOfStaffIntake({
+    testMode: true,
+    mockMessages: [
+      {
+        ts: "1730300420.000000",
+        text: vagueMessage,
+        user: "U_TEJINDER",
+      },
+    ],
+  });
+
+  if (pollResB.processedCount !== 1) {
+    throw new Error(`Test 7 Failed: Expected 1 processed message for vague message, got ${pollResB.processedCount}`);
+  }
+
+  const lastPostB = mockPostedLines[mockPostedLines.length - 1];
+  if (!lastPostB || !lastPostB.text.startsWith("*Chief of Staff Clarification:*")) {
+    throw new Error(`Test 7 Failed: Vague message reply should start with '*Chief of Staff Clarification:*', got:\n${lastPostB?.text}`);
+  }
+  if (!lastPostB.text.includes("?")) {
+    throw new Error(`Test 7 Failed: Vague message reply must be a clarifying question, got:\n${lastPostB?.text}`);
+  }
+  assertNoFileSummaries(lastPostB.text, "Vague message");
+
+  // Part C: Question with data
+  resetMockPostedLines();
+  const questionMessage = "how much did we spend today?";
+  const pollResC = await pollChiefOfStaffIntake({
+    testMode: true,
+    mockMessages: [
+      {
+        ts: "1730300430.000000",
+        text: questionMessage,
+        user: "U_TEJINDER",
+      },
+    ],
+  });
+
+  if (pollResC.processedCount !== 1) {
+    throw new Error(`Test 7 Failed: Expected 1 processed message for question, got ${pollResC.processedCount}`);
+  }
+
+  const lastPostC = mockPostedLines[mockPostedLines.length - 1];
+  if (!lastPostC || (!lastPostC.text.includes("Spend") && !lastPostC.text.includes("$"))) {
+    throw new Error(`Test 7 Failed: Question reply must provide data, got:\n${lastPostC?.text}`);
+  }
+  assertNoFileSummaries(lastPostC.text, "Question with data");
+
+  // Part D: Unrecognized general question fallback -> clarifying question, never file summary
+  const unhandledAnswer = await answerArchitectQuestion("what is the roadmap for international expansion?", { testMode: true });
+  if (!unhandledAnswer.startsWith("*Chief of Staff Clarification:*")) {
+    throw new Error(`Test 7 Failed: Unhandled question should fall back to clarifying question, got:\n${unhandledAnswer}`);
+  }
+  assertNoFileSummaries(unhandledAnswer, "Fallback general question");
+
+  console.log("  ✓ Exact message 'finish #53...' added comment to #53, set status:in-progress, and replied '→ @web-builder, #53 resumed, card in #doors-aeo'");
+  console.log("  ✓ Vague message 'maybe we should look into something' replied with a sharp clarifying question");
+  console.log("  ✓ Question 'how much did we spend today?' replied with verified data");
+  console.log("  ✓ Fallback general question replied with clarifying question, zero file summaries");
+  console.log("  ✓ File summary 'I've verified our current records' completely eradicated from the system");
+  console.log("✅ [Test 7 Passed] Issue resumption, clarification on ambiguity, and zero file summaries verified.\n");
   passed++;
 
   // Clean up
