@@ -184,12 +184,13 @@ export function loadCostLedgerFromState(options?: { testMode?: boolean }): Usage
   // 3. Ensure historical runner runs from today (2026-10-30) are present in the ledger:
   // Runner's #53 attempt at 09:00 IST
   if ((date === "2026-10-30" && !isTest) || (options as any)?.includeHistoricalRuns) {
+    const historicalDate = (options as any)?.includeHistoricalRuns ? date : "2026-10-30";
     const hasIssue53Run = usageCostsLedger.some(
-      (e) => e.issueNumber === 53 || (e.agent === "web-builder" && e.timestamp.startsWith("2026-10-30T09:00"))
+      (e) => e.issueNumber === 53 || (e.agent === "web-builder" && e.timestamp.startsWith(`${historicalDate}T09:00`))
     );
     if (!hasIssue53Run) {
       usageCostsLedger.push({
-        timestamp: "2026-10-30T09:00:00.000Z",
+        timestamp: `${historicalDate}T09:00:00.000Z`,
         issueNumber: 53,
         agent: "web-builder",
         model: "claude-3-5-sonnet",

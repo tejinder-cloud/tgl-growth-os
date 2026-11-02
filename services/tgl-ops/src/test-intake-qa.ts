@@ -27,6 +27,7 @@ import {
   loadCostLedgerFromState,
   resetCostLedgerForTests,
 } from "./lib/cost-cap.js";
+import { getTodayDateString } from "./lib/standup.js";
 
 async function runIntakeQaTests() {
   console.log("==========================================================================");
@@ -234,7 +235,7 @@ async function runIntakeQaTests() {
   if (formatCostUsd(1.50) !== "$1.50") throw new Error(`formatCostUsd(1.50) should be $1.50, got ${formatCostUsd(1.50)}`);
 
   // 2. Add realistic calls to the ledger
-  const dateStr = "2026-10-30";
+  const dateStr = getTodayDateString();
   recordCostEntry({
     timestamp: `${dateStr}T12:50:00.000Z`,
     issueNumber: 0,
@@ -372,6 +373,8 @@ async function runIntakeQaTests() {
 
   resetCostLedgerForTests();
 
+  const testDate = getTodayDateString();
+
   // 1. Simulate state loading with historical runs (runner #53 attempt at 09:00 IST)
   loadCostLedgerFromState({ testMode: true, includeHistoricalRuns: true } as any);
 
@@ -386,7 +389,7 @@ async function runIntakeQaTests() {
   // 2. Record prospect-researcher 13:23 IST run (LLM + Places API)
   recordCostEntry(
     {
-      timestamp: "2026-10-30T13:23:00.000Z",
+      timestamp: `${testDate}T13:23:00.000Z`,
       issueNumber: 0,
       agent: "prospect-researcher",
       model: "claude-3-5-sonnet",
@@ -400,7 +403,7 @@ async function runIntakeQaTests() {
   );
 
   recordApiSpend({
-    timestamp: "2026-10-30T13:23:00.000Z",
+    timestamp: `${testDate}T13:23:00.000Z`,
     agent: "prospect-researcher",
     apiName: "google-places-api",
     totalCostUsd: 0.032,
@@ -411,7 +414,7 @@ async function runIntakeQaTests() {
   // 3. Record chief-of-staff intake call
   recordCostEntry(
     {
-      timestamp: "2026-10-30T13:28:00.000Z",
+      timestamp: `${testDate}T13:28:00.000Z`,
       issueNumber: 0,
       agent: "chief-of-staff",
       model: "claude-3-5-sonnet",
@@ -424,7 +427,7 @@ async function runIntakeQaTests() {
     { testMode: true }
   );
 
-  const unifiedSummary = getCostLedgerSummary("2026-10-30", { testMode: true });
+  const unifiedSummary = getCostLedgerSummary(testDate, { testMode: true });
 
   // Verify total runs
   if (unifiedSummary.runsCount !== 4) {

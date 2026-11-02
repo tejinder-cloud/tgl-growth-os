@@ -77,7 +77,14 @@ export interface GatheredData {
  */
 export async function gatherStandupMaterial(
   dateStr?: string,
-  options?: { testMode?: boolean; compileTime?: string }
+  options?: {
+    testMode?: boolean;
+    compileTime?: string;
+    mockOpenApprovals?: OpenApproval[];
+    mockClosedPrs?: number[];
+    mockRejectedIssues?: number[];
+    mockHistoryMessages?: any[];
+  }
 ): Promise<GatheredData> {
   const date = dateStr || getTodayDateString();
   const compileTime = options?.compileTime || getCurrentTimeIST();
@@ -164,14 +171,22 @@ export async function gatherStandupMaterial(
 
   // 3. Gather open approvals from Slack #approvals
   const openApprovals: OpenApproval[] = [];
-  if (config.slackBotToken && config.approvalsChannelId) {
-    try {
-      const history = await slackClient.conversations.history({
-        channel: config.approvalsChannelId,
-        limit: 30,
-      });
+  const prClosedCache = new Map<number, boolean>();
+  const issueRejectedCache = new Map<number, boolean>();
 
-      const messages = history.messages || [];
+  if ((config.slackBotToken && config.approvalsChannelId) || (isTest && options?.mockHistoryMessages)) {
+    try {
+      let messages: any[] = [];
+      if (options?.mockHistoryMessages) {
+        messages = options.mockHistoryMessages;
+      } else if (config.slackBotToken && config.approvalsChannelId) {
+        const history = await slackClient.conversations.history({
+          channel: config.approvalsChannelId,
+          limit: 30,
+        });
+        messages = history.messages || [];
+      }
+
       const now = Date.now();
 
       for (const msg of messages) {
@@ -181,7 +196,7 @@ export async function gatherStandupMaterial(
         }
 
         // Count only bot-posted cards
-        const isBot = Boolean(msg.bot_id || msg.app_id || msg.subtype === "bot_message");
+        const isBot = Boolean(msg.bot_id || msg.app_id || msg.subtype === "bot_message" || (isTest && options?.mockHistoryMessages));
         if (!isBot) {
           continue;
         }
@@ -219,9 +234,112 @@ export async function gatherStandupMaterial(
         const isDecided =
           (msg.ts && confirmedDecisionsText.includes(msg.ts)) ||
           (title && confirmedDecisionsText.includes(title.slice(0, 40))) ||
-          (msg.blocks || []).some((b: any) => b.text?.text?.includes("Approved by") || b.text?.text?.includes("Rejected by"));
+          (msg.blocks || []).some(
+            (b: any) =>
+              b.text?.text?.includes("Approved by") ||
+              b.text?.text?.includes("Rejected by") ||
+              b.text?.text?.includes("Proposal Rejected") ||
+              b.text?.text?.includes("Proposal Approved")
+          );
 
-        if (!isDecided && msg.ts) {
+        if (isDecided) {
+          continue;
+        }
+
+        // Extract PR number and issue number from button metadata or card text
+        let prNum: number | undefined;
+        let issueNum: number | undefined;
+
+        for (const b of msg.blocks || []) {
+          if (Array.isArray(b.elements)) {
+            for (const el of b.elements) {
+              if (el.value) {
+                try {
+                  const parsed = JSON.parse(el.value);
+                  if (parsed.pr && !prNum) prNum = Number(parsed.pr);
+                  if (parsed.issue && !issueNum) issueNum = Number(parsed.issue);
+                  if (parsed.linkedIssue && !issueNum) issueNum = Number(parsed.linkedIssue);
+                } catch {}
+              }
+            }
+          }
+        }
+
+        const msgString = JSON.stringify(msg.blocks || []) + " " + text;
+        if (!prNum) {
+          const prMatch = msgString.match(/(?:pull\/|PR\s*#?|pr\s*#?)(\d+)/i);
+          if (prMatch) prNum = Number(prMatch[1]);
+        }
+        if (!issueNum) {
+          const issueMatch = msgString.match(/(?:issues\/|Issue\s*#?|issue\s*#?)(\d+)/i);
+          if (issueMatch) issueNum = Number(issueMatch[1]);
+        }
+
+        // 1. Drop out if associated PR is closed
+        let isPrClosed = false;
+        if (prNum) {
+          if (options?.mockClosedPrs && options.mockClosedPrs.includes(prNum)) {
+            isPrClosed = true;
+          } else if (!isTest && config.githubToken) {
+            if (prClosedCache.has(prNum)) {
+              isPrClosed = prClosedCache.get(prNum)!;
+            } else {
+              try {
+                const prRes = await octokit.pulls.get({
+                  owner: config.githubOwner,
+                  repo: config.githubRepo,
+                  pull_number: prNum,
+                });
+                isPrClosed = prRes.data.state === "closed";
+                prClosedCache.set(prNum, isPrClosed);
+              } catch (err: any) {
+                console.warn(`[Gather] Error checking PR #${prNum} state:`, err.message);
+              }
+            }
+          }
+        }
+
+        if (isPrClosed) {
+          console.log(`[Gather] Dropping approval card for PR #${prNum} (PR is closed)`);
+          continue;
+        }
+
+        // 2. Drop out if associated issue is rejected or closed
+        let isIssueRejectedOrClosed = false;
+        if (issueNum) {
+          if (options?.mockRejectedIssues && options.mockRejectedIssues.includes(issueNum)) {
+            isIssueRejectedOrClosed = true;
+          } else if (!isTest && config.githubToken) {
+            if (issueRejectedCache.has(issueNum)) {
+              isIssueRejectedOrClosed = issueRejectedCache.get(issueNum)!;
+            } else {
+              try {
+                const issRes = await octokit.issues.get({
+                  owner: config.githubOwner,
+                  repo: config.githubRepo,
+                  issue_number: issueNum,
+                });
+                const hasRejectLabel = (issRes.data.labels || []).some(
+                  (l: any) =>
+                    (typeof l === "string" ? l : l.name) === "status:rejected" ||
+                    (typeof l === "string" ? l : l.name) === "approved:no" ||
+                    (typeof l === "string" ? l : l.name) === "status:completed"
+                );
+                isIssueRejectedOrClosed = issRes.data.state === "closed" || hasRejectLabel;
+                issueRejectedCache.set(issueNum, isIssueRejectedOrClosed);
+              } catch (err: any) {
+                console.warn(`[Gather] Error checking Issue #${issueNum} state:`, err.message);
+              }
+            }
+          }
+        }
+
+        if (isIssueRejectedOrClosed) {
+          console.log(`[Gather] Dropping approval card for Issue #${issueNum} (issue rejected or closed)`);
+          continue;
+        }
+
+        if (msg.ts) {
           const ageHours = Math.max(0, Math.round((now - Number(msg.ts) * 1000) / 3600000));
           const permalink = `https://itsthegrowthlab.slack.com/archives/${config.approvalsChannelId}/p${msg.ts.replace(".", "")}`;
           openApprovals.push({

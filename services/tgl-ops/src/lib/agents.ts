@@ -43,6 +43,74 @@ export function getAgentRunnerLimits(agent?: AgentRecord | null): {
   };
 }
 
+/**
+ * Evaluates whether a standard 5-field cron schedule runs on a specific YYYY-MM-DD date.
+ * Fields: minute hour day-of-month month day-of-week
+ */
+export function doesCronRunOnDate(schedule: string, dateStr: string): boolean {
+  if (!schedule || typeof schedule !== "string") return false;
+  const parts = schedule.trim().split(/\s+/);
+  if (parts.length < 5) return false;
+  const [_min, _hour, dom, month, dow] = parts;
+
+  const [y, m, d] = dateStr.split("-").map(Number);
+  if (isNaN(y) || isNaN(m) || isNaN(d)) return false;
+
+  const dateObj = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  const targetDow = dateObj.getUTCDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+  const targetDom = d;
+  const targetMonth = m;
+
+  function matchesField(field: string, targetVal: number, isDow = false): boolean {
+    if (field === "*") return true;
+    const subParts = field.split(",");
+    for (const sub of subParts) {
+      if (sub.includes("-")) {
+        const [startStr, endStr] = sub.split("-");
+        let start = parseInt(startStr, 10);
+        let end = parseInt(endStr, 10);
+        if (isDow) {
+          if (start === 7) start = 0;
+          if (end === 7) end = 0;
+          if (start <= end) {
+            if (targetVal >= start && targetVal <= end) return true;
+          } else {
+            if (targetVal >= start || targetVal <= end) return true;
+          }
+        } else {
+          if (targetVal >= start && targetVal <= end) return true;
+        }
+      } else {
+        let val = parseInt(sub, 10);
+        if (isDow && val === 7) val = 0;
+        if (val === targetVal) return true;
+      }
+    }
+    return false;
+  }
+
+  const matchMonth = matchesField(month, targetMonth);
+  if (!matchMonth) return false;
+
+  const matchDom = dom === "*" ? true : matchesField(dom, targetDom);
+  const matchDow = dow === "*" ? true : matchesField(dow, targetDow, true);
+
+  if (dom === "*" && dow === "*") return true;
+  if (dom !== "*" && dow === "*") return matchDom;
+  if (dom === "*" && dow !== "*") return matchDow;
+  return matchDom || matchDow;
+}
+
+/**
+ * Checks if an agent has at least one routine scheduled to run on dateStr.
+ */
+export function isAgentScheduledOnDate(agent: AgentRecord, dateStr: string): boolean {
+  if (!agent.routines || agent.routines.length === 0) {
+    return false;
+  }
+  return agent.routines.some((routine) => doesCronRunOnDate(routine.schedule, dateStr));
+}
+
 export interface DoorRecord {
   name: string;
   icp: string;
