@@ -40,6 +40,50 @@ export interface PostFileOptions {
   thread_ts?: string;
 }
 
+let simulatedPostLineFailure: string | null = null;
+
+export function setSimulatedPostLineFailureForTests(errMsg: string | null): void {
+  simulatedPostLineFailure = errMsg;
+}
+
+/**
+ * Splits text into chunks of at most maxLen characters (default 2,900),
+ * breaking cleanly on paragraph breaks, newlines, or whitespace when possible.
+ */
+export function splitTextIntoChunks(text: string, maxLen = 2900): string[] {
+  if (!text || text.length <= maxLen) return [text || ""];
+
+  const chunks: string[] = [];
+  let remaining = text;
+
+  while (remaining.length > 0) {
+    if (remaining.length <= maxLen) {
+      chunks.push(remaining);
+      break;
+    }
+
+    const window = remaining.slice(0, maxLen);
+    let splitIdx = window.lastIndexOf("\n\n");
+    if (splitIdx === -1 || splitIdx < maxLen * 0.3) {
+      splitIdx = window.lastIndexOf("\n");
+    }
+    if (splitIdx === -1 || splitIdx < maxLen * 0.3) {
+      splitIdx = window.lastIndexOf(" ");
+    }
+    if (splitIdx === -1 || splitIdx <= 0) {
+      splitIdx = maxLen;
+    }
+
+    const chunk = remaining.slice(0, splitIdx).trim();
+    if (chunk) {
+      chunks.push(chunk);
+    }
+    remaining = remaining.slice(splitIdx).trim();
+  }
+
+  return chunks;
+}
+
 /**
  * Builds the standardized TGL Block Kit blocks for a card.
  */
@@ -72,6 +116,15 @@ export function buildCardBlocks(options: PostCardOptions): any[] {
     ...(extraMeta || {}),
   });
 
+  const summaryChunks = splitTextIntoChunks(summary, 2900);
+  const summaryBlocks = summaryChunks.map((sc) => ({
+    type: "section",
+    text: {
+      type: "mrkdwn",
+      text: sc,
+    },
+  }));
+
   const blocks: any[] = [
     {
       type: "header",
@@ -90,13 +143,7 @@ export function buildCardBlocks(options: PostCardOptions): any[] {
         },
       ],
     },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: summary,
-      },
-    },
+    ...summaryBlocks,
   ];
 
   if (links.length > 0) {
@@ -166,8 +213,9 @@ export function buildCardBlocks(options: PostCardOptions): any[] {
 
 /**
  * Renders and posts a standardized TGL Block Kit card.
+ * Automatically splits cards exceeding 50 blocks into multiple threaded messages.
  */
-export async function postCard(options: PostCardOptions): Promise<{ ok: boolean; ts?: string; channel?: string; dryRun?: boolean }> {
+export async function postCard(options: PostCardOptions): Promise<{ ok: boolean; ts?: string; channel?: string; dryRun?: boolean; error?: string }> {
   const { channel, agent, title, thread_ts } = options;
   const blocks = buildCardBlocks(options);
 
@@ -182,60 +230,112 @@ export async function postCard(options: PostCardOptions): Promise<{ ok: boolean;
   }
 
   try {
-    const res = await slackClient.chat.postMessage({
-      channel,
-      text: `[TGL Task Card] ${title} (${agent})`,
-      blocks,
-      thread_ts,
-    });
-    if (!res.ok || !res.ts) {
-      throw new Error(`Slack postCard failed: ${res.error || "no ts returned"}`);
+    const MAX_BLOCKS = 50;
+    if (blocks.length <= MAX_BLOCKS) {
+      const res = await slackClient.chat.postMessage({
+        channel,
+        text: `[TGL Task Card] ${title} (${agent})`,
+        blocks,
+        thread_ts,
+      });
+      if (!res.ok || !res.ts) {
+        throw new Error(`Slack postCard failed: ${res.error || "no ts returned"}`);
+      }
+      return { ok: true, ts: res.ts, channel: res.channel };
+    } else {
+      let mainTs: string | undefined;
+      for (let i = 0; i < blocks.length; i += MAX_BLOCKS) {
+        const batch = blocks.slice(i, i + MAX_BLOCKS);
+        const res = await slackClient.chat.postMessage({
+          channel,
+          text: `[TGL Task Card] ${title} (${agent}) [Part ${Math.floor(i / MAX_BLOCKS) + 1}]`,
+          blocks: batch,
+          thread_ts: thread_ts || mainTs,
+        });
+        if (!res.ok || !res.ts) {
+          throw new Error(`Slack postCard batch failed: ${res.error || "no ts returned"}`);
+        }
+        if (!mainTs) mainTs = res.ts;
+      }
+      return { ok: true, ts: mainTs, channel };
     }
-    return { ok: true, ts: res.ts, channel: res.channel };
   } catch (err: any) {
     console.error("[postCard Error]", err.message || err);
-    return { ok: false };
+    return { ok: false, error: err.message || String(err) };
   }
 }
 
 /**
  * Posts a single line or markdown update in a Slack channel or thread.
- * Guaranteed to carry plain-text text plus blocks.
+ * Automatically splits text over 2,900 chars into multiple blocks (and messages if > 50 blocks).
  */
-export async function postLine(options: PostLineOptions): Promise<{ ok: boolean; ts?: string }> {
+export async function postLine(options: PostLineOptions): Promise<{ ok: boolean; ts?: string; error?: string }> {
   const { channel, text, thread_ts } = options;
   const safeText = (text && text.trim()) || " ";
+  const chunks = splitTextIntoChunks(safeText, 2900);
+
+  if (simulatedPostLineFailure && isTestMode()) {
+    console.log(`[postLine Simulated Failure] [${channel}] ${simulatedPostLineFailure}`);
+    return { ok: false, error: simulatedPostLineFailure };
+  }
 
   if (!config.slackBotToken) {
     if (isTestMode()) {
-      console.log(`[postLine Dry Run] [${channel}${thread_ts ? ` : thread ${thread_ts}` : ""}] ${safeText}`);
+      console.log(`[postLine Dry Run] [${channel}${thread_ts ? ` : thread ${thread_ts}` : ""}] ${chunks.length} block(s) (total ${safeText.length} chars)`);
       return { ok: true, ts: `${Date.now() / 1000}` };
     }
     throw new Error(`SLACK_BOT_TOKEN is not configured; cannot post to ${channel} in production.`);
   }
 
   try {
-    const res = await slackClient.chat.postMessage({
-      channel,
-      text: safeText,
-      blocks: [
-        {
+    const MAX_BLOCKS = 50;
+    if (chunks.length <= MAX_BLOCKS) {
+      const blocks = chunks.map((chunk) => ({
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: chunk,
+        },
+      }));
+
+      const res = await slackClient.chat.postMessage({
+        channel,
+        text: chunks[0].slice(0, 150),
+        blocks,
+        thread_ts,
+      });
+      if (!res.ok || !res.ts) {
+        throw new Error(`Slack postLine failed: ${res.error || "no ts returned"}`);
+      }
+      return { ok: true, ts: res.ts };
+    } else {
+      let mainTs: string | undefined;
+      for (let i = 0; i < chunks.length; i += MAX_BLOCKS) {
+        const batch = chunks.slice(i, i + MAX_BLOCKS);
+        const blocks = batch.map((chunk) => ({
           type: "section",
           text: {
             type: "mrkdwn",
-            text: safeText,
+            text: chunk,
           },
-        },
-      ],
-      thread_ts,
-    });
-    if (!res.ok || !res.ts) {
-      throw new Error(`Slack postLine failed: ${res.error || "no ts returned"}`);
+        }));
+
+        const res = await slackClient.chat.postMessage({
+          channel,
+          text: batch[0].slice(0, 150),
+          blocks,
+          thread_ts: thread_ts || mainTs,
+        });
+        if (!res.ok || !res.ts) {
+          throw new Error(`Slack postLine batch failed: ${res.error || "no ts returned"}`);
+        }
+        if (!mainTs) mainTs = res.ts;
+      }
+      return { ok: true, ts: mainTs };
     }
-    return { ok: true, ts: res.ts };
   } catch (err: any) {
     console.error("[postLine Error]", err.message || err);
-    return { ok: false };
+    return { ok: false, error: err.message || String(err) };
   }
 }
 
