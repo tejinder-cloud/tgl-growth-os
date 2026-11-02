@@ -161,7 +161,7 @@ cron.schedule(
     console.error("[Citation Tracker Startup Catch-Up Error]", err);
     await postLine({
       channel: getAlertsChannel(),
-      text: `⚠️ *[Citation Tracker Catch-Up Failure]* at ${getCurrentTimeIST()} IST\n• Error: \`${String(err?.message ?? err).slice(0, 400)}\``,
+      text: `*[Citation Tracker Catch-Up Failure]* at ${getCurrentTimeIST()} IST\n• Error: \`${String(err?.message ?? err).slice(0, 400)}\``,
     }).catch(() => {});
   }
 })();
@@ -197,7 +197,7 @@ cron.schedule(
     console.error("[Startup Catch-Up Error]", err);
     await postLine({
       channel: getAlertsChannel(),
-      text: `⚠️ *[Startup Catch-Up Failure]* at ${getCurrentTimeIST()} IST\n• Error: \`${errMsg.slice(0, 400)}\`\n_Process kept running._`,
+      text: `*[Startup Catch-Up Failure]* at ${getCurrentTimeIST()} IST\n• Error: \`${errMsg.slice(0, 400)}\`\n_Process kept running._`,
     }).catch((postErr) => {
       console.error("[Failed to post startup catchup error to Slack alerts]", postErr);
     });
@@ -213,7 +213,7 @@ cron.schedule(
     console.error("[Startup Runner Catch-Up Error]", err);
     await postLine({
       channel: getAlertsChannel(),
-      text: `⚠️ *[Startup Runner Catch-Up Failure]* at ${getCurrentTimeIST()} IST\n• Error: \`${errMsg.slice(0, 400)}\`\n_Process kept running._`,
+      text: `*[Startup Runner Catch-Up Failure]* at ${getCurrentTimeIST()} IST\n• Error: \`${errMsg.slice(0, 400)}\`\n_Process kept running._`,
     }).catch((postErr) => {
       console.error("[Failed to post startup runner catch-up error to Slack alerts]", postErr);
     });
@@ -232,15 +232,15 @@ import("./lib/labels.js").then(({ syncLabels }) => {
 // Start HTTP server
 app.listen(config.port, () => {
   console.log(`=======================================================`);
-  console.log(`🚀 TGL Ops service listening on port ${config.port}`);
-  console.log(`📍 Timezone: ${config.timezone}`);
-  console.log(`📦 GitHub Repo: ${config.githubOwner}/${config.githubRepo}`);
-  console.log(`💬 Slack Approvals Channel: ${config.approvalsChannelId}`);
-  console.log(`💬 Slack Standup Channel: ${config.standupChannelId}`);
+  console.log(`TGL Ops service listening on port ${config.port}`);
+  console.log(`Timezone: ${config.timezone}`);
+  console.log(`GitHub Repo: ${config.githubOwner}/${config.githubRepo}`);
+  console.log(`Slack Approvals Channel: ${config.approvalsChannelId}`);
+  console.log(`Slack Standup Channel: ${config.standupChannelId}`);
   if (config.architectChannelId) {
-    console.log(`💬 Slack Architect Channel: ${config.architectChannelId}`);
+    console.log(`Slack Architect Channel: ${config.architectChannelId}`);
   } else {
-    console.warn(`⚠️  Slack Architect Channel: ARCHITECT_CHANNEL_ID not set — intake will not poll #architect`);
+    console.warn(`[Warning] Slack Architect Channel: ARCHITECT_CHANNEL_ID not set — intake will not poll #architect`);
   }
   console.log(`=======================================================`);
 });

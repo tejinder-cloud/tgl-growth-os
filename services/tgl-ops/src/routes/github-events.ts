@@ -132,7 +132,7 @@ async function handleIssueComment(payload: any): Promise<void> {
     // Thread reply under the issue's card
     await postLine({
       channel: mapping.channel,
-      text: `💬 *${author}* commented on <${commentUrl}|#${issueNum}>: "${snippet}"`,
+      text: `*${author}* commented on <${commentUrl}|#${issueNum}>: "${snippet}"`,
       thread_ts: mapping.ts,
     });
     console.log(`[GitHub Event] Posted comment thread reply for issue #${issueNum} in ${mapping.channel}`);
@@ -161,7 +161,7 @@ async function handlePullRequestOpened(payload: any): Promise<void> {
     // Post thread reply under the linked issue's card in the agent's channel
     await postLine({
       channel: mapping.channel,
-      text: `🔀 *${author}* opened PR <${prUrl}|#${prNum} ${prTitle}> (linked to #${linkedIssueNum})`,
+      text: `*${author}* opened PR <${prUrl}|#${prNum} ${prTitle}> (linked to #${linkedIssueNum})`,
       thread_ts: mapping.ts,
     });
     // Map PR number as well so subsequent PR reviews can find the card thread
@@ -194,7 +194,7 @@ async function handlePullRequestReviewSubmitted(payload: any): Promise<void> {
   if (mapping && mapping.ts && mapping.channel) {
     await postLine({
       channel: mapping.channel,
-      text: `🔍 Review submitted on PR <${prUrl}|#${prNum} ${prTitle}> by *${reviewer}* (State: \`${state}\`)`,
+      text: `Review submitted on PR <${prUrl}|#${prNum} ${prTitle}> by *${reviewer}* (State: \`${state}\`)`,
       thread_ts: mapping.ts,
     });
     console.log(`[GitHub Event] Posted PR review thread reply for PR #${prNum} in ${mapping.channel}`);

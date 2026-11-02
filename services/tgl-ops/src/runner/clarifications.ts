@@ -62,7 +62,7 @@ export async function handleNeedsBriefClarification(params: {
   await updateIssueBody(issueNum, updatedBody);
   await addCommentToIssue(
     issueNum,
-    `💬 **Architect Clarification (via card thread):**\n\n${replyText.trim()}`
+    `**Architect Clarification (via card thread):**\n\n${replyText.trim()}`
   ).catch(() => {});
 
   // 3. Re-run pre-flight check
@@ -87,7 +87,7 @@ export async function handleNeedsBriefClarification(params: {
     await postLine({
       channel,
       thread_ts: threadTs,
-      text: `✅ *[Pre-flight Passed with Clarifications]* The brief now satisfies all criteria:\n• ${preflight.reason}\n• Status updated to \`status:in-progress\`. Executing task...`,
+      text: `*[Pre-flight Passed with Clarifications]* The brief now satisfies all criteria:\n• ${preflight.reason}\n• Status updated to \`status:in-progress\`. Executing task...`,
     });
 
     // Run the issue task
@@ -123,7 +123,7 @@ export async function handleNeedsBriefClarification(params: {
     await postLine({
       channel,
       thread_ts: threadTs,
-      text: `⚠️ *[Pre-flight: Still Needs Brief]*\n${preflight.reason}${questionsBlock}`,
+      text: `*[Pre-flight: Still Needs Brief]*\n${preflight.reason}${questionsBlock}`,
     });
 
     return {
@@ -141,7 +141,7 @@ export async function handleNeedsBriefClarification(params: {
     await postLine({
       channel,
       thread_ts: threadTs,
-      text: `⛔ *[Pre-flight Refusal: Guardrail Violation]*\n${preflight.reason}`,
+      text: `*[Pre-flight Refusal: Guardrail Violation]*\n${preflight.reason}`,
     });
 
     return {

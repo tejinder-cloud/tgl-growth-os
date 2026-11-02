@@ -98,7 +98,7 @@ export async function postTop25ReviewCard(params: {
   const top25 = [...prospects].sort((a, b) => b.fit_score - a.fit_score).slice(0, 25);
 
   const lines = top25.map((p, idx) => {
-    const phoneTag = p.decision_maker.phone ? " · 📱" : "";
+    const phoneTag = p.decision_maker.phone ? " · [phone]" : "";
     return `*${idx + 1}. <${p.website}|${p.company}>* (Score: *${p.fit_score}*) · ${p.city}\n   ↳ *${p.decision_maker.name}* (${p.decision_maker.role}) · \`${p.decision_maker.email}\`${phoneTag}\n   ↳ _${p.fit_reasons[0] || "Qualified"}_`;
   });
 
@@ -187,7 +187,7 @@ export async function exportWeeklyProspectsCsv(options?: { testMode?: boolean })
       channel: targetChannel,
       filePath,
       filename: path.basename(filePath),
-      title: `📊 Weekly Prospects Full Export — Week of ${dateStr} (${listToExport.length} accounts)`,
+      title: `Weekly Prospects Full Export — Week of ${dateStr} (${listToExport.length} accounts)`,
     });
   }
 

@@ -139,7 +139,7 @@ export async function getProspectMetricsFromSql(options?: {
 
 export function formatProspectCityCounts(metrics: ProspectMetrics): string {
   if (metrics.total === 0 || Object.keys(metrics.byCity).length === 0) {
-    return `📊 *Prospect Counts by City (from SQL):*\n• 0 prospects recorded in Supabase \`public.prospects\`.\n_Verified from Supabase public.prospects_`;
+    return `*Prospect Counts by City (from SQL):*\n• 0 prospects recorded in Supabase \`public.prospects\`.\n_Verified from Supabase public.prospects_`;
   }
 
   const cityLines = Object.entries(metrics.byCity)
@@ -148,7 +148,7 @@ export function formatProspectCityCounts(metrics: ProspectMetrics): string {
     .join("\n");
 
   const distinctCities = Object.keys(metrics.byCity).length;
-  return `📊 *Prospect Counts by City (from SQL):*
+  return `*Prospect Counts by City (from SQL):*
 ${cityLines}
 • *Total:* ${metrics.total} prospect${metrics.total === 1 ? "" : "s"} across ${distinctCities} cit${distinctCities === 1 ? "y" : "ies"}.
 _Verified from Supabase public.prospects_`;
@@ -156,7 +156,7 @@ _Verified from Supabase public.prospects_`;
 
 export function formatProspectStatusCounts(metrics: ProspectMetrics): string {
   if (metrics.total === 0 || Object.keys(metrics.byStatus).length === 0) {
-    return `📊 *Prospect Counts by Status (from SQL):*\n• 0 prospects recorded in Supabase \`public.prospects\`.\n_Verified from Supabase public.prospects_`;
+    return `*Prospect Counts by Status (from SQL):*\n• 0 prospects recorded in Supabase \`public.prospects\`.\n_Verified from Supabase public.prospects_`;
   }
 
   const statusLines = Object.entries(metrics.byStatus)
@@ -164,7 +164,7 @@ export function formatProspectStatusCounts(metrics: ProspectMetrics): string {
     .map(([status, count]) => `• *${status}:* ${count}`)
     .join("\n");
 
-  return `📊 *Prospect Counts by Status (from SQL):*
+  return `*Prospect Counts by Status (from SQL):*
 ${statusLines}
 • *Total:* ${metrics.total} prospect${metrics.total === 1 ? "" : "s"}.
 _Verified from Supabase public.prospects_`;
@@ -172,7 +172,7 @@ _Verified from Supabase public.prospects_`;
 
 export function formatProspectDayCounts(metrics: ProspectMetrics): string {
   if (metrics.total === 0 || Object.keys(metrics.byDay).length === 0) {
-    return `📊 *Prospect Counts by Day (from SQL):*\n• 0 prospects recorded in Supabase \`public.prospects\`.\n_Verified from Supabase public.prospects_`;
+    return `*Prospect Counts by Day (from SQL):*\n• 0 prospects recorded in Supabase \`public.prospects\`.\n_Verified from Supabase public.prospects_`;
   }
 
   const dayLines = Object.entries(metrics.byDay)
@@ -181,7 +181,7 @@ export function formatProspectDayCounts(metrics: ProspectMetrics): string {
     .join("\n");
 
   const distinctDays = Object.keys(metrics.byDay).length;
-  return `📊 *Prospect Counts by Day (from SQL):*
+  return `*Prospect Counts by Day (from SQL):*
 ${dayLines}
 • *Total:* ${metrics.total} prospect${metrics.total === 1 ? "" : "s"} across ${distinctDays} day${distinctDays === 1 ? "" : "s"}.
 _Verified from Supabase public.prospects_`;
@@ -189,7 +189,7 @@ _Verified from Supabase public.prospects_`;
 
 export function formatAllProspectCounts(metrics: ProspectMetrics): string {
   if (metrics.total === 0) {
-    return `📊 *Prospect Database Breakdown (from SQL):*\n• *Total Prospects:* 0\n_Verified from Supabase public.prospects_`;
+    return `*Prospect Database Breakdown (from SQL):*\n• *Total Prospects:* 0\n_Verified from Supabase public.prospects_`;
   }
 
   const cityLines = Object.entries(metrics.byCity)
@@ -207,16 +207,16 @@ export function formatAllProspectCounts(metrics: ProspectMetrics): string {
     .map(([d, n]) => `• ${d}: ${n}`)
     .join("\n");
 
-  return `📊 *Prospect Database Breakdown (from SQL):*
+  return `*Prospect Database Breakdown (from SQL):*
 • *Total Prospects:* ${metrics.total}
 
-🏙️ *Counts by City:*
+*Counts by City:*
 ${cityLines}
 
-📋 *Counts by Status:*
+*Counts by Status:*
 ${statusLines}
 
-📅 *Counts by Day:*
+*Counts by Day:*
 ${dayLines}
 _Verified from Supabase public.prospects_`;
 }

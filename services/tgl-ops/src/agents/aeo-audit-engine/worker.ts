@@ -18,12 +18,12 @@ export async function runCitationTracking(options?: { brandId?: string }): Promi
   }
   const sb = getSupabase();
   if (!sb) {
-    await alert("⚠️ *@aeo-audit-engine* Citation Tracker skipped: `SUPABASE_SERVICE_ROLE_KEY` is not set on tgl-ops.");
+    await alert("[Warning] *@aeo-audit-engine* Citation Tracker skipped: `SUPABASE_SERVICE_ROLE_KEY` is not set on tgl-ops.");
     return null;
   }
   const usdInr = Number(process.env.USD_INR_RATE);
   if (!process.env.USD_INR_RATE || !isFinite(usdInr) || usdInr <= 0) {
-    await alert("⚠️ *@aeo-audit-engine* Citation Tracker skipped: `USD_INR_RATE` is not set (needed to record spend in ₹ for usage_costs).");
+    await alert("[Warning] *@aeo-audit-engine* Citation Tracker skipped: `USD_INR_RATE` is not set (needed to record spend in ₹ for usage_costs).");
     return null;
   }
 
@@ -49,7 +49,7 @@ export async function runCitationTracking(options?: { brandId?: string }): Promi
   const failed = ran.filter((o) => o.status !== "succeeded");
   if (failed.length || summary.notConfigured.length || summary.stoppedByCap) {
     const lines = [
-      `⚠️ *@aeo-audit-engine* Citation Tracker ${runDate} needs a look`,
+      `[Warning] *@aeo-audit-engine* Citation Tracker ${runDate} needs a look`,
       ...failed.map((o) => `• ${o.brand} · ${o.engine}: ${o.status} (${o.ok}/${o.total})${o.note ? ` — \`${o.note.slice(0, 200)}\`` : ""}`),
       ...summary.notConfigured.map((n) => `• ${n.engine} not configured — missing: ${n.missing.join(", ")}`),
       ...(summary.stoppedByCap ? ["• stopped by the daily cost cap (config/agents.yaml → daily_cost_cap_usd)"] : []),

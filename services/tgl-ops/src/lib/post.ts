@@ -41,9 +41,9 @@ export interface PostFileOptions {
 }
 
 /**
- * Renders and posts a standardized TGL Block Kit card.
+ * Builds the standardized TGL Block Kit blocks for a card.
  */
-export async function postCard(options: PostCardOptions): Promise<{ ok: boolean; ts?: string; channel?: string; dryRun?: boolean }> {
+export function buildCardBlocks(options: PostCardOptions): any[] {
   const {
     channel,
     agent,
@@ -56,7 +56,6 @@ export async function postCard(options: PostCardOptions): Promise<{ ok: boolean;
     pr,
     branch,
     linkedIssue,
-    thread_ts,
     extraMeta,
   } = options;
 
@@ -79,7 +78,7 @@ export async function postCard(options: PostCardOptions): Promise<{ ok: boolean;
       text: {
         type: "plain_text",
         text: title.length > 150 ? `${title.slice(0, 147)}...` : title,
-        emoji: true,
+        emoji: false,
       },
     },
     {
@@ -119,7 +118,7 @@ export async function postCard(options: PostCardOptions): Promise<{ ok: boolean;
       text: {
         type: "plain_text",
         text: "Approve",
-        emoji: true,
+        emoji: false,
       },
       style: "primary",
       value: metadataPayload,
@@ -133,7 +132,7 @@ export async function postCard(options: PostCardOptions): Promise<{ ok: boolean;
       text: {
         type: "plain_text",
         text: "Reject",
-        emoji: true,
+        emoji: false,
       },
       style: "danger",
       value: metadataPayload,
@@ -147,7 +146,7 @@ export async function postCard(options: PostCardOptions): Promise<{ ok: boolean;
       text: {
         type: "plain_text",
         text: "Discuss",
-        emoji: true,
+        emoji: false,
       },
       value: metadataPayload,
       action_id: "action_discuss",
@@ -161,6 +160,16 @@ export async function postCard(options: PostCardOptions): Promise<{ ok: boolean;
       elements: actionElements,
     });
   }
+
+  return blocks;
+}
+
+/**
+ * Renders and posts a standardized TGL Block Kit card.
+ */
+export async function postCard(options: PostCardOptions): Promise<{ ok: boolean; ts?: string; channel?: string; dryRun?: boolean }> {
+  const { channel, agent, title, thread_ts } = options;
+  const blocks = buildCardBlocks(options);
 
   if (!config.slackBotToken) {
     if (isTestMode()) {

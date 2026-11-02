@@ -124,7 +124,7 @@ Immediate priority
 
   await postLine({
     channel,
-    text: `⚡ Task assigned to \`@${finalAgentName}\`:\n• *Issue:* <${issue.html_url}|#${issue.number} ${title}>\n• *Reviewer:* ${matchedAgent?.reviewer || "Chief of Staff"}`,
+    text: `Task assigned to \`@${finalAgentName}\`:\n• *Issue:* <${issue.html_url}|#${issue.number} ${title}>\n• *Reviewer:* ${matchedAgent?.reviewer || "Chief of Staff"}`,
     thread_ts,
   });
 }

@@ -411,7 +411,7 @@ export async function checkAgentCostCap(
     // Alert #alerts
     await postLine({
       channel: getAlertsChannel(),
-      text: `🛑 *[Cost Cap Exceeded]* @${agentName} hit daily cap\n• *Spend:* $${currentSpend.toFixed(2)} / $${cap.toFixed(2)} USD (${percentage.toFixed(0)}%)\n• *Status:* \`status:blocked\` — execution stopped.`,
+      text: `*[Cost Cap Exceeded]* @${agentName} hit daily cap\n• *Spend:* $${currentSpend.toFixed(2)} / $${cap.toFixed(2)} USD (${percentage.toFixed(0)}%)\n• *Status:* \`status:blocked\` — execution stopped.`,
     }).catch(() => {});
 
     return {

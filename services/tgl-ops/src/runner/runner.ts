@@ -142,9 +142,9 @@ export async function runIssueTask(
       console.warn(`[Runner] ${capMsg}`);
       await addLabelsToIssue(issueNum, ["status:blocked"]);
       const alertsChannel = getAlertsChannel();
-      await postLine({ channel: alertsChannel, text: `🚨 *@${agentName}* blocked: ${capMsg} (Issue #${issueNum})` });
+      await postLine({ channel: alertsChannel, text: `*@${agentName}* blocked: ${capMsg} (Issue #${issueNum})` });
       if (slackChannel && slackThreadTs) {
-        await postLine({ channel: slackChannel, thread_ts: slackThreadTs, text: `⚠️ Run blocked: ${capMsg}` });
+        await postLine({ channel: slackChannel, thread_ts: slackThreadTs, text: `Run blocked: ${capMsg}` });
       }
       return {
         success: false,
@@ -185,7 +185,7 @@ export async function runIssueTask(
         await postLine({
           channel: slackChannel,
           thread_ts: slackThreadTs,
-          text: `✅ *[Prospect Researcher Run Complete on Issue #${issueNum}]*\n• City & Category: *${result.city}* × *${result.category}*\n• Qualified prospects: *${result.qualifiedCount}* accounts\n• Review card posted to #revenue with CSV attached.`,
+          text: `*[Prospect Researcher Run Complete on Issue #${issueNum}]*\n• City & Category: *${result.city}* × *${result.category}*\n• Qualified prospects: *${result.qualifiedCount}* accounts\n• Review card posted to #revenue with CSV attached.`,
         }).catch((err) => console.warn("[Runner thread post error]", err));
       }
 
@@ -252,10 +252,10 @@ export async function runIssueTask(
     // Format verdict message for threads
     const verdictTitle =
       preflight.verdict === "proceed"
-        ? "✅ *[Pre-flight Verdict: Proceed]*"
+        ? "*[Pre-flight Verdict: Proceed]*"
         : preflight.verdict === "needs-brief"
-        ? "⚠️ *[Pre-flight Verdict: Needs Brief — Questions before build]*"
-        : "⛔ *[Pre-flight Verdict: Refuse — Guardrail Violation]*";
+        ? "*[Pre-flight Verdict: Needs Brief — Questions before build]*"
+        : "*[Pre-flight Verdict: Refuse — Guardrail Violation]*";
 
     const questionsBlock =
       preflight.questions && preflight.questions.length > 0
@@ -473,14 +473,14 @@ Work in progress — fixes #${issueNum}
         await postLine({
           channel: targetChannel,
           thread_ts: slackThreadTs,
-          text: `⏳ *[partial — continuing]* Runner reached agent limit (${toolCallsCount}/${MAX_TOOL_CALLS} tool calls, ${runnerLimits.timeoutMinutes} min). Progress saved to draft PR <${draftPr.html_url}|#${draftPr.number}> on branch \`${branchName}\`. Next run will resume on this branch.`,
+          text: `*[partial — continuing]* Runner reached agent limit (${toolCallsCount}/${MAX_TOOL_CALLS} tool calls, ${runnerLimits.timeoutMinutes} min). Progress saved to draft PR <${draftPr.html_url}|#${draftPr.number}> on branch \`${branchName}\`. Next run will resume on this branch.`,
         }).catch((err) => console.warn("[Runner thread post error]", err));
       }
 
       if (!isTest) {
         await addCommentToIssue(
           issueNum,
-          `⏳ **[partial — continuing]** Runner reached agent limit (${toolCallsCount}/${MAX_TOOL_CALLS} calls). Progress saved to draft PR #${draftPr.number} on branch \`${branchName}\`. Next run will resume on this branch.`
+          `**[partial — continuing]** Runner reached agent limit (${toolCallsCount}/${MAX_TOOL_CALLS} calls). Progress saved to draft PR #${draftPr.number} on branch \`${branchName}\`. Next run will resume on this branch.`
         ).catch((err) => console.warn("[Runner comment error]", err));
       }
 
@@ -537,17 +537,17 @@ Implements deliverable for issue #${issueNum} autonomously via issue runner.
 Fixes #${issueNum}
 
 ## Gate Integrity Checklist
-[✓] No deleted or skipped tests: All test cases preserved.
-[✓] No widened tolerances: No timeouts, retry loops, or rate limits widened.
-[✓] No relaxed assertions: Expected values remain strict.
-[✓] No suppression pragmas: Zero @ts-ignore or eslint-disable added.
-[✓] No unverified snapshots/fixtures: None modified.
-[✓] No swallowed errors: Error paths handled with alerts.
-[✓] No bypassed hooks: Committed normally without --no-verify.
+[x] No deleted or skipped tests: All test cases preserved.
+[x] No widened tolerances: No timeouts, retry loops, or rate limits widened.
+[x] No relaxed assertions: Expected values remain strict.
+[x] No suppression pragmas: Zero @ts-ignore or eslint-disable added.
+[x] No unverified snapshots/fixtures: None modified.
+[x] No swallowed errors: Error paths handled with alerts.
+[x] No bypassed hooks: Committed normally without --no-verify.
 
 ## Evidence Kind Declaration
-[✓] File Write on Branch: Verified changes committed to branch \`${branchName}\`.
-[✓] Reviewer: \`@${reviewer}\`
+[x] File Write on Branch: Verified changes committed to branch \`${branchName}\`.
+[x] Reviewer: \`@${reviewer}\`
 `;
 
     const prRes = await createPullRequest({
@@ -566,7 +566,7 @@ Fixes #${issueNum}
       await postLine({
         channel: targetChannel,
         thread_ts: slackThreadTs,
-        text: `🔀 PR <${prRes.html_url}|#${prRes.number}> ready for review (fixes #${issueNum}).`,
+        text: `PR <${prRes.html_url}|#${prRes.number}> ready for review (fixes #${issueNum}).`,
       }).catch((err) => console.warn("[Runner thread post error]", err));
     }
 
@@ -575,7 +575,7 @@ Fixes #${issueNum}
     const ciResult = await verifyCiChecks(prRes.number, branchName, { testMode: isTest });
 
     if (!ciResult.passed) {
-      const ciFailMsg = `🚨 CI checks failed on PR #${prRes.number}: ${ciResult.error || ciResult.checkResult}. Review card withheld.`;
+      const ciFailMsg = `CI checks failed on PR #${prRes.number}: ${ciResult.error || ciResult.checkResult}. Review card withheld.`;
       console.error(`[Runner CI Gate] ${ciFailMsg}`);
       await addLabelsToIssue(issueNum, ["status:blocked"]);
       const alertsChannel = getAlertsChannel();
@@ -653,7 +653,7 @@ Fixes #${issueNum}
       await postLine({
         channel: slackChannel,
         thread_ts: slackThreadTs,
-        text: `❌ *[Task Execution Failed on Issue #${issueNum}]*\n• Error: \`${errMsg.slice(0, 300)}\`\n• Status marked \`status:blocked\`.`,
+        text: `*[Task Execution Failed on Issue #${issueNum}]*\n• Error: \`${errMsg.slice(0, 300)}\`\n• Status marked \`status:blocked\`.`,
       }).catch(() => {});
     }
 
@@ -662,7 +662,7 @@ Fixes #${issueNum}
 
     await postLine({
       channel: getAlertsChannel(),
-      text: `⚠️ *[Issue Runner Failure]* Issue #${issueNum}\n• Error: \`${errMsg.slice(0, 300)}\``,
+      text: `*[Issue Runner Failure]* Issue #${issueNum}\n• Error: \`${errMsg.slice(0, 300)}\``,
     }).catch(() => {});
 
     return {
@@ -699,7 +699,7 @@ export async function verifyCiChecks(
   if (isTest || !config.githubToken) {
     return {
       passed: true,
-      checkResult: "✅ Passed (build & test suites)",
+      checkResult: "Passed (build & test suites)",
     };
   }
 
@@ -723,13 +723,13 @@ export async function verifyCiChecks(
           if (allSucceeded) {
             return {
               passed: true,
-              checkResult: `✅ Passed (${runs.length} check${runs.length > 1 ? "s" : ""})`,
+              checkResult: `Passed (${runs.length} check${runs.length > 1 ? "s" : ""})`,
             };
           } else {
             const failed = runs.filter((r) => r.conclusion === "failure");
             return {
               passed: false,
-              checkResult: `❌ Failed (${failed.map((r) => r.name).join(", ")})`,
+              checkResult: `Failed (${failed.map((r) => r.name).join(", ")})`,
               error: `CI check runs failed: ${failed.map((r) => r.name).join(", ")}`,
             };
           }
@@ -745,7 +745,7 @@ export async function verifyCiChecks(
 
   return {
     passed: false,
-    checkResult: "❌ Timed out waiting for CI checks",
+    checkResult: "Timed out waiting for CI checks",
     error: "Timed out waiting for GitHub Actions CI check runs",
   };
 }

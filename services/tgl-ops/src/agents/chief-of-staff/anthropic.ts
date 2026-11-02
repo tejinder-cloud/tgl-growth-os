@@ -67,7 +67,7 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
   • Every agent line must be a single compact bullet: '• *@<agent>*: <terse did> · <tomorrow>' (max 20 words per line).
   • Every blocker must be a single compact bullet: '• [<Rank>] <who>: <what>' (max 15 words).
 - Shape:
-  1. Header: "*📊 The Growth Lab — Daily Standup Digest | ${data.date} ${data.compileTime || "18:00"} IST*"
+  1. Header: "*The Growth Lab — Daily Standup Digest | ${data.date} ${data.compileTime || "18:00"} IST*"
   2. Per-Door Headline Numbers (AEO, AI, TrueLead, Core): either real count/metric or "no data yet".
   3. Ranked Blockers: strictly ordered by [Money] > [Customer] > [Irreversible] > [Everything else]. If none, "• None reported today."
   4. Pending Approvals: list each card from #approvals without decisions/ line, with direct link. If none, "• None pending."
@@ -75,6 +75,7 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
   6. Agent Standup Lines: strictly one single terse line per reporting agent (Did · Tomorrow).
 - HARD CAP: The entire message MUST be 25 lines or fewer. Count your lines carefully.
 - FACTUAL FIDELITY: Never invent a number, metric, or status not present in the material.
+- NO EMOJIS: Use strictly plain text and bold only (no emoji characters anywhere).
 `;
 
   let digestText = "";
@@ -189,15 +190,15 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
 function generateDeterministicDigest(data: GatheredData): string {
   const lines: string[] = [];
 
-  lines.push(`*📊 The Growth Lab — Daily Standup Digest | ${data.date} ${data.compileTime || "18:00"} IST*`);
+  lines.push(`*The Growth Lab — Daily Standup Digest | ${data.date} ${data.compileTime || "18:00"} IST*`);
   lines.push("──────────────────────────────────────────");
 
   // 1. Doors headline
-  lines.push("*🚪 Product Doors:*");
+  lines.push("*Product Doors:*");
   lines.push("• *AEO:* no data yet | *AI:* no data yet | *TrueLead:* no data yet | *Core:* operational");
 
   // 2. Blockers (ranked money > customer > irreversible > everything else)
-  lines.push("\n*🚨 Blockers (Ranked):*");
+  lines.push("\n*Blockers (Ranked):*");
   const parsedBlockers: { category: string; text: string }[] = [];
 
   for (const log of data.logs) {
@@ -229,7 +230,7 @@ function generateDeterministicDigest(data: GatheredData): string {
   }
 
   // 3. Approvals Pending
-  lines.push("\n*⏳ Approvals Pending:*");
+  lines.push("\n*Approvals Pending:*");
   if (data.openApprovals.length === 0) {
     lines.push("• _None pending._");
   } else {
@@ -240,7 +241,7 @@ function generateDeterministicDigest(data: GatheredData): string {
 
   // 4. Open Proposals & Warnings
   if (data.openProposals && data.openProposals.length > 0) {
-    lines.push("\n*💡 Open Proposals:*");
+    lines.push("\n*Open Proposals:*");
     for (const p of data.openProposals.slice(0, 2)) {
       lines.push(`• *#${p.number}* (@${p.agent}): ${p.title.replace(/^\[PROPOSAL\]:\s*/i, "")}`);
     }
@@ -249,18 +250,18 @@ function generateDeterministicDigest(data: GatheredData): string {
   const over80 = (data.agentCostStatuses || []).filter((s) => s.isOver80Percent);
   if (over80.length > 0) {
     for (const s of over80) {
-      lines.push(`• ⚠️ *@${s.agent}* at ${Math.round(s.percentage)}% of daily cost cap ($${s.currentSpendUsd.toFixed(2)} / $${s.capUsd.toFixed(2)})`);
+      lines.push(`• *@${s.agent}* at ${Math.round(s.percentage)}% of daily cost cap ($${s.currentSpendUsd.toFixed(2)} / $${s.capUsd.toFixed(2)})`);
     }
   }
 
   if (data.carriedForwardPlanEntries && data.carriedForwardPlanEntries.length > 0) {
     for (const c of data.carriedForwardPlanEntries.slice(0, 2)) {
-      lines.push(`• ⏩ *Carried forward:* Day ${c.day} (@${c.agent}) "${c.title.slice(0, 35)}"`);
+      lines.push(`• *Carried forward:* Day ${c.day} (@${c.agent}) "${c.title.slice(0, 35)}"`);
     }
   }
 
   // 5. One line per reporting agent
-  lines.push("\n*📋 Agent Reports:*");
+  lines.push("\n*Agent Reports:*");
   if (data.logs.length === 0) {
     lines.push("• _No agent logs recorded today._");
   } else {

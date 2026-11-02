@@ -3,7 +3,7 @@ import { rescoreProspects } from "../agents/prospect-researcher/worker.js";
 
 async function main() {
   console.log("==========================================================================");
-  console.log("🔄 Re-scoring Today's Prospects Batch");
+  console.log("Re-scoring Today's Prospects Batch");
   console.log("Mandate: Root domain chain detection · Org-size tiered DM roles");
   console.log("==========================================================================\n");
 
@@ -12,7 +12,7 @@ async function main() {
     console.log(`\n• Total Accounts Re-scored: ${result.totalRescored}`);
     console.log(`• Disqualified Chains:      ${result.disqualifiedChains.length}`);
     for (const c of result.disqualifiedChains) {
-      console.log(`  - ❌ ${c}`);
+      console.log(`  - [Disqualified] ${c}`);
     }
     console.log(`• Qualified Survivors:      ${result.qualifiedCount}`);
   } catch (err: any) {
