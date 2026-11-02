@@ -245,7 +245,7 @@ export async function execute1800Broadcast(
     }
   }
 
-  const fallbackText = (textToPost && textToPost.trim()) || "*📊 The Growth Lab — Daily Standup Digest*";
+  const fallbackText = (textToPost && textToPost.trim()) || "*The Growth Lab — Daily Standup Digest*";
   console.log(`[Chief of Staff] Broadcasting 18:00 IST standup digest to ${channel}...`);
   let standupTs: string | undefined;
 
@@ -539,7 +539,7 @@ export async function execute1815SilenceCheck(
     } else {
       await postLine({
         channel,
-        text: `⚠️ [18:15 Silence Flag] ${text}`,
+        text: `[18:15 Silence Flag] ${text}`,
       });
     }
     postedCount++;

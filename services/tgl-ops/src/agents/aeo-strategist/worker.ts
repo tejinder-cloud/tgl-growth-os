@@ -76,7 +76,7 @@ export async function pollSetupQueue(): Promise<void> {
       await openReview(sb, b.id);
     } catch (err: any) {
       console.error("[Setup Queue] review failed", b.id, err);
-      await postLine({ channel: getAlertsChannel(), text: `⚠️ *@${AGENT}* couldn't prepare the setup check for *${b.name}*: \`${String(err?.message ?? err).slice(0, 300)}\`` }).catch(() => {});
+      await postLine({ channel: getAlertsChannel(), text: `[Warning] *@${AGENT}* couldn't prepare the setup check for *${b.name}*: \`${String(err?.message ?? err).slice(0, 300)}\`` }).catch(() => {});
     }
   }
 }
@@ -92,7 +92,7 @@ async function maybeRemind(sb: SupabaseClient, review: any, brandName: string) {
   await sb.from("setup_reviews").update({ reminded_at: new Date().toISOString() }).eq("id", review.id);
   await slackClient.chat.postMessage({
     channel: review.slack_channel, thread_ts: review.slack_ts,
-    text: `⏰ *${brandName}* has waited ${Math.floor(ageH)}h for its setup check. The customer was told we check before the first audit — please decide today.`,
+    text: `*${brandName}* has waited ${Math.floor(ageH)}h for its setup check. The customer was told we check before the first audit — please decide today.`,
   }).catch(() => {});
 }
 
@@ -128,8 +128,8 @@ export async function openReview(sb: SupabaseClient, brandId: string): Promise<s
   }
 
   const evLine = [
-    evidence.site ? (evidence.site.ok ? "site ✓" : `site ✗ (${evidence.site.error})`) : "no site",
-    evidence.aiAnswer ? `AI answer ✓ (${evidence.aiEngine})` : `AI answer ✗ (${evidence.aiError ?? "—"})`,
+    evidence.site ? (evidence.site.ok ? "site ok" : `site failed (${evidence.site.error})`) : "no site",
+    evidence.aiAnswer ? `AI answer ok (${evidence.aiEngine})` : `AI answer failed (${evidence.aiError ?? "—"})`,
     `$${(usd + aiCostUsd).toFixed(4)}`,
   ].join(" · ");
   const blocks = buildReviewBlocks(s, proposal, review.id, evLine);
@@ -201,7 +201,7 @@ export async function handleSetupAction(payload: any, action: any): Promise<void
 
   const time = getCurrentTimeIST();
   const what = describePlan(plan);
-  const outcome = `✅ *Verified* by ${actor} at ${time} IST — ${planSize(plan) ? what : "approved as entered"}. First AI check started.`;
+  const outcome = `*Verified* by ${actor} at ${time} IST — ${planSize(plan) ? what : "approved as entered"}. First AI check started.`;
   await slackClient.chat.update({ channel: payload.channel?.id, ts: payload.container?.message_ts, blocks: decidedBlocks(payload.message?.blocks, outcome), text: outcome }).catch(() => {});
   appendFileInRepo(`decisions/${getTodayDateString()}.md`, `- ${time} IST · ${actor} · APPROVE · ${AGENT} · Setup verified: ${s.name} (${what}) · review ${reviewId}`,
     `chore(decision): setup verified for ${s.name} per ${actor}`).catch((e) => console.warn("[Setup Queue] decision log failed", e?.message ?? e));
@@ -224,7 +224,7 @@ export async function handleSetupChangesSubmission(payload: any): Promise<void> 
   await sb.from("brands").update({ setup_status: "needs_changes", setup_note: note || null }).eq("id", brandId);
   const { data: b } = await sb.from("brands").select("name").eq("id", brandId).single();
   const time = getCurrentTimeIST();
-  const outcome = `↩️ *Sent back* by ${actor} at ${time} IST — “${note}”`;
+  const outcome = `*Sent back* by ${actor} at ${time} IST — “${note}”`;
   if (meta.channel && meta.ts) {
     const hist: any = await slackClient.conversations.history({ channel: meta.channel, latest: meta.ts, inclusive: true, limit: 1 }).catch(() => null);
     const blocks = hist?.messages?.[0]?.blocks ?? [];

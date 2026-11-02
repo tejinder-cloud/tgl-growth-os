@@ -150,7 +150,7 @@ export function analyzeRejectionPatterns(): RejectionAnalysis {
   let proposedRubricAdjustment: string | undefined;
   const recurring = frequentCauses.find((c) => c.count >= 3);
   if (recurring) {
-    proposedRubricAdjustment = `💡 *[Rubric Change Proposal]* Observed ${recurring.count} recent rejections citing "${recurring.cause}". Propose penalizing this signal with -15 pts in Dimension 3 or moving to explicit Playbook C disqualification to stop junior candidates early. (Awaiting Architect decision in thread).`;
+    proposedRubricAdjustment = `*[Rubric Change Proposal]* Observed ${recurring.count} recent rejections citing "${recurring.cause}". Propose penalizing this signal with -15 pts in Dimension 3 or moving to explicit Playbook C disqualification to stop junior candidates early. (Awaiting Architect decision in thread).`;
   }
 
   return {

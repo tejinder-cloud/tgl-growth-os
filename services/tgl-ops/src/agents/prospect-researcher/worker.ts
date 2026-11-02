@@ -55,7 +55,7 @@ export async function runProspectResearch(
   // Enforce cost cap check (Requirement 6)
   const costCheck = await checkAgentCostCap("prospect-researcher");
   if (!costCheck.allowed) {
-    const alertMsg = `🚨 *@prospect-researcher* halted: Daily cost cap exceeded ($${costCheck.currentSpend.toFixed(2)} >= $${costCheck.cap.toFixed(2)}).`;
+    const alertMsg = `*@prospect-researcher* halted: Daily cost cap exceeded ($${costCheck.currentSpend.toFixed(2)} >= $${costCheck.cap.toFixed(2)}).`;
     console.warn(`[Prospect Researcher] ${alertMsg}`);
     const alertsChannel = getAlertsChannel();
     await postLine({ channel: alertsChannel, text: alertMsg }).catch(() => {});
@@ -331,11 +331,11 @@ export async function runProspectResearch(
 
     qualifiedProspects.push(record);
     funnel.finalQualified = qualifiedProspects.length;
-    console.log(`  ✓ QUALIFIED [${qualifiedProspects.length}/${targetCount}]: '${record.company}' (Score: ${record.fit_score})`);
+    console.log(`  [QUALIFIED] [${qualifiedProspects.length}/${targetCount}]: '${record.company}' (Score: ${record.fit_score})`);
   }
 
   console.log(`\n==========================================================================`);
-  console.log(`📊 FUNNEL VALIDATOR SUMMARY (${city} · ${category})`);
+  console.log(`FUNNEL VALIDATOR SUMMARY (${city} · ${category})`);
   console.log(`==========================================================================`);
   console.log(`1. Raw Candidates (Google Places API):       ${funnel.discovered}`);
   console.log(`2. Live DNS Passed / Failed:                ${funnel.dnsPassed} passed / ${funnel.dnsFailed} failed`);
@@ -346,7 +346,7 @@ export async function runProspectResearch(
   console.log(`7. Write Gate Validated / Dropped:          ${funnel.writeGatePassed} passed / ${funnel.writeGateFailed} failed`);
   console.log(`8. Deduplicated Out:                        ${funnel.dedupedOut}`);
   console.log(`--------------------------------------------------------------------------`);
-  console.log(`🎯 TOTAL QUALIFIED SURVIVORS:               ${qualifiedProspects.length} / ${targetCount} target`);
+  console.log(`TOTAL QUALIFIED SURVIVORS:               ${qualifiedProspects.length} / ${targetCount} target`);
   console.log(`==========================================================================\n`);
 
   // 6. Upsert records to Supabase & read-back verification
@@ -358,7 +358,7 @@ export async function runProspectResearch(
     console.error(`[Prospect Researcher Alert] 0 rows saved to Supabase! Alerting #alerts...`);
     await postLine({
       channel: config.alertsChannelId || "#alerts",
-      text: `🚨 *[Prospect Researcher Alert]* Supabase write-back failed: 0 of ${qualifiedProspects.length} accounts saved to \`public.prospects\`. Write error: \`${writeResult.error || "Zero rows verified via read-back"}\``,
+      text: `*[Prospect Researcher Alert]* Supabase write-back failed: 0 of ${qualifiedProspects.length} accounts saved to \`public.prospects\`. Write error: \`${writeResult.error || "Zero rows verified via read-back"}\``,
     }).catch((err) => console.warn(`[Alert Post Error]:`, err));
   }
 

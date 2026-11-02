@@ -5,7 +5,7 @@ import { getPlacesQuotaState } from "../agents/prospect-researcher/guardrails.js
 
 async function main() {
   console.log("==========================================================================");
-  console.log("🚀 TASK-R02: Single-Batch Execution — Delhi NCR × Cosmetic/Dental (Target: 20)");
+  console.log("TASK-R02: Single-Batch Execution — Delhi NCR × Cosmetic/Dental (Target: 20)");
   console.log("Mandate: Real APIs only · Zero Stubs · Strict Write Gates · No Enterprise Chains");
   console.log("==========================================================================\n");
 
@@ -23,7 +23,7 @@ async function main() {
     const quota = getPlacesQuotaState({ testMode: false });
 
     console.log("\n==========================================================================");
-    console.log("📊 REAL RUN METRICS & EVIDENCE SUMMARY");
+    console.log("REAL RUN METRICS & EVIDENCE SUMMARY");
     console.log("==========================================================================");
     console.log(`• City & Category:           Delhi NCR × cosmetic_dental`);
     console.log(`• Target:                    20 accounts`);

@@ -317,3 +317,113 @@ export async function addProposalToPlan(
   return newEntry;
 }
 
+export interface PlanStatusOptions {
+  testMode?: boolean;
+  mockCurrentDay?: number;
+  mockIssuedDays?: (number | string)[];
+  mockPlanEntries?: PlanEntry[];
+  mockIssues?: Array<{
+    number: number;
+    title: string;
+    state: "open" | "closed" | string;
+    pull_request?: any;
+    mergedPr?: number;
+  }>;
+}
+
+/**
+ * Compiles a factual plan status response listing completed, open, and not started days.
+ * Strictly uses plain text and bold only (no emojis).
+ */
+export async function getPlanStatusAnswer(options?: PlanStatusOptions): Promise<string> {
+  const isTest = options?.testMode === true || isTestMode();
+  const currentDay = await getCurrentPlanDay(options);
+  const planEntries = options?.mockPlanEntries || (await loadPlanEntries(options));
+
+  // Sort plan entries by day ascending
+  const sortedEntries = [...planEntries].sort((a, b) => a.day - b.day);
+
+  // Retrieve live or mock issues
+  let issues: Array<{ number: number; title: string; state: string; pull_request?: any }> = [];
+  if (options?.mockIssues) {
+    issues = options.mockIssues;
+  } else if (!isTest && config.githubToken) {
+    try {
+      const res = await octokit.issues.listForRepo({
+        owner: config.githubOwner,
+        repo: config.githubRepo,
+        state: "all",
+        per_page: 100,
+      });
+      issues = (res.data || []).filter((iss) => !iss.pull_request);
+    } catch (err: any) {
+      console.warn("[Plan Status] Failed to fetch issues from GitHub:", err.message);
+    }
+  }
+
+  // Index issues by [PLAN-Dn] or [PLAN-D(\d+)]
+  const issuesByDay = new Map<number, { number: number; title: string; state: string }>();
+  for (const iss of issues) {
+    const match = iss.title.match(/\[PLAN-D(\d+)\]/i);
+    if (match) {
+      const dayNum = parseInt(match[1], 10);
+      issuesByDay.set(dayNum, {
+        number: iss.number,
+        title: iss.title,
+        state: iss.state,
+      });
+    }
+  }
+
+  const completedDays: PlanEntry[] = [];
+  const openDays: PlanEntry[] = [];
+  const notStartedDays: PlanEntry[] = [];
+  const dayLines: string[] = [];
+
+  for (const entry of sortedEntries) {
+    const iss = issuesByDay.get(entry.day);
+    let statusLabel = "not started (no issue)";
+    let issueRef = "";
+
+    if (iss) {
+      issueRef = ` (#${iss.number})`;
+      if (iss.state === "closed") {
+        statusLabel = "completed (issue closed with merged PR)";
+        completedDays.push(entry);
+      } else {
+        statusLabel = "open (issue open)";
+        openDays.push(entry);
+      }
+    } else {
+      notStartedDays.push(entry);
+    }
+
+    dayLines.push(`• *Day ${entry.day}:* ${statusLabel} — ${entry.title}${issueRef}`);
+  }
+
+  const completedSummary =
+    completedDays.length > 0
+      ? `${completedDays.length} day${completedDays.length === 1 ? "" : "s"} (${completedDays.map((d) => `Day ${d.day}`).join(", ")})`
+      : "0 days";
+
+  const openSummary =
+    openDays.length > 0
+      ? `${openDays.length} day${openDays.length === 1 ? "" : "s"} (${openDays.map((d) => `Day ${d.day}`).join(", ")})`
+      : "0 days";
+
+  const notStartedSummary = `${notStartedDays.length} day${notStartedDays.length === 1 ? "" : "s"}`;
+
+  return [
+    `*Plan Status (Current Day: Day ${currentDay})*`,
+    `• *Completed:* ${completedSummary}`,
+    `• *Open:* ${openSummary}`,
+    `• *Not Started:* ${notStartedSummary}`,
+    `• *Total Plan Days:* ${sortedEntries.length}`,
+    "",
+    `*Per-Day Status:*`,
+    ...dayLines,
+    "",
+    `_Verified from config/plan.yaml and live GitHub issues._`,
+  ].join("\n");
+}
+

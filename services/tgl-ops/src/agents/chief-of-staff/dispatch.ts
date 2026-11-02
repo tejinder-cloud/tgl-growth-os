@@ -321,7 +321,7 @@ export async function execute0900PlanDispatch(options?: {
   const currentDay = options?.day || (await getCurrentPlanDay(options));
 
   console.log(`\n=======================================================`);
-  console.log(`📋 Chief of Staff: 09:00 IST Morning Status Card (Day ${currentDay})`);
+  console.log(`Chief of Staff: 09:00 IST Morning Status Card (Day ${currentDay})`);
   console.log(`=======================================================`);
 
   const allEntries = await loadPlanEntries(options);
@@ -363,7 +363,7 @@ export async function execute0900PlanDispatch(options?: {
 • *Current Day:* Day ${currentDay} (${currentEntry?.title || "Active"})
 • *Open Issues:* ${openIssuesCount} active in repo${carriedNotice}
 
-👉 *Action:* Say *"go"* in #architect for Day ${currentDay + 1} (or *"day N"* for any specific day). Weekends allowed.`;
+*Action:* Say *"go"* in #architect for Day ${currentDay + 1} (or *"day N"* for any specific day). Weekends allowed.`;
 
     const cardRes = await postCard({
       channel: architectChannel,

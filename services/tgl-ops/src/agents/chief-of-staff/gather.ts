@@ -599,7 +599,7 @@ export function formatGatheredText(data: Omit<GatheredData, "rawSummaryText">): 
     parts.push("All agents within normal limits.");
   } else {
     for (const s of data.agentCostStatuses) {
-      const flag = s.isOver80Percent ? " ⚠️ OVER 80% DAILY CAP" : "";
+      const flag = s.isOver80Percent ? " [OVER 80% DAILY CAP]" : "";
       parts.push(`- @${s.agent}: $${s.currentSpendUsd.toFixed(2)} / $${s.capUsd.toFixed(2)} (${Math.round(s.percentage)}%)${flag}`);
     }
   }

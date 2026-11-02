@@ -289,7 +289,7 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
                 type: "section",
                 text: {
                   type: "mrkdwn",
-                  text: `⚠️ *Approved but NOT Merged by ${actor} at ${timeStr} IST*\n*Reason:* ${failReason}\n_Recorded as APPROVE-UNMERGED in \`decisions/${dateStr}.md\`._`,
+                  text: `*Approved but NOT Merged by ${actor} at ${timeStr} IST*\n*Reason:* ${failReason}\n_Recorded as APPROVE-UNMERGED in \`decisions/${dateStr}.md\`._`,
                 },
               },
             ]);
@@ -297,7 +297,7 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
           await slackClient.chat.update({
             channel,
             ts: messageTs,
-            text: `⚠️ Approved but NOT merged: ${meta.title || `PR #${prNum}`} by ${actor}`,
+            text: `Approved but NOT merged: ${meta.title || `PR #${prNum}`} by ${actor}`,
             blocks: updatedBlocks,
           });
         } catch (err) {
@@ -375,12 +375,12 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
         const originalBlocks = payload.message?.blocks || [];
         const statusNote =
           proposalPlanEntry
-            ? `✅ *Proposal Approved by ${actor} at ${timeStr} IST*\nConverted to Plan Day ${proposalPlanEntry.day} (${proposalPlanEntry.date}). Recorded in \`decisions/${dateStr}.md\`.`
+            ? `*Proposal Approved by ${actor} at ${timeStr} IST*\nConverted to Plan Day ${proposalPlanEntry.day} (${proposalPlanEntry.date}). Recorded in \`decisions/${dateStr}.md\`.`
             : agent === "prospect-researcher"
-            ? `✅ *Prospects Approved by ${actor} at ${timeStr} IST*\n_Status updated to \`reviewed\` for outreach handoff. Recorded in \`decisions/${dateStr}.md\`._`
+            ? `*Prospects Approved by ${actor} at ${timeStr} IST*\n_Status updated to \`reviewed\` for outreach handoff. Recorded in \`decisions/${dateStr}.md\`._`
             : prNum
-            ? `✅ *Approved and Squash-Merged by ${actor} at ${timeStr} IST*\n_Recorded in \`decisions/${dateStr}.md\`._`
-            : `✅ *Approved by ${actor} at ${timeStr} IST*\n_Recorded in \`decisions/${dateStr}.md\`._`;
+            ? `*Approved and Squash-Merged by ${actor} at ${timeStr} IST*\n_Recorded in \`decisions/${dateStr}.md\`._`
+            : `*Approved by ${actor} at ${timeStr} IST*\n_Recorded in \`decisions/${dateStr}.md\`._`;
 
         const updatedBlocks = originalBlocks
           .filter((b: any) => b.block_id !== "card_actions")
@@ -397,7 +397,7 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
         await slackClient.chat.update({
           channel,
           ts: messageTs,
-          text: `✅ Approved: ${meta.title || (prNum ? `PR #${prNum}` : "Task")} by ${actor}`,
+          text: `Approved: ${meta.title || (prNum ? `PR #${prNum}` : "Task")} by ${actor}`,
           blocks: updatedBlocks,
         });
       } catch (err) {
@@ -414,7 +414,7 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
     } else {
       await postLine({
         channel,
-        text: `✅ Decision recorded: Approved by ${actor} at ${timeStr} IST. Appended to \`decisions/${dateStr}.md\`.`,
+        text: `Decision recorded: Approved by ${actor} at ${timeStr} IST. Appended to \`decisions/${dateStr}.md\`.`,
         thread_ts: messageTs,
       });
     }
@@ -437,7 +437,7 @@ async function handleDiscussAction(payload: any, action: any): Promise<void> {
 
   await postLine({
     channel,
-    text: `💬 \`@${agent}\` — discussion requested by ${actor}. Please review the brief and proposal above and respond in this thread.`,
+    text: `\`@${agent}\` — discussion requested by ${actor}. Please review the brief and proposal above and respond in this thread.`,
     thread_ts: messageTs,
   });
 }
@@ -598,7 +598,7 @@ async function handleRejectSubmission(payload: any): Promise<void> {
   if (decRes.success && rejRes.success) {
     if (messageTs && config.slackBotToken) {
       try {
-        const rejectText = `❌ *Proposal Rejected by ${actor} at ${timeStr} IST*\n*Reason:* ${reason}${missedSignal ? `\n*Missed Signal:* ${missedSignal}` : ""}\n_Recorded in \`rejections/${dateStr}.md\` and \`decisions/${dateStr}.md\`._`;
+        const rejectText = `*Proposal Rejected by ${actor} at ${timeStr} IST*\n*Reason:* ${reason}${missedSignal ? `\n*Missed Signal:* ${missedSignal}` : ""}\n_Recorded in \`rejections/${dateStr}.md\` and \`decisions/${dateStr}.md\`._`;
         await slackClient.chat.postMessage({
           channel,
           thread_ts: messageTs,
@@ -662,7 +662,7 @@ async function handlePickedUpAction(payload: any, action: any): Promise<void> {
             type: "section",
             text: {
               type: "mrkdwn",
-              text: `🚀 *Picked up by ${actor} at ${timeStr} IST*\n*Status:* \`status:in-progress\``,
+              text: `*Picked up by ${actor} at ${timeStr} IST*\n*Status:* \`status:in-progress\``,
             },
           },
         ]);
@@ -670,7 +670,7 @@ async function handlePickedUpAction(payload: any, action: any): Promise<void> {
       await slackClient.chat.update({
         channel,
         ts: messageTs,
-        text: `🚀 Picked up: #${issueNum} by ${actor}`,
+        text: `Picked up: #${issueNum} by ${actor}`,
         blocks: updatedBlocks,
       });
     } catch (err) {
@@ -685,7 +685,7 @@ async function handlePickedUpAction(payload: any, action: any): Promise<void> {
       : meta.issueUrl;
     await postLine({
       channel,
-      text: `🚀 Task <${issueLink}|#${issueNum}> picked up by *${actor}* at ${timeStr} IST (marked \`status:in-progress\`).`,
+      text: `Task <${issueLink}|#${issueNum}> picked up by *${actor}* at ${timeStr} IST (marked \`status:in-progress\`).`,
       thread_ts: messageTs,
     });
   }

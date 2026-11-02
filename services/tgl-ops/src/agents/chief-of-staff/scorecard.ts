@@ -36,14 +36,14 @@ export async function compileMondayScorecard(): Promise<string> {
   const timeStr = getCurrentTimeIST();
 
   const parts: string[] = [];
-  parts.push(`*📈 The Growth Lab — Monday Door Scorecard | ${dateStr} ${timeStr} IST*`);
+  parts.push(`*The Growth Lab — Monday Door Scorecard | ${dateStr} ${timeStr} IST*`);
   parts.push("──────────────────────────────────────────");
 
   if (doorEntries.length === 0) {
     parts.push("• _No door configurations found in config/doors/*.yaml._");
   } else {
     for (const d of doorEntries) {
-      parts.push(`\n*🚪 Door: ${d.name} (\`${d.door}\`)*`);
+      parts.push(`\n*Door: ${d.name} (\`${d.door}\`)*`);
       if (d.lines.length === 0) {
         parts.push("  • Trials: —  |  Audits: —  |  Pipeline: —  |  Cash: —");
       } else {

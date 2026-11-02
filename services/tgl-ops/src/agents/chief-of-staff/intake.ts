@@ -6,7 +6,7 @@ import { slackClient, getActorDisplayName, getBotIdentity } from "../../lib/slac
 import { postLine, postCard } from "../../lib/post.js";
 import { createIssue, appendFileInRepo } from "../../lib/github-client.js";
 import { loadAgents, findAgentByName } from "../../lib/agents.js";
-import { loadPlanEntries, getCurrentPlanDay } from "../../lib/plan.js";
+import { loadPlanEntries, getCurrentPlanDay, getPlanStatusAnswer } from "../../lib/plan.js";
 import { dispatchPlanDay, isEntryAlreadyIssued } from "./dispatch.js";
 import {
   checkAgentCostCap,
@@ -295,7 +295,7 @@ export async function compileArchitectReport(options?: { testMode?: boolean }): 
     planTotal = String(plan.length);
   } catch {}
 
-  return `📊 *The Growth Lab Ops Report — ${dateStr} ${timeStr} IST*
+  return `*The Growth Lab Ops Report — ${dateStr} ${timeStr} IST*
 ${spendLine}
 • *Prospects Database:* ${prospectsTotal} sourced${citySummary} · ${prospectsReviewed} reviewed
 • *Plan Entries Active:* ${planTotal} scheduled (Days 8–68)
@@ -310,7 +310,13 @@ _All figures verified from Supabase, logs/, and runtime ledger._`;
  */
 export async function answerArchitectQuestion(
   questionText: string,
-  options?: { testMode?: boolean }
+  options?: {
+    testMode?: boolean;
+    mockProspects?: any[];
+    mockPlanEntries?: any[];
+    mockIssues?: any[];
+    mockCurrentDay?: number;
+  }
 ): Promise<string> {
   const isTest = options?.testMode === true || isTestMode();
   const dateStr = getTodayDateString();
@@ -320,7 +326,7 @@ export async function answerArchitectQuestion(
   if (/spend|cost|ledger|expense|token spend|budget/i.test(q)) {
     const summary = getCostLedgerSummary(dateStr, options);
     if (summary.runsCount === 0) {
-      return `💰 *LLM Spend & Cost Ledger Today (${dateStr}):*\n• *Total Spend:* $0.00 (0 calls recorded today)\n_Verified from runtime cost ledger._`;
+      return `*LLM Spend & Cost Ledger Today (${dateStr}):*\n• *Total Spend:* $0.00 (0 calls recorded today)\n_Verified from runtime cost ledger._`;
     }
 
     const callLines = summary.entries
@@ -348,7 +354,7 @@ export async function answerArchitectQuestion(
       ? ` (${formatCostUsd(summary.llmSpendUsd)} LLM + ${formatCostUsd(summary.apiSpendUsd)} API)`
       : "";
 
-    return `💰 *LLM Spend & Cost Ledger Today (${dateStr}):*
+    return `*LLM Spend & Cost Ledger Today (${dateStr}):*
 • *Total Spend:* ${formatCostUsd(summary.totalSpendUsd)} across ${summary.runsCount} call${summary.runsCount === 1 ? "" : "s"}${typeTotals}
 
 *By Agent:*
@@ -359,11 +365,23 @@ ${callLines}
 _Verified from logs/.state/cost-ledger.json and daily logs._`;
   }
 
-  // 2. Prospect database queries (counts by city, by status, by day from SQL)
+  // 2. Plan status inquiries
+  // Route any question containing "plan", "day N", "phase", "gate",
+  // or "what's today's status" / "today's status" directly here, NEVER to prospects!
+  const isPlanQuery =
+    /\bplan\b|\bphase\b|\bgate\b/i.test(q) ||
+    /\bday\s*(?:\d+|n\b)/i.test(q) ||
+    /today['’]?s\s*status|status\s*(?:for\s*)?today|what(?:'s|\s+is)\s+today/i.test(q);
+
+  if (isPlanQuery) {
+    return await getPlanStatusAnswer(options as any);
+  }
+
+  // 3. Prospect database queries (counts by city, by status, by day from SQL)
   const isCityQuery = /city|cities|metro|delhi|mumbai|bangalore|bengaluru/i.test(q);
   const isStatusQuery = /status|statuses|reviewed|approved|rejected|new|handed_to_outreach/i.test(q);
-  const isDayQuery = /day|days|date|dates|today|yesterday|daily/i.test(q);
-  const isGeneralCountsQuery = /counts?|prospects?|how many|pipeline|database|rows|records/i.test(q);
+  const isDayQuery = /by day|counts? by day|prospects? by day|days? breakdown/i.test(q);
+  const isGeneralCountsQuery = /counts?|prospects?|how many prospects|prospect pipeline|prospect database|prospect rows|prospect records/i.test(q);
 
   if (isCityQuery || isStatusQuery || isDayQuery || isGeneralCountsQuery) {
     const {
@@ -415,12 +433,12 @@ Answer in 1-3 lines maximum. Zero corporate fluff.`;
 
       const text = response.content[0]?.type === "text" ? response.content[0].text : "";
       if (text.trim()) {
-        return `ℹ️ *Chief of Staff Response:*\n${text.trim()}`;
+        return `*Chief of Staff Response:*\n${text.trim()}`;
       }
     } catch {}
   }
 
-  return `ℹ️ *Chief of Staff Response:*\nI've verified our current records. Relevant files: \`config/plan.yaml\` and \`AGENTS.md\`. All current operations are logged under \`logs/${dateStr}/\`.`;
+  return `*Chief of Staff Response:*\nI've verified our current records. Relevant files: \`config/plan.yaml\` and \`AGENTS.md\`. All current operations are logged under \`logs/${dateStr}/\`.`;
 }
 
 let hasLoggedImFailure = false;
@@ -624,16 +642,16 @@ export async function pollChiefOfStaffIntake(options?: {
 
         const dispatchRes = await dispatchPlanDay(targetDay, { testMode: isTest });
         if (dispatchRes.status === "dispatched") {
-          const replyText = `🚀 *Plan Day ${targetDay} Dispatched:*\n• *Title:* ${dispatchRes.entry?.title}\n• *Assigned Agent:* \`@${dispatchRes.assignedAgent}\`\n• *Issue:* <${dispatchRes.issueUrl}|#${dispatchRes.issueNumber}>\n• *Expected Completion:* ~1–2 hours`;
+          const replyText = `*Plan Day ${targetDay} Dispatched:*\n• *Title:* ${dispatchRes.entry?.title}\n• *Assigned Agent:* \`@${dispatchRes.assignedAgent}\`\n• *Issue:* <${dispatchRes.issueUrl}|#${dispatchRes.issueNumber}>\n• *Expected Completion:* ~1–2 hours`;
           await postLine({ channel, text: replyText, thread_ts: threadTs });
         } else if (dispatchRes.status === "already-issued") {
-          const replyText = `⚠️ *Plan Day ${targetDay} Already Issued:*\n• *Title:* ${dispatchRes.entry?.title}\n• *Issue:* <${dispatchRes.issueUrl}|#${dispatchRes.issueNumber}>\n${dispatchRes.reason}`;
+          const replyText = `*Plan Day ${targetDay} Already Issued:*\n• *Title:* ${dispatchRes.entry?.title}\n• *Issue:* <${dispatchRes.issueUrl}|#${dispatchRes.issueNumber}>\n${dispatchRes.reason}`;
           await postLine({ channel, text: replyText, thread_ts: threadTs });
         } else if (dispatchRes.status === "blocked") {
-          const replyText = `🛑 *Plan Day ${targetDay} Blocked:*\n${dispatchRes.reason}`;
+          const replyText = `*Plan Day ${targetDay} Blocked:*\n${dispatchRes.reason}`;
           await postLine({ channel, text: replyText, thread_ts: threadTs });
         } else {
-          const replyText = `❓ *Plan Day ${targetDay} Dispatch Failed:*\n${dispatchRes.reason || "Not found in config/plan.yaml"}`;
+          const replyText = `*Plan Day ${targetDay} Dispatch Failed:*\n${dispatchRes.reason || "Not found in config/plan.yaml"}`;
           await postLine({ channel, text: replyText, thread_ts: threadTs });
         }
       } else if (classification.category === "report") {
@@ -656,14 +674,14 @@ export async function pollChiefOfStaffIntake(options?: {
         }
         await postLine({
           channel,
-          text: `✅ *Decision Captured:*\nRecorded to \`decisions/${dateStr}.md\`:\n> ${decisionText}`,
+          text: `*Decision Captured:*\nRecorded to \`decisions/${dateStr}.md\`:\n> ${decisionText}`,
           thread_ts: threadTs,
         });
       } else if (classification.category === "ambiguous") {
         const question = classification.clarifyingQuestion || "Could you specify the target deliverable and whether this is a code task, report, or architectural decision?";
         await postLine({
           channel,
-          text: `❓ *Chief of Staff Clarification:*\n${question}`,
+          text: `*Chief of Staff Clarification:*\n${question}`,
           thread_ts: threadTs,
         });
       }

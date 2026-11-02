@@ -26,7 +26,7 @@ export function setupProcessErrorHandlers(): void {
     console.error("[CRITICAL] Unhandled Rejection captured:", errMsg);
     postLine({
       channel: getAlertsChannel(),
-      text: `⚠️ *[TGL Ops Unhandled Rejection]* at ${getCurrentTimeIST()} IST\n• Reason: \`${errMsg.slice(0, 400)}\`\n_Process kept running._`,
+      text: `*[TGL Ops Unhandled Rejection]* at ${getCurrentTimeIST()} IST\n• Reason: \`${errMsg.slice(0, 400)}\`\n_Process kept running._`,
     }).catch((postErr) => {
       console.error("[Failed to post unhandledRejection to Slack alerts]", postErr);
     });
@@ -37,7 +37,7 @@ export function setupProcessErrorHandlers(): void {
     console.error(`[CRITICAL] Uncaught Exception (${origin}):`, errMsg);
     postLine({
       channel: getAlertsChannel(),
-      text: `🚨 *[TGL Ops Uncaught Exception]* (${origin}) at ${getCurrentTimeIST()} IST\n• Error: \`${errMsg.slice(0, 400)}\`\n_Process kept running._`,
+      text: `*[TGL Ops Uncaught Exception]* (${origin}) at ${getCurrentTimeIST()} IST\n• Error: \`${errMsg.slice(0, 400)}\`\n_Process kept running._`,
     }).catch((postErr) => {
       console.error("[Failed to post uncaughtException to Slack alerts]", postErr);
     });
@@ -77,7 +77,7 @@ export function wrapCronJob(
         try {
           await postLine({
             channel: options?.channel || getAlertsChannel(),
-            text: `⚠️ *[Cron Failure: ${jobName}]* at ${getCurrentTimeIST()} IST\n• Error: \`${errMsg.slice(0, 400)}\`\n_Process kept running._`,
+            text: `*[Cron Failure: ${jobName}]* at ${getCurrentTimeIST()} IST\n• Error: \`${errMsg.slice(0, 400)}\`\n_Process kept running._`,
           });
         } catch (alertErr: any) {
           console.error(`[Alert Post Failed for ${jobName}]`, alertErr.message);

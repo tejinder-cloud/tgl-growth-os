@@ -20,7 +20,7 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
     // Acknowledge immediately within 3 seconds
     res.status(200).json({
       response_type: "ephemeral",
-      text: "⏳ Chief of Staff: Gathering operational material & synthesizing standup…",
+      text: "Chief of Staff: Gathering operational material & synthesizing standup…",
     });
 
     (async () => {
@@ -49,7 +49,7 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
         }
 
         const costLineText = broadcastRes.costLine ? `\n• *Cost:* ${broadcastRes.costLine}` : "";
-        const replyText = `✅ Chief of Staff standup broadcast complete to <#${broadcastRes.channel}> (ts: ${broadcastRes.standupTs})${costLineText}`;
+        const replyText = `Chief of Staff standup broadcast complete to <#${broadcastRes.channel}> (ts: ${broadcastRes.standupTs})${costLineText}`;
 
         if (responseUrl) {
           await fetch(responseUrl, {
@@ -69,7 +69,7 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               response_type: "ephemeral",
-              text: `❌ Error running Chief of Staff standup: ${(err as Error).message}`,
+              text: `[Error] running Chief of Staff standup: ${(err as Error).message}`,
             }),
           });
         }
@@ -108,7 +108,7 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
       const responseUrl = req.body.response_url;
       res.status(200).json({
         response_type: "ephemeral",
-        text: "⏳ Prospect Researcher: Starting autonomous research run for next metro in rotation…",
+        text: "Prospect Researcher: Starting autonomous research run for next metro in rotation…",
       });
 
       (async () => {
@@ -123,7 +123,7 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
             targetCount: parsed.targetCount || 20,
             postToSlack: true,
           });
-          const replyText = `✅ Prospect Researcher run complete for *${result.city}* (${result.category}): *${result.qualifiedCount}* qualified prospects sourced. Review card posted to #revenue.`;
+          const replyText = `Prospect Researcher run complete for *${result.city}* (${result.category}): *${result.qualifiedCount}* qualified prospects sourced. Review card posted to #revenue.`;
 
           if (responseUrl) {
             await fetch(responseUrl, {
@@ -141,7 +141,7 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
           const { getAlertsChannel } = await import("../lib/cron-wrapper.js");
           await postLine({
             channel: getAlertsChannel(),
-            text: `⚠️ *[Prospect Researcher Direct Trigger Failure]*\n• Command: \`${trimmedText}\`\n• Error: \`${err?.message?.slice(0, 300) || String(err)}\``,
+            text: `*[Prospect Researcher Direct Trigger Failure]*\n• Command: \`${trimmedText}\`\n• Error: \`${err?.message?.slice(0, 300) || String(err)}\``,
           }).catch(() => {});
 
           if (responseUrl) {
@@ -150,7 +150,7 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 response_type: "ephemeral",
-                text: `❌ Error running @prospect-researcher: ${err.message}`,
+                text: `[Error] running @prospect-researcher: ${err.message}`,
               }),
             });
           }
@@ -163,7 +163,7 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
     if (parts.length < 3) {
       res.json({
         response_type: "ephemeral",
-        text: `❌ Invalid format. Please use: \`/task @<agent> | <door> | <what>\`\n\n• *Valid Agents:* ${validAgentsList}\n• *Valid Doors:* ${validDoorsList}\n\n*Example:* \`/task @web-builder | core | Fix footer CTA spacing on mobile\``,
+        text: `Invalid format. Please use: \`/task @<agent> | <door> | <what>\`\n\n• *Valid Agents:* ${validAgentsList}\n• *Valid Doors:* ${validDoorsList}\n\n*Example:* \`/task @web-builder | core | Fix footer CTA spacing on mobile\``,
       });
       return;
     }
@@ -185,7 +185,7 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
         : `Unknown door "${parts[1]}"`;
       res.json({
         response_type: "ephemeral",
-        text: `❌ ${errReason}.\n\n• *Valid Agents:* ${validAgentsList}\n• *Valid Doors:* ${validDoorsList}\n\nUsage: \`/task @<agent> | <door> | <what>\``,
+        text: `${errReason}.\n\n• *Valid Agents:* ${validAgentsList}\n• *Valid Doors:* ${validDoorsList}\n\nUsage: \`/task @<agent> | <door> | <what>\``,
       });
       return;
     }
@@ -195,7 +195,7 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
     // Acknowledge immediately within 3 seconds
     res.status(200).json({
       response_type: "ephemeral",
-      text: "⏳ Creating task…",
+      text: "Creating task…",
     });
 
     // Perform GitHub issue creation, Slack card dispatch, and mapping recording asynchronously
@@ -244,8 +244,8 @@ ${matchedAgent.reviewer}
             type: "header",
             text: {
               type: "plain_text",
-              text: `⚡ Task Assigned: ${matchedAgent.name}`,
-              emoji: true,
+              text: `Task Assigned: ${matchedAgent.name}`,
+              emoji: false,
             },
           },
           {
@@ -273,7 +273,7 @@ ${matchedAgent.reviewer}
                 text: {
                   type: "plain_text",
                   text: "Picked up",
-                  emoji: true,
+                  emoji: false,
                 },
                 style: "primary",
                 action_id: "action_picked_up",
@@ -288,7 +288,7 @@ ${matchedAgent.reviewer}
           try {
             const postRes = await slackClient.chat.postMessage({
               channel: targetChannel,
-              text: `⚡ Task for @${matchedAgent.name}: <${issue.html_url}|#${issue.number} ${titleSnippet}>`,
+              text: `Task for @${matchedAgent.name}: <${issue.html_url}|#${issue.number} ${titleSnippet}>`,
               blocks: cardBlocks,
             });
             if (!postRes.ok || !postRes.ts) {
@@ -339,7 +339,7 @@ ${matchedAgent.reviewer}
           });
         }
 
-        const confirmationText = `✅ Task created: <${issue.html_url}|#${issue.number} ${titleSnippet}>\nPosted to ${targetChannel} for @${matchedAgent.name}.${matchedAgent.autorun ? "\n_Autonomous runner triggered._" : ""}`;
+        const confirmationText = `Task created: <${issue.html_url}|#${issue.number} ${titleSnippet}>\nPosted to ${targetChannel} for @${matchedAgent.name}.${matchedAgent.autorun ? "\n_Autonomous runner triggered._" : ""}`;
 
         if (responseUrl) {
           await fetch(responseUrl, {
@@ -361,7 +361,7 @@ ${matchedAgent.reviewer}
             body: JSON.stringify({
               response_type: "ephemeral",
               replace_original: true,
-              text: `❌ Failed to create task: ${(err as Error).message}`,
+              text: `Failed to create task: ${(err as Error).message}`,
             }),
           });
         }
