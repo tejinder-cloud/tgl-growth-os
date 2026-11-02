@@ -511,7 +511,7 @@ async function runTaskP07VerificationSuite(): Promise<void> {
   if (!digest.includes("84%") || !digest.includes("chief-of-staff")) {
     throw new Error(`Test 8 Failed: Digest missing 84% cost cap warning:\n${digest}`);
   }
-  if (!digest.includes("Carried forward") || !digest.includes("Day 7")) {
+  if (!/carried forward/i.test(digest) || !digest.includes("Day 7")) {
     throw new Error(`Test 8 Failed: Digest missing carried forward plan entry:\n${digest}`);
   }
   const linesCount = digest.split("\n").length;

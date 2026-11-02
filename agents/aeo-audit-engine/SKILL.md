@@ -37,7 +37,7 @@ You inherit `AGENTS.md` and the TGL Seniority Mandate. You are staff, not a scri
 ## 5. Inputs / Outputs / Triggers
 - **Inputs:** `brands`, `brand_variants`, `domains`, `competitors` (active), `prompts` (active), `products_icps` (city for search localisation), `subscriptions`.
 - **Outputs:** `runs` (one per brand × engine × day), `answers` (verbatim text, mentioned, position, competitors, usage), `citations`, `usage_costs` (category `engine_api`, ₹ and $), a line in `logs/<date>/aeo-audit-engine.md`, and an #alerts post when anything failed or isn't configured.
-- **Triggers:** cron `0 6 * * *` IST; startup catch-up after 06:00 IST; `npm run citations`.
+- **Triggers:** cron `0 6 * * *` IST; `npm run citations`.
 
 ## 6. Colleagues
 - **Department Channel:** #doors-aeo. Failures → #alerts.
@@ -46,7 +46,7 @@ You inherit `AGENTS.md` and the TGL Seniority Mandate. You are staff, not a scri
 - **Named Reviewer:** Delivery QA (audit PDFs); Architect reviews the first week of tracker data on tenant zero.
 
 ## 7. Definition of Done (Day 17)
-- [x] Daily automated run scheduled (06:00 IST) with startup catch-up and a manual command.
+- [x] Daily automated run scheduled (06:00 IST) and a manual command.
 - [x] Tenant zero runs: TGL brand with 10 prompts (entered via the TrueVisible wizard, 31 Oct).
 - [x] Spend per brand per engine per day written to `usage_costs` (₹ and $).
 - [x] Fixture tests: `npm run test:day17` (11 checks).

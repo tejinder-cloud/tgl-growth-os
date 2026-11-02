@@ -55,6 +55,13 @@ async function isDependencyDone(
     return true;
   }
 
+  // Check if marked completed in config/plan.yaml
+  const allEntries = await loadPlanEntries(options);
+  const entry = allEntries.find((e) => e.day === num);
+  if (entry && entry.status === "completed") {
+    return true;
+  }
+
   const isTest = options?.testMode === true || isTestMode();
   if (isTest) {
     return true;
@@ -99,6 +106,10 @@ export async function isEntryAlreadyIssued(
   entry: PlanEntry,
   options?: { testMode?: boolean; mockIssuedDays?: number[] }
 ): Promise<boolean> {
+  if (entry.status === "completed") {
+    return true;
+  }
+
   if (issuedDaysCache.has(entry.day)) {
     return true;
   }
@@ -160,7 +171,17 @@ export async function dispatchPlanDay(
     };
   }
 
-  // 1. Check if already issued
+  // 1. Check if already completed in plan.yaml
+  if (entry.status === "completed") {
+    return {
+      success: false,
+      status: "already-issued",
+      reason: `Plan Day ${targetDay} ("${entry.title}") is already completed (${entry.evidence || "DoD met by merged code"}).`,
+      entry,
+    };
+  }
+
+  // 2. Check if already issued
   const alreadyIssued = await isEntryAlreadyIssued(entry, options);
   if (alreadyIssued) {
     return {
