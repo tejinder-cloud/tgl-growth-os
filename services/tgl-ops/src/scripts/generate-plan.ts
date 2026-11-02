@@ -138,6 +138,8 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   // Phase 2 — TrueVisible v1 + AEO delivery (Days 16–33)
   {
     day: 16,
+    status: "completed",
+    evidence: "truevisible-app",
     agent: "web-builder",
     door: "aeo",
     title: "Supabase schema per SPEC §11 with RLS & usage_costs",
@@ -168,6 +170,8 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 18,
+    status: "completed",
+    evidence: "truevisible-app",
     agent: "web-builder",
     door: "aeo",
     title: "Auth + onboarding wizard (3 steps) in paper-and-ink",

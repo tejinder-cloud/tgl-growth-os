@@ -341,25 +341,41 @@ async function runPlanStatusAndNoEmojisSuite(): Promise<void> {
   if (!realPlanStatus.includes("• *Day 8:*") || !realPlanStatus.includes("• *Day 9:*")) {
     throw new Error(`Test 4 Failed: Expected Day 8 and Day 9 in real plan status`);
   }
-  if (!realPlanStatus.includes("Day 17") || !realPlanStatus.includes("Day 19")) {
-    throw new Error(`Test 4 Failed: Expected Day 17 and Day 19 in completed summary: ${realPlanStatus}`);
+  if (!realPlanStatus.includes("Day 16") || !realPlanStatus.includes("Day 17") || !realPlanStatus.includes("Day 18") || !realPlanStatus.includes("Day 19")) {
+    throw new Error(`Test 4 Failed: Expected Days 16, 17, 18, 19 in completed summary: ${realPlanStatus}`);
   }
 
   // Verify breakdown and evidence
   const breakdown = await computePlanStatusBreakdown({ testMode: true });
+  const day16 = breakdown.completedDays.find((d) => d.day === 16);
   const day17 = breakdown.completedDays.find((d) => d.day === 17);
+  const day18 = breakdown.completedDays.find((d) => d.day === 18);
   const day19 = breakdown.completedDays.find((d) => d.day === 19);
+  if (!day16 || !day16.evidence?.includes("truevisible-app")) {
+    throw new Error(`Test 4 Failed: Day 16 must be completed with truevisible-app evidence`);
+  }
   if (!day17 || !day17.evidence?.includes("PR #61")) {
     throw new Error(`Test 4 Failed: Day 17 must be completed with PR #61 evidence`);
+  }
+  if (!day18 || !day18.evidence?.includes("truevisible-app")) {
+    throw new Error(`Test 4 Failed: Day 18 must be completed with truevisible-app evidence`);
   }
   if (!day19 || !day19.evidence?.includes("PR #63")) {
     throw new Error(`Test 4 Failed: Day 19 must be completed with PR #63 evidence`);
   }
 
   // Verify dispatcher refuses to dispatch already-completed days
+  const dispatch16 = await dispatchPlanDay(16, { testMode: true });
+  if (dispatch16.status !== "already-issued" || !dispatch16.reason?.includes("completed")) {
+    throw new Error(`Test 4 Failed: dispatchPlanDay(16) must refuse dispatch for completed day: ${JSON.stringify(dispatch16)}`);
+  }
   const dispatch17 = await dispatchPlanDay(17, { testMode: true });
   if (dispatch17.status !== "already-issued" || !dispatch17.reason?.includes("completed")) {
     throw new Error(`Test 4 Failed: dispatchPlanDay(17) must refuse dispatch for completed day: ${JSON.stringify(dispatch17)}`);
+  }
+  const dispatch18 = await dispatchPlanDay(18, { testMode: true });
+  if (dispatch18.status !== "already-issued" || !dispatch18.reason?.includes("completed")) {
+    throw new Error(`Test 4 Failed: dispatchPlanDay(18) must refuse dispatch for completed day: ${JSON.stringify(dispatch18)}`);
   }
   const dispatch19 = await dispatchPlanDay(19, { testMode: true });
   if (dispatch19.status !== "already-issued" || !dispatch19.reason?.includes("completed")) {
