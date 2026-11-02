@@ -38,6 +38,7 @@ export interface IntakeState {
   version: number;
   lastProcessedTsByChannel: Record<string, string>;
   lastPolledAt: string;
+  failedAttemptsByMessageKey?: Record<string, number>;
 }
 
 function getIntakeStateFilePath(testMode: boolean): string {
@@ -48,6 +49,7 @@ function getIntakeStateFilePath(testMode: boolean): string {
 }
 
 let inMemoryLastProcessedTsByChannel: Record<string, string> = {};
+let inMemoryFailedAttemptsByMessageKey: Record<string, number> = {};
 let processBootTs: string = (Date.now() / 1000).toFixed(6);
 let isBootInitialized = false;
 
@@ -58,6 +60,7 @@ export function setBootTimestampForTests(ts: string): void {
 
 export function resetIntakeStateForTests(): void {
   inMemoryLastProcessedTsByChannel = {};
+  inMemoryFailedAttemptsByMessageKey = {};
   isBootInitialized = false;
   hasLoggedImFailure = false;
   const testPath = getIntakeStateFilePath(true);
@@ -74,6 +77,7 @@ export function loadIntakeState(testMode = isTestMode()): IntakeState {
     version: 1,
     lastProcessedTsByChannel: { ...inMemoryLastProcessedTsByChannel },
     lastPolledAt: new Date().toISOString(),
+    failedAttemptsByMessageKey: { ...inMemoryFailedAttemptsByMessageKey },
   };
 
   if (fs.existsSync(filePath)) {
@@ -85,6 +89,10 @@ export function loadIntakeState(testMode = isTestMode()): IntakeState {
           version: parsed.version || 1,
           lastProcessedTsByChannel: { ...inMemoryLastProcessedTsByChannel, ...parsed.lastProcessedTsByChannel },
           lastPolledAt: parsed.lastPolledAt || new Date().toISOString(),
+          failedAttemptsByMessageKey: {
+            ...inMemoryFailedAttemptsByMessageKey,
+            ...(parsed.failedAttemptsByMessageKey || {}),
+          },
         };
       }
     } catch (err) {
@@ -93,11 +101,13 @@ export function loadIntakeState(testMode = isTestMode()): IntakeState {
   }
 
   inMemoryLastProcessedTsByChannel = { ...state.lastProcessedTsByChannel };
+  inMemoryFailedAttemptsByMessageKey = { ...(state.failedAttemptsByMessageKey || {}) };
   return state;
 }
 
 export function saveIntakeState(state: IntakeState, testMode = isTestMode()): void {
   inMemoryLastProcessedTsByChannel = { ...state.lastProcessedTsByChannel };
+  inMemoryFailedAttemptsByMessageKey = { ...(state.failedAttemptsByMessageKey || {}) };
   const filePath = getIntakeStateFilePath(testMode);
   try {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -316,6 +326,8 @@ export async function answerArchitectQuestion(
     mockPlanEntries?: any[];
     mockIssues?: any[];
     mockCurrentDay?: number;
+    channel?: string;
+    thread_ts?: string;
   }
 ): Promise<string> {
   const isTest = options?.testMode === true || isTestMode();
@@ -603,95 +615,143 @@ export async function pollChiefOfStaffIntake(options?: {
 
       // Execute response by category
       const threadTs = msg.ts;
+      const msgKey = `${channel}:${msg.ts}`;
+      const prevFailures = state.failedAttemptsByMessageKey?.[msgKey] || 0;
+      let postResult: { ok: boolean; error?: string } = { ok: true };
 
-      if (classification.category === "task") {
-        const rawAgent = classification.agent || "web-builder";
-        const agentRecord = await findAgentByName(rawAgent);
+      try {
+        if (classification.category === "task") {
+          const rawAgent = classification.agent || "web-builder";
+          const agentRecord = await findAgentByName(rawAgent);
 
-        if (agentRecord) {
-          // Agent exists: open issue and post card
-          const brief = classification.brief || text;
-          const issueRes = await createIssue({
-            title: `[TASK]: ${text.slice(0, 60)}`,
-            body: `### for-agent\n${agentRecord.name}\n\n### door\n${classification.door || "core"}\n\n### deliverable\n${brief}\n\n### reviewer\n${agentRecord.reviewer || "Creative Director"}\n`,
-            labels: [`for:${agentRecord.name}`, `door:${classification.door || "core"}`, "type:build", "status:in-progress"],
+          if (agentRecord) {
+            // Agent exists: open issue and post card
+            const brief = classification.brief || text;
+            const issueRes = await createIssue({
+              title: `[TASK]: ${text.slice(0, 60)}`,
+              body: `### for-agent\n${agentRecord.name}\n\n### door\n${classification.door || "core"}\n\n### deliverable\n${brief}\n\n### reviewer\n${agentRecord.reviewer || "Creative Director"}\n`,
+              labels: [`for:${agentRecord.name}`, `door:${classification.door || "core"}`, "type:build", "status:in-progress"],
+            });
+
+            const replyText = `• *Assigned Agent:* \`@${agentRecord.name}\`\n• *Issue:* <${issueRes.html_url}|#${issueRes.number}>\n• *Expected Completion:* ~1–2 hours`;
+            postResult = await postLine({ channel, text: replyText, thread_ts: threadTs });
+          } else {
+            // Agent does not exist yet: check config/plan.yaml to find arrival day
+            const allPlan = await loadPlanEntries({ testMode: isTest });
+            const plannedEntry = allPlan.find((e) => e.agent === rawAgent);
+            const arrivalNote = plannedEntry
+              ? `Agent \`@${rawAgent}\` arrives on *Plan Day ${plannedEntry.day}*.`
+              : `Agent \`@${rawAgent}\` is not yet provisioned in the roster.`;
+
+            const replyText = `${arrivalNote}\n*Nearest available action:* \`@chief-of-staff\` can coordinate manually or \`@web-builder\` can scaffold.`;
+            postResult = await postLine({ channel, text: replyText, thread_ts: threadTs });
+          }
+        } else if (classification.category === "dispatch") {
+          let targetDay = classification.targetDay;
+          if (!targetDay) {
+            const curDay = await getCurrentPlanDay({ testMode: isTest });
+            const all = await loadPlanEntries({ testMode: isTest });
+            const curEntry = all.find((e) => e.day === curDay);
+            const curIssued = curEntry ? await isEntryAlreadyIssued(curEntry, { testMode: isTest }) : false;
+            targetDay = curIssued ? curDay + 1 : curDay;
+          }
+
+          const dispatchRes = await dispatchPlanDay(targetDay, { testMode: isTest });
+          if (dispatchRes.status === "dispatched") {
+            const replyText = `*Plan Day ${targetDay} Dispatched:*\n• *Title:* ${dispatchRes.entry?.title}\n• *Assigned Agent:* \`@${dispatchRes.assignedAgent}\`\n• *Issue:* <${dispatchRes.issueUrl}|#${dispatchRes.issueNumber}>\n• *Expected Completion:* ~1–2 hours`;
+            postResult = await postLine({ channel, text: replyText, thread_ts: threadTs });
+          } else if (dispatchRes.status === "already-issued") {
+            const replyText = `*Plan Day ${targetDay} Already Issued:*\n• *Title:* ${dispatchRes.entry?.title}\n• *Issue:* <${dispatchRes.issueUrl}|#${dispatchRes.issueNumber}>\n${dispatchRes.reason}`;
+            postResult = await postLine({ channel, text: replyText, thread_ts: threadTs });
+          } else if (dispatchRes.status === "blocked") {
+            const replyText = `*Plan Day ${targetDay} Blocked:*\n${dispatchRes.reason}`;
+            postResult = await postLine({ channel, text: replyText, thread_ts: threadTs });
+          } else {
+            const replyText = `*Plan Day ${targetDay} Dispatch Failed:*\n${dispatchRes.reason || "Not found in config/plan.yaml"}`;
+            postResult = await postLine({ channel, text: replyText, thread_ts: threadTs });
+          }
+        } else if (classification.category === "report") {
+          const reportText = await compileArchitectReport({ testMode: isTest });
+          postResult = await postLine({ channel, text: reportText, thread_ts: threadTs });
+        } else if (classification.category === "question") {
+          const answerText = await answerArchitectQuestion(text, {
+            testMode: isTest,
+            channel,
+            thread_ts: threadTs,
           });
+          postResult = await postLine({ channel, text: answerText, thread_ts: threadTs });
+        } else if (classification.category === "decision") {
+          const decisionText = classification.decisionText || text;
+          const actor = await getActorDisplayName(msg.user || "Tejinder Singh");
+          const decLine = `- ${timeStr} IST · ${actor} · DECISION · chief-of-staff · ${decisionText}`;
 
-          const replyText = `• *Assigned Agent:* \`@${agentRecord.name}\`\n• *Issue:* <${issueRes.html_url}|#${issueRes.number}>\n• *Expected Completion:* ~1–2 hours`;
-          await postLine({ channel, text: replyText, thread_ts: threadTs });
-        } else {
-          // Agent does not exist yet: check config/plan.yaml to find arrival day
-          const allPlan = await loadPlanEntries({ testMode: isTest });
-          const plannedEntry = allPlan.find((e) => e.agent === rawAgent);
-          const arrivalNote = plannedEntry
-            ? `Agent \`@${rawAgent}\` arrives on *Plan Day ${plannedEntry.day}*.`
-            : `Agent \`@${rawAgent}\` is not yet provisioned in the roster.`;
-
-          const replyText = `${arrivalNote}\n*Nearest available action:* \`@chief-of-staff\` can coordinate manually or \`@web-builder\` can scaffold.`;
-          await postLine({ channel, text: replyText, thread_ts: threadTs });
+          if (!isTest) {
+            await appendFileInRepo(
+              `decisions/${dateStr}.md`,
+              decLine,
+              `chore(decision): record Architect decision from Slack intake`
+            );
+          }
+          postResult = await postLine({
+            channel,
+            text: `*Decision Captured:*\nRecorded to \`decisions/${dateStr}.md\`:\n> ${decisionText}`,
+            thread_ts: threadTs,
+          });
+        } else if (classification.category === "ambiguous") {
+          const question = classification.clarifyingQuestion || "Could you specify the target deliverable and whether this is a code task, report, or architectural decision?";
+          postResult = await postLine({
+            channel,
+            text: `*Chief of Staff Clarification:*\n${question}`,
+            thread_ts: threadTs,
+          });
         }
-      } else if (classification.category === "dispatch") {
-        let targetDay = classification.targetDay;
-        if (!targetDay) {
-          const curDay = await getCurrentPlanDay({ testMode: isTest });
-          const all = await loadPlanEntries({ testMode: isTest });
-          const curEntry = all.find((e) => e.day === curDay);
-          const curIssued = curEntry ? await isEntryAlreadyIssued(curEntry, { testMode: isTest }) : false;
-          targetDay = curIssued ? curDay + 1 : curDay;
-        }
-
-        const dispatchRes = await dispatchPlanDay(targetDay, { testMode: isTest });
-        if (dispatchRes.status === "dispatched") {
-          const replyText = `*Plan Day ${targetDay} Dispatched:*\n• *Title:* ${dispatchRes.entry?.title}\n• *Assigned Agent:* \`@${dispatchRes.assignedAgent}\`\n• *Issue:* <${dispatchRes.issueUrl}|#${dispatchRes.issueNumber}>\n• *Expected Completion:* ~1–2 hours`;
-          await postLine({ channel, text: replyText, thread_ts: threadTs });
-        } else if (dispatchRes.status === "already-issued") {
-          const replyText = `*Plan Day ${targetDay} Already Issued:*\n• *Title:* ${dispatchRes.entry?.title}\n• *Issue:* <${dispatchRes.issueUrl}|#${dispatchRes.issueNumber}>\n${dispatchRes.reason}`;
-          await postLine({ channel, text: replyText, thread_ts: threadTs });
-        } else if (dispatchRes.status === "blocked") {
-          const replyText = `*Plan Day ${targetDay} Blocked:*\n${dispatchRes.reason}`;
-          await postLine({ channel, text: replyText, thread_ts: threadTs });
-        } else {
-          const replyText = `*Plan Day ${targetDay} Dispatch Failed:*\n${dispatchRes.reason || "Not found in config/plan.yaml"}`;
-          await postLine({ channel, text: replyText, thread_ts: threadTs });
-        }
-      } else if (classification.category === "report") {
-        const reportText = await compileArchitectReport({ testMode: isTest });
-        await postLine({ channel, text: reportText, thread_ts: threadTs });
-      } else if (classification.category === "question") {
-        const answerText = await answerArchitectQuestion(text, { testMode: isTest });
-        await postLine({ channel, text: answerText, thread_ts: threadTs });
-      } else if (classification.category === "decision") {
-        const decisionText = classification.decisionText || text;
-        const actor = await getActorDisplayName(msg.user || "Tejinder Singh");
-        const decLine = `- ${timeStr} IST · ${actor} · DECISION · chief-of-staff · ${decisionText}`;
-
-        if (!isTest) {
-          await appendFileInRepo(
-            `decisions/${dateStr}.md`,
-            decLine,
-            `chore(decision): record Architect decision from Slack intake`
-          );
-        }
-        await postLine({
-          channel,
-          text: `*Decision Captured:*\nRecorded to \`decisions/${dateStr}.md\`:\n> ${decisionText}`,
-          thread_ts: threadTs,
-        });
-      } else if (classification.category === "ambiguous") {
-        const question = classification.clarifyingQuestion || "Could you specify the target deliverable and whether this is a code task, report, or architectural decision?";
-        await postLine({
-          channel,
-          text: `*Chief of Staff Clarification:*\n${question}`,
-          thread_ts: threadTs,
-        });
+      } catch (err: any) {
+        postResult = { ok: false, error: err?.message || String(err) };
       }
 
-      if (!lastTs || Number(msg.ts) > Number(lastTs)) {
-        lastTs = msg.ts;
-        state.lastProcessedTsByChannel[channel] = lastTs;
+      if (postResult.ok) {
+        if (state.failedAttemptsByMessageKey && state.failedAttemptsByMessageKey[msgKey]) {
+          delete state.failedAttemptsByMessageKey[msgKey];
+        }
+        if (!lastTs || Number(msg.ts) > Number(lastTs)) {
+          lastTs = msg.ts;
+          state.lastProcessedTsByChannel[channel] = lastTs;
+        }
         saveIntakeState(state, isTest);
+        processedCount++;
+      } else {
+        const currentAttempts = prevFailures + 1;
+        if (!state.failedAttemptsByMessageKey) {
+          state.failedAttemptsByMessageKey = {};
+        }
+        state.failedAttemptsByMessageKey[msgKey] = currentAttempts;
+
+        console.error(
+          `[Intake Reply Failure] Message ${msg.ts} failed to post reply (attempt ${currentAttempts}): ${postResult.error || "Unknown error"}`
+        );
+
+        if (currentAttempts >= 2) {
+          // Marked processed after the second attempt and a one-line error is posted instead, never retried indefinitely
+          console.warn(
+            `[Intake] Message ${msg.ts} reached 2 failed attempts. Posting one-line error and marking processed.`
+          );
+          delete state.failedAttemptsByMessageKey[msgKey];
+
+          const errSummary = (postResult.error || "Failed to post message").slice(0, 150);
+          const oneLineError = `*Chief of Staff Error:* Failed to post reply (${errSummary}). Marked as processed.`;
+          await postLine({ channel, text: oneLineError, thread_ts: threadTs }).catch(() => {});
+
+          if (!lastTs || Number(msg.ts) > Number(lastTs)) {
+            lastTs = msg.ts;
+            state.lastProcessedTsByChannel[channel] = lastTs;
+          }
+          saveIntakeState(state, isTest);
+          processedCount++;
+        } else {
+          // Attempt 1: Do not advance lastTs, save failed count so next poll can retry
+          saveIntakeState(state, isTest);
+        }
       }
-      processedCount++;
     }
   }
 

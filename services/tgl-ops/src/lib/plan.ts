@@ -3,6 +3,7 @@ import path from "node:path";
 import { parse, stringify } from "yaml";
 import { config, isTestMode } from "../config.js";
 import { octokit } from "./github-client.js";
+import { postFile } from "./post.js";
 
 export interface PlanEntry {
   day: number;
@@ -329,13 +330,24 @@ export interface PlanStatusOptions {
     pull_request?: any;
     mergedPr?: number;
   }>;
+  channel?: string;
+  thread_ts?: string;
+}
+
+export interface PlanStatusBreakdown {
+  currentDay: number;
+  sortedEntries: PlanEntry[];
+  completedDays: PlanEntry[];
+  openDays: PlanEntry[];
+  notStartedDays: PlanEntry[];
+  dayLines: string[];
+  issuesByDay: Map<number, { number: number; title: string; state: string }>;
 }
 
 /**
- * Compiles a factual plan status response listing completed, open, and not started days.
- * Strictly uses plain text and bold only (no emojis).
+ * Computes plan status breakdown by matching config/plan.yaml against live or mock issues.
  */
-export async function getPlanStatusAnswer(options?: PlanStatusOptions): Promise<string> {
+export async function computePlanStatusBreakdown(options?: PlanStatusOptions): Promise<PlanStatusBreakdown> {
   const isTest = options?.testMode === true || isTestMode();
   const currentDay = await getCurrentPlanDay(options);
   const planEntries = options?.mockPlanEntries || (await loadPlanEntries(options));
@@ -401,6 +413,50 @@ export async function getPlanStatusAnswer(options?: PlanStatusOptions): Promise<
     dayLines.push(`• *Day ${entry.day}:* ${statusLabel} — ${entry.title}${issueRef}`);
   }
 
+  return {
+    currentDay,
+    sortedEntries,
+    completedDays,
+    openDays,
+    notStartedDays,
+    dayLines,
+    issuesByDay,
+  };
+}
+
+/**
+ * Returns the full per-day plan status report suitable for file attachment.
+ */
+export async function getPlanStatusFullReport(options?: PlanStatusOptions): Promise<string> {
+  const breakdown = await computePlanStatusBreakdown(options);
+  const { currentDay, sortedEntries, completedDays, openDays, notStartedDays, dayLines } = breakdown;
+
+  return [
+    `The Growth Lab — Complete Plan Status`,
+    `Current Day: Day ${currentDay}`,
+    `Total Plan Days: ${sortedEntries.length}`,
+    `Completed: ${completedDays.length} | Open: ${openDays.length} | Not Started: ${notStartedDays.length}`,
+    "",
+    `Per-Day Breakdown:`,
+    ...dayLines,
+    "",
+    `Verified from config/plan.yaml and live GitHub issues.`,
+  ].join("\n");
+}
+
+/**
+ * Compiles a plan status summary:
+ * - current day
+ * - counts (completed/open/not started)
+ * - the open issues by day
+ * - the next 5 not-started days
+ * with the full per-day list attached as a file via postFile.
+ * Strictly uses plain text and bold only (no emojis).
+ */
+export async function getPlanStatusAnswer(options?: PlanStatusOptions): Promise<string> {
+  const breakdown = await computePlanStatusBreakdown(options);
+  const { currentDay, sortedEntries, completedDays, openDays, notStartedDays, dayLines, issuesByDay } = breakdown;
+
   const completedSummary =
     completedDays.length > 0
       ? `${completedDays.length} day${completedDays.length === 1 ? "" : "s"} (${completedDays.map((d) => `Day ${d.day}`).join(", ")})`
@@ -413,6 +469,60 @@ export async function getPlanStatusAnswer(options?: PlanStatusOptions): Promise<
 
   const notStartedSummary = `${notStartedDays.length} day${notStartedDays.length === 1 ? "" : "s"}`;
 
+  // 1. Open issues by day
+  const openIssuesLines = openDays.map((entry) => {
+    const iss = issuesByDay.get(entry.day);
+    const issueRef = iss ? ` (#${iss.number})` : "";
+    return `• *Day ${entry.day}:* open (issue open) — ${entry.title}${issueRef}`;
+  });
+
+  // 2. Next 5 not-started days
+  const next5NotStarted = notStartedDays.slice(0, 5);
+  const next5Lines = next5NotStarted.map((entry) => {
+    return `• *Day ${entry.day}:* not started (no issue) — ${entry.title}`;
+  });
+
+  const remainingNotStartedCount = notStartedDays.length - next5NotStarted.length;
+  const moreNotStartedNote =
+    remainingNotStartedCount > 0
+      ? `\n_(+${remainingNotStartedCount} more not-started days in attached complete plan)_`
+      : "";
+
+  const openSection =
+    openIssuesLines.length > 0
+      ? `*Open Issues by Day:*\n${openIssuesLines.join("\n")}`
+      : `*Open Issues by Day:* None active`;
+
+  const next5Section =
+    next5Lines.length > 0
+      ? `*Next 5 Not-Started Days:*\n${next5Lines.join("\n")}${moreNotStartedNote}`
+      : `*Next 5 Not-Started Days:* None remaining`;
+
+  // Attach full per-day list as a file via postFile if channel is provided
+  if (options?.channel) {
+    const fullPerDayText = [
+      `The Growth Lab — Complete Plan Status`,
+      `Current Day: Day ${currentDay}`,
+      `Total Plan Days: ${sortedEntries.length}`,
+      `Completed: ${completedDays.length} | Open: ${openDays.length} | Not Started: ${notStartedDays.length}`,
+      "",
+      `Per-Day Breakdown:`,
+      ...dayLines,
+      "",
+      `Verified from config/plan.yaml and live GitHub issues.`,
+    ].join("\n");
+
+    await postFile({
+      channel: options.channel,
+      thread_ts: options.thread_ts,
+      filename: `plan-status-day-${currentDay}.txt`,
+      title: `Complete Plan Status — Day ${currentDay} (${sortedEntries.length} days)`,
+      fileBuffer: Buffer.from(fullPerDayText, "utf8"),
+    }).catch((err) => {
+      console.warn("[Plan Status postFile Warning]", err);
+    });
+  }
+
   return [
     `*Plan Status (Current Day: Day ${currentDay})*`,
     `• *Completed:* ${completedSummary}`,
@@ -420,10 +530,11 @@ export async function getPlanStatusAnswer(options?: PlanStatusOptions): Promise<
     `• *Not Started:* ${notStartedSummary}`,
     `• *Total Plan Days:* ${sortedEntries.length}`,
     "",
-    `*Per-Day Status:*`,
-    ...dayLines,
+    openSection,
     "",
-    `_Verified from config/plan.yaml and live GitHub issues._`,
+    next5Section,
+    "",
+    `_Full per-day list attached as a file via postFile (${sortedEntries.length} days)._`,
   ].join("\n");
 }
 
