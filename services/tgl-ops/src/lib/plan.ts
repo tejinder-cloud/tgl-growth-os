@@ -15,6 +15,8 @@ export interface PlanEntry {
   definition_of_done: string[];
   depends_on: (number | string)[];
   architect_hour: string;
+  status?: string;
+  evidence?: string;
 }
 
 export interface PlanFileContent {
@@ -395,10 +397,13 @@ export async function computePlanStatusBreakdown(options?: PlanStatusOptions): P
   for (const entry of sortedEntries) {
     const iss = issuesByDay.get(entry.day);
     let statusLabel = "not started (no issue)";
-    let issueRef = "";
+    let issueRef = iss ? ` (#${iss.number})` : "";
 
-    if (iss) {
-      issueRef = ` (#${iss.number})`;
+    if (entry.status === "completed") {
+      const evidenceStr = entry.evidence ? ` (${entry.evidence})` : "";
+      statusLabel = `completed${evidenceStr}`;
+      completedDays.push(entry);
+    } else if (iss) {
       if (iss.state === "closed") {
         statusLabel = "completed (issue closed with merged PR)";
         completedDays.push(entry);

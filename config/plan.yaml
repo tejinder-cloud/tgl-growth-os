@@ -1,5 +1,5 @@
 version: 1
-generated_at: 2026-10-30T14:28:16.230Z
+generated_at: 2026-11-02T14:54:32.770Z
 days_count: 61
 plan:
   - day: 8
@@ -134,6 +134,8 @@ plan:
     architect_hour: Install Claude Code + gstack on the Mac for engineering sessions
       (git clone gstack → ./setup). Approve schema (5-line explainer).
   - day: 17
+    status: completed
+    evidence: "PR #61, PR #62"
     agent: aeo-audit-engine
     door: aeo
     title: "Citation Tracker: daily runs per brand"
@@ -160,6 +162,8 @@ plan:
       - 16
     architect_hour: Walk the wizard on your phone; list what confuses you.
   - day: 19
+    status: completed
+    evidence: "PR #63"
     agent: aeo-strategist
     door: aeo
     title: Setup-verification queue

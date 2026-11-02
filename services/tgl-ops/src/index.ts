@@ -150,22 +150,6 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
-// Startup catch-up: if booted after 06:00 IST, run today's tracking now. Idempotent per brand × engine × day,
-// so redeploys never pay twice for a completed run.
-(async () => {
-  const hour = Number(getCurrentTimeIST().slice(0, 2));
-  if (hour < 6) return;
-  try {
-    await runCitationTracking();
-  } catch (err: any) {
-    console.error("[Citation Tracker Startup Catch-Up Error]", err);
-    await postLine({
-      channel: getAlertsChannel(),
-      text: `*[Citation Tracker Catch-Up Failure]* at ${getCurrentTimeIST()} IST\n• Error: \`${String(err?.message ?? err).slice(0, 400)}\``,
-    }).catch(() => {});
-  }
-})();
-
 import { pollSetupQueue } from "./agents/aeo-strategist/worker.js";
 
 // Every 10 minutes: Setup-verification queue — new TrueVisible setups → strategist proposal → #approvals card (plan Day 19)

@@ -1,5 +1,7 @@
 // services/tgl-ops/src/test-plan-status-and-no-emojis.ts
 process.env.ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-20241022";
+process.env.ANTHROPIC_PRICE_IN = process.env.ANTHROPIC_PRICE_IN || "3.00";
+process.env.ANTHROPIC_PRICE_OUT = process.env.ANTHROPIC_PRICE_OUT || "15.00";
 process.env.TGL_TEST_MODE = "1";
 process.env.NODE_ENV = "test";
 
@@ -32,6 +34,7 @@ import {
 } from "./agents/prospect-researcher/db.js";
 import { compileMondayScorecard } from "./agents/chief-of-staff/scorecard.js";
 import { execute1815SilenceCheck } from "./agents/chief-of-staff/worker.js";
+import { dispatchPlanDay } from "./agents/chief-of-staff/dispatch.js";
 import {
   postCard,
   postLine,
@@ -64,6 +67,12 @@ async function runPlanStatusAndNoEmojisSuite(): Promise<void> {
   console.log("==========================================================================\n");
 
   let passed = 0;
+
+  // Clean test fixtures so test uses real config/plan.yaml
+  const testPlanPath = path.join(config.repoRoot, "logs/.test/plan.yaml");
+  if (fs.existsSync(testPlanPath)) {
+    fs.unlinkSync(testPlanPath);
+  }
 
   // Mock plan entries for deterministic status tests
   const mockPlanEntries: PlanEntry[] = [
@@ -332,10 +341,40 @@ async function runPlanStatusAndNoEmojisSuite(): Promise<void> {
   if (!realPlanStatus.includes("• *Day 8:*") || !realPlanStatus.includes("• *Day 9:*")) {
     throw new Error(`Test 4 Failed: Expected Day 8 and Day 9 in real plan status`);
   }
+  if (!realPlanStatus.includes("Day 17") || !realPlanStatus.includes("Day 19")) {
+    throw new Error(`Test 4 Failed: Expected Day 17 and Day 19 in completed summary: ${realPlanStatus}`);
+  }
+
+  // Verify breakdown and evidence
+  const breakdown = await computePlanStatusBreakdown({ testMode: true });
+  const day17 = breakdown.completedDays.find((d) => d.day === 17);
+  const day19 = breakdown.completedDays.find((d) => d.day === 19);
+  if (!day17 || !day17.evidence?.includes("PR #61")) {
+    throw new Error(`Test 4 Failed: Day 17 must be completed with PR #61 evidence`);
+  }
+  if (!day19 || !day19.evidence?.includes("PR #63")) {
+    throw new Error(`Test 4 Failed: Day 19 must be completed with PR #63 evidence`);
+  }
+
+  // Verify dispatcher refuses to dispatch already-completed days
+  const dispatch17 = await dispatchPlanDay(17, { testMode: true });
+  if (dispatch17.status !== "already-issued" || !dispatch17.reason?.includes("completed")) {
+    throw new Error(`Test 4 Failed: dispatchPlanDay(17) must refuse dispatch for completed day: ${JSON.stringify(dispatch17)}`);
+  }
+  const dispatch19 = await dispatchPlanDay(19, { testMode: true });
+  if (dispatch19.status !== "already-issued" || !dispatch19.reason?.includes("completed")) {
+    throw new Error(`Test 4 Failed: dispatchPlanDay(19) must refuse dispatch for completed day: ${JSON.stringify(dispatch19)}`);
+  }
+
+  // Verify Citation Tracker startup catch-up is removed from index.ts
+  const indexTsContent = fs.readFileSync(path.join(config.repoRoot, "services/tgl-ops/src/index.ts"), "utf8");
+  if (indexTsContent.includes("Citation Tracker Startup Catch-Up Error") || indexTsContent.includes("Startup catch-up: if booted after 06:00 IST")) {
+    throw new Error("Test 4 Failed: Startup catch-up for Citation Tracker must be removed from services/tgl-ops/src/index.ts");
+  }
 
   assertNoEmojis(realPlanStatus, "Real plan status output");
   passed++;
-  console.log("  Passed: Real config/plan.yaml verified.\n");
+  console.log("  Passed: Real config/plan.yaml verified (Days 17 & 19 completed, dispatcher guarded, no startup tracker).\n");
 
   // -------------------------------------------------------------------------
   // Test 5: Full 61-Day Plan Test with Summary & File Attachment

@@ -11,6 +11,8 @@ export interface PlanEntry {
   definition_of_done: string[];
   depends_on: (number | string)[];
   architect_hour: string;
+  status?: string;
+  evidence?: string;
 }
 
 export const PLAN_ENTRIES: PlanEntry[] = [
@@ -150,6 +152,8 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 17,
+    status: "completed",
+    evidence: "PR #61, PR #62",
     agent: "aeo-audit-engine",
     door: "aeo",
     title: "Citation Tracker: daily runs per brand",
@@ -178,6 +182,8 @@ export const PLAN_ENTRIES: PlanEntry[] = [
   },
   {
     day: 19,
+    status: "completed",
+    evidence: "PR #63",
     agent: "aeo-strategist",
     door: "aeo",
     title: "Setup-verification queue",
@@ -881,10 +887,10 @@ export function renderProjectPlanMarkdown(entries: PlanEntry[]): string {
 
   const renderRows = (list: PlanEntry[]) =>
     list
-      .map(
-        (e) =>
-          `| ${e.day} | \`@${e.agent}\` | **${e.title}**: ${e.brief} | ${e.architect_hour} |`
-      )
+      .map((e) => {
+        const statusTag = e.status === "completed" ? ` *(Completed — ${e.evidence || "DoD met"})*` : "";
+        return `| ${e.day} | \`@${e.agent}\` | **${e.title}**${statusTag}: ${e.brief} | ${e.architect_hour} |`;
+      })
       .join("\n");
 
   return `# PROJECT PLAN v2 — Building The Growth Lab's agent company

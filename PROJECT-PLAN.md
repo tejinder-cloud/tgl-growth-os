@@ -34,9 +34,9 @@
 | Day | Agent | Build | Your hour |
 |---|---|---|---|
 | 16 | `@web-builder` | **Supabase schema per SPEC §11 with RLS & usage_costs**: Supabase schema per SPEC §11, RLS by tenant; usage_costs from day one. | Install Claude Code + gstack on the Mac for engineering sessions (git clone gstack → ./setup). Approve schema (5-line explainer). |
-| 17 | `@aeo-audit-engine` | **Citation Tracker: daily runs per brand**: Citation Tracker: daily runs per brand → runs/answers/citations; TGL = tenant zero; cost per brand logged. | Add TGL's 10 prompts (I draft). |
+| 17 | `@aeo-audit-engine` | **Citation Tracker: daily runs per brand** *(Completed — PR #61, PR #62)*: Citation Tracker: daily runs per brand → runs/answers/citations; TGL = tenant zero; cost per brand logged. | Add TGL's 10 prompts (I draft). |
 | 18 | `@web-builder` | **Auth + onboarding wizard (3 steps) in paper-and-ink**: Auth + onboarding wizard (3 steps, platform question, language) in paper-and-ink. | Walk the wizard on your phone; list what confuses you. |
-| 19 | `@aeo-strategist` | **Setup-verification queue**: Setup-verification queue: agent proposes category/competitors/prompts → human confirm within 24h. | Verify the first 3 setups yourself. |
+| 19 | `@aeo-strategist` | **Setup-verification queue** *(Completed — PR #63)*: Setup-verification queue: agent proposes category/competitors/prompts → human confirm within 24h. | Verify the first 3 setups yourself. |
 | 20 | `@web-builder` | **TrueVisible Dashboard: Overview tab**: Dashboard: Overview (meter, over-time by engine, sentiment, SoV, citations, hallucinations panel). | Click through; five confusions. |
 | 21 | `@web-builder` | **TrueVisible Dashboard: Prompts, Citations & Settings tabs**: Dashboard: Prompts · Citations (+ gap list) · Settings. | Review Prompts and Citations tabs. |
 | 22 | `@web-builder` | **Recommendations with assets + Start managed AEO button**: Recommendations with assets; Start managed AEO button → contract + Razorpay + Delivery queue. | Approve the recommendation card and the managed-AEO flow copy. |
