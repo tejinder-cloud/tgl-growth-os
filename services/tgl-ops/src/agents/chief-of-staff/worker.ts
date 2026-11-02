@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { config, isTestMode } from "../../config.js";
-import { loadAgents } from "../../lib/agents.js";
+import { loadAgents, isAgentScheduledOnDate, type AgentRecord } from "../../lib/agents.js";
 import { appendFileInRepo, octokit, putFileInRepo, readFileFromRepo } from "../../lib/github-client.js";
 import { slackClient, getActorDisplayName } from "../../lib/slack-client.js";
 import { postLine } from "../../lib/post.js";
@@ -449,11 +449,19 @@ export async function checkAndRunStartupCatchup(options?: {
  */
 export async function execute1815SilenceCheck(
   dateStr?: string,
-  threadTs?: string,
+  threadTsOrOptions?: string | { testMode?: boolean; mockAgents?: AgentRecord[] },
   targetChannel?: string,
-  options?: { testMode?: boolean }
+  options?: { testMode?: boolean; mockAgents?: AgentRecord[] }
 ): Promise<{ silentAgents: string[]; postedCount: number }> {
-  const isTest = options?.testMode === true || isTestMode();
+  let threadTs: string | undefined;
+  let opts = options;
+  if (typeof threadTsOrOptions === "object" && threadTsOrOptions !== null) {
+    opts = threadTsOrOptions;
+    threadTs = undefined;
+  } else {
+    threadTs = threadTsOrOptions;
+  }
+  const isTest = opts?.testMode === true || isTestMode();
   const date = dateStr || getTodayDateString();
 
   // Retrieve standup post info from state file first
@@ -462,10 +470,10 @@ export async function execute1815SilenceCheck(
   const parentTs = threadTs || state?.standupTs;
 
   console.log(`[Chief of Staff] Running 18:15 IST silence check for ${date}...`);
-  const allAgents = await loadAgents();
+  const allAgents = opts?.mockAgents || (await loadAgents());
 
-  // Active agents only (status: active in config/agents.yaml)
-  const activeAgents = allAgents.filter((a) => a.status === "active");
+  // Active agents only (status: active in config/agents.yaml, or all in mock)
+  const activeAgents = allAgents.filter((a) => !a.status || a.status === "active");
 
   // Check logs from main via Contents API, never local disk (except mock in test mode)
   const reportedAgents = new Set<string>();
@@ -506,6 +514,12 @@ export async function execute1815SilenceCheck(
 
   const silentAgents: string[] = [];
   for (const agent of activeAgents) {
+    // Silence is only flagged on days the agent's routine runs
+    if (!isAgentScheduledOnDate(agent, date)) {
+      console.log(`[Chief of Staff] Silence check: Agent @${agent.name} is not scheduled to run on ${date} (e.g. weekend / off-schedule) — skipping silence check.`);
+      continue;
+    }
+
     if (!reportedAgents.has(agent.name.toLowerCase())) {
       silentAgents.push(agent.name);
     }

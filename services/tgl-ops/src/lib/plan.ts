@@ -36,16 +36,65 @@ export function getPlanProgressPath(testMode: boolean): string {
   return path.join(config.repoRoot, PLAN_PROGRESS_PATH);
 }
 
-export async function getCurrentPlanDay(options?: { testMode?: boolean }): Promise<number> {
+export async function getCurrentPlanDay(options?: {
+  testMode?: boolean;
+  mockCurrentDay?: number;
+  mockIssuedDays?: (number | string)[];
+}): Promise<number> {
+  if (options?.mockCurrentDay !== undefined) {
+    return options.mockCurrentDay;
+  }
+
+  let maxDispatchedDay = 0;
+
+  // 1. Check mockIssuedDays if passed
+  if (options?.mockIssuedDays && options.mockIssuedDays.length > 0) {
+    for (const d of options.mockIssuedDays) {
+      const num = typeof d === "number" ? d : parseInt(String(d), 10);
+      if (!isNaN(num) && num > maxDispatchedDay) {
+        maxDispatchedDay = num;
+      }
+    }
+  }
+
+  // 2. Check local/test state file
   const isTest = options?.testMode === true || isTestMode();
   const filePath = getPlanProgressPath(isTest);
+  let fileDay = 0;
   if (fs.existsSync(filePath)) {
     try {
       const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
-      if (typeof data.currentDay === "number") return data.currentDay;
+      if (typeof data.currentDay === "number") fileDay = data.currentDay;
     } catch {}
   }
-  return 8; // Default start at Day 8
+
+  // 3. Reconcile with live dispatched issues in GitHub
+  let githubMaxDay = 0;
+  if (!isTest && config.githubToken) {
+    try {
+      const issuesRes = await octokit.issues.listForRepo({
+        owner: config.githubOwner,
+        repo: config.githubRepo,
+        state: "all",
+        per_page: 100,
+      });
+
+      for (const iss of issuesRes.data) {
+        const match = iss.title.match(/\[PLAN-D(\d+)\]/i);
+        if (match) {
+          const dayNum = parseInt(match[1], 10);
+          if (dayNum > githubMaxDay) {
+            githubMaxDay = dayNum;
+          }
+        }
+      }
+    } catch (err: any) {
+      console.warn("[Plan Progress Reconcile Warning] Could not list GitHub issues:", err.message);
+    }
+  }
+
+  const determinedDay = Math.max(maxDispatchedDay, fileDay, githubMaxDay);
+  return determinedDay > 0 ? determinedDay : 8; // Default start at Day 8
 }
 
 export async function setCurrentPlanDay(day: number, options?: { testMode?: boolean }): Promise<void> {
