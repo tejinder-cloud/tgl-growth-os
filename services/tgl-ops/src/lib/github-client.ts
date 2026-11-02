@@ -44,6 +44,7 @@ export interface GitHubIssueDetails {
   state: string;
   labels: string[];
   html_url: string;
+  comments?: string[];
 }
 
 export const mockIssuesStore = new Map<number, GitHubIssueDetails>();
@@ -131,6 +132,12 @@ export async function addLabelsToIssue(issueNumber: number, labels: string[]): P
 }
 
 export async function addCommentToIssue(issueNumber: number, body: string): Promise<void> {
+  if (mockIssuesStore.has(issueNumber)) {
+    const item = mockIssuesStore.get(issueNumber)!;
+    if (!item.comments) item.comments = [];
+    item.comments.push(body);
+  }
+
   if (!config.githubToken) {
     console.warn(`[GitHub] GITHUB_TOKEN not set; simulating comment on issue #${issueNumber}`);
     return;

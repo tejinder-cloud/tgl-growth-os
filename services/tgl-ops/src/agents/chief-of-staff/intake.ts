@@ -4,7 +4,14 @@ import Anthropic from "@anthropic-ai/sdk";
 import { config, isTestMode } from "../../config.js";
 import { slackClient, getActorDisplayName, getBotIdentity } from "../../lib/slack-client.js";
 import { postLine, postCard } from "../../lib/post.js";
-import { createIssue, appendFileInRepo } from "../../lib/github-client.js";
+import {
+  createIssue,
+  appendFileInRepo,
+  getIssue,
+  addCommentToIssue,
+  removeLabelFromIssue,
+  addLabelsToIssue,
+} from "../../lib/github-client.js";
 import { loadAgents, findAgentByName } from "../../lib/agents.js";
 import { loadPlanEntries, getCurrentPlanDay, getPlanStatusAnswer } from "../../lib/plan.js";
 import { dispatchPlanDay, isEntryAlreadyIssued } from "./dispatch.js";
@@ -31,6 +38,7 @@ export interface IntakeClassificationResult {
   decisionText?: string;
   door?: string;
   targetDay?: number;
+  issueNumber?: number;
   confidence: number;
 }
 
@@ -135,6 +143,37 @@ export async function classifyArchitectMessage(
     let agent = "web-builder";
     let targetDay: number | undefined;
 
+    // Check if the message names an issue (#N) with an instruction
+    const issueMatch = messageText.match(/#(\d+)\b/);
+    if (
+      issueMatch &&
+      (/(?:finish|resume|continue|complete|fix|work on|re-run|run|build|update|implement|proceed|do)\b/i.test(text) ||
+        /(?:short-form|runner|pdf|lines left|remaining)/i.test(text))
+    ) {
+      const issueNum = parseInt(issueMatch[1], 10);
+      recordCostEntry(
+        {
+          timestamp: new Date().toISOString(),
+          issueNumber: issueNum,
+          agent: "chief-of-staff",
+          model: "claude-3-5-sonnet",
+          inputTokens: 100,
+          outputTokens: 50,
+          totalCostUsd: 0.001,
+        },
+        options
+      );
+      return {
+        category: "task",
+        agent: "web-builder",
+        door: "aeo",
+        brief: messageText,
+        confidence: 0.99,
+        issueNumber: issueNum,
+        tokens: { input: 100, output: 50, costUsd: 0.001 },
+      };
+    }
+
     if (/^(?:go\b|say go|day\s*(\d+)|dispatch\s*(?:day\s*)?(\d+)?)/i.test(text)) {
       cat = "dispatch";
       const match = text.match(/(?:day\s*|dispatch\s*(?:day\s*)?)(\d+)/i);
@@ -159,7 +198,7 @@ export async function classifyArchitectMessage(
       cat = "report";
     } else if (/^decide|^decision:|^approved:|^we will /i.test(text)) {
       cat = "decision";
-    } else if (/^maybe|^not sure|^how about/i.test(text)) {
+    } else if (/^maybe|^not sure|^how about|^what if|^consider|^we could|^should we|^let's think/i.test(text)) {
       cat = "ambiguous";
     } else {
       cat = "question";
@@ -194,13 +233,14 @@ export async function classifyArchitectMessage(
 Your job is to read an inbound message from the Architect (Tejinder Singh) and classify it into exactly one of six categories:
 1. "dispatch": The Architect is triggering or directing the dispatch of a plan day (e.g. "go", "say go", "day 8", "day 9", "dispatch day 9", "proceed with day 8").
    - Extract "targetDay" as an integer if a specific day is named (e.g. 9 for "day 9"). If just "go", omit or leave null.
-2. "task": The Architect is requesting work to be built, fixed, updated, researched, or executed.
+2. "task": The Architect is requesting work to be built, fixed, updated, researched, or executed, OR instructing action on an issue (e.g. "finish #53 — ...", "resume #53", "fix #12").
+   - Extract "issueNumber" as an integer if an issue (#N) is mentioned.
    - Extract the best matching agent name (e.g. web-builder, creative-director, prospect-researcher, chief-of-staff, video-team, etc.).
    - Rewrite the brief in that agent's professional craft terms.
 3. "report": The Architect is requesting a report or using the directive "Report ..." (e.g. "report", "Report current spend", "daily report", "ops report", "status report", "compile report"). Reserve the "report" category strictly for requests asking for a report. Queries asking for counts without asking for a report (e.g. "counts by city", "counts by status", "counts by day", "what did we spend today?", "how many prospects in Delhi?") are "question", NOT "report".
 4. "question": The Architect is asking a question or querying metrics without requesting a report (e.g. "counts by city", "counts by status", "counts by day", "what did we spend today?", "how many prospects in Delhi?").
 5. "decision": The Architect is stating a strategic or architectural decision to be permanently recorded.
-6. "ambiguous": The message is vague, underspecified, or ambiguous. Provide exactly one sharp clarifying question.
+6. "ambiguous": The message is vague, underspecified, or ambiguous (e.g. "maybe we should look at something", "not sure what to do next"). Provide exactly one sharp clarifying question.
 
 Message: "${messageText}"
 
@@ -208,6 +248,7 @@ Respond ONLY with a JSON object:
 {
   "category": "dispatch" | "task" | "report" | "question" | "decision" | "ambiguous",
   "targetDay": number (optional, for dispatch),
+  "issueNumber": number (optional, for existing issue tasks),
   "agent": "string (for tasks)",
   "door": "core" | "aeo" | "ai" | "truelead",
   "brief": "rewritten brief in agent terms (for tasks)",
@@ -230,17 +271,32 @@ Respond ONLY with a JSON object:
   const jsonMatch = rawText.match(/\{[\s\S]*\}/);
   const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : { category: "question", confidence: 0.5 };
 
+  let category: IntakeClassification = parsed.category || "question";
+  let issueNumber: number | undefined = parsed.issueNumber ? Number(parsed.issueNumber) : undefined;
+  const issueMatch = messageText.match(/#(\d+)\b/);
+  if (
+    issueMatch &&
+    (category === "task" ||
+      issueNumber ||
+      /(?:finish|resume|continue|complete|fix|work on|re-run|run|build|update|implement|proceed|do)\b/i.test(messageText) ||
+      /(?:short-form|runner|pdf|lines left|remaining)/i.test(messageText))
+  ) {
+    category = "task";
+    issueNumber = issueNumber || parseInt(issueMatch[1], 10);
+  }
+
   const inputTokens = res.usage?.input_tokens || 0;
   const outputTokens = res.usage?.output_tokens || 0;
   const costUsd = Number(((inputTokens * priceInPerMTok + outputTokens * priceOutPerMTok) / 1_000_000).toFixed(4));
 
   return {
-    category: parsed.category || "question",
+    category,
     agent: parsed.agent,
     door: parsed.door || "core",
     brief: parsed.brief || messageText,
     decisionText: parsed.decisionText,
     targetDay: parsed.targetDay ? Number(parsed.targetDay) : undefined,
+    issueNumber,
     clarifyingQuestion: parsed.clarifyingQuestion,
     confidence: parsed.confidence || 0.9,
     tokens: { input: inputTokens, output: outputTokens, costUsd },
@@ -425,14 +481,14 @@ _Verified from logs/.state/cost-ledger.json and daily logs._`;
     return formatAllProspectCounts(metrics);
   }
 
-  // 3. Fallback for other general questions
+  // 4. Fallback for other general questions
   if (config.anthropicApiKey && !isTest) {
     try {
       const modelName = getAnthropicModel();
       const prompt = `You are the Chief of Staff at The Growth Lab. Answer the Architect's question concisely, numerically, and factually based on our operations:
 Architect Question: "${questionText}"
 Reference files: config/plan.yaml, config/agents.yaml, AGENTS.md, logs/${dateStr}/.
-Answer in 1-3 lines maximum. Zero corporate fluff.`;
+Answer in 1-3 lines maximum. Zero corporate fluff. Never provide a summary of files read. If the question lacks sufficient detail or data to answer, ask one sharp clarifying question.`;
 
       const response = await callAnthropicWithCostCap({
         agent: "chief-of-staff",
@@ -444,13 +500,13 @@ Answer in 1-3 lines maximum. Zero corporate fluff.`;
       });
 
       const text = response.content[0]?.type === "text" ? response.content[0].text : "";
-      if (text.trim()) {
+      if (text.trim() && !text.includes("I've verified our current records") && !text.includes("Relevant files:")) {
         return `*Chief of Staff Response:*\n${text.trim()}`;
       }
     } catch {}
   }
 
-  return `*Chief of Staff Response:*\nI've verified our current records. Relevant files: \`config/plan.yaml\` and \`AGENTS.md\`. All current operations are logged under \`logs/${dateStr}/\`.`;
+  return `*Chief of Staff Clarification:*\nCould you specify which metric, agent, or plan day you need data for?`;
 }
 
 let hasLoggedImFailure = false;
@@ -621,30 +677,98 @@ export async function pollChiefOfStaffIntake(options?: {
 
       try {
         if (classification.category === "task") {
-          const rawAgent = classification.agent || "web-builder";
-          const agentRecord = await findAgentByName(rawAgent);
+          if (classification.issueNumber) {
+            const issueNum = classification.issueNumber;
+            const existingIssue = await getIssue(issueNum);
 
-          if (agentRecord) {
-            // Agent exists: open issue and post card
-            const brief = classification.brief || text;
-            const issueRes = await createIssue({
-              title: `[TASK]: ${text.slice(0, 60)}`,
-              body: `### for-agent\n${agentRecord.name}\n\n### door\n${classification.door || "core"}\n\n### deliverable\n${brief}\n\n### reviewer\n${agentRecord.reviewer || "Creative Director"}\n`,
-              labels: [`for:${agentRecord.name}`, `door:${classification.door || "core"}`, "type:build", "status:in-progress"],
-            });
+            // 1. Add Architect's text as a comment
+            await addCommentToIssue(
+              issueNum,
+              `**Architect Instruction (via Slack intake):**\n\n${text}`
+            );
 
-            const replyText = `• *Assigned Agent:* \`@${agentRecord.name}\`\n• *Issue:* <${issueRes.html_url}|#${issueRes.number}>\n• *Expected Completion:* ~1–2 hours`;
+            // 2. Identify assigned agent: web-builder for build issues
+            const isBuildIssue =
+              existingIssue?.labels.some((l) => l === "type:build") ||
+              /(?:runner|pdf|build|code|engine|script|app|short-form)/i.test(text) ||
+              (existingIssue && /(?:runner|pdf|build|code|engine|script|app|short-form)/i.test(existingIssue.title));
+
+            let assignedAgent = "web-builder";
+            if (existingIssue) {
+              const forLabel = existingIssue.labels.find((l) => l.startsWith("for:"));
+              if (forLabel && !isBuildIssue) {
+                assignedAgent = forLabel.replace(/^for:/, "");
+              }
+            }
+            if (classification.agent && !isBuildIssue) {
+              assignedAgent = classification.agent;
+            }
+
+            // 3. Set status:in-progress for the issue's agent
+            await removeLabelFromIssue(issueNum, "status:needs-brief");
+            await removeLabelFromIssue(issueNum, "status:blocked");
+            await addLabelsToIssue(issueNum, ["status:in-progress", `for:${assignedAgent}`]);
+
+            // 4. Derive door and channel
+            let door = classification.door || "aeo";
+            if (existingIssue) {
+              const doorLabel = existingIssue.labels.find((l) => l.startsWith("door:"));
+              if (doorLabel) {
+                door = doorLabel.replace(/^door:/, "");
+              }
+            }
+            const doorChannel = `#doors-${door}`;
+
+            // 5. Trigger runner
+            try {
+              const { runIssueTask } = await import("../../runner/runner.js");
+              const issueInput = {
+                number: issueNum,
+                title: existingIssue?.title || `Issue #${issueNum}`,
+                body: existingIssue?.body || "",
+                labels: existingIssue?.labels || ["type:build", "status:in-progress", `for:${assignedAgent}`, `door:${door}`],
+                html_url: existingIssue?.html_url,
+                agentName: assignedAgent,
+                door,
+                slackChannel: channel,
+                slackThreadTs: threadTs,
+              };
+              runIssueTask(issueInput, { testMode: isTest }).catch((err) => {
+                console.warn(`[Intake] Error executing runner for issue #${issueNum}:`, err);
+              });
+            } catch (err: any) {
+              console.warn(`[Intake] Could not trigger runner for issue #${issueNum}:`, err?.message || String(err));
+            }
+
+            // 6. Reply in-thread
+            const replyText = `→ @${assignedAgent}, #${issueNum} resumed, card in ${doorChannel}`;
             postResult = await postLine({ channel, text: replyText, thread_ts: threadTs });
           } else {
-            // Agent does not exist yet: check config/plan.yaml to find arrival day
-            const allPlan = await loadPlanEntries({ testMode: isTest });
-            const plannedEntry = allPlan.find((e) => e.agent === rawAgent);
-            const arrivalNote = plannedEntry
-              ? `Agent \`@${rawAgent}\` arrives on *Plan Day ${plannedEntry.day}*.`
-              : `Agent \`@${rawAgent}\` is not yet provisioned in the roster.`;
+            const rawAgent = classification.agent || "web-builder";
+            const agentRecord = await findAgentByName(rawAgent);
 
-            const replyText = `${arrivalNote}\n*Nearest available action:* \`@chief-of-staff\` can coordinate manually or \`@web-builder\` can scaffold.`;
-            postResult = await postLine({ channel, text: replyText, thread_ts: threadTs });
+            if (agentRecord) {
+              // Agent exists: open issue and post card
+              const brief = classification.brief || text;
+              const issueRes = await createIssue({
+                title: `[TASK]: ${text.slice(0, 60)}`,
+                body: `### for-agent\n${agentRecord.name}\n\n### door\n${classification.door || "core"}\n\n### deliverable\n${brief}\n\n### reviewer\n${agentRecord.reviewer || "Creative Director"}\n`,
+                labels: [`for:${agentRecord.name}`, `door:${classification.door || "core"}`, "type:build", "status:in-progress"],
+              });
+
+              const replyText = `• *Assigned Agent:* \`@${agentRecord.name}\`\n• *Issue:* <${issueRes.html_url}|#${issueRes.number}>\n• *Expected Completion:* ~1–2 hours`;
+              postResult = await postLine({ channel, text: replyText, thread_ts: threadTs });
+            } else {
+              // Agent does not exist yet: check config/plan.yaml to find arrival day
+              const allPlan = await loadPlanEntries({ testMode: isTest });
+              const plannedEntry = allPlan.find((e) => e.agent === rawAgent);
+              const arrivalNote = plannedEntry
+                ? `Agent \`@${rawAgent}\` arrives on *Plan Day ${plannedEntry.day}*.`
+                : `Agent \`@${rawAgent}\` is not yet provisioned in the roster.`;
+
+              const replyText = `${arrivalNote}\n*Nearest available action:* \`@chief-of-staff\` can coordinate manually or \`@web-builder\` can scaffold.`;
+              postResult = await postLine({ channel, text: replyText, thread_ts: threadTs });
+            }
           }
         } else if (classification.category === "dispatch") {
           let targetDay = classification.targetDay;
