@@ -10,7 +10,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { config } from "./config.js";
 import { extractSite, marketQuestion, evidenceCorpus } from "./agents/aeo-strategist/evidence.js";
-import { validateProposal, proposeChanges, buildUserMessage, changeCount } from "./agents/aeo-strategist/propose.js";
+import { validateProposal, proposeChanges, buildUserMessage, changeCount, extractJson, normalizeLanguage, normalizeStage } from "./agents/aeo-strategist/propose.js";
+import { ALLOWED_LANGUAGES, ALLOWED_STAGES } from "./agents/aeo-strategist/types.js";
 import { buildReviewBlocks, readSelection, decidedBlocks } from "./agents/aeo-strategist/card.js";
 import { planApply, describePlan, planSize } from "./agents/aeo-strategist/apply.js";
 import type { Evidence, SetupSnapshot } from "./agents/aeo-strategist/types.js";
@@ -255,6 +256,120 @@ await t("proposeChanges fallback retry on tool failure and logs raw reply to aeo
   const logContent = fs.readFileSync(logFile, "utf8");
   assert.ok(logContent.includes("proposal parse failure:"), "Log must mention proposal parse failure");
   assert.ok(logContent.includes("Raw invalid reply that fails to parse"), "Log must contain the raw reply text");
+});
+
+await t("extractJson: parses XML <invoke> parameter tags and strips outer markdown text", () => {
+  // Test 1: Exactly the 16:40 XML payload shape
+  const xmlPayload = `<invoke name="propose_setup_check">
+<parameter name="market">null</parameter>
+<parameter name="competitors_add">[{"name":"Digital Patron","website":"digitalpatron.in","engine":"perplexity","prompt":"Who are the best performance marketing providers in chandigarh for coaching institutes? Name specific businesses and their websites.","evidence_excerpt":"**Digital Patron** — Strongest stated fit for education admissions funnels and lead tracking. Website: **digitalpatron.in**."}]</parameter>
+<parameter name="competitors_remove">[]</parameter>
+<parameter name="prompts_retire">[]</parameter>
+<parameter name="prompts_add">[]</parameter>
+<parameter name="summary">"Added Digital Patron from Perplexity."</parameter>
+</invoke>`;
+
+  const parsed = extractJson(xmlPayload);
+  assert.equal(parsed.market, null);
+  assert.equal(parsed.competitors_add.length, 1);
+  assert.equal(parsed.competitors_add[0].name, "Digital Patron");
+  assert.equal(parsed.competitors_add[0].website, "digitalpatron.in");
+  assert.equal(parsed.summary, "Added Digital Patron from Perplexity.");
+
+  // Test 2: Standard JSON surrounded by markdown commentary
+  const markdownWrapped = "Here is the proposal based on the evidence:\n```json\n{\"summary\": \"Clean proposal.\", \"competitors_add\": []}\n```\nHope this helps!";
+  const parsedMd = extractJson(markdownWrapped);
+  assert.equal(parsedMd.summary, "Clean proposal.");
+  assert.deepEqual(parsedMd.competitors_add, []);
+});
+
+await t("review b13c2187 validation: 10 multi-vertical prompts pass even with languages: ['en'] and setupNote: null", () => {
+  const b13cSnap: SetupSnapshot = {
+    brandId: "brand_tgl_zero",
+    tenantId: "tgl",
+    tenantName: "The Growth Lab",
+    name: "The Growth Lab",
+    domain: "thegrowthlab.co.in",
+    platform: "custom",
+    languages: ["en"], // Only 'en' in DB snapshot
+    variants: ["TGL", "Growth Lab"],
+    market: {
+      id: "m_tgl",
+      product: "AI visibility (AEO/GEO) and AI automation",
+      icp: "hospitals and clinics, coaching institutes, hotels, real-estate developers and D2C brands across India",
+      location: "India-wide, Chandigarh home",
+    },
+    competitors: [
+      { id: "c_ls", name: "LeadSquared", domain: "leadsquared.com" },
+      { id: "c_cp", name: "Classplus", domain: "classplusapp.com" },
+    ],
+    prompts: [
+      { id: "p1", text: "How to scale student admissions from Meta ads without hiring more counsellors", language: "en", journey_phase: "consideration" },
+      { id: "p2", text: "Best agencies to improve lead quality and counselling conversion for test prep institutes", language: "en", journey_phase: "consideration" },
+    ],
+    plan: "internal",
+    promptLimit: 50,
+    submittedAt: "2026-11-03T16:35:00Z",
+    setupStatus: "needs_changes",
+    setupNote: null, // No note present in snapshot
+  };
+
+  const b13cEv: Evidence = {
+    site: extractSite("<html><head><title>The Growth Lab | AI Visibility & Automation</title></head><body><h1>AEO & GEO Operators</h1><p>Scalify Labs: We help scale brands with ads.</p></body></html>", "https://thegrowthlab.co.in/"),
+    aiQuestion: "Who are the best AI visibility and generative search optimization agencies in India for hospitals, coaching institutes and hotels?",
+    aiAnswer: "Top providers in India include SingleInterface (powers multi-location AI search visibility and local brand discoverability across digital agents), Performics India (leads generative search engine optimization for enterprise healthcare and consumer brands), Schbang (delivers AI-first search discoverability for consumer brands and hospitality), and Digital Pundit (provides emerging search visibility solutions).",
+    aiEngine: "perplexity (sonar-pro)",
+  };
+
+  // The 10 prompts from review b13c2187
+  const rawProposal = {
+    summary: "Re-proposed 10 multi-vertical buyer prompts and competitors from live search answers.",
+    market_change: null,
+    competitors_add: [
+      {
+        name: "SingleInterface",
+        website: "singleinterface.com", // 'website' key alias
+        prompt: "Who are the best AI visibility agencies in India?",
+        engine: "perplexity",
+        evidence_excerpt: "powers multi-location AI search visibility and local brand discoverability", // 'evidence_excerpt' alias
+      },
+      // Scalify Labs is on the site, but NOT in aiAnswer
+      {
+        name: "Scalify Labs",
+        website: "scalifylabs.com",
+        prompt: "Who are the best AI visibility agencies in India?",
+        engine: "perplexity",
+        evidence_excerpt: "Scalify Labs: We help scale brands with ads.",
+      },
+    ],
+    competitors_remove: [],
+    prompts_retire: [],
+    prompts_add: [
+      { text: "Best AI visibility and generative engine optimization (GEO) agencies in India", language: "en", journey_phase: "decision", reason: "GEO/AEO agency intent" },
+      { text: "Top AI search marketing agencies for hospitals and healthcare clinics", language: "English", journey_phase: "consideration", reason: "Healthcare AI search intent" },
+      { text: "Leading AI automation and visibility consultants for real estate and luxury hotels", language: "en", journey_phase: "consideration", reason: "Real estate / hospitality AI visibility intent" },
+      { text: "ChatGPT par brand recommendation kaise badhaye for D2C brands", language: "hinglish", journey_phase: "awareness", reason: "D2C ChatGPT visibility intent" },
+      { text: "Hospital ya clinic ke liye AEO agency choose karte waqt kya dekhna chahiye", language: "Hinglish", journey_phase: "consideration", reason: "Healthcare AEO evaluation intent" },
+      { text: "The Growth Lab reviews and case studies for generative search visibility", language: "en", journey_phase: "decision", reason: "TGL branded AEO evaluation intent" },
+      { text: "Best generative AI growth operators in Chandigarh and Delhi NCR", language: "en", journey_phase: "decision", reason: "Regional AI operator intent" },
+      { text: "How to get recommended by ChatGPT and Perplexity for coaching institutes", language: "en", journey_phase: "awareness", reason: "Coaching AEO discovery intent" },
+      { text: "Coaching institute ke admissions increase karne ke liye best AI WhatsApp automation operator", language: "hinglish", journey_phase: "decision", reason: "Coaching WhatsApp automation intent" },
+      { text: "Top AI growth partner for multi-branch test prep institutes in India", language: "en", journey_phase: "consideration", reason: "Coaching multi-branch test prep intent" },
+    ],
+  };
+
+  const prop = validateProposal(rawProposal, b13cSnap, b13cEv);
+
+  // Assert all 10 prompts pass validation
+  assert.equal(prop.promptsAdd.length, 10, "All 10 prompts from review b13c2187 must pass validation");
+  const rejectedPrompts = prop.dropped.filter((d) => d.startsWith("prompt "));
+  assert.equal(rejectedPrompts.length, 0, "No prompts should be rejected for language/stage");
+
+  // Assert Scalify Labs is rejected because its evidence is a site tagline, not in AI answer
+  assert.equal(prop.competitorsAdd.length, 1);
+  assert.equal(prop.competitorsAdd[0].name, "SingleInterface");
+  assert.equal(prop.competitorsAdd[0].domain, "singleinterface.com");
+  assert.ok(prop.dropped.some((d) => d.includes("Scalify Labs") && d.includes("site tagline is not evidence")));
 });
 
 const proposal = validateProposal({
