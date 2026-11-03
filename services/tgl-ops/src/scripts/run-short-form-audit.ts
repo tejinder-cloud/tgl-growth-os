@@ -3,9 +3,13 @@
 import path from "node:path";
 import { runShortFormAudit } from "../agents/aeo-audit-engine/short-form.js";
 import { generateAuditPdf } from "../agents/aeo-audit-engine/pdf.js";
+import { loadVerifiedBrandProfile } from "../agents/aeo-audit-engine/setup-profile.js";
 import { postFile, postLine } from "../lib/post.js";
 
-export async function runShortFormAuditCli(customBrand?: string, customDomain?: string): Promise<{
+export async function runShortFormAuditCli(
+  customBrand?: string,
+  customDomain?: string
+): Promise<{
   brandName: string;
   domain: string;
   visibilityScorePercent: number;
@@ -13,32 +17,40 @@ export async function runShortFormAuditCli(customBrand?: string, customDomain?: 
   totalQueries: number;
   pdfPath: string;
   pdfSizeBytes: number;
+  rawJsonPath?: string;
   filePostResult: { ok: boolean; fileId?: string };
 }> {
   const brandName = customBrand || "The Growth Lab";
   const domain = customDomain || "thegrowthlab.co.in";
 
-  console.log(`Running AEO Short-Form Audit for: ${brandName} (${domain})...`);
+  console.log(`Verifying brand setup profile for: ${brandName} (${domain})...`);
 
-  const auditResult = await runShortFormAudit(
-    {
-      name: brandName,
-      domains: [domain],
-      variants: [brandName.toLowerCase(), "tgl", "the growth lab"],
-      competitors: [
-        { name: "Digital Vidya", domain: "digitalvidya.com" },
-        { name: "UpGrad", domain: "upgrad.com" },
-      ],
-    },
-    { testMode: true }
-  );
+  // Honesty check 1: setup profile verification gate
+  // Prompts come strictly from verified setup profile; if unverified, refuse to run.
+  const verifiedProfile = await loadVerifiedBrandProfile(domain);
+  if (verifiedProfile.setupStatus !== "verified") {
+    throw new Error(
+      `Brand setup profile for "${domain}" is not verified in TrueVisible setup queue (status: ${verifiedProfile.setupStatus}). Audit refused.`
+    );
+  }
+
+  console.log(`[Verified] Brand setup profile verified (verified by: ${verifiedProfile.setupVerifiedBy || "architect"})`);
+  console.log(`Running AEO Short-Form Audit for: ${verifiedProfile.name} (${verifiedProfile.primaryDomain})...`);
+
+  const auditResult = await runShortFormAudit(verifiedProfile, {
+    testMode: true,
+    saveRawJson: true,
+  });
 
   console.log(`\nAudit Complete:`);
-  console.log(`- Prompts evaluated: ${auditResult.promptsCount}`);
+  console.log(`- Prompts evaluated: ${auditResult.promptsCount} (from verified setup profile)`);
   console.log(`- Engines queried: ${auditResult.enginesCount} (Perplexity, Gemini, ChatGPT)`);
   console.log(`- Total queries: ${auditResult.totalQueries}`);
   console.log(`- Mentions: ${auditResult.summary.totalMentions} / ${auditResult.totalQueries}`);
   console.log(`- Visibility Score: ${auditResult.summary.visibilityScorePercent}%`);
+  if (auditResult.rawAnswersJsonPath) {
+    console.log(`- Raw answers & audit trace saved to: ${auditResult.rawAnswersJsonPath}`);
+  }
 
   const outDir = path.join(process.cwd(), "artifacts", "audits");
   const outFile = path.join(outDir, `${brandName.toLowerCase().replace(/\s+/g, "-")}-aeo-audit.pdf`);
@@ -61,11 +73,13 @@ export async function runShortFormAuditCli(customBrand?: string, customDomain?: 
     console.warn(`[Warning] Could not attach PDF to #doors-aeo`);
   }
 
-  // Post summary line to #doors-aeo (zero emojis, plain text and bold only)
+  // Post summary line to #doors-aeo (zero emojis, plain text and bold only, unfurl_links: false, unfurl_media: false)
   try {
     await postLine({
       channel: "#doors-aeo",
       text: `*AEO Short-Form Audit · ${brandName} (${domain})*\n• Visibility Score: *${auditResult.summary.visibilityScorePercent}%* (${auditResult.summary.totalMentions}/${auditResult.totalQueries} answers)\n• Engines: ChatGPT, Gemini, Perplexity\n• PDF Size: ${(pdfResult.sizeBytes / 1024).toFixed(1)} KB (pure-Node vector PDF)\n• Date: ${auditResult.auditedAt.slice(0, 10)}`,
+      unfurl_links: false,
+      unfurl_media: false,
     });
   } catch (err: any) {
     console.warn(`[postLine Notice] ${err.message}`);
@@ -79,6 +93,7 @@ export async function runShortFormAuditCli(customBrand?: string, customDomain?: 
     totalQueries: auditResult.totalQueries,
     pdfPath: outFile,
     pdfSizeBytes: pdfResult.sizeBytes,
+    rawJsonPath: auditResult.rawAnswersJsonPath,
     filePostResult: filePost,
   };
 }
