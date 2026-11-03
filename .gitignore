@@ -8,3 +8,4 @@ lighthouse-*.json
 *.log
 .tgl-cache/
 logs/.test/
+artifacts/

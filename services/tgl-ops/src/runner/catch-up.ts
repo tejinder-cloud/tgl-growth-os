@@ -4,10 +4,15 @@ import {
   findOpenIssuesWithLabels,
   findLinkedPR,
   hasArchitectComment,
+  getIssue,
+  addLabelsToIssue,
+  removeLabelFromIssue,
   type GitHubIssueSummary,
 } from "../lib/github-client.js";
 import { getRunnerState, recordRunnerIssue } from "./state.js";
-import { runIssueTask, type RunnerRunResult } from "./runner.js";
+import { runIssueTask, isIssueRunningLocally, type RunnerRunResult } from "./runner.js";
+import { postLine } from "../lib/post.js";
+import { getAlertsChannel } from "../lib/cron-wrapper.js";
 
 export interface CatchUpResult {
   checkedAt: string;
@@ -107,22 +112,7 @@ export async function catchUpRunnerIssues(options?: {
         }
       }
 
-      // 1. Check if run is already recorded as completed in runner state
-      const existingRecord = state.runs[String(issueNum)];
-      if (existingRecord?.status === "completed") {
-        console.log(`[Catch-Up] Issue #${issueNum} already marked completed in runner state; skipping.`);
-        skippedCount++;
-        results.push({
-          issueNumber: issueNum,
-          status: "skipped",
-          reason: "Already completed in runner state",
-          prNumber: existingRecord.prNumber,
-          prUrl: existingRecord.prUrl,
-        });
-        continue;
-      }
-
-      // 2. Check if issue already has an open linked PR in progress
+      // 1. Check if issue already has an open linked PR in progress
       // Per Architect rule: an issue counts as "has a PR" only if an OPEN PR references it;
       // a closed or merged PR never blocks an issue that is still open.
       if (!isTest) {
@@ -136,6 +126,29 @@ export async function catchUpRunnerIssues(options?: {
             reason: `Already has open linked PR #${linkedOpenPr.number}`,
             prNumber: linkedOpenPr.number,
             prUrl: linkedOpenPr.html_url,
+          });
+          continue;
+        }
+      }
+
+      // 2. Check runner state
+      // Mandate: catch-up must pick up any for:web-builder issue in status:in-progress with no open PR
+      // regardless of stale state (e.g. stale completed or running in runner.json).
+      const existingRecord = state.runs[String(issueNum)];
+      if (existingRecord?.status === "completed") {
+        if (agent.name === "web-builder") {
+          console.log(
+            `[Catch-Up] Issue #${issueNum} for @web-builder has status:in-progress and no open PR; overriding stale completed runner state.`
+          );
+        } else {
+          console.log(`[Catch-Up] Issue #${issueNum} already marked completed in runner state; skipping.`);
+          skippedCount++;
+          results.push({
+            issueNumber: issueNum,
+            status: "skipped",
+            reason: "Already completed in runner state",
+            prNumber: existingRecord.prNumber,
+            prUrl: existingRecord.prUrl,
           });
           continue;
         }
@@ -181,4 +194,87 @@ export async function catchUpRunnerIssues(options?: {
     skippedCount,
     results,
   };
+}
+
+/**
+ * Detects runs interrupted by a container restart and re-queues them.
+ * A run is considered interrupted if state.runs[id].status === "in-progress"
+ * but no local process is executing it.
+ */
+export async function recoverInterruptedRunnerIssues(options?: {
+  testMode?: boolean;
+}): Promise<number[]> {
+  const isTest = options?.testMode === true || isTestMode();
+  const state = await getRunnerState({ testMode: isTest });
+  const recovered: number[] = [];
+
+  for (const [key, run] of Object.entries(state.runs)) {
+    const issueNum = Number(key);
+    if (isNaN(issueNum)) continue;
+
+    if (run.status === "in-progress") {
+      // If currently executing locally in this process, it's not interrupted
+      if (isIssueRunningLocally(issueNum)) {
+        continue;
+      }
+
+      console.log(
+        `[Runner Boot Recovery] Interrupted run detected for Issue #${issueNum} ("${run.title}"): status was 'in-progress' but no active process.`
+      );
+
+      if (!isTest) {
+        // 1. Check if an open PR exists
+        const openPr = await findLinkedPR(issueNum, { state: "open" });
+        if (openPr && openPr.state === "open") {
+          console.log(
+            `[Runner Boot Recovery] Issue #${issueNum} already has open PR #${openPr.number}; updating runner state to completed.`
+          );
+          await recordRunnerIssue(
+            issueNum,
+            {
+              status: "completed",
+              prNumber: openPr.number,
+              prUrl: openPr.html_url,
+              runCompletedAt: new Date().toISOString(),
+            },
+            { testMode: isTest }
+          );
+          continue;
+        }
+
+        // 2. Check if issue is closed on GitHub
+        const issue = await getIssue(issueNum);
+        if (!issue || issue.state === "closed") {
+          console.log(
+            `[Runner Boot Recovery] Issue #${issueNum} is closed on GitHub; updating runner state to completed.`
+          );
+          await recordRunnerIssue(
+            issueNum,
+            {
+              status: "completed",
+              runCompletedAt: new Date().toISOString(),
+            },
+            { testMode: isTest }
+          );
+          continue;
+        }
+
+        // 3. Post alert to alerts channel
+        const alertsChannel = getAlertsChannel();
+        await postLine({
+          channel: alertsChannel,
+          text: `*[Runner Boot Recovery]* Interrupted run detected for Issue #${issueNum} ("${run.title}") after restart. Re-queueing.`,
+        }).catch(() => {});
+
+        // 4. Ensure label is status:in-progress
+        await removeLabelFromIssue(issueNum, "status:needs-brief");
+        await removeLabelFromIssue(issueNum, "status:blocked");
+        await addLabelsToIssue(issueNum, ["status:in-progress"]);
+      }
+
+      recovered.push(issueNum);
+    }
+  }
+
+  return recovered;
 }

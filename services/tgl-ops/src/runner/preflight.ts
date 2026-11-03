@@ -22,6 +22,8 @@ export interface IssueBriefContext {
   body: string;
   deliverable: string;
   agentName: string;
+  comments?: { user: string; body: string; created_at?: string }[];
+  instruction?: string;
 }
 
 function safeReadFile(filePath: string): string {
@@ -249,15 +251,24 @@ You must submit your verdict by calling the tool \`submit_preflight_verdict\` wi
 
 3. "proceed":
    Return this IF AND ONLY IF the brief has a concrete, clearly-scoped deliverable targeting specific files or templates outside \`decisions/\` and \`logs/\` within the agent's discipline with measurable or verifiable outcomes.
+   If recent comments contain explicit Architect instructions, DoD line-by-line audit findings, or previous pre-flight proceed confirmation for this work, treat those authoritative instructions as resolving ambiguity.
 
 Call tool \`submit_preflight_verdict\` now (or reply with JSON { "verdict": "...", "reason": "...", "questions": [...] }).`;
+
+  const commentsBlock =
+    context.comments && context.comments.length > 0
+      ? `\n- Recent Issue Thread / Architect Comments:\n` +
+        context.comments.slice(-5).map((c) => `[${c.user}]: ${c.body}`).join("\n\n")
+      : "";
+
+  const instructionBlock = context.instruction ? `\n- Direct Architect Instruction:\n${context.instruction}` : "";
 
   const userPrompt = `Please evaluate the following task brief:
 - Issue Number: #${issueNumber}
 - Issue Title: ${title}
 - Deliverable: ${deliverable}
 - Full Body:
-${body || "(No additional body provided)"}`;
+${body || "(No additional body provided)"}${instructionBlock}${commentsBlock}`;
 
   let response: Anthropic.Message | undefined;
   try {
