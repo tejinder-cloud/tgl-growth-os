@@ -4,6 +4,8 @@ process.env.ANTHROPIC_PRICE_IN = process.env.ANTHROPIC_PRICE_IN || "3.00";
 process.env.ANTHROPIC_PRICE_OUT = process.env.ANTHROPIC_PRICE_OUT || "15.00";
 process.env.TGL_TEST_MODE = "1";
 
+import fs from "node:fs";
+import path from "node:path";
 import { config } from "./config.js";
 import {
   classifyArchitectMessage,
@@ -783,6 +785,80 @@ async function runIntakeQaTests() {
   }
   console.log("  ✓ '#72: block' set status:blocked, removed status:in-progress, and replied '→ #72 blocked.'");
   console.log("✅ [Test 8 Passed] Architect commands '#N: resume' and '#N: block' verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 9: Architect command "setup <brand>: product = ...; buyers = ...; location = ..."
+  // -------------------------------------------------------------------------
+  console.log("[Test 9] Testing Architect command 'setup <brand>: product = ...; buyers = ...; location = ...'...");
+
+  const setupCmdText = "setup The Growth Lab: product = AI visibility (AEO/GEO) + AI automation; buyers = hospitals, clinics, coaching institutes, hotels, real-estate developers, D2C brands; location = India-wide, Chandigarh home";
+  const setupClassRes = await classifyArchitectMessage(setupCmdText, { testMode: true });
+
+  if (setupClassRes.category !== "command_setup") {
+    throw new Error(`Test 9.1 Failed: Expected category="command_setup", got "${setupClassRes.category}"`);
+  }
+  if (setupClassRes.setupBrand !== "The Growth Lab") {
+    throw new Error(`Test 9.2 Failed: Expected setupBrand="The Growth Lab", got "${setupClassRes.setupBrand}"`);
+  }
+  if (setupClassRes.setupMarket?.product !== "AI visibility (AEO/GEO) + AI automation") {
+    throw new Error(`Test 9.3 Failed: Expected product="AI visibility (AEO/GEO) + AI automation", got "${setupClassRes.setupMarket?.product}"`);
+  }
+  if (setupClassRes.setupMarket?.buyers !== "hospitals, clinics, coaching institutes, hotels, real-estate developers, D2C brands") {
+    throw new Error(`Test 9.4 Failed: Expected buyers="hospitals, clinics, coaching institutes, hotels, real-estate developers, D2C brands", got "${setupClassRes.setupMarket?.buyers}"`);
+  }
+  if (setupClassRes.setupMarket?.location !== "India-wide, Chandigarh home") {
+    throw new Error(`Test 9.5 Failed: Expected location="India-wide, Chandigarh home", got "${setupClassRes.setupMarket?.location}"`);
+  }
+  console.log("  ✓ setup command classified deterministically with exact parsed market fields");
+
+  // Test intake poll execution of setup command
+  resetMockPostedLines();
+  const todayStr = getTodayDateString();
+  const testDecisionsFile = path.join(config.repoRoot, `logs/.test/decisions/${todayStr}.md`);
+  if (fs.existsSync(testDecisionsFile)) {
+    fs.unlinkSync(testDecisionsFile);
+  }
+
+  const pollSetupRes = await pollChiefOfStaffIntake({
+    channelId: "C_TEST_ARCH",
+    testMode: true,
+    mockMessages: [
+      {
+        ts: "1730300610.000000",
+        text: setupCmdText,
+        user: "U_TEJINDER",
+      },
+    ],
+  });
+
+  if (pollSetupRes.processedCount !== 1) {
+    throw new Error(`Test 9.6 Failed: Expected 1 processed message for setup command, got ${pollSetupRes.processedCount}`);
+  }
+
+  // Verify decision line was logged
+  if (!fs.existsSync(testDecisionsFile)) {
+    throw new Error(`Test 9.7 Failed: Decision file ${testDecisionsFile} was not written`);
+  }
+  const decisionContent = fs.readFileSync(testDecisionsFile, "utf8");
+  if (!decisionContent.includes("DECISION · chief-of-staff · Market wording updated for The Growth Lab")) {
+    throw new Error(`Test 9.8 Failed: Expected decision line in ${testDecisionsFile}, got: ${decisionContent}`);
+  }
+  if (!decisionContent.includes("product = AI visibility (AEO/GEO) + AI automation")) {
+    throw new Error(`Test 9.9 Failed: Expected product in decision line, got: ${decisionContent}`);
+  }
+  console.log("  ✓ Decision line written to decisions/<date>.md with actor and parsed market wording");
+
+  // Verify Slack reply in thread
+  const setupReply = mockPostedLines[mockPostedLines.length - 1];
+  if (!setupReply || !setupReply.text.includes("Market wording updated for *The Growth Lab*")) {
+    throw new Error(`Test 9.10 Failed: Expected Slack reply mentioning brand update, got: "${setupReply?.text}"`);
+  }
+  if (!setupReply.text.includes("Status set to `needs_changes`")) {
+    throw new Error(`Test 9.11 Failed: Expected Slack reply mentioning needs_changes, got: "${setupReply?.text}"`);
+  }
+  console.log("  ✓ In-thread Slack reply sent confirming update and needs_changes status");
+  console.log("  [Test 9 Passed] Architect setup command verified.\n");
   passed++;
 
   // Clean up

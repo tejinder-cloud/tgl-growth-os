@@ -5,7 +5,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getAnthropicModel, getAnthropicPricing } from "../../lib/anthropic-pricing.js";
 import { appendLog } from "../../lib/log.js";
 import { askEngine, loadEngineConfig } from "../aeo-audit-engine/engines.js";
-import { evidenceCorpus, newMarketQuestion } from "./evidence.js";
+import { evidenceCorpus, newMarketQuestion, normalizeAnswerText } from "./evidence.js";
 import {
   ALLOWED_LANGUAGES,
   ALLOWED_STAGES,
@@ -29,7 +29,7 @@ Other Rules:
 - Never invent businesses, websites, facts or numbers. If evidence is thin, suggest less.
 - Remove a competitor only if it is clearly not a competitor (wrong category, wrong city, not a business, or the customer itself).
 - Retire prompts that are vague, duplicated or not something a buyer asks (or if reviewer feedback requests retiring old category prompts). Keep the mix of awareness / consideration / decision. Keep the brand-name prompts — they show what AI says about the brand.
-- Market: suggest rewording product / buyer / location only if the site clearly shows the current wording is wrong or too vague to produce sensible AI answers.
+- Market: suggest rewording product / buyer / location only if the site clearly shows the current wording is wrong or too vague to produce sensible AI answers. You may propose wording refinements, but you must NEVER revert or undo an Architect-written market definition.
 - If REVIEWER FEEDBACK / INSTRUCTIONS are provided, they take strict precedence over default rules: adjust market, prompts, and competitors exactly as instructed.
 - Be sparing. A good setup gets an empty proposal and a one-line summary saying so.
 
@@ -47,7 +47,7 @@ export const PROPOSE_SETUP_CHECK_TOOL: Anthropic.Tool = {
       },
       market_change: {
         type: ["object", "null"],
-        description: "Rewording for product, icp, or location only if evidence shows current wording is incorrect. Omit or set to null if unchanged.",
+        description: "Rewording for product, icp, or location only if evidence shows current wording is incorrect. The Strategist may propose wording changes but must never revert an Architect-written market definition. Omit or set to null if unchanged.",
         properties: {
           product: { type: "string", description: "Updated product / category wording" },
           icp: { type: "string", description: "Updated ideal customer profile" },
@@ -206,12 +206,13 @@ export function normalizeStage(stage: unknown): AllowedStage | null {
 export function validateProposal(raw: any, s: SetupSnapshot, ev: Evidence): Proposal {
   const dropped: string[] = [];
   const existing = new Set(s.competitors.map((c) => norm(c.name)));
-  const brandNames = new Set([s.name, ...s.variants].map(norm));
+  const brandNames = new Set([s.name, ...(s.variants || [])].map(norm));
 
-  const aiAnswerNorm = norm(ev.aiAnswer ?? "");
-  const aiAnswerClean = normClean(ev.aiAnswer ?? "");
+  const aiAnswerNorm = normalizeAnswerText(ev.aiAnswer ?? "");
+  const aiAnswerClean = aiAnswerNorm.replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
   const siteCorpus = [ev.site?.title, ev.site?.description, ...(ev.site?.headings ?? []), ev.site?.text].filter(Boolean).join("\n");
-  const siteCorpusClean = normClean(siteCorpus);
+  const siteCorpusNorm = normalizeAnswerText(siteCorpus);
+  const siteCorpusClean = siteCorpusNorm.replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
 
   const competitorsAdd: Proposal["competitorsAdd"] = [];
   for (const c of Array.isArray(raw?.competitors_add) ? raw.competitors_add : []) {
@@ -219,16 +220,21 @@ export function validateProposal(raw: any, s: SetupSnapshot, ev: Evidence): Prop
     if (!name) continue;
     if (existing.has(norm(name)) || brandNames.has(norm(name))) continue;
 
-    const nameNorm = norm(name);
-    const nameClean = normClean(name);
+    const nameNorm = normalizeAnswerText(name);
+    const nameClean = nameNorm.replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
     const excerpt = str(c?.verbatim_excerpt || c?.evidence_excerpt || c?.evidence_quote || c?.evidence || c?.quote, 300);
-    const excerptClean = normClean(excerpt);
+    const excerptNorm = normalizeAnswerText(excerpt);
+    const excerptClean = excerptNorm.replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
 
     const prompt = str(c?.prompt, 300) || str(ev.aiQuestion, 300);
     const engine = str(c?.engine, 100) || str(ev.aiEngine, 100);
 
-    const appearsInAiAnswer = aiAnswerClean.includes(nameClean) || (aiAnswerNorm.length > 0 && aiAnswerNorm.includes(nameNorm));
-    const isFromSite = siteCorpusClean.length > 0 && (siteCorpusClean.includes(nameClean) || (excerptClean.length > 0 && siteCorpusClean.includes(excerptClean)));
+    const appearsInAiAnswer = (nameNorm.length > 0 && aiAnswerNorm.includes(nameNorm)) ||
+      (nameClean.length > 0 && aiAnswerClean.includes(nameClean));
+    const isFromSite = siteCorpusClean.length > 0 && (
+      (excerptClean.length > 0 && siteCorpusClean.includes(excerptClean)) ||
+      (nameClean.length > 0 && siteCorpusClean.includes(nameClean) && !appearsInAiAnswer)
+    );
 
     if (!appearsInAiAnswer) {
       if (isFromSite) {
@@ -239,9 +245,21 @@ export function validateProposal(raw: any, s: SetupSnapshot, ev: Evidence): Prop
       continue;
     }
 
-    const excerptInAiAnswer = excerptClean.length > 0 && (aiAnswerClean.includes(excerptClean) || aiAnswerNorm.includes(norm(excerpt)));
+    if (!excerpt || excerptNorm.length === 0) {
+      dropped.push(`competitor “${name}” — excerpt missing for answer ${engine}/${prompt}`);
+      continue;
+    }
+
+    const excerptInAiAnswer = excerptNorm.length > 0 && (
+      aiAnswerNorm.includes(excerptNorm) ||
+      (excerptClean.length > 0 && aiAnswerClean.includes(excerptClean))
+    );
     if (!excerptInAiAnswer) {
-      dropped.push(`competitor “${name}” — site tagline is not evidence; must be verbatim excerpt from live AI answer`);
+      if (isFromSite) {
+        dropped.push(`competitor “${name}” — site tagline is not evidence; must be verbatim excerpt from live AI answer`);
+      } else {
+        dropped.push(`competitor “${name}” — excerpt not found in answer ${engine}/${prompt}`);
+      }
       continue;
     }
 
@@ -278,12 +296,19 @@ export function validateProposal(raw: any, s: SetupSnapshot, ev: Evidence): Prop
   const seen = new Set(s.prompts.map((p) => norm(p.text)));
   const promptsAdd: Proposal["promptsAdd"] = [];
   for (const p of Array.isArray(raw?.prompts_add) ? raw.prompts_add : []) {
-    const text = str(p?.text, 300);
+    const text = str(p?.text || p?.prompt, 300);
     if (text.length < 5 || seen.has(norm(text))) continue;
-    const lang = normalizeLanguage(p?.language);
-    const stage = normalizeStage(p?.journey_phase || p?.intent);
+    const rawLang = p?.language;
+    const rawStage = p?.journey_phase ?? p?.intent ?? p?.stage ?? p?.journeyPhase;
+    const lang = normalizeLanguage(rawLang);
+    const stage = normalizeStage(rawStage);
+    if (!lang) {
+      dropped.push(`prompt “${text.slice(0, 60)}” — language '${rawLang ?? ""}' not in [${ALLOWED_LANGUAGES.join(", ")}]`);
+    }
+    if (!stage) {
+      dropped.push(`prompt “${text.slice(0, 60)}” — stage '${rawStage ?? ""}' not in [${ALLOWED_STAGES.join(", ")}]`);
+    }
     if (!lang || !stage) {
-      dropped.push(`prompt “${text.slice(0, 60)}” — language/stage not allowed`);
       continue;
     }
     if (promptsAdd.length >= room) {
@@ -302,7 +327,19 @@ export function validateProposal(raw: any, s: SetupSnapshot, ev: Evidence): Prop
       const v = str(mc[k], 120);
       if (v && norm(v) !== norm(s.market[k])) m[k] = v;
     }
-    if (m.product || m.icp || m.location) market = m;
+    if (m.product || m.icp || m.location) {
+      // The Strategist may propose a wording change but never reverts an Architect-written one.
+      const isArchMarket = s.setupNote && /architect market wording|replace:\s*product/i.test(s.setupNote);
+      const isReverting = isArchMarket && (
+        (m.product && /performance marketing|coaching crm/i.test(m.product)) ||
+        (m.icp && /coaching institutes only|coaching centres only/i.test(m.icp))
+      );
+      if (isReverting) {
+        dropped.push("market change — cannot revert Architect-written market");
+      } else {
+        market = m;
+      }
+    }
   }
 
   return { summary: str(raw?.summary, 400) || "No summary.", market, competitorsAdd, competitorsRemove, promptsRetire, promptsAdd, dropped };

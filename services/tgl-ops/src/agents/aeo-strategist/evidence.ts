@@ -178,7 +178,13 @@ export function extractPriorPrompts(reviews: any[]): PriorPrompt[] {
           const normText = text.toLowerCase();
           if (!seen.has(normText)) {
             seen.add(normText);
-            result.push({ text });
+            const langM = /language\s*['"]?([a-z]+)['"]?/i.exec(String(d));
+            const stageM = /stage\s*['"]?([a-z]+)['"]?/i.exec(String(d));
+            result.push({
+              text,
+              language: langM ? langM[1].toLowerCase() : "en",
+              journey_phase: (stageM ? stageM[1].toLowerCase() : "consideration") as any,
+            });
           }
         }
       }
@@ -249,4 +255,21 @@ export async function gatherEvidence(
 /** All text a suggested competitor must be found in. */
 export function evidenceCorpus(ev: Evidence): string {
   return [ev.site?.title, ev.site?.description, ...(ev.site?.headings ?? []), ev.site?.text, ev.aiAnswer].filter(Boolean).join("\n");
+}
+
+/**
+ * Normalizes text for verbatim comparison by:
+ * 1. Stripping markdown links [text](url) -> text
+ * 2. Stripping markdown formatting characters: **, *, _, `, ~
+ * 3. Collapsing whitespace
+ * 4. Case-folding (lowercase)
+ */
+export function normalizeAnswerText(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // strip markdown links [text](url) -> text
+    .replace(/[*_`~]/g, " ")                  // strip bold, italic, code, strikethrough
+    .replace(/\s+/g, " ")                     // collapse whitespace
+    .toLowerCase()
+    .trim();
 }
