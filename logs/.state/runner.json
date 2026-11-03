@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-03T10:48:41.700Z",
+  "updatedAt": "2026-11-03T10:49:04.417Z",
   "runs": {
     "13": {
       "agent": "web-builder",
@@ -61,11 +61,11 @@
     "72": {
       "agent": "web-builder",
       "title": "[PLAN-D10]: Outreach Sequencer SKILL.md + 5-touch worker",
-      "status": "interrupted",
+      "status": "blocked",
       "runStartedAt": "2026-11-03T10:48:11.142Z",
       "door": "aeo",
-      "error": "Run interrupted by process termination (SIGTERM).",
-      "runCompletedAt": "2026-11-03T10:48:41.519Z",
+      "error": "Boot recovery limit exceeded (3 attempts). Execution stopped to prevent restart loops.",
+      "runCompletedAt": "2026-11-03T10:49:04.222Z",
       "recoveryAttempts": 3,
       "lastRecoveryAt": "2026-11-03T07:38:29.154Z",
       "lastRecoveryAlertAt": "2026-11-03T10:48:38.509Z"
