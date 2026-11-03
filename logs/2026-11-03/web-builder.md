@@ -2,3 +2,4 @@
 - 12:04 IST — Issue #72 pre-flight (needs-brief): 2063 input, 1024 output · Cost: $0.0215
 - 12:04 IST — Issue #72 pre-flight (needs-brief): 2560 input, 1024 output · Cost: $0.0230
 - 12:04 IST — Issue #72 pre-flight (needs-brief): 3084 input, 1011 output · Cost: $0.0244
+- 12:05 IST — Issue #72 pre-flight (needs-brief): 4053 input, 1024 output · Cost: $0.0275
