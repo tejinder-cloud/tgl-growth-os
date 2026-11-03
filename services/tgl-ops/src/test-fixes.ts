@@ -235,9 +235,9 @@ async function runFixesVerificationSuite(): Promise<void> {
   passed++;
 
   // -------------------------------------------------------------------------
-  // Test 4: Boot recovery of interrupted runs
+  // Test 4: Boot recovery of interrupted runs, error isolation & 2-attempt limit
   // -------------------------------------------------------------------------
-  console.log("[Test 4] Testing boot recovery of interrupted runs (state says running, no process)...");
+  console.log("[Test 4] Testing boot recovery of interrupted runs (attempts limit, error isolation, alert dedupe)...");
 
   // Setup runner state with an interrupted run (status: "in-progress")
   const testState = {
@@ -263,18 +263,72 @@ async function runFixesVerificationSuite(): Promise<void> {
 
   await saveRunnerState(testState, { testMode: true });
 
-  const recoveredIssues = await recoverInterruptedRunnerIssues({ testMode: true });
+  // First recovery attempt: issue #53 should be detected and re-queued
+  const recoveredIssues1 = await recoverInterruptedRunnerIssues({ testMode: true });
 
-  if (!recoveredIssues.includes(53)) {
-    throw new Error(`Test 4.1 Failed: Issue #53 was in-progress with no process, but was not detected for recovery: ${recoveredIssues.join(", ")}`);
+  if (!recoveredIssues1.includes(53)) {
+    throw new Error(`Test 4.1 Failed: Issue #53 was in-progress with no process, but was not detected for recovery: ${recoveredIssues1.join(", ")}`);
   }
-  if (recoveredIssues.includes(13)) {
+  if (recoveredIssues1.includes(13)) {
     throw new Error(`Test 4.2 Failed: Issue #13 was completed, but was erroneously marked for recovery.`);
   }
 
-  console.log(`  ✓ Detected interrupted run for issue #53 on startup`);
+  const stateAfter1 = await getRunnerState({ testMode: true });
+  if (stateAfter1.runs["53"].recoveryAttempts !== 1) {
+    throw new Error(`Test 4.3 Failed: Expected recoveryAttempts = 1, got ${stateAfter1.runs["53"].recoveryAttempts}`);
+  }
+  if (!stateAfter1.runs["53"].lastRecoveryAlertAt) {
+    throw new Error(`Test 4.4 Failed: Expected lastRecoveryAlertAt to be set on first recovery`);
+  }
+  const firstAlertTs = stateAfter1.runs["53"].lastRecoveryAlertAt;
+
+  // Second recovery attempt: should trigger max-2-attempts limit, halt re-queue, and label status:blocked
+  const recoveredIssues2 = await recoverInterruptedRunnerIssues({ testMode: true });
+
+  if (recoveredIssues2.includes(53)) {
+    throw new Error(`Test 4.5 Failed: Issue #53 was re-queued on attempt 2 instead of being blocked!`);
+  }
+
+  const stateAfter2 = await getRunnerState({ testMode: true });
+  if (stateAfter2.runs["53"].status !== "blocked") {
+    throw new Error(`Test 4.6 Failed: Expected Issue #53 status to be 'blocked' after 2 recovery failures, got: ${stateAfter2.runs["53"].status}`);
+  }
+  if (stateAfter2.runs["53"].recoveryAttempts !== 2) {
+    throw new Error(`Test 4.7 Failed: Expected recoveryAttempts = 2, got ${stateAfter2.runs["53"].recoveryAttempts}`);
+  }
+  if (!stateAfter2.runs["53"].error?.includes("limit exceeded")) {
+    throw new Error(`Test 4.8 Failed: Expected error message to explain recovery limit exceeded, got: ${stateAfter2.runs["53"].error}`);
+  }
+
+  // Test Alert Deduplication within 1 hour
+  const testStateDedupe = {
+    version: 1,
+    updatedAt: new Date().toISOString(),
+    runs: {
+      "99": {
+        agent: "web-builder",
+        door: "core",
+        title: "Issue #99",
+        status: "in-progress" as const,
+        runStartedAt: "2026-11-03T06:00:00.000Z",
+        recoveryAttempts: 0,
+        lastRecoveryAlertAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(), // 10 mins ago (< 1 hour)
+      },
+    },
+  };
+  await saveRunnerState(testStateDedupe, { testMode: true });
+  await recoverInterruptedRunnerIssues({ testMode: true });
+  const stateDedupeAfter = await getRunnerState({ testMode: true });
+  // lastRecoveryAlertAt should NOT have updated since it was alerted 10 mins ago
+  if (stateDedupeAfter.runs["99"].lastRecoveryAlertAt !== testStateDedupe.runs["99"].lastRecoveryAlertAt) {
+    throw new Error("Test 4.9 Failed: Duplicate alert timestamp was incorrectly updated within 1 hour window");
+  }
+
+  console.log(`  ✓ Detected interrupted run for issue #53 on startup (attempt 1)`);
   console.log(`  ✓ Ignored already completed issues (#13)`);
-  console.log("✅ [Test 4 Passed] Interrupted run recovery verified.\n");
+  console.log(`  ✓ Enforced max-2-attempts limit: stopped re-queueing and marked status:blocked on attempt 2`);
+  console.log(`  ✓ Deduplicated boot-recovery alerts: suppressed repeat alert within 1-hour window`);
+  console.log("✅ [Test 4 Passed] Interrupted run recovery, 2-attempt limit & alert deduplication verified.\n");
   passed++;
 
   // -------------------------------------------------------------------------

@@ -14,6 +14,9 @@ export interface RunnerRecord {
   runStartedAt: string;
   runCompletedAt?: string;
   error?: string;
+  recoveryAttempts?: number;
+  lastRecoveryAt?: string;
+  lastRecoveryAlertAt?: string;
 }
 
 export interface RunnerState {
