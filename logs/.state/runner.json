@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-03T06:34:49.534Z",
+  "updatedAt": "2026-11-03T06:35:02.696Z",
   "runs": {
     "13": {
       "agent": "web-builder",
@@ -61,11 +61,11 @@
     "72": {
       "agent": "web-builder",
       "title": "[PLAN-D10]: Outreach Sequencer SKILL.md + 5-touch worker",
-      "status": "in-progress",
+      "status": "needs-brief",
       "runStartedAt": "2026-11-03T06:34:49.318Z",
       "door": "core",
-      "error": "The brief is still underspecified. The thread has no Architect answers to the earlier needs-brief questions, only that earlier verdict, so nothing resolves the ambiguity.\n\nThe brief doesn't violate §8 Never or touch `decisions/` or `logs/`. Writing to `agents/` and `services/` is allowed on a branch. The problem is scope:\n\n- Only `agents/outreach-sequencer/SKILL.md` has an exact target. The worker is most of the work and has no file path or service location.\n- The brief doesn't give the 5-touch cadence (timing, channels, copy source). It doesn't say how the \"one-pager audit\" is produced or found for attachment to touch 2.\n- It doesn't name the GHL API endpoints, the auth/secrets handling, the reply-webhook route, or the Sales Desk interface.\n- The DoD items \"automated through GHL API\" and \"routes intent to Sales Desk\" can't be verified as written. They need a mock, a fixture, or a test.\n- This system sends real prospect communications. Building it on guesses is unsafe.\n- Outreach and sales automation also sits outside normal web-builder discipline, so the owner needs confirming.\n\nI'm holding the build until the Architect answers the questions below.",
-      "runCompletedAt": "2026-11-03T06:34:44.513Z"
+      "error": "The brief is still underspecified, and the thread has no Architect answers to the two earlier needs-brief verdicts, so nothing resolves the ambiguity. It doesn't violate §8 Never and doesn't touch `decisions/` or `logs/`. Writing to `agents/` and `services/` on a branch is allowed, so scope isn't the problem. The problem is missing specifics. Only `agents/outreach-sequencer/SKILL.md` has an exact target. The worker is most of the work and has no file path or service location. The brief doesn't give the 5-touch cadence (timing, channels, copy source). It doesn't say how the one-pager audit is produced or located for attachment to touch 2. It doesn't name the GHL API endpoints, the auth/secrets handling, the reply-webhook route, or the Sales Desk interface. The DoD items \"automated through GHL API\" and \"routes intent to Sales Desk\" can't be verified as written. They need a mock, fixture, or test-based acceptance criterion. This system sends real prospect communications, so building it on guesses is unsafe. Outreach and sales automation is also outside normal web-builder discipline, so the owner needs confirming. The earlier questions were generic, so the questions below are more concrete.",
+      "runCompletedAt": "2026-11-03T06:35:02.527Z"
     }
   }
 }
