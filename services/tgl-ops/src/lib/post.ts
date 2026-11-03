@@ -345,6 +345,63 @@ export async function postLine(options: PostLineOptions): Promise<{ ok: boolean;
   }
 }
 
+const channelIdCache = new Map<string, string>();
+
+/**
+ * Resolves a Slack channel name (e.g. #doors-aeo) to its channel ID (e.g. C08...)
+ * using cache and conversations.list lookup.
+ */
+export async function resolveChannelId(channel: string): Promise<string> {
+  if (!channel) return channel;
+  if (!channel.startsWith("#")) {
+    return channel;
+  }
+  const cached = channelIdCache.get(channel);
+  if (cached) return cached;
+
+  // Fast lookup for known env configured channels
+  if (channel === "#approvals" && config.approvalsChannelId && !config.approvalsChannelId.startsWith("#")) {
+    return config.approvalsChannelId;
+  }
+  if (channel === "#standup" && config.standupChannelId && !config.standupChannelId.startsWith("#")) {
+    return config.standupChannelId;
+  }
+  if (channel === "#alerts" && config.alertsChannelId && !config.alertsChannelId.startsWith("#")) {
+    return config.alertsChannelId;
+  }
+  if (channel === "#ops" && config.opsChannelId && !config.opsChannelId.startsWith("#")) {
+    return config.opsChannelId;
+  }
+  if (channel === "#architect" && config.architectChannelId && !config.architectChannelId.startsWith("#")) {
+    return config.architectChannelId;
+  }
+
+  if (!config.slackBotToken) {
+    return channel;
+  }
+
+  try {
+    const listRes = await slackClient.conversations.list({
+      types: "public_channel,private_channel",
+      exclude_archived: true,
+      limit: 300,
+    });
+    if (listRes.ok && listRes.channels) {
+      for (const c of listRes.channels) {
+        if (c.name && c.id) {
+          channelIdCache.set(`#${c.name}`, c.id);
+          channelIdCache.set(c.name, c.id);
+        }
+      }
+      const found = channelIdCache.get(channel);
+      if (found) return found;
+    }
+  } catch (err: any) {
+    console.warn(`[resolveChannelId Warning] Error querying Slack conversations: ${err.message || err}`);
+  }
+  return channel;
+}
+
 /**
  * Uploads a file or document to Slack.
  */
@@ -366,8 +423,10 @@ export async function postFile(options: PostFileOptions): Promise<{ ok: boolean;
       throw new Error("No file buffer or valid file path provided to postFile");
     }
 
+    const resolvedChannelId = await resolveChannelId(channel);
+
     const uploadArgs: any = {
-      channel_id: channel,
+      channel_id: resolvedChannelId,
       file,
       filename: filename || (filePath ? filePath.split("/").pop() : "document"),
       title: title || filename,
