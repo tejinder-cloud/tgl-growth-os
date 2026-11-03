@@ -38,6 +38,13 @@ export interface SiteSnapshot {
   error?: string;
 }
 
+export interface PriorPrompt {
+  text: string;
+  language?: string;
+  journey_phase?: Journey;
+  reason?: string;
+}
+
 export interface Evidence {
   site: SiteSnapshot | null;
   /** One AI answer to "who leads this market here?" — the same kind of answer the tracker will record. */
@@ -45,6 +52,8 @@ export interface Evidence {
   aiAnswer: string | null;
   aiEngine: string | null;
   aiError?: string;
+  /** Prior reviews' proposed prompts for this brand (including rejected ones) to build upon. */
+  priorProposedPrompts?: PriorPrompt[];
 }
 
 export interface Proposal {

@@ -4,7 +4,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { getAnthropicModel, getAnthropicPricing } from "../../lib/anthropic-pricing.js";
 import { appendLog } from "../../lib/log.js";
-import { evidenceCorpus } from "./evidence.js";
+import { askEngine, loadEngineConfig } from "../aeo-audit-engine/engines.js";
+import { evidenceCorpus, newMarketQuestion } from "./evidence.js";
 import {
   ALLOWED_LANGUAGES,
   ALLOWED_STAGES,
@@ -20,11 +21,14 @@ export const SYSTEM = `You are TGL's AEO strategist checking a new TrueVisible c
 The setup decides which questions we ask ChatGPT, Gemini and Perplexity every day, and which businesses we compare the customer with.
 The known failure mode to prevent: wrong category, wrong or missing competitors, and prompts no real buyer would type.
 
-Rules:
-- Suggest only what the EVIDENCE supports. A competitor to add must be a specific business named in a stored live AI answer. The evidence must be a verbatim excerpt from that AI answer with the prompt and engine named. A tagline from the customer's or competitor's site is NOT evidence.
+RULE SPLIT:
+1. COMPETITORS: Every competitor to add MUST be a specific business named in a stored live AI answer in EVIDENCE 2. The evidence must be a verbatim excerpt from that AI answer with the prompt and engine named. A tagline or copy from the customer's or competitor's site is NOT evidence and will be rejected. Never invent competitors.
+2. PROMPTS: Prompts are YOUR OWN strategic proposals drawn directly from the brand's product, buyers, location, and languages. Prompts need NO evidence and NO citations. Propose high-intent buyer discovery questions across awareness, consideration, and decision in the customer's languages (en, hi, hinglish). If prior reviews proposed good prompts (see EVIDENCE 3), adopt them into prompts_add.
+
+Other Rules:
 - Never invent businesses, websites, facts or numbers. If evidence is thin, suggest less.
 - Remove a competitor only if it is clearly not a competitor (wrong category, wrong city, not a business, or the customer itself).
-- Prompts: real buyer questions, city-level where it fits, in the customer's languages. Retire prompts that are vague, duplicated or not something a buyer asks. Keep the mix of awareness / consideration / decision. Keep the brand-name prompts — they show what AI says about the brand.
+- Retire prompts that are vague, duplicated or not something a buyer asks (or if reviewer feedback requests retiring old category prompts). Keep the mix of awareness / consideration / decision. Keep the brand-name prompts — they show what AI says about the brand.
 - Market: suggest rewording product / buyer / location only if the site clearly shows the current wording is wrong or too vague to produce sensible AI answers.
 - If REVIEWER FEEDBACK / INSTRUCTIONS are provided, they take strict precedence over default rules: adjust market, prompts, and competitors exactly as instructed.
 - Be sparing. A good setup gets an empty proposal and a one-line summary saying so.
@@ -33,7 +37,7 @@ Call the propose_setup_check tool to submit the proposal.`;
 
 export const PROPOSE_SETUP_CHECK_TOOL: Anthropic.Tool = {
   name: "propose_setup_check",
-  description: "Submit proposed setup changes for a brand: market wording, competitors to add or remove, prompts to retire or add.",
+  description: "Submit proposed setup changes for a brand. Rule split: competitors to add require a verbatim excerpt from a stored live AI answer; prompts to add are the Strategist's own proposals drawn from product, buyers, location, and languages and need NO evidence.",
   input_schema: {
     type: "object",
     properties: {
@@ -94,7 +98,7 @@ export const PROPOSE_SETUP_CHECK_TOOL: Anthropic.Tool = {
       },
       prompts_add: {
         type: "array",
-        description: "New buyer prompts to add within the plan limit.",
+        description: "New buyer prompts to add within the plan limit. Prompts are the Strategist's own proposals drawn from product, buyers, location, and languages, and need NO evidence or citations.",
         items: {
           type: "object",
           properties: {
@@ -130,6 +134,13 @@ export function buildUserMessage(s: SetupSnapshot, ev: Evidence): string {
       ? `URL: ${ev.site.url}\nTitle: ${ev.site.title ?? "—"}\nDescription: ${ev.site.description ?? "—"}\nHeadings: ${ev.site.headings.join(" | ") || "—"}\nText: ${ev.site.text.slice(0, 2500)}`
       : `Could not load ${ev.site.url}: ${ev.site.error}`
     : "No website.";
+
+  const priorPromptsSection = ev.priorProposedPrompts && ev.priorProposedPrompts.length > 0
+    ? `\nEVIDENCE 3 — prior reviews' proposed prompts (including reviewer-requested & validator-checked prompts):
+${ev.priorProposedPrompts.map((p, i) => `${i + 1}. [${p.language ?? "en"} · ${p.journey_phase ?? "consideration"}] ${p.text}`).join("\n")}
+NOTE: Reviewer instructions requested adopting valid high-intent prompts from prior reviews. Adopt these buyer prompts in prompts_add (prompts need NO evidence).`
+    : "";
+
   return `CUSTOMER SETUP
 Brand: ${s.name}${s.variants.length ? ` (also: ${s.variants.join(", ")})` : ""}
 Website: ${s.domain ?? "none"} · platform: ${s.platform ?? "—"}
@@ -143,7 +154,7 @@ EVIDENCE 1 — customer's homepage
 ${site}
 
 EVIDENCE 2 — live AI answer${ev.aiEngine ? ` from ${ev.aiEngine}` : ""} to: "${ev.aiQuestion ?? "—"}"
-${ev.aiAnswer ?? `(none: ${ev.aiError ?? "no market entered"})`}`;
+${ev.aiAnswer ?? `(none: ${ev.aiError ?? "no market entered"})`}${priorPromptsSection}`;
 }
 
 export function extractJson(text: string): any {
@@ -379,6 +390,29 @@ export async function proposeChanges(
         text: `proposal parse failure: ${lastRawReply.slice(0, 1000) || String(fallbackErr?.message || toolErr?.message)}`,
       }).catch(() => {});
       throw fallbackErr;
+    }
+  }
+
+  // If the model proposes a market wording change and ev.aiQuestion didn't already ask about that market,
+  // fetch one fresh live AI answer for the new market before finalizing competitors.
+  const mc = rawProposal?.market_change;
+  if (mc && typeof mc === "object" && s.market) {
+    const newProduct = mc.product || s.market.product;
+    const newIcp = mc.icp || s.market.icp;
+    const newLocation = mc.location || s.market.location;
+    const newQ = newMarketQuestion(newProduct, newIcp, newLocation);
+    if (ev.aiQuestion !== newQ) {
+      const { config } = loadEngineConfig("perplexity");
+      if (config) {
+        try {
+          const ans = await askEngine(config, newQ, { country: "IN" });
+          ev.aiQuestion = newQ;
+          ev.aiAnswer = ans.text.slice(0, 6000);
+          ev.aiEngine = `perplexity (${ans.model})`;
+        } catch {
+          // keep existing evidence on network failure
+        }
+      }
     }
   }
 

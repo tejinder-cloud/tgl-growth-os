@@ -9,12 +9,21 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { config } from "./config.js";
-import { extractSite, marketQuestion, evidenceCorpus } from "./agents/aeo-strategist/evidence.js";
+import {
+  extractSite,
+  fetchSite,
+  marketQuestion,
+  evidenceCorpus,
+  newMarketQuestion,
+  parseMarketOverride,
+  extractPriorPrompts,
+} from "./agents/aeo-strategist/evidence.js";
+import { splitTextIntoChunks } from "./lib/post.js";
 import { validateProposal, proposeChanges, buildUserMessage, changeCount, extractJson, normalizeLanguage, normalizeStage } from "./agents/aeo-strategist/propose.js";
 import { ALLOWED_LANGUAGES, ALLOWED_STAGES } from "./agents/aeo-strategist/types.js";
 import { buildReviewBlocks, readSelection, decidedBlocks } from "./agents/aeo-strategist/card.js";
 import { planApply, describePlan, planSize } from "./agents/aeo-strategist/apply.js";
-import type { Evidence, SetupSnapshot } from "./agents/aeo-strategist/types.js";
+import type { Evidence, Proposal, SetupSnapshot } from "./agents/aeo-strategist/types.js";
 
 let passed = 0;
 async function t(name: string, fn: () => void | Promise<void>) {
@@ -568,6 +577,276 @@ await t("TGL setup re-proposal: 10 prompts (>=6 AEO, <=3 coaching, en + hinglish
 
   // Ensure setup is unverified
   assert.equal(tglSnap.setupStatus, "needs_changes");
+});
+
+await t("rule split: competitors require verbatim excerpt from stored AI answer; prompts require no evidence", () => {
+  const testSnap: SetupSnapshot = {
+    brandId: "b_split",
+    tenantId: "t_split",
+    tenantName: "Split Test Brand",
+    name: "Split Test Brand",
+    domain: "split.example",
+    platform: "custom",
+    languages: ["en", "hi", "hinglish"],
+    variants: [],
+    market: { id: "m_split", product: "AI visibility", icp: "enterprises", location: "India" },
+    competitors: [{ id: "c_old", name: "OldCo", domain: "old.example" }],
+    prompts: [
+      { id: "p1", text: "Existing prompt 1", language: "en", journey_phase: "awareness" },
+      { id: "p2", text: "Existing prompt 2", language: "en", journey_phase: "consideration" },
+      { id: "p3", text: "Existing prompt 3", language: "en", journey_phase: "decision" },
+      { id: "p4", text: "Existing prompt 4", language: "en", journey_phase: "awareness" },
+      { id: "p5", text: "Existing prompt 5", language: "en", journey_phase: "decision" },
+    ],
+    plan: "internal",
+    promptLimit: 50,
+    submittedAt: new Date().toISOString(),
+  };
+
+  const testEv: Evidence = {
+    site: extractSite("<html><body><p>Unrelated Agency: We build nice web apps.</p></body></html>", "https://split.example/"),
+    aiQuestion: "Who leads AI visibility in India?",
+    aiAnswer: "Top providers in India include MarketLeader (pioneers in generative engine optimization) and EmergentAI (emerging provider).",
+    aiEngine: "perplexity (sonar-pro)",
+  };
+
+  const raw = {
+    summary: "Checking rule split.",
+    market_change: null,
+    competitors_add: [
+      // Valid: verbatim excerpt in AI answer, prompt and engine named
+      {
+        name: "MarketLeader",
+        domain: "marketleader.example",
+        prompt: "Who leads AI visibility in India?",
+        engine: "perplexity",
+        verbatim_excerpt: "pioneers in generative engine optimization",
+      },
+      // Invalid: from site copy, not AI answer
+      {
+        name: "Unrelated Agency",
+        domain: "unrelated.example",
+        prompt: "Who leads AI visibility in India?",
+        engine: "perplexity",
+        verbatim_excerpt: "We build nice web apps.",
+      },
+      // Invalid: missing excerpt
+      {
+        name: "EmergentAI",
+        domain: "emergent.example",
+        prompt: "Who leads AI visibility in India?",
+        engine: "perplexity",
+      },
+    ],
+    competitors_remove: [],
+    prompts_retire: [],
+    // Prompts need NO evidence or excerpts
+    prompts_add: [
+      { text: "Best AI visibility and generative engine optimization in India", language: "en", journey_phase: "decision", reason: "Direct buyer evaluation" },
+      { text: "Kaise choose kare best AI marketing operator for business", language: "hinglish", journey_phase: "consideration", reason: "Hinglish buyer comparison" },
+    ],
+  };
+
+  const p = validateProposal(raw, testSnap, testEv);
+
+  // Competitor assertions: exactly 1 valid competitor added; 2 invalid competitors dropped
+  assert.equal(p.competitorsAdd.length, 1);
+  assert.equal(p.competitorsAdd[0].name, "MarketLeader");
+  assert.equal(p.competitorsAdd[0].evidence, "pioneers in generative engine optimization");
+  assert.ok(p.dropped.some((d) => d.includes("Unrelated Agency") && d.includes("site tagline is not evidence")));
+  assert.ok(p.dropped.some((d) => d.includes("EmergentAI")));
+
+  // Prompt assertions: both prompts accepted without requiring any citation or excerpt
+  assert.equal(p.promptsAdd.length, 2);
+  assert.equal(p.promptsAdd[0].text, "Best AI visibility and generative engine optimization in India");
+  assert.equal(p.promptsAdd[1].text, "Kaise choose kare best AI marketing operator for business");
+});
+
+await t("market change: neutral 'who leads' question, override parsing, and prior prompts evidence", async () => {
+  // Test newMarketQuestion formatting
+  const q = newMarketQuestion("AI visibility (AEO/GEO) + AI automation", "hospitals and clinics", "India");
+  assert.equal(q, "Who leads AI visibility (AEO/GEO) + AI automation for hospitals and clinics in India? Name specific businesses and their websites.");
+
+  // Test parseMarketOverride
+  const note = "Wrong market. Replace: product = AI visibility (AEO/GEO) + AI automation; buyers = hospitals, clinics, coaching institutes; location = India-wide, Chandigarh home";
+  const override = parseMarketOverride(note);
+  assert.ok(override);
+  assert.equal(override.product, "AI visibility (AEO/GEO) + AI automation");
+  assert.equal(override.icp, "hospitals, clinics, coaching institutes");
+  assert.equal(override.location, "India-wide, Chandigarh home");
+
+  // Test extractPriorPrompts from prior reviews including dropped prompts
+  const mockReviews = [
+    {
+      proposal: {
+        promptsAdd: [
+          { text: "Prompt from review 1", language: "en", journey_phase: "awareness" },
+        ],
+        dropped: [
+          "prompt “Dropped prompt from review 1” — language/stage not allowed",
+        ],
+      },
+    },
+  ];
+  const prior = extractPriorPrompts(mockReviews);
+  assert.ok(prior.some((p) => p.text === "Prompt from review 1"));
+  assert.ok(prior.some((p) => p.text === "Dropped prompt from review 1"));
+
+  // Test buildUserMessage renders EVIDENCE 3 when priorProposedPrompts are present
+  const dummySnap: SetupSnapshot = {
+    brandId: "b_test", tenantId: "t_test", tenantName: "Test", name: "Test Brand", domain: "test.example",
+    platform: null, languages: ["en"], variants: [], market: { id: "m", product: "AI", icp: "buyers", location: "India" },
+    competitors: [], prompts: [], plan: "internal", promptLimit: 10, submittedAt: new Date().toISOString(),
+  };
+  const testPriorPrompts = [
+    { text: "Best AI visibility and generative engine optimization in India", language: "en", journey_phase: "decision" as const },
+    { text: "Top AI growth partner for multi-branch test prep institutes in India", language: "en", journey_phase: "consideration" as const },
+  ];
+  const dummyEv: Evidence = {
+    site: null,
+    aiQuestion: "Who leads AI in India?",
+    aiAnswer: "Top companies...",
+    aiEngine: "perplexity",
+    priorProposedPrompts: testPriorPrompts,
+  };
+  const msg = buildUserMessage(dummySnap, dummyEv);
+  assert.match(msg, /EVIDENCE 3 — prior reviews' proposed prompts/);
+  assert.match(msg, /Best AI visibility and generative engine optimization/);
+
+  // When model returns 0 prompts, no fallback injects prompts; promptsAdd stays empty and < 5 guardrail will handle it
+  const mockAnthropic = {
+    messages: {
+      create: async () => ({
+        usage: { input_tokens: 100, output_tokens: 50 },
+        content: [
+          {
+            type: "tool_use",
+            name: "propose_setup_check",
+            input: {
+              summary: "Model returned 0 prompts.",
+              market_change: null,
+              competitors_add: [],
+              competitors_remove: [],
+              prompts_retire: [],
+              prompts_add: [], // 0 prompts returned
+            },
+          },
+        ],
+      }),
+    },
+  };
+  const res = await proposeChanges(dummySnap, dummyEv, mockAnthropic as any);
+  assert.equal(res.proposal.promptsAdd.length, 0, "No prompt injection fallback should exist; promptsAdd stays empty");
+});
+
+await t("no brand-specific constant exists in the aeo-strategist module", () => {
+  const dir = fs.existsSync(path.resolve("src/agents/aeo-strategist"))
+    ? path.resolve("src/agents/aeo-strategist")
+    : path.resolve("services/tgl-ops/src/agents/aeo-strategist");
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith(".ts"));
+  for (const file of files) {
+    const content = fs.readFileSync(path.join(dir, file), "utf8");
+    assert.ok(
+      !content.includes("B13C2187_AEO_PROMPTS"),
+      `File ${file} must not contain B13C2187_AEO_PROMPTS`
+    );
+    assert.ok(
+      !/export\s+const\s+[A-Z0-9_]*TGL[A-Z0-9_]*\s*=/i.test(content),
+      `File ${file} must not export any brand-specific constant`
+    );
+    assert.ok(
+      !/export\s+const\s+[A-Z0-9_]*GROWTH_LAB[A-Z0-9_]*\s*=/i.test(content),
+      `File ${file} must not export any brand-specific constant`
+    );
+  }
+});
+
+await t("site evidence scraper strips style/script/noscript/svg, extracts schema.org & meta, caps at 4,000 chars, and contains 'Growth Lab' with no 'font-family'", async () => {
+  const site = await fetchSite("thegrowthlab.co.in");
+  assert.ok(site && site.ok, "fetchSite for thegrowthlab.co.in must succeed");
+  assert.ok(site.text.includes("Growth Lab"), "Site text must contain 'Growth Lab'");
+  assert.ok(!site.text.includes("font-family"), "Site text must not contain 'font-family'");
+  assert.ok(site.text.length <= 4000, `Site text must be capped at 4000 characters, got ${site.text.length}`);
+});
+
+await t("card: summary chunking across section blocks and approve guardrail (< 5 prompts)", () => {
+  const brandSnap: SetupSnapshot = {
+    brandId: "b_guard", tenantId: "t_guard", tenantName: "Guard Brand", name: "Guard Brand", domain: "guard.example",
+    platform: null, languages: ["en"], variants: [], market: { id: "m", product: "SaaS", icp: "startups", location: "India" },
+    competitors: [{ id: "c1", name: "Old Rival", domain: "rival.example" }],
+    prompts: [
+      { id: "p1", text: "Prompt 1", language: "en", journey_phase: "awareness" },
+      { id: "p2", text: "Prompt 2", language: "en", journey_phase: "awareness" },
+      { id: "p3", text: "Prompt 3", language: "en", journey_phase: "awareness" },
+    ], // Only 3 prompts!
+    plan: "internal", promptLimit: 10, submittedAt: new Date().toISOString(),
+  };
+
+  // Case 1: Resulting prompts < 5 -> Actions block must show Needs changes ONLY (zero approve buttons)
+  const propUnder5: Proposal = {
+    summary: "Setup has only 3 prompts, fewer than the 5 required.",
+    market: null,
+    competitorsAdd: [],
+    competitorsRemove: [],
+    promptsRetire: [],
+    promptsAdd: [], // 3 - 0 + 0 = 3 < 5
+    dropped: [],
+  };
+  const blocksUnder5 = buildReviewBlocks(brandSnap, propUnder5, "review-under-5", "evidence ok");
+  const actionBlock = blocksUnder5.find((b) => b.block_id === "setup_decision");
+  assert.ok(actionBlock, "Card must have setup_decision block");
+  assert.equal(actionBlock.elements.length, 1, "Card must show Needs changes only when resulting prompts < 5");
+  assert.equal(actionBlock.elements[0].action_id, "setup_changes");
+  assert.equal(actionBlock.elements[0].text.text, "Needs changes");
+  assert.ok(blocksUnder5.some((b) => b.type === "context" && b.elements?.[0]?.text?.includes("Approval disabled")));
+
+  // Case 2: Resulting prompts < 5 because all 10 old prompts retired and 0 added (card 24ce2a01 scenario)
+  const retiredAllSnap: SetupSnapshot = {
+    ...brandSnap,
+    prompts: Array.from({ length: 10 }, (_, i) => ({
+      id: `p${i + 1}`,
+      text: `Old prompt ${i + 1}`,
+      language: "en",
+      journey_phase: "awareness",
+    })),
+  };
+  const propRetiredAll: Proposal = {
+    summary: "Retired all 10 old prompts.",
+    market: null,
+    competitorsAdd: [],
+    competitorsRemove: [],
+    promptsRetire: Array.from({ length: 10 }, (_, i) => ({ id: `p${i + 1}`, text: `Old prompt ${i + 1}`, reason: "Wrong market" })),
+    promptsAdd: [], // 10 - 10 + 0 = 0 < 5
+    dropped: [],
+  };
+  const blocksRetiredAll = buildReviewBlocks(retiredAllSnap, propRetiredAll, "review-retired-all", "evidence ok");
+  const actionRetiredAll = blocksRetiredAll.find((b) => b.block_id === "setup_decision");
+  assert.equal(actionRetiredAll.elements.length, 1, "Must show Needs changes only when all prompts retired with 0 added");
+  assert.equal(actionRetiredAll.elements[0].action_id, "setup_changes");
+
+  // Case 3: Resulting prompts >= 5 -> Actions block offers approval buttons
+  const propValid: Proposal = {
+    ...propRetiredAll,
+    promptsAdd: Array.from({ length: 10 }, (_, i) => ({
+      text: `New prompt ${i + 1}`,
+      language: "en",
+      journey_phase: "decision",
+      reason: "High intent",
+    })), // 10 - 10 + 10 = 10 >= 5
+  };
+  const blocksValid = buildReviewBlocks(retiredAllSnap, propValid, "review-valid", "evidence ok");
+  const actionValid = blocksValid.find((b) => b.block_id === "setup_decision");
+  assert.ok(actionValid.elements.some((e: any) => e.action_id === "setup_approve"));
+
+  // Case 4: Long summary (> 3000 chars) is split across multiple section blocks
+  const longSummary = "A".repeat(3500);
+  const propLongSummary: Proposal = { ...propValid, summary: longSummary };
+  const blocksLongSummary = buildReviewBlocks(retiredAllSnap, propLongSummary, "review-long", "evidence ok");
+  const sectionBlocks = blocksLongSummary.filter((b) => b.type === "section");
+  // Check that no section block exceeds 2900 chars
+  for (const s of sectionBlocks) {
+    assert.ok(s.text.text.length <= 2900, `Section text must not exceed 2900 chars, got ${s.text.text.length}`);
+  }
 });
 
 console.log(`\nDay 19: ${passed} checks passed`);

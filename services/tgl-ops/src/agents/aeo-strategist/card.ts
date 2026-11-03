@@ -1,4 +1,5 @@
 // services/tgl-ops/src/agents/aeo-strategist/card.ts — the #approvals card for one setup review.
+import { splitTextIntoChunks } from "../../lib/post.js";
 import type { Proposal, Selection, SetupSnapshot } from "./types.js";
 
 const cut = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
@@ -27,12 +28,18 @@ export function buildReviewBlocks(s: SetupSnapshot, p: Proposal, reviewId: strin
     `*Prompts (${s.prompts.length}):*\n${s.prompts.map((x, i) => `${i + 1}. ${esc(cut(x.text, 110))} _(${x.language} · ${x.journey_phase})_`).join("\n")}`,
   ].join("\n");
 
+  const summaryChunks = splitTextIntoChunks(p.summary, 2800);
+  const strategistBlocks = summaryChunks.map((chunk, i) => ({
+    type: "section",
+    text: { type: "mrkdwn", text: i === 0 ? `*Strategist:* ${esc(chunk)}` : esc(chunk) },
+  }));
+
   const blocks: any[] = [
     { type: "header", text: { type: "plain_text", text: cut(`Setup check · ${s.name}`, 150) } },
     { type: "context", elements: [{ type: "mrkdwn", text: `*Agent:* \`aeo-strategist\` | *Door:* \`aeo\` | review \`${reviewId.slice(0, 8)}\` | ${evidenceLine}` }] },
     { type: "section", text: { type: "mrkdwn", text: cut(setup, 2900) } },
     { type: "divider" },
-    { type: "section", text: { type: "mrkdwn", text: `*Strategist:* ${esc(p.summary)}` } },
+    ...strategistBlocks,
   ];
 
   if (p.market) {
@@ -48,15 +55,33 @@ export function buildReviewBlocks(s: SetupSnapshot, p: Proposal, reviewId: strin
   }
 
   const hasChanges = !!(p.market || p.competitorsAdd.length || p.competitorsRemove.length || p.promptsRetire.length || p.promptsAdd.length);
-  blocks.push({
-    type: "actions",
-    block_id: "setup_decision",
-    elements: [
-      ...(hasChanges ? [{ type: "button", style: "primary", action_id: "setup_approve", value: reviewId, text: { type: "plain_text", text: "Approve ticked changes" } }] : []),
-      { type: "button", ...(hasChanges ? {} : { style: "primary" }), action_id: "setup_approve_asis", value: reviewId, text: { type: "plain_text", text: hasChanges ? "Approve as entered" : "Approve setup" } },
-      { type: "button", style: "danger", action_id: "setup_changes", value: reviewId, text: { type: "plain_text", text: "Needs changes" } },
-    ],
-  });
+  const resultingTickedPrompts = s.prompts.length - p.promptsRetire.length + p.promptsAdd.length;
+  const resultingPrompts = hasChanges ? resultingTickedPrompts : s.prompts.length;
+
+  if (resultingPrompts < 5) {
+    // A card must never offer "Approve setup" when the result would be a verified brand with fewer than 5 prompts; show Needs changes only.
+    blocks.push({
+      type: "context",
+      elements: [{ type: "mrkdwn", text: `_Approval disabled: resulting setup has ${resultingPrompts} prompt(s). At least 5 prompts are required for verification._` }],
+    });
+    blocks.push({
+      type: "actions",
+      block_id: "setup_decision",
+      elements: [
+        { type: "button", style: "danger", action_id: "setup_changes", value: reviewId, text: { type: "plain_text", text: "Needs changes" } },
+      ],
+    });
+  } else {
+    blocks.push({
+      type: "actions",
+      block_id: "setup_decision",
+      elements: [
+        ...(hasChanges ? [{ type: "button", style: "primary", action_id: "setup_approve", value: reviewId, text: { type: "plain_text", text: "Approve ticked changes" } }] : []),
+        { type: "button", ...(hasChanges ? {} : { style: "primary" }), action_id: "setup_approve_asis", value: reviewId, text: { type: "plain_text", text: hasChanges ? "Approve as entered" : "Approve setup" } },
+        { type: "button", style: "danger", action_id: "setup_changes", value: reviewId, text: { type: "plain_text", text: "Needs changes" } },
+      ],
+    });
+  }
   return blocks;
 }
 
