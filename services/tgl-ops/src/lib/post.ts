@@ -408,7 +408,7 @@ export async function resolveChannelId(channel: string): Promise<string> {
 export async function postFile(options: PostFileOptions): Promise<{ ok: boolean; fileId?: string; error?: string; channelId?: string }> {
   const { channel, filePath, fileBuffer, filename, title, thread_ts } = options;
 
-  if (!config.slackBotToken) {
+  if (!config.slackBotToken || isTestMode()) {
     console.log(`[postFile Dry Run] Channel: ${channel} | File: ${filename || filePath}`);
     return { ok: true, fileId: "mock-file-id" };
   }
