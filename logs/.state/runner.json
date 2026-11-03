@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-03T06:34:10.446Z",
+  "updatedAt": "2026-11-03T06:34:25.333Z",
   "runs": {
     "13": {
       "agent": "web-builder",
@@ -61,9 +61,11 @@
     "72": {
       "agent": "web-builder",
       "title": "[PLAN-D10]: Outreach Sequencer SKILL.md + 5-touch worker",
-      "status": "in-progress",
+      "status": "needs-brief",
       "runStartedAt": "2026-11-03T06:34:10.230Z",
-      "door": "core"
+      "door": "core",
+      "error": "The brief doesn't violate any §8 Never rule and doesn't touch `decisions/` or `logs/`. Writing to `agents/` and `services/` is allowed. Only one deliverable has an exact target: `agents/outreach-sequencer/SKILL.md`. The worker, which is the bulk of the work, has no file path or service location. The brief doesn't give the 5-touch cadence, channels, or copy source. It doesn't say how the \"one-pager audit\" is produced or found for attachment to touch 2. It doesn't name the GHL API endpoints or the auth/secrets approach. It doesn't name the reply-webhook route or the Sales Desk interface. The DoD items, such as \"automated through GHL API\" and \"routes intent\", can't be checked as written. They need a test, a fixture, or a mock-based acceptance criterion. Without these details I'd be guessing at the architecture of a system that sends real prospect communications. I'd also like the Architect to confirm that the `web-builder` agent is the right owner for this outreach/sales-automation work, since it sits outside normal web-builder discipline.",
+      "runCompletedAt": "2026-11-03T06:34:25.082Z"
     }
   }
 }
