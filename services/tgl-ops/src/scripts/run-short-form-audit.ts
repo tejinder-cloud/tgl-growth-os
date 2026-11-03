@@ -8,7 +8,8 @@ import { postFile, postLine } from "../lib/post.js";
 
 export async function runShortFormAuditCli(
   customBrand?: string,
-  customDomain?: string
+  customDomain?: string,
+  options?: { supabase?: any; testMode?: boolean }
 ): Promise<{
   brandName: string;
   domain: string;
@@ -27,7 +28,7 @@ export async function runShortFormAuditCli(
 
   // Honesty check 1: setup profile verification gate
   // Prompts come strictly from verified setup profile; if unverified, refuse to run.
-  const verifiedProfile = await loadVerifiedBrandProfile(domain);
+  const verifiedProfile = await loadVerifiedBrandProfile(domain, options);
   if (verifiedProfile.setupStatus !== "verified") {
     throw new Error(
       `Brand setup profile for "${domain}" is not verified in TrueVisible setup queue (status: ${verifiedProfile.setupStatus}). Audit refused.`
@@ -38,8 +39,9 @@ export async function runShortFormAuditCli(
   console.log(`Running AEO Short-Form Audit for: ${verifiedProfile.name} (${verifiedProfile.primaryDomain})...`);
 
   const auditResult = await runShortFormAudit(verifiedProfile, {
-    testMode: true,
+    testMode: options?.testMode !== undefined ? options.testMode : true,
     saveRawJson: true,
+    supabase: options?.supabase,
   });
 
   console.log(`\nAudit Complete:`);

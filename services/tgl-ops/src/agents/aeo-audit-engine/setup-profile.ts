@@ -1,7 +1,8 @@
 // services/tgl-ops/src/agents/aeo-audit-engine/setup-profile.ts
 // Handles verified brand setup profiles from the TrueVisible setup-check queue (Day 19).
-// Enforces the Iron Law of Honesty: if a brand's setup profile is not verified,
-// the engine must refuse to run and say so, never guess or fall back to generic prompts.
+// Enforces the Iron Law of Honesty: the engine reads brands/prompts/competitors/products_icps
+// from Supabase only. A missing, unconfigured, or unverified row means "Audit refused" with the reason.
+// Zero fallback constants or seed registries.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabase } from "../prospect-researcher/db.js";
@@ -35,130 +36,17 @@ export interface VerifiedBrandProfile {
   prompts: VerifiedPrompt[];
 }
 
-/**
- * Tenant Zero (The Growth Lab) Brand Setup Profile.
- * Status: pending_verification (reverted from verified).
- * Verification requires explicit Architect tap on a Setup-check card in #doors-aeo.
- *
- * Architect verification instruction (decisions/2026-11-02.md, review 9779874b-141f-4db7-a541-c6227e4106f7):
- * "The Growth Lab sells AI visibility (AEO/GEO) and AI automation to hospitals and clinics,
- * coaching institutes, hotels, real-estate developers and D2C brands across India;
- * it is not a coaching institute and not a coaching-CRM."
- */
-export const TGL_SETUP_PROFILE: VerifiedBrandProfile = {
-  brandId: "brand_tgl_zero",
-  tenantId: "tgl",
-  name: "The Growth Lab",
-  primaryDomain: "thegrowthlab.co.in",
-  domains: ["thegrowthlab.co.in"],
-  variants: ["the growth lab", "tgl", "growth lab"],
-  setupStatus: "pending_verification",
-  setupVerifiedAt: undefined,
-  setupVerifiedBy: undefined,
-  setupNote:
-    "Market wording is outdated. TGL = AI visibility (AEO/GEO) + growth, for any business whose customers ask AI before buying: hospitals, clinics, coaching, hotels, real estate; India-wide, Chandigarh home. Redo the 10 prompts for that market (>=6 AEO/AI-visibility intents, <=3 coaching, en + hinglish) and re-propose competitors from the live answers for those prompts. Keep your two prompt retirements. · review 9779874b-141f-4db7-a541-c6227e4106f7",
-  market: {
-    product: "AI visibility (AEO/GEO) and AI automation",
-    icp: "hospitals and clinics, coaching institutes, hotels, real-estate developers and D2C brands across India",
-    location: "India-wide, Chandigarh home",
-  },
-  competitors: [
-    { name: "SingleInterface", domain: "singleinterface.com" },
-    { name: "Performics", domain: "performics.com" },
-    { name: "Schbang", domain: "schbang.com" },
-    { name: "Digital Pundit", domain: "digitalpundit.in" },
-  ],
-  prompts: [
-    {
-      id: "p_tgl_1",
-      text: "Best AI visibility and generative engine optimization (GEO) agencies in India",
-      language: "en",
-      journey_phase: "decision",
-    },
-    {
-      id: "p_tgl_2",
-      text: "Top AI search marketing agencies for hospitals and healthcare clinics",
-      language: "en",
-      journey_phase: "consideration",
-    },
-    {
-      id: "p_tgl_3",
-      text: "How to get recommended by ChatGPT and Perplexity for multi-branch coaching institutes",
-      language: "en",
-      journey_phase: "awareness",
-    },
-    {
-      id: "p_tgl_4",
-      text: "Leading AI automation and visibility consultants for real estate and hospitality",
-      language: "en",
-      journey_phase: "consideration",
-    },
-    {
-      id: "p_tgl_5",
-      text: "The Growth Lab AI visibility and growth reviews",
-      language: "en",
-      journey_phase: "decision",
-    },
-  ],
-};
-
-export const TGL_VERIFIED_PROFILE = TGL_SETUP_PROFILE;
-
-/**
- * In-memory registry of brand profiles for local development, testing, and fixture runs.
- */
-const profileRegistry = new Map<string, VerifiedBrandProfile>();
-
 function normKey(s: string): string {
   return s.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
 }
 
-// Seed tenant zero in pending_verification status
-profileRegistry.set("thegrowthlab.co.in", { ...TGL_SETUP_PROFILE });
-profileRegistry.set("the growth lab", { ...TGL_SETUP_PROFILE });
-profileRegistry.set("tgl", { ...TGL_SETUP_PROFILE });
-
 /**
- * Registers or updates a brand profile in the local registry (useful for testing verification states).
- */
-export function registerBrandProfile(profile: VerifiedBrandProfile): void {
-  profileRegistry.set(normKey(profile.primaryDomain), profile);
-  profileRegistry.set(normKey(profile.name), profile);
-  for (const d of profile.domains) {
-    profileRegistry.set(normKey(d), profile);
-  }
-}
-
-/**
- * Updates setup status for a brand profile in the registry (e.g. for testing refusal vs approval).
- */
-export function setBrandSetupStatus(domainOrName: string, status: SetupStatus): void {
-  const profile = profileRegistry.get(normKey(domainOrName));
-  if (profile) {
-    profile.setupStatus = status;
-    if (status === "verified" && !profile.setupVerifiedAt) {
-      profile.setupVerifiedAt = new Date().toISOString();
-      profile.setupVerifiedBy = "architect";
-    }
-  }
-}
-
-/**
- * Clears and resets the registry back to default (tenant zero verified).
- */
-export function resetBrandProfileRegistry(): void {
-  profileRegistry.clear();
-  profileRegistry.set("thegrowthlab.co.in", { ...TGL_SETUP_PROFILE });
-  profileRegistry.set("the growth lab", { ...TGL_SETUP_PROFILE });
-  profileRegistry.set("tgl", { ...TGL_SETUP_PROFILE });
-}
-
-/**
- * Loads and verifies a brand's setup profile.
+ * Loads and verifies a brand's setup profile strictly from Supabase.
  * Refuses to run if:
- * 1. The profile is not found in the TrueVisible setup queue.
- * 2. The brand's setup_status is not 'verified'.
- * 3. The brand has fewer than 5 verified active buyer prompts.
+ * 1. Supabase client is not configured or unavailable.
+ * 2. The profile is not found in the TrueVisible setup queue (brands table).
+ * 3. The brand's setup_status is not 'verified'.
+ * 4. The brand has fewer than 5 verified active buyer prompts.
  */
 export async function loadVerifiedBrandProfile(
   domainOrName: string,
@@ -167,94 +55,65 @@ export async function loadVerifiedBrandProfile(
   const key = normKey(domainOrName);
   const sb = options?.supabase !== undefined ? options.supabase : getSupabase();
 
-  if (sb && !options?.testMode) {
-    try {
-      const { data: brand, error: brandErr } = await sb
-        .from("brands")
-        .select("id, tenant_id, name, primary_domain, setup_status, setup_verified_at, setup_verified_by, setup_note")
-        .or(`primary_domain.eq.${key},name.ilike.%${domainOrName}%`)
-        .single();
-
-      if (brandErr || !brand) {
-        throw new Error(
-          `Brand setup profile for "${domainOrName}" was not found in TrueVisible setup queue. Audit refused.`
-        );
-      }
-
-      if (brand.setup_status !== "verified") {
-        throw new Error(
-          `Brand setup profile for "${domainOrName}" is not verified (status: ${brand.setup_status}). Audit refused.`
-        );
-      }
-
-      const [promptsRes, compsRes, variantsRes, domainsRes, marketRes] = await Promise.all([
-        sb.from("prompts").select("id, text, language, journey_phase").eq("brand_id", brand.id).eq("status", "active"),
-        sb.from("competitors").select("name, domain").eq("brand_id", brand.id).eq("status", "active"),
-        sb.from("brand_variants").select("name").eq("brand_id", brand.id),
-        sb.from("domains").select("domain").eq("brand_id", brand.id),
-        sb.from("products_icps").select("product, icp, location").eq("brand_id", brand.id).limit(1).maybeSingle(),
-      ]);
-
-      const prompts: VerifiedPrompt[] = promptsRes.data || [];
-      if (prompts.length < 5) {
-        throw new Error(
-          `Brand setup profile for "${domainOrName}" has fewer than 5 verified buyer prompts (${prompts.length}/5). Audit refused.`
-        );
-      }
-
-      const competitors = (compsRes.data || []).map((c: any) => ({ name: c.name, domain: c.domain }));
-      const variants = (variantsRes.data || []).map((v: any) => v.name);
-      const domains = (domainsRes.data || []).map((d: any) => d.domain);
-      if (brand.primary_domain && !domains.includes(brand.primary_domain)) {
-        domains.unshift(brand.primary_domain);
-      }
-
-      return {
-        brandId: brand.id,
-        tenantId: brand.tenant_id,
-        name: brand.name,
-        primaryDomain: brand.primary_domain || key,
-        domains,
-        variants,
-        setupStatus: brand.setup_status,
-        setupVerifiedAt: brand.setup_verified_at,
-        setupVerifiedBy: brand.setup_verified_by,
-        setupNote: brand.setup_note,
-        market: marketRes.data || undefined,
-        competitors,
-        prompts,
-      };
-    } catch (err: any) {
-      if (err.message?.includes("Audit refused")) {
-        throw err;
-      }
-      // If DB read failed unexpectedly and we're not explicitly testMode, rethrow
-      if (!options?.testMode && !err.message?.includes("fetch failed")) {
-        throw err;
-      }
-    }
-  }
-
-  // Registry / Fixture fallback for test mode or offline runs
-  const profile = profileRegistry.get(key);
-  if (!profile) {
+  if (!sb) {
     throw new Error(
-      `Brand setup profile for "${domainOrName}" is not registered in TrueVisible setup queue. Audit refused.`
+      `Supabase client is not configured. Audit refused.`
     );
   }
 
-  if (profile.setupStatus !== "verified") {
+  const { data: brand, error: brandErr } = await sb
+    .from("brands")
+    .select("id, tenant_id, name, primary_domain, setup_status, setup_verified_at, setup_verified_by, setup_note")
+    .or(`primary_domain.eq.${key},name.ilike.%${domainOrName}%`)
+    .maybeSingle();
+
+  if (brandErr || !brand) {
     throw new Error(
-      `Brand setup profile for "${domainOrName}" is not verified (status: ${profile.setupStatus}). Audit refused.`
+      `Brand setup profile for "${domainOrName}" was not found in TrueVisible setup queue. Audit refused.`
     );
   }
 
-  if (!profile.prompts || profile.prompts.length < 5) {
+  if (brand.setup_status !== "verified") {
     throw new Error(
-      `Brand setup profile for "${domainOrName}" has fewer than 5 verified buyer prompts (${profile.prompts?.length || 0}/5). Audit refused.`
+      `Brand setup profile for "${domainOrName}" is not verified (status: ${brand.setup_status}). Audit refused.`
     );
   }
 
-  return { ...profile };
+  const [promptsRes, compsRes, variantsRes, domainsRes, marketRes] = await Promise.all([
+    sb.from("prompts").select("id, text, language, journey_phase").eq("brand_id", brand.id).eq("status", "active"),
+    sb.from("competitors").select("name, domain").eq("brand_id", brand.id).eq("status", "active"),
+    sb.from("brand_variants").select("name").eq("brand_id", brand.id),
+    sb.from("domains").select("domain").eq("brand_id", brand.id),
+    sb.from("products_icps").select("product, icp, location").eq("brand_id", brand.id).limit(1).maybeSingle(),
+  ]);
+
+  const prompts: VerifiedPrompt[] = promptsRes.data || [];
+  if (prompts.length < 5) {
+    throw new Error(
+      `Brand setup profile for "${domainOrName}" has fewer than 5 verified buyer prompts (${prompts.length}/5). Audit refused.`
+    );
+  }
+
+  const competitors = (compsRes.data || []).map((c: any) => ({ name: c.name, domain: c.domain }));
+  const variants = (variantsRes.data || []).map((v: any) => v.name);
+  const domains = (domainsRes.data || []).map((d: any) => d.domain);
+  if (brand.primary_domain && !domains.includes(brand.primary_domain)) {
+    domains.unshift(brand.primary_domain);
+  }
+
+  return {
+    brandId: brand.id,
+    tenantId: brand.tenant_id,
+    name: brand.name,
+    primaryDomain: brand.primary_domain || key,
+    domains,
+    variants,
+    setupStatus: brand.setup_status,
+    setupVerifiedAt: brand.setup_verified_at,
+    setupVerifiedBy: brand.setup_verified_by,
+    setupNote: brand.setup_note,
+    market: marketRes.data || undefined,
+    competitors,
+    prompts,
+  };
 }
-

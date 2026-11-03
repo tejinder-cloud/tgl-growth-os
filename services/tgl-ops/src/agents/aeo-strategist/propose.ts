@@ -19,6 +19,7 @@ Rules:
 - Remove a competitor only if it is clearly not a competitor (wrong category, wrong city, not a business, or the customer itself).
 - Prompts: real buyer questions, city-level where it fits, in the customer's languages. Retire prompts that are vague, duplicated or not something a buyer asks. Keep the mix of awareness / consideration / decision. Keep the brand-name prompts — they show what AI says about the brand.
 - Market: suggest rewording product / buyer / location only if the site clearly shows the current wording is wrong or too vague to produce sensible AI answers.
+- If REVIEWER FEEDBACK / INSTRUCTIONS are provided, they take strict precedence over default rules: adjust market, prompts, and competitors exactly as instructed.
 - Be sparing. A good setup gets an empty proposal and a one-line summary saying so.
 
 Reply with ONLY a JSON object:
@@ -43,7 +44,7 @@ Languages: ${s.languages.join(", ")}
 Competitors: ${s.competitors.length ? s.competitors.map((c) => `${c.name}${c.domain ? ` (${c.domain})` : ""}`).join("; ") : "none entered"}
 Prompts (plan allows ${s.promptLimit} active):
 ${s.prompts.map((p, i) => `${i + 1}. [${p.language} · ${p.journey_phase}] ${p.text}`).join("\n") || "none"}
-
+${s.setupNote ? `\nREVIEWER FEEDBACK / INSTRUCTIONS (MUST COMPLY STRICTLY):\n${s.setupNote}\n` : ""}
 EVIDENCE 1 — customer's homepage
 ${site}
 
@@ -90,7 +91,7 @@ export function validateProposal(raw: any, s: SetupSnapshot, ev: Evidence): Prop
     if (p && !promptsRetire.some((x) => x.id === p.id)) promptsRetire.push({ id: p.id, text: p.text, reason: str(r?.reason, 200) });
   }
 
-  const allowedLangs = new Set([...s.languages, "en"].filter((l) => LANGS.includes(l)));
+  const allowedLangs = new Set([...s.languages, "en", ...(s.setupNote ? LANGS : [])].filter((l) => LANGS.includes(l)));
   const room = Math.max(0, s.promptLimit - (s.prompts.length - promptsRetire.length));
   const seen = new Set(s.prompts.map((p) => norm(p.text)));
   const promptsAdd: Proposal["promptsAdd"] = [];

@@ -18,6 +18,8 @@ export interface SetupSnapshot {
   plan: string;           // trial | internal | truevisible | …
   promptLimit: number;
   submittedAt: string;    // brands.updated_at
+  setupStatus?: string;
+  setupNote?: string | null;
 }
 
 export interface SiteSnapshot {
