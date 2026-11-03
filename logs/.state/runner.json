@@ -1,18 +1,18 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-03T23:31:15.881Z",
+  "updatedAt": "2026-11-03T23:31:18.656Z",
   "runs": {
     "72": {
       "agent": "web-builder",
       "door": "core",
       "title": "[PLAN-D10]: Outreach Sequencer SKILL.md + 5-touch worker",
       "status": "blocked",
-      "runStartedAt": "2026-11-03T23:31:15.419+00:00",
+      "runStartedAt": "2026-11-03T23:31:17.852+00:00",
       "runCompletedAt": "2026-11-03T23:31:14.787+00:00",
       "error": "Validation Failed: {\"resource\":\"PullRequest\",\"code\":\"custom\",\"message\":\"No commits between main and task/72-plan-d10-outreach-sequencer-sk\"} - https://docs.github.com/rest/pulls/pulls#create-a-pull-request",
       "recoveryAttempts": 2,
       "lastRecoveryAt": "2026-11-03T13:55:04.342+00:00",
-      "lastRecoveryAlertAt": "2026-11-03T13:48:52.852+00:00",
+      "lastRecoveryAlertAt": "2026-11-03T23:31:17.852+00:00",
       "ownerInstance": null,
       "heartbeatAt": null
     }
