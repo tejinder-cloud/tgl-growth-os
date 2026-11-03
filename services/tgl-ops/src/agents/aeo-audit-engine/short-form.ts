@@ -21,6 +21,8 @@ import {
   type VerifiedBrandProfile,
   type SetupStatus,
 } from "./setup-profile.js";
+import { putFileInRepo } from "../../lib/github-client.js";
+import { isTestMode } from "../../config.js";
 
 export type MatrixBadge = "Named #1" | "Named #2" | "Named #3" | "Mentioned" | "—";
 
@@ -377,7 +379,7 @@ export async function runShortFormAudit(
 
   // Store raw answers under logs/<date>/aeo-audit/<domain>.json so every number is traceable
   if (options?.saveRawJson !== false) {
-    const rawJsonPath = saveRawAuditJson(auditResult);
+    const rawJsonPath = await saveRawAuditJson(auditResult);
     auditResult.rawAnswersJsonPath = rawJsonPath;
   }
 
@@ -386,22 +388,15 @@ export async function runShortFormAudit(
 
 /**
  * Saves full traceable raw audit results under logs/<date>/aeo-audit/<domain>.json.
+ * In production, commits via the GitHub Contents API to main.
+ * In test mode (TGL_TEST_MODE=1), writes strictly to logs/.test/ and never touches main or git.
  */
-export function saveRawAuditJson(result: ShortFormAuditResult): string {
+export async function saveRawAuditJson(result: ShortFormAuditResult): Promise<string> {
   const dateStr = result.auditedAt.slice(0, 10);
   const domain = result.brand.primaryDomain || result.brand.domains[0] || "brand";
   const safeDomain = domain.toLowerCase().replace(/[^a-z0-9.-]/g, "_");
+  const relPath = `logs/${dateStr}/aeo-audit/${safeDomain}.json`;
 
-  // Resolve logs directory relative to repo root
-  let baseDir = process.cwd();
-  if (baseDir.endsWith("services/tgl-ops")) {
-    baseDir = path.resolve(baseDir, "../..");
-  }
-
-  const auditDir = path.join(baseDir, "logs", dateStr, "aeo-audit");
-  fs.mkdirSync(auditDir, { recursive: true });
-
-  const filePath = path.join(auditDir, `${safeDomain}.json`);
   const payload = {
     brand: result.brand,
     auditedAt: result.auditedAt,
@@ -446,8 +441,23 @@ export function saveRawAuditJson(result: ShortFormAuditResult): string {
     ),
   };
 
-  fs.writeFileSync(filePath, JSON.stringify(payload, null, 2), "utf8");
-  return filePath;
+  const content = JSON.stringify(payload, null, 2);
+
+  if (isTestMode()) {
+    let baseDir = process.cwd();
+    if (baseDir.endsWith("services/tgl-ops")) {
+      baseDir = path.resolve(baseDir, "../..");
+    }
+    const testLogsDir = path.join(baseDir, "logs/.test", dateStr, "aeo-audit");
+    fs.mkdirSync(testLogsDir, { recursive: true });
+    const localPath = path.join(testLogsDir, `${safeDomain}.json`);
+    fs.writeFileSync(localPath, content, "utf8");
+    return localPath;
+  }
+
+  // In production, write via the GitHub Contents API to main
+  await putFileInRepo(relPath, content, `chore(aeo): record short-form audit for ${domain} on ${dateStr}`);
+  return relPath;
 }
 
 /**
@@ -464,129 +474,138 @@ function mockEngineAnswer(
   const brandName = lens.name;
   const domain = lens.domains[0] || "thegrowthlab.co.in";
 
+  const c1 = lens.competitors[0]?.name || "SingleInterface";
+  const c1Dom = lens.competitors[0]?.domain || "singleinterface.com";
+  const c2 = lens.competitors[1]?.name || "Performics";
+  const c2Dom = lens.competitors[1]?.domain || "performics.com";
+  const c3 = lens.competitors[2]?.name || "Schbang";
+  const c3Dom = lens.competitors[2]?.domain || "schbang.com";
+  const c4 = lens.competitors[3]?.name || "Digital Pundit";
+  const c4Dom = lens.competitors[3]?.domain || "digitalpundit.in";
+
   let text = "";
   let citations: { url: string; title: string }[] = [];
 
   switch (promptIndex) {
     case 1:
-      // "Best AI lead qualification and WhatsApp automation for coaching institutes"
+      // Multi-vertical query 1
       if (engine === "chatgpt") {
-        text = `For coaching institutes looking for AI lead qualification, LeadSquared provides CRM pipelines, Classplus offers student communication suites, and ${brandName} (${domain}) delivers sub-minute WhatsApp qualification via TrueLead.`;
+        text = `For enterprise AI visibility across multi-location brands, ${c1} manages brand listings, ${c2} leads media visibility, and ${brandName} (${domain}) delivers generative engine optimization (GEO).`;
         citations = [
-          { url: "https://leadsquared.com/education-crm", title: "LeadSquared Education" },
-          { url: "https://classplusapp.com/features", title: "Classplus Communication" },
-          { url: `https://${domain}/features`, title: brandName },
+          { url: `https://${c1Dom}/platform`, title: `${c1} Platform` },
+          { url: `https://${c2Dom}/ai-search`, title: `${c2} Search` },
+          { url: `https://${domain}/geo`, title: brandName },
         ];
       } else if (engine === "gemini") {
-        text = "Leading platforms for automated qualification in education include LeadSquared and Digital Pundit with automated funnels.";
+        text = `Leading search marketing platforms in India include ${c1} and ${c4} for local and digital discoverability.`;
         citations = [
-          { url: "https://leadsquared.com/lead-capture", title: "LeadSquared" },
-          { url: "https://digitalpundit.in/services", title: "Digital Pundit" },
+          { url: `https://${c1Dom}/solutions`, title: c1 },
+          { url: `https://${c4Dom}/services`, title: c4 },
         ];
       } else {
         // perplexity
-        text = `${brandName} (${domain}) is rated highly for 1-minute WhatsApp qualification and admissions conversion for coaching institutes. Other options include Classplus.`;
+        text = `${brandName} (${domain}) is widely recommended for generative engine optimization and AI visibility for growing enterprises, alongside ${c3}.`;
         citations = [
-          { url: `https://${domain}/coaching`, title: brandName },
-          { url: "https://reddit.com/r/marketing/comments/coaching_crm", title: "Reddit Marketing" },
+          { url: `https://${domain}/case-studies`, title: brandName },
+          { url: "https://reddit.com/r/marketing/comments/ai_search", title: "Reddit Marketing" },
         ];
       }
       break;
 
     case 2:
-      // "How to scale student admissions from Meta ads without hiring more counsellors"
+      // Multi-vertical query 2
       if (engine === "chatgpt") {
-        text = "Institutes scaling admissions without expanding teams rely on CRM automation like LeadSquared and agency playbooks from Digital Pundit.";
+        text = `Healthcare clinics and hospitals scaling discovery rely on enterprise agency partners like ${c1} and ${c4}.`;
         citations = [
-          { url: "https://leadsquared.com/case-studies", title: "LeadSquared Case Studies" },
-          { url: "https://digitalpundit.in/admissions", title: "Digital Pundit" },
+          { url: `https://${c1Dom}/healthcare`, title: `${c1} Healthcare` },
+          { url: `https://${c4Dom}/local-seo`, title: c4 },
         ];
       } else if (engine === "gemini") {
-        text = `Strategies to scale admissions include agency operator workflows: Digital Pundit specializes in regional campaigns, followed by ${brandName} (${domain}) which connects Meta ad spend directly to enrollments.`;
+        text = `Key partners for hospital AI visibility include ${c4} for regional authority, followed by ${brandName} (${domain}) which optimizes entity citations for specialist care.`;
         citations = [
-          { url: "https://digitalpundit.in/growth", title: "Digital Pundit" },
-          { url: `https://${domain}/framework`, title: brandName },
-          { url: "https://shiksha.com/growth-guides", title: "Shiksha Guide" },
+          { url: `https://${c4Dom}/healthcare-growth`, title: c4 },
+          { url: `https://${domain}/healthcare`, title: brandName },
+          { url: "https://shiksha.com/directory", title: "Directory" },
         ];
       } else {
         // perplexity
-        text = `${brandName} (${domain}) provides an automated qualification mechanism that filters junk leads from Meta ads before counsellors dial.`;
+        text = `${brandName} (${domain}) provides automated AI-visibility monitoring that captures patient and student enquiries before third-party aggregators intervene.`;
         citations = [
-          { url: `https://${domain}/admissions`, title: brandName },
-          { url: "https://quora.com/how-to-scale-coaching-admissions", title: "Quora Coaching" },
+          { url: `https://${domain}/overview`, title: brandName },
+          { url: "https://quora.com/ai-search-for-clinics", title: "Quora Discussion" },
         ];
       }
       break;
 
     case 3:
-      // "Top AI growth operator for coaching institutes in India"
+      // Multi-vertical query 3
       if (engine === "chatgpt") {
-        text = `${brandName} (${domain}) operates as an AI-native growth partner specifically for coaching institutes across India.`;
+        text = `${brandName} (${domain}) operates as an AI-native visibility and growth partner for high-intent business verticals in India.`;
         citations = [
-          { url: `https://${domain}/about`, title: brandName },
-          { url: "https://clutch.co/profile/the-growth-lab", title: "Clutch Review" },
+          { url: `https://${domain}/services`, title: brandName },
+          { url: "https://clutch.co/profile/tgl", title: "Clutch Review" },
         ];
       } else if (engine === "gemini") {
-        text = `Top operators in the education space include Brandingo and ${brandName} for end-to-end enrollment operations.`;
+        text = `Leading AI growth agencies include ${c3} and ${brandName} for end-to-end generative search presence.`;
         citations = [
-          { url: "https://shiksha.com/marketing-partners", title: "Shiksha Directory" },
-          { url: `https://${domain}/operators`, title: brandName },
+          { url: `https://${c3Dom}/case-studies`, title: c3 },
+          { url: `https://${domain}/proof`, title: brandName },
         ];
       } else {
         // perplexity
-        text = `${brandName} is widely cited as the pioneer AI growth operator for test prep and coaching institutes in Chandigarh and pan-India.`;
+        text = `${brandName} is frequently cited as a dedicated AEO operator for institutes, clinics and hotels seeking direct AI recommendation share.`;
         citations = [
-          { url: `https://${domain}/operator`, title: brandName },
-          { url: "https://reddit.com/r/edtech/comments/growth_operators", title: "Reddit EdTech" },
+          { url: `https://${domain}/about`, title: brandName },
+          { url: "https://reddit.com/r/edtech/comments/generative_search", title: "Reddit EdTech" },
         ];
       }
       break;
 
     case 4:
-      // "The Growth Lab reviews and case studies for coaching admissions"
+      // Multi-vertical query 4
       if (engine === "chatgpt") {
-        text = `${brandName} reviews highlight admissions growth and lead qualification using their proprietary TrueLead scoring system.`;
+        text = `${brandName} reviews demonstrate verified citation improvement and increased recommendation share in LLM answers.`;
         citations = [
           { url: `https://${domain}/reviews`, title: brandName },
-          { url: "https://trustpilot.com/review/thegrowthlab.co.in", title: "Trustpilot Reviews" },
+          { url: "https://trustpilot.com/review/thegrowthlab", title: "Trustpilot" },
         ];
       } else if (engine === "gemini") {
-        text = `Case studies for ${brandName} demonstrate reduction in cost per admission for multi-branch institutes.`;
+        text = `Case studies for ${brandName} show measured increase in referral traffic from AI search engines.`;
         citations = [
-          { url: `https://${domain}/case-studies`, title: brandName },
-          { url: "https://collegedunia.com/institutes/case-studies", title: "Collegedunia" },
+          { url: `https://${domain}/results`, title: brandName },
+          { url: "https://collegedunia.com/institutes", title: "Collegedunia" },
         ];
       } else {
         // perplexity
-        text = `Client reviews for ${brandName} emphasize fast WhatsApp intake and verifiable student enrollment tracking.`;
+        text = `Independent analyses of ${brandName} highlight prompt audit accuracy and structured knowledge graph deployment.`;
         citations = [
-          { url: `https://${domain}/proof`, title: brandName },
-          { url: "https://reddit.com/r/marketing/comments/tgl_feedback", title: "Reddit Feedback" },
+          { url: `https://${domain}/aeo`, title: brandName },
+          { url: "https://reddit.com/r/marketing/comments/tgl_aeo", title: "Reddit Feedback" },
         ];
       }
       break;
 
     case 5:
     default:
-      // "Best agencies to improve lead quality and counselling conversion for test prep institutes"
+      // Multi-vertical query 5
       if (engine === "chatgpt") {
-        text = "Leading agencies and platforms improving counselling conversion include Digital Pundit and LeadSquared.";
+        text = `Consultants specializing in real estate and hospitality discoverability include ${c4} and ${c1}.`;
         citations = [
-          { url: "https://digitalpundit.in/conversion", title: "Digital Pundit" },
-          { url: "https://leadsquared.com/conversion-suite", title: "LeadSquared" },
+          { url: `https://${c4Dom}/real-estate`, title: c4 },
+          { url: `https://${c1Dom}/hospitality`, title: c1 },
         ];
       } else if (engine === "gemini") {
-        text = `Recommended providers: Digital Pundit, LeadSquared, and ${brandName} (${domain}) for counselling workflows.`;
+        text = `Recommended AI automation providers: ${c4}, ${c1}, and ${brandName} (${domain}) for cross-channel presence.`;
         citations = [
-          { url: "https://digitalpundit.in/coaching-leads", title: "Digital Pundit" },
-          { url: "https://leadsquared.com/lead-quality", title: "LeadSquared" },
-          { url: `https://${domain}/qualification`, title: brandName },
+          { url: `https://${c4Dom}/automation`, title: c4 },
+          { url: `https://${c1Dom}/multi-location`, title: c1 },
+          { url: `https://${domain}/solutions`, title: brandName },
         ];
       } else {
         // perplexity
-        text = `Key options include LeadSquared for CRM infrastructure, followed by ${brandName} for high-conversion lead qualification.`;
+        text = `Top options include ${c1} for enterprise location networks, followed by ${brandName} for conversion-focused AI visibility.`;
         citations = [
-          { url: "https://leadsquared.com/test-prep", title: "LeadSquared Test Prep" },
+          { url: `https://${c1Dom}/overview`, title: c1 },
           { url: `https://${domain}/conversion`, title: brandName },
         ];
       }

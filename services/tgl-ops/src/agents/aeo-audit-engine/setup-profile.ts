@@ -36,64 +36,73 @@ export interface VerifiedBrandProfile {
 }
 
 /**
- * Tenant Zero (The Growth Lab) Verified Brand Setup Profile.
- * Reflects TGL's authentic business as an AI-native growth operator for coaching institutes,
- * with high-intent buyer queries and real market competitors (LeadSquared, Digital Pundit, Classplus, Brandingo).
+ * Tenant Zero (The Growth Lab) Brand Setup Profile.
+ * Status: pending_verification (reverted from verified).
+ * Verification requires explicit Architect tap on a Setup-check card in #doors-aeo.
+ *
+ * Architect verification instruction (decisions/2026-11-02.md, review 9779874b-141f-4db7-a541-c6227e4106f7):
+ * "The Growth Lab sells AI visibility (AEO/GEO) and AI automation to hospitals and clinics,
+ * coaching institutes, hotels, real-estate developers and D2C brands across India;
+ * it is not a coaching institute and not a coaching-CRM."
  */
-export const TGL_VERIFIED_PROFILE: VerifiedBrandProfile = {
+export const TGL_SETUP_PROFILE: VerifiedBrandProfile = {
   brandId: "brand_tgl_zero",
   tenantId: "tgl",
   name: "The Growth Lab",
   primaryDomain: "thegrowthlab.co.in",
   domains: ["thegrowthlab.co.in"],
   variants: ["the growth lab", "tgl", "growth lab"],
-  setupStatus: "verified",
-  setupVerifiedAt: "2026-10-31T10:00:00.000Z",
-  setupVerifiedBy: "architect",
+  setupStatus: "pending_verification",
+  setupVerifiedAt: undefined,
+  setupVerifiedBy: undefined,
+  setupNote:
+    "Market wording is outdated. TGL = AI visibility (AEO/GEO) + growth, for any business whose customers ask AI before buying: hospitals, clinics, coaching, hotels, real estate; India-wide, Chandigarh home. Redo the 10 prompts for that market (>=6 AEO/AI-visibility intents, <=3 coaching, en + hinglish) and re-propose competitors from the live answers for those prompts. Keep your two prompt retirements. · review 9779874b-141f-4db7-a541-c6227e4106f7",
   market: {
-    product: "AI growth operator for coaching institutes",
-    icp: "owners and directors of coaching and training institutes",
-    location: "Chandigarh, India",
+    product: "AI visibility (AEO/GEO) and AI automation",
+    icp: "hospitals and clinics, coaching institutes, hotels, real-estate developers and D2C brands across India",
+    location: "India-wide, Chandigarh home",
   },
   competitors: [
-    { name: "LeadSquared", domain: "leadsquared.com" },
+    { name: "SingleInterface", domain: "singleinterface.com" },
+    { name: "Performics", domain: "performics.com" },
+    { name: "Schbang", domain: "schbang.com" },
     { name: "Digital Pundit", domain: "digitalpundit.in" },
-    { name: "Classplus", domain: "classplusapp.com" },
-    { name: "Brandingo", domain: null },
   ],
   prompts: [
     {
       id: "p_tgl_1",
-      text: "Best AI lead qualification and WhatsApp automation for coaching institutes",
+      text: "Best AI visibility and generative engine optimization (GEO) agencies in India",
       language: "en",
       journey_phase: "decision",
     },
     {
       id: "p_tgl_2",
-      text: "How to scale student admissions from Meta ads without hiring more counsellors",
+      text: "Top AI search marketing agencies for hospitals and healthcare clinics",
       language: "en",
       journey_phase: "consideration",
     },
     {
       id: "p_tgl_3",
-      text: "Top AI growth operator for coaching institutes in India",
+      text: "How to get recommended by ChatGPT and Perplexity for multi-branch coaching institutes",
       language: "en",
       journey_phase: "awareness",
     },
     {
       id: "p_tgl_4",
-      text: "The Growth Lab reviews and case studies for coaching admissions",
-      language: "en",
-      journey_phase: "decision",
-    },
-    {
-      id: "p_tgl_5",
-      text: "Best agencies to improve lead quality and counselling conversion for test prep institutes",
+      text: "Leading AI automation and visibility consultants for real estate and hospitality",
       language: "en",
       journey_phase: "consideration",
     },
+    {
+      id: "p_tgl_5",
+      text: "The Growth Lab AI visibility and growth reviews",
+      language: "en",
+      journey_phase: "decision",
+    },
   ],
 };
+
+export const TGL_VERIFIED_PROFILE = TGL_SETUP_PROFILE;
 
 /**
  * In-memory registry of brand profiles for local development, testing, and fixture runs.
@@ -104,10 +113,10 @@ function normKey(s: string): string {
   return s.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
 }
 
-// Seed tenant zero
-profileRegistry.set("thegrowthlab.co.in", { ...TGL_VERIFIED_PROFILE });
-profileRegistry.set("the growth lab", { ...TGL_VERIFIED_PROFILE });
-profileRegistry.set("tgl", { ...TGL_VERIFIED_PROFILE });
+// Seed tenant zero in pending_verification status
+profileRegistry.set("thegrowthlab.co.in", { ...TGL_SETUP_PROFILE });
+profileRegistry.set("the growth lab", { ...TGL_SETUP_PROFILE });
+profileRegistry.set("tgl", { ...TGL_SETUP_PROFILE });
 
 /**
  * Registers or updates a brand profile in the local registry (useful for testing verification states).
@@ -139,9 +148,9 @@ export function setBrandSetupStatus(domainOrName: string, status: SetupStatus): 
  */
 export function resetBrandProfileRegistry(): void {
   profileRegistry.clear();
-  profileRegistry.set("thegrowthlab.co.in", { ...TGL_VERIFIED_PROFILE });
-  profileRegistry.set("the growth lab", { ...TGL_VERIFIED_PROFILE });
-  profileRegistry.set("tgl", { ...TGL_VERIFIED_PROFILE });
+  profileRegistry.set("thegrowthlab.co.in", { ...TGL_SETUP_PROFILE });
+  profileRegistry.set("the growth lab", { ...TGL_SETUP_PROFILE });
+  profileRegistry.set("tgl", { ...TGL_SETUP_PROFILE });
 }
 
 /**
@@ -248,3 +257,4 @@ export async function loadVerifiedBrandProfile(
 
   return { ...profile };
 }
+
