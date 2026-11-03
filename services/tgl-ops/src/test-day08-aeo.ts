@@ -5,6 +5,9 @@ process.env.NODE_ENV = "test";
 import { runShortFormAudit, DEFAULT_SHORT_FORM_PROMPTS } from "./agents/aeo-audit-engine/short-form.js";
 import { renderAuditHtml, generateAuditPdf } from "./agents/aeo-audit-engine/pdf.js";
 import type { BrandLens } from "./agents/aeo-audit-engine/types.js";
+import type { AddressInfo } from "node:net";
+import { createApp } from "./app.js";
+import { resetAuditRateLimit } from "./routes/audit.js";
 
 async function runDay08AeoTests() {
   console.log("==========================================================================");
@@ -155,8 +158,184 @@ async function runDay08AeoTests() {
   console.log("  ✓ Zero emojis confirmed in rendered audit HTML");
   console.log("✅ [Test 5 Passed] Zero-emoji standard strictly verified.\n");
 
+  // -------------------------------------------------------------------------
+  // Test 6: Audit Routes Authentication Protection (X-TGL-Secret -> 401)
+  // -------------------------------------------------------------------------
+  console.log("[Test 6] Testing route authentication protection on /audit routes (POST /short-form, GET /channels)...");
+
+  const TEST_SECRET = "tgl_secret_aeo_protection_test_998877";
+  process.env.AUDIT_ROUTE_SECRET = TEST_SECRET;
+  resetAuditRateLimit();
+
+  const app = createApp("dummy_signing_secret");
+  const server = app.listen(0);
+  const { port } = server.address() as AddressInfo;
+  const baseUrl = `http://127.0.0.1:${port}`;
+
+  try {
+    // 6.1 Unauthenticated POST /audit/short-form (no X-TGL-Secret header) -> 401
+    const unauthPostRes = await fetch(`${baseUrl}/audit/short-form`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ brand: "The Growth Lab", domain: "thegrowthlab.co.in" }),
+    });
+    if (unauthPostRes.status !== 401) {
+      throw new Error(`Test 6.1 Failed: Expected status 401 for unauthenticated POST /audit/short-form, got ${unauthPostRes.status}`);
+    }
+    const unauthPostJson = (await unauthPostRes.json()) as any;
+    if (unauthPostJson.ok !== false || !unauthPostJson.error?.includes("Unauthorized")) {
+      throw new Error(`Test 6.1 Failed: Expected error message to indicate Unauthorized, got ${JSON.stringify(unauthPostJson)}`);
+    }
+    console.log("  ✓ Unauthenticated POST /audit/short-form returns 401");
+
+    // 6.2 Unauthenticated GET /audit/channels (no X-TGL-Secret header) -> 401
+    const unauthChannelsRes = await fetch(`${baseUrl}/audit/channels`, {
+      method: "GET",
+    });
+    if (unauthChannelsRes.status !== 401) {
+      throw new Error(`Test 6.2 Failed: Expected status 401 for unauthenticated GET /audit/channels, got ${unauthChannelsRes.status}`);
+    }
+    const unauthChannelsJson = (await unauthChannelsRes.json()) as any;
+    if (unauthChannelsJson.ok !== false || !unauthChannelsJson.error?.includes("Unauthorized")) {
+      throw new Error(`Test 6.2 Failed: Expected error message to indicate Unauthorized, got ${JSON.stringify(unauthChannelsJson)}`);
+    }
+    console.log("  ✓ Unauthenticated GET /audit/channels returns 401");
+
+    // 6.3 Invalid secret on POST /audit/short-form -> 401
+    const badSecretPostRes = await fetch(`${baseUrl}/audit/short-form`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-TGL-Secret": "wrong_secret_value",
+      },
+      body: JSON.stringify({ brand: "The Growth Lab", domain: "thegrowthlab.co.in" }),
+    });
+    if (badSecretPostRes.status !== 401) {
+      throw new Error(`Test 6.3 Failed: Expected status 401 for invalid X-TGL-Secret, got ${badSecretPostRes.status}`);
+    }
+    console.log("  ✓ Invalid X-TGL-Secret header on POST /audit/short-form returns 401");
+
+    // 6.4 Invalid secret on GET /audit/channels -> 401
+    const badSecretChannelsRes = await fetch(`${baseUrl}/audit/channels`, {
+      method: "GET",
+      headers: { "X-TGL-Secret": "wrong_secret_value" },
+    });
+    if (badSecretChannelsRes.status !== 401) {
+      throw new Error(`Test 6.4 Failed: Expected status 401 for invalid X-TGL-Secret on GET /audit/channels, got ${badSecretChannelsRes.status}`);
+    }
+    console.log("  ✓ Invalid X-TGL-Secret header on GET /audit/channels returns 401");
+
+    // 6.5 Server secret missing in env -> 401 (fails closed)
+    delete process.env.AUDIT_ROUTE_SECRET;
+    const noServerSecretRes = await fetch(`${baseUrl}/audit/short-form`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-TGL-Secret": TEST_SECRET,
+      },
+      body: JSON.stringify({ brand: "The Growth Lab", domain: "thegrowthlab.co.in" }),
+    });
+    if (noServerSecretRes.status !== 401) {
+      throw new Error(`Test 6.5 Failed: Expected status 401 when AUDIT_ROUTE_SECRET is unconfigured, got ${noServerSecretRes.status}`);
+    }
+    console.log("  ✓ Unconfigured AUDIT_ROUTE_SECRET fails closed with 401");
+    console.log("✅ [Test 6 Passed] Route authentication protection strictly verified.\n");
+
+    // -------------------------------------------------------------------------
+    // Test 7: Rate-Limiting Gate (3 runs per hour per process -> 429)
+    // -------------------------------------------------------------------------
+    console.log("[Test 7] Testing rate-limiting gate (max 3 runs per hour per process)...");
+    process.env.AUDIT_ROUTE_SECRET = TEST_SECRET;
+    resetAuditRateLimit();
+
+    // Authenticated calls: Run 1 -> 200
+    const run1 = await fetch(`${baseUrl}/audit/short-form`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-TGL-Secret": TEST_SECRET,
+      },
+      body: JSON.stringify({ brand: "The Growth Lab", domain: "thegrowthlab.co.in" }),
+    });
+    if (run1.status !== 200) {
+      throw new Error(`Test 7.1 Failed: Run 1 expected 200, got ${run1.status}`);
+    }
+    console.log("  ✓ Run 1 with valid X-TGL-Secret succeeded (200 OK)");
+
+    // Run 2 -> 200
+    const run2 = await fetch(`${baseUrl}/audit/short-form`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-TGL-Secret": TEST_SECRET,
+      },
+      body: JSON.stringify({ brand: "The Growth Lab", domain: "thegrowthlab.co.in" }),
+    });
+    if (run2.status !== 200) {
+      throw new Error(`Test 7.2 Failed: Run 2 expected 200, got ${run2.status}`);
+    }
+    console.log("  ✓ Run 2 with valid X-TGL-Secret succeeded (200 OK)");
+
+    // Run 3 -> 200
+    const run3 = await fetch(`${baseUrl}/audit/short-form`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-TGL-Secret": TEST_SECRET,
+      },
+      body: JSON.stringify({ brand: "The Growth Lab", domain: "thegrowthlab.co.in" }),
+    });
+    if (run3.status !== 200) {
+      throw new Error(`Test 7.3 Failed: Run 3 expected 200, got ${run3.status}`);
+    }
+    console.log("  ✓ Run 3 with valid X-TGL-Secret succeeded (200 OK)");
+
+    // Run 4 -> 429 Too Many Requests
+    const run4 = await fetch(`${baseUrl}/audit/short-form`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-TGL-Secret": TEST_SECRET,
+      },
+      body: JSON.stringify({ brand: "The Growth Lab", domain: "thegrowthlab.co.in" }),
+    });
+    if (run4.status !== 429) {
+      throw new Error(`Test 7.4 Failed: Expected status 429 for 4th run within 1 hour, got ${run4.status}`);
+    }
+    const run4Json = (await run4.json()) as any;
+    if (run4Json.ok !== false || !run4Json.error?.includes("Rate limit exceeded")) {
+      throw new Error(`Test 7.4 Failed: Expected error message to indicate rate limit exceeded, got ${JSON.stringify(run4Json)}`);
+    }
+    const retryAfter = run4.headers.get("retry-after");
+    if (!retryAfter || isNaN(Number(retryAfter))) {
+      throw new Error(`Test 7.4 Failed: Expected numeric Retry-After header, got ${retryAfter}`);
+    }
+    console.log(`  ✓ Run 4 strictly blocked by rate-limiter (429 Too Many Requests, Retry-After: ${retryAfter}s)`);
+
+    // Reset rate limiter and verify run 5 is allowed
+    resetAuditRateLimit();
+    const run5 = await fetch(`${baseUrl}/audit/short-form`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-TGL-Secret": TEST_SECRET,
+      },
+      body: JSON.stringify({ brand: "The Growth Lab", domain: "thegrowthlab.co.in" }),
+    });
+    if (run5.status !== 200) {
+      throw new Error(`Test 7.5 Failed: Expected 200 after resetting rate limit, got ${run5.status}`);
+    }
+    console.log("  ✓ Reset clears rate limiter window and allows subsequent runs");
+    console.log("✅ [Test 7 Passed] 3 runs per hour per process rate limit strictly verified.\n");
+
+  } finally {
+    delete process.env.AUDIT_ROUTE_SECRET;
+    resetAuditRateLimit();
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+
   console.log("==========================================================================");
-  console.log("🎉 ALL 5 DAY 8 AEO AUDIT TESTS PASSED CLEANLY!");
+  console.log("🎉 ALL 7 DAY 8 AEO AUDIT TESTS PASSED CLEANLY!");
   console.log("==========================================================================");
 }
 

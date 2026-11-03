@@ -47,6 +47,7 @@ export interface AppConfig {
   anthropicApiKey: string;
   timezone: string;
   repoRoot: string;
+  auditRouteSecret: string;
 }
 
 const githubRepoFull = process.env.GITHUB_REPO || "https://github.com/tejinder-cloud/tgl-growth-os";
@@ -81,6 +82,7 @@ export const config: AppConfig = {
   architectChannelId: (process.env.ARCHITECT_CHANNEL_ID || "").trim(),
   timezone: (process.env.TIMEZONE || "Asia/Kolkata").trim(),
   repoRoot: REPO_ROOT,
+  auditRouteSecret: (process.env.AUDIT_ROUTE_SECRET || "").trim().replace(/^["']|["']$/g, ""),
 };
 
 /**
