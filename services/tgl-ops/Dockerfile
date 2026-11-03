@@ -7,7 +7,7 @@ RUN npm ci
 
 COPY tsconfig.json ./
 COPY src ./src
-RUN npm run build
+RUN npm run build && cp -r src/assets dist/assets 2>/dev/null || true
 
 FROM node:22.14.0-alpine AS runner
 
@@ -20,6 +20,8 @@ COPY package*.json ./
 RUN npm ci --only=production
 
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/src/assets ./dist/assets
+COPY --from=builder /app/src/assets ./src/assets
 
 EXPOSE 3000
 

@@ -1,10 +1,29 @@
 // services/tgl-ops/src/agents/aeo-audit-engine/pdf.ts
 // Generates a 1-page paper-and-ink branded AEO audit PDF under 2MB.
-// Uses Playwright headless Chromium for pixel-perfect printing.
+// Uses pure-Node PDFKit with Fraunces & DM Sans typography and zero external browser binaries.
 import fs from "node:fs";
 import path from "node:path";
-import { chromium } from "playwright";
+import PDFDocument from "pdfkit";
 import type { ShortFormAuditResult } from "./short-form.js";
+
+/**
+ * Resolves font file path from various candidate locations in source or compiled dist.
+ */
+function resolveFontPath(filename: string): string | null {
+  const candidates = [
+    path.join(__dirname, "../../assets/fonts", filename),
+    path.join(__dirname, "../assets/fonts", filename),
+    path.join(__dirname, "assets/fonts", filename),
+    path.join(process.cwd(), "services/tgl-ops/src/assets/fonts", filename),
+    path.join(process.cwd(), "src/assets/fonts", filename),
+    path.join(process.cwd(), "dist/assets/fonts", filename),
+    path.join(process.cwd(), "assets/fonts", filename),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
+  return null;
+}
 
 /**
  * Renders the single-page HTML markup conforming strictly to TGL "paper & ink" visual tokens.
@@ -375,41 +394,199 @@ function escapeHtml(text: string): string {
 }
 
 /**
- * Generates an A4 PDF buffer and optionally writes it to disk.
- * Verifies that the PDF is under 2MB size limit.
+ * Generates a 1-page paper-and-ink branded AEO audit PDF buffer using pure-Node PDFKit.
+ * Strictly conforms to TGL tokens: cream canvas #F7F4EE, ink #1F2421, terracotta #C85A32, coral #E07A5F.
+ * Uses Fraunces and DM Sans typography, risograph offset border, KPI grid, 5x3 query matrix, and zero emojis.
+ * Verified well under the 2MB size limit.
  */
 export async function generateAuditPdf(
   result: ShortFormAuditResult,
   outputPath?: string
 ): Promise<{ buffer: Buffer; sizeBytes: number; outputPath?: string }> {
-  const html = renderAuditHtml(result);
+  const brandName = result.brand.name;
+  const domain = result.brand.domains[0] || "thegrowthlab.co.in";
+  const dateStr = result.auditedAt.slice(0, 10);
+  const score = result.summary.visibilityScorePercent;
+  const mentions = result.summary.totalMentions;
+  const queries = result.totalQueries;
 
-  let buffer: Buffer;
-  try {
-    const browser = await chromium.launch({ headless: true });
-    const context = await browser.newContext();
-    const page = await context.newPage();
+  const competitors = Object.entries(result.summary.competitorMentions)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([name, count]) => `${name} (${count})`)
+    .join(", ") || "None detected";
 
-    await page.setContent(html, { waitUntil: "load" });
-    const rawBuffer = await page.pdf({
-      format: "A4",
-      printBackground: true,
-      margin: {
-        top: "8mm",
-        bottom: "8mm",
-        left: "8mm",
-        right: "8mm",
-      },
-    });
+  const topCitations = Object.entries(result.summary.citationDomains)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([d, count]) => `${d} (${count})`)
+    .join(", ") || "None recorded";
 
-    buffer = Buffer.from(rawBuffer);
-    await browser.close();
-  } catch (err: any) {
-    console.warn("[PDF Generation Chromium Warning]", err.message);
-    // If headless Chromium cannot run, provide graceful fallback buffer
-    buffer = Buffer.from(html, "utf8");
-  }
+  const frauncesPath = resolveFontPath("fraunces.ttf");
+  const dmSansPath = resolveFontPath("dm-sans.ttf");
 
+  const fontSerif = frauncesPath || "Times-Bold";
+  const fontSans = dmSansPath || "Helvetica";
+  const fontSansBold = dmSansPath || "Helvetica-Bold";
+
+  const doc = new PDFDocument({
+    size: "A4",
+    margins: { top: 20, bottom: 20, left: 20, right: 20 },
+    autoFirstPage: true,
+    info: {
+      Title: `AEO Short-Form Audit · ${brandName}`,
+      Author: "The Growth Lab",
+      Subject: "AI Engine Visibility Audit",
+      Creator: "TrueVisible Audit Engine",
+    },
+  });
+
+  const buffers: Buffer[] = [];
+  doc.on("data", (chunk: Buffer) => buffers.push(chunk));
+
+  const pdfPromise = new Promise<Buffer>((resolve, reject) => {
+    doc.on("end", () => resolve(Buffer.concat(buffers)));
+    doc.on("error", (err: Error) => reject(err));
+  });
+
+  const sheetX = 28;
+  const sheetY = 24;
+  const sheetW = 539.28;
+  const sheetH = 786;
+
+  // 1. Risograph offset corner effect (terracotta 15% opacity)
+  doc.save();
+  doc.rect(sheetX + 4, sheetY + 4, sheetW, sheetH).fillColor("#C85A32", 0.15).fill();
+  doc.restore();
+
+  // 2. Main Sheet Canvas (#F7F4EE cream canvas with 2px ink border)
+  doc.rect(sheetX, sheetY, sheetW, sheetH).fillColor("#F7F4EE").fill();
+  doc.rect(sheetX, sheetY, sheetW, sheetH).lineWidth(2).strokeColor("#1F2421").stroke();
+
+  // 3. Header Section
+  doc.font(fontSerif).fontSize(20).fillColor("#1F2421").text(brandName, 46, 40);
+  doc.font(fontSans).fontSize(9.5).fillColor("#63615C").text(`${domain} · AI Engine Visibility Audit`, 46, 68);
+
+  // Right stamp badge
+  doc.rect(435, 40, 115, 20).lineWidth(1.2).strokeColor("#C85A32").stroke();
+  doc.font(fontSansBold).fontSize(8).fillColor("#C85A32").text("TRUEVISIBLE TRIAL", 435, 46, { width: 115, align: "center" });
+  doc.font(fontSans).fontSize(8.5).fillColor("#63615C").text(`Date: ${dateStr}`, 435, 68, { width: 115, align: "center" });
+
+  // Dividing rule
+  doc.moveTo(46, 92).lineTo(550, 92).lineWidth(1.5).strokeColor("#1F2421").stroke();
+
+  // 4. Summary KPI Bar (4 cards)
+  const kpis = [
+    { label: "VISIBILITY SCORE", val: `${score}%`, sub: "Overall Brand Share" },
+    { label: "AI MENTIONS", val: `${mentions} / ${queries}`, sub: "Total Model Answers" },
+    { label: "ENGINES EVALUATED", val: `${result.enginesCount}`, sub: "Perplexity, Gemini, ChatGPT" },
+    { label: "AUDITED PROMPTS", val: `${result.promptsCount}`, sub: "Core High-Intent Queries" },
+  ];
+
+  const cardW = 118;
+  const cardH = 50;
+  const gap = 10.7;
+
+  kpis.forEach((kpi, i) => {
+    const x = 46 + i * (cardW + gap);
+    const y = 104;
+    doc.rect(x, y, cardW, cardH).fillColor("#FFFFFF").fill();
+    doc.rect(x, y, cardW, cardH).lineWidth(1.2).strokeColor("#1F2421").stroke();
+
+    doc.font(fontSansBold).fontSize(7).fillColor("#E07A5F").text(kpi.label, x + 8, y + 6);
+    doc.font(fontSerif).fontSize(14).fillColor("#1F2421").text(kpi.val, x + 8, y + 17);
+    doc.font(fontSans).fontSize(7).fillColor("#63615C").text(kpi.sub, x + 8, y + 36);
+  });
+
+  // 5. Query Visibility Matrix Table
+  doc.font(fontSerif).fontSize(12).fillColor("#1F2421").text("Query Visibility Matrix", 46, 168);
+
+  const tableY = 186;
+  const tableW = 504;
+  doc.rect(46, tableY, tableW, 20).fillColor("#E8EDE6").fill();
+  doc.rect(46, tableY, tableW, 20).lineWidth(1).strokeColor("#1F2421").stroke();
+
+  doc.font(fontSansBold).fontSize(7.5).fillColor("#1F2421");
+  doc.text("BUYER QUERY (UNMODIFIED)", 54, tableY + 6);
+  doc.text("CHATGPT", 340, tableY + 6, { width: 70, align: "center" });
+  doc.text("GEMINI", 410, tableY + 6, { width: 70, align: "center" });
+  doc.text("PERPLEXITY", 480, tableY + 6, { width: 70, align: "center" });
+
+  const rowHeight = 38;
+  result.results.forEach((r, idx) => {
+    const rowY = tableY + 20 + idx * rowHeight;
+    doc.rect(46, rowY, tableW, rowHeight).fillColor("#FFFFFF").fill();
+    doc.rect(46, rowY, tableW, rowHeight).lineWidth(0.8).strokeColor("#1F2421").stroke();
+
+    // Vertical column borders
+    doc.moveTo(340, rowY).lineTo(340, rowY + rowHeight).stroke();
+    doc.moveTo(410, rowY).lineTo(410, rowY + rowHeight).stroke();
+    doc.moveTo(480, rowY).lineTo(480, rowY + rowHeight).stroke();
+
+    // Query text
+    doc.font(fontSansBold).fontSize(8).fillColor("#C85A32").text(`${r.promptIndex}. `, 52, rowY + 8, { continued: true });
+    doc.font(fontSans).fontSize(8).fillColor("#1F2421").text(r.prompt, { width: 275 });
+
+    // Engine badges
+    const drawBadge = (colX: number, engine: "chatgpt" | "gemini" | "perplexity") => {
+      const res = r.engineResults[engine];
+      if (!res || !res.analysis.mentioned) {
+        doc.font(fontSans).fontSize(10).fillColor("#99948D").text("—", colX, rowY + 13, { width: 70, align: "center" });
+      } else {
+        const badgeLabel = res.analysis.position ? `Named #${res.analysis.position}` : "Named";
+        doc.rect(colX + 8, rowY + 11, 54, 16).fillColor("#FBECE8").fill();
+        doc.rect(colX + 8, rowY + 11, 54, 16).lineWidth(0.8).strokeColor("#C85A32").stroke();
+        doc.font(fontSansBold).fontSize(7).fillColor("#C85A32").text(badgeLabel, colX + 8, rowY + 15, { width: 54, align: "center" });
+      }
+    };
+
+    drawBadge(340, "chatgpt");
+    drawBadge(410, "gemini");
+    drawBadge(480, "perplexity");
+  });
+
+  // 6. Insight Split Panels
+  const panelY = tableY + 20 + result.results.length * rowHeight + 14;
+  const panelW = 246;
+  const panelH = 75;
+
+  // Panel 1: Competitors
+  doc.rect(46, panelY, panelW, panelH).fillColor("#FFFFFF").fill();
+  doc.rect(46, panelY, panelW, panelH).lineWidth(1.2).strokeColor("#1F2421").stroke();
+  doc.font(fontSerif).fontSize(9.5).fillColor("#1F2421").text("Competitors Named in Answers", 56, panelY + 8);
+  doc.font(fontSans).fontSize(8).fillColor("#4A4843").text(competitors, 56, panelY + 25, { width: panelW - 20 });
+  doc.font(fontSans).fontSize(7.5).fillColor("#63615C").text("Tracked competitor frequency across all queried models.", 56, panelY + 54);
+
+  // Panel 2: Cited Authority Channels
+  doc.rect(304, panelY, panelW, panelH).fillColor("#FFFFFF").fill();
+  doc.rect(304, panelY, panelW, panelH).lineWidth(1.2).strokeColor("#1F2421").stroke();
+  doc.font(fontSerif).fontSize(9.5).fillColor("#1F2421").text("Cited Authority Channels", 314, panelY + 8);
+  doc.font(fontSans).fontSize(8).fillColor("#4A4843").text(topCitations, 314, panelY + 25, { width: panelW - 20 });
+  doc.font(fontSans).fontSize(7.5).fillColor("#63615C").text("Primary web sources informing the AI answers.", 314, panelY + 54);
+
+  // 7. Mechanistic Next Steps Box
+  const actionY = panelY + panelH + 12;
+  const actionH = 50;
+  doc.rect(46, actionY, tableW, actionH).fillColor("#FBECE8").fill();
+  doc.rect(46, actionY, tableW, actionH).lineWidth(1.2).strokeColor("#C85A32").stroke();
+
+  doc.font(fontSansBold).fontSize(8).fillColor("#C85A32").text("MECHANISTIC NEXT STEPS", 56, actionY + 8);
+  doc.font(fontSans).fontSize(7.8).fillColor("#1F2421").text(
+    "AI search visibility depends directly on third-party verification and directory citations. To advance visibility score toward 80%+, structured entity schemas, verified local directory listings, and contextual reviews are required across indexable sources.",
+    56,
+    actionY + 22,
+    { width: 484 }
+  );
+
+  // 8. Footer Section
+  const footerY = 780;
+  doc.moveTo(46, footerY).lineTo(550, footerY).lineWidth(1).strokeColor("#1F2421").stroke();
+  doc.font(fontSans).fontSize(7.5).fillColor("#63615C").text("The Growth Lab · TrueVisible Engine · Chandigarh & Pan-India", 46, footerY + 8);
+  doc.font(fontSans).fontSize(7.5).fillColor("#63615C").text("thegrowthlab.co.in · Confidential", 46, footerY + 8, { width: 504, align: "right" });
+
+  doc.end();
+
+  const buffer = await pdfPromise;
   const sizeBytes = buffer.length;
   const MAX_BYTES = 2 * 1024 * 1024; // 2MB
 

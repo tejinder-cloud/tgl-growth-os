@@ -8,6 +8,7 @@ import { commandsRouter } from "./routes/commands.js";
 import { healthRouter } from "./routes/health.js";
 import { cardsRouter } from "./routes/cards.js";
 import { githubEventsRouter } from "./routes/github-events.js";
+import { auditRouter } from "./routes/audit.js";
 
 /**
  * Creates and configures the Express app.
@@ -125,7 +126,10 @@ export function createApp(signingSecret?: string) {
   // 8. GitHub Webhook Route
   app.use("/github/events", githubEventsRouter);
 
-  // 9. Global Error Handler
+  // 9. Audit API: On-demand AEO short-form audit execution and Slack attachment
+  app.use("/audit", auditRouter);
+
+  // 10. Global Error Handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     console.error("[Server Error]", err);
     res.status(500).json({ error: "Internal Server Error" });

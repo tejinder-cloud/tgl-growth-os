@@ -119,7 +119,7 @@ async function runDay08AeoTests() {
   // -------------------------------------------------------------------------
   // Test 4: PDF Generation and File Size Gate (< 2MB)
   // -------------------------------------------------------------------------
-  console.log("[Test 4] Testing Playwright headless PDF generation...");
+  console.log("[Test 4] Testing pure-Node vector PDF generation...");
 
   const pdfRes = await generateAuditPdf(result);
 
@@ -127,12 +127,17 @@ async function runDay08AeoTests() {
     throw new Error("Test 4.1 Failed: Generated PDF buffer is empty");
   }
 
-  const maxBytes = 2 * 1024 * 1024; // 2MB
-  if (pdfRes.sizeBytes > maxBytes) {
-    throw new Error(`Test 4.2 Failed: PDF size ${pdfRes.sizeBytes} bytes exceeds 2MB limit`);
+  const pdfHeader = pdfRes.buffer.subarray(0, 5).toString("ascii");
+  if (pdfHeader !== "%PDF-") {
+    throw new Error(`Test 4.2 Failed: Buffer does not start with %PDF- header (got ${pdfHeader})`);
   }
 
-  console.log(`  ✓ PDF successfully generated via Chromium`);
+  const maxBytes = 2 * 1024 * 1024; // 2MB
+  if (pdfRes.sizeBytes > maxBytes) {
+    throw new Error(`Test 4.3 Failed: PDF size ${pdfRes.sizeBytes} bytes exceeds 2MB limit`);
+  }
+
+  console.log("  ✓ PDF successfully generated via pure-Node PDFKit (valid %PDF- magic bytes)");
   console.log(`  ✓ PDF file size: ${(pdfRes.sizeBytes / 1024).toFixed(1)} KB (Well under 2MB limit: ${((pdfRes.sizeBytes / maxBytes) * 100).toFixed(1)}% of ceiling)`);
   console.log("✅ [Test 4 Passed] 1-page PDF generated and size verified under 2MB.\n");
 
@@ -159,3 +164,4 @@ runDay08AeoTests().catch((err) => {
   console.error("❌ Day 8 AEO Tests Failed:", err);
   process.exit(1);
 });
+
