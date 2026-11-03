@@ -1,18 +1,6 @@
 {
   "date": "2026-11-03",
-  "posted": true,
+  "posted": false,
   "standupTs": "1793709000.633049",
-  "channel": "C0ASF13879Q",
-  "compiledAt": "2026-11-03T12:20:21.865Z",
-  "digestText": "*The Growth Lab — Daily Standup Digest | 2026-11-03 17:50 IST*\n──────────────────────────────────────────\n*Product Doors:*\n• *AEO:* no data yet | *AI:* no data yet | *TrueLead:* no data yet | *Core:* operational\n\n*Blockers (Ranked):*\n• _None reported today._\n\n*Approvals Pending:*\n• _None pending._\n\n*Agent Reports:*\n• *`@aeo-audit-engine`*: 06:04 IST — Citation Tracker: 1 brand(s) · ChatGPT 10/10, Ge\n• *`@aeo-strategist`*: 16:40 IST — proposal parse failure: <invoke name=\"propose_se\n• *`@chief-of-staff`*: 12:04 IST — Intake classification [dispatch]: 933 input, 20 \n• *`@prospect-researcher`*: Run — 09:30 IST (Delhi NCR · hospitals)\n\n_Active agents: reply in-thread with your 4 lines: Did · Blocked · Need · Tomorrow._",
-  "synthesis": {
-    "model": "claude-sonnet-5-5",
-    "inputTokens": 3708,
-    "outputTokens": 2000,
-    "totalCostUsd": 0.0411,
-    "costLine": "Standup compilation: 3708 input, 2000 output (claude-sonnet-5-5) · Cost: $0.0411 USD"
-  },
-  "source": "cron",
-  "postedAt": "2026-11-03T12:30:00.855Z",
-  "threadPromptTs": "1793709000.777359"
+  "channel": "C0ASF13879Q"
 }
