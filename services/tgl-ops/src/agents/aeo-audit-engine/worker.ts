@@ -69,6 +69,9 @@ export async function runCitationTracking(options?: { brandId?: string; kind?: "
 // (all prompts × all engines). Verification still follows and refines competitors and prompts.
 const inFlight = new Set<string>();
 
+const STALL_MS = 8 * 60_000;   // a running engine with no new answer for 8 minutes was cut off (e.g. a redeploy)
+const MAX_ATTEMPTS = 3;         // per submission, so a broken engine can't loop on spend
+
 export async function runFirstAudits(): Promise<void> {
   if (isTestMode()) return;
   const sb = getSupabase();
@@ -79,9 +82,26 @@ export async function runFirstAudits(): Promise<void> {
   if (error || !brands?.length) return;
   for (const b of brands) {
     if (inFlight.has(b.id)) continue;
-    const { data: last } = await sb.from("runs").select("created_at").eq("brand_id", b.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
-    // Any run (even one still running) created after the submission means this submission is already being audited.
-    if (last && Date.parse(last.created_at) >= Date.parse(b.setup_submitted_at)) continue;
+    const { data: since } = await sb.from("runs").select("id, status, started_at, created_at")
+      .eq("brand_id", b.id).gte("created_at", b.setup_submitted_at).order("created_at", { ascending: false });
+    const runs = since ?? [];
+
+    // Runs this process isn't driving that have stalled → mark failed so the audit can be retried.
+    const running = runs.filter((r: any) => r.status === "running");
+    let stalled = 0;
+    for (const r of running) {
+      const { data: lastAns } = await sb.from("answers").select("created_at").eq("run_id", r.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      const lastActivity = Date.parse(lastAns?.created_at ?? r.started_at ?? r.created_at);
+      if (Date.now() - lastActivity > STALL_MS) {
+        await sb.from("runs").update({ status: "failed", error: "cut off mid-run (service restarted); retrying", finished_at: new Date().toISOString() }).eq("id", r.id).eq("status", "running");
+        stalled++;
+      }
+    }
+    if (running.length - stalled > 0) continue;                       // still in progress somewhere
+    if (runs.some((r: any) => r.status === "succeeded" || r.status === "partial")) continue; // this submission has numbers
+    const attempts = new Set(runs.map((r: any) => String(r.created_at).slice(0, 16))).size;  // runs of one attempt start together
+    if (attempts >= MAX_ATTEMPTS) continue;
+
     inFlight.add(b.id);
     runCitationTracking({ brandId: b.id, kind: "audit" })
       .catch((e) => console.error("[First Audit] failed", b.name, e))

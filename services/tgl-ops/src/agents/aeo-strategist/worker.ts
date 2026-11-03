@@ -275,10 +275,8 @@ export async function handleSetupChangesSubmission(payload: any): Promise<void> 
     .eq("id", meta.reviewId).eq("status", "proposed").select("brand_id");
   if (!claimed?.length) return;
   const brandId = claimed[0].brand_id;
-  const brandPatch: Record<string, any> = { setup_status: "needs_changes" };
-  if (note) {
-    brandPatch.setup_note = note;
-  }
+  // The customer sees only this send-back's message; no message → clear any older one ("We're refining your setup").
+  const brandPatch: Record<string, any> = { setup_status: "needs_changes", setup_note: note || null };
   await sb.from("brands").update(brandPatch).eq("id", brandId);
   const { data: b } = await sb.from("brands").select("name").eq("id", brandId).single();
   const time = getCurrentTimeIST();
