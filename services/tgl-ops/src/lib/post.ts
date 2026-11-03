@@ -382,7 +382,7 @@ export async function resolveChannelId(channel: string): Promise<string> {
 
   try {
     const listRes = await slackClient.conversations.list({
-      types: "public_channel,private_channel",
+      types: "public_channel",
       exclude_archived: true,
       limit: 300,
     });
@@ -405,7 +405,7 @@ export async function resolveChannelId(channel: string): Promise<string> {
 /**
  * Uploads a file or document to Slack.
  */
-export async function postFile(options: PostFileOptions): Promise<{ ok: boolean; fileId?: string }> {
+export async function postFile(options: PostFileOptions): Promise<{ ok: boolean; fileId?: string; error?: string; channelId?: string }> {
   const { channel, filePath, fileBuffer, filename, title, thread_ts } = options;
 
   if (!config.slackBotToken) {
@@ -425,6 +425,15 @@ export async function postFile(options: PostFileOptions): Promise<{ ok: boolean;
 
     const resolvedChannelId = await resolveChannelId(channel);
 
+    // Ensure bot is in channel if public
+    if (resolvedChannelId && resolvedChannelId.startsWith("C")) {
+      try {
+        await slackClient.conversations.join({ channel: resolvedChannelId });
+      } catch (joinErr: any) {
+        // Ignored if already in channel or cannot join
+      }
+    }
+
     const uploadArgs: any = {
       channel_id: resolvedChannelId,
       file,
@@ -437,9 +446,9 @@ export async function postFile(options: PostFileOptions): Promise<{ ok: boolean;
 
     const res = await (slackClient.files as any).uploadV2(uploadArgs);
 
-    return { ok: true, fileId: (res as any).file?.id };
-  } catch (err) {
+    return { ok: true, fileId: (res as any).file?.id, channelId: resolvedChannelId };
+  } catch (err: any) {
     console.error("[postFile Error]", err);
-    return { ok: false };
+    return { ok: false, error: err?.message || String(err) };
   }
 }
