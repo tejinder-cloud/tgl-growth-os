@@ -3,7 +3,7 @@
 // brand; store runs → answers → citations, and the day's engine spend per brand in usage_costs (SPEC §11, §14).
 import { askEngine, computeCostUsd, loadEngineConfig } from "./engines.js";
 import { analyzeAnswer, analyzeCitation } from "./analyze.js";
-import type { TrackerStore } from "./store.js";
+import type { RunKind, TrackerStore } from "./store.js";
 import { API_ENGINES, type EngineConfig, type EngineId } from "./types.js";
 
 export const AGENT = "aeo-audit-engine";
@@ -20,6 +20,8 @@ export interface TrackerDeps {
   /** Return false to stop before the next engine batch (daily cost cap). */
   canSpend?: () => Promise<boolean>;
   onSpend?: (engine: EngineId, model: string, usd: number, detail: string) => void;
+  /** "audit" = first audit after a setup submission: unverified brands allowed, not limited to one per day. Default "daily". */
+  kind?: RunKind;
   /** Free searches per calendar month by engine (Gemini grounding: AEO_GEMINI_FREE_SEARCHES_PER_MONTH). Omitted = none. */
   freeSearchesPerMonth?: Partial<Record<EngineId, number>>;
 }
@@ -35,7 +37,8 @@ export async function runTracker(d: TrackerDeps): Promise<TrackerSummary> {
     if (config) configs.push(config); else notConfigured.push({ engine: e, missing });
   }
 
-  const brands = await d.store.loadEligibleBrands(d.brandId);
+  const kind: RunKind = d.kind ?? "daily";
+  const brands = await d.store.loadEligibleBrands(d.brandId, { includeUnverified: kind === "audit" });
   // Remaining free allowance this month, shared by every brand in this run (the allowance is per provider account).
   const freeLeft: Partial<Record<EngineId, number>> = {};
   for (const cfg of configs) {
@@ -50,12 +53,12 @@ export async function runTracker(d: TrackerDeps): Promise<TrackerSummary> {
     // Engines run in parallel; prompts run one after another within an engine (gentle on rate limits).
     const results = await Promise.all(configs.map(async (cfg): Promise<EngineOutcome> => {
       const base = { brand: b.name, engine: cfg.engine, ok: 0, total: b.prompts.length, mentioned: 0, usd: 0 };
-      if (await d.store.hasCompletedRun(b.id, d.runDate, cfg.engine)) return { ...base, status: "skipped", note: "already ran today" };
+      if (kind === "daily" && await d.store.hasCompletedRun(b.id, d.runDate, cfg.engine)) return { ...base, status: "skipped", note: "already ran today" };
       if (d.canSpend && !(await d.canSpend())) { stoppedByCap = true; return { ...base, status: "skipped", note: "daily cost cap" }; }
 
       let runId: string;
       try {
-        runId = await d.store.startRun(b, d.runDate, cfg.engine);
+        runId = await d.store.startRun(b, d.runDate, cfg.engine, kind);
       } catch (err: any) {
         // A unique index stops two processes (cron + a redeploy's catch-up) running the same brand × engine × day.
         if (/duplicate key|unique/i.test(String(err?.message))) return { ...base, status: "skipped", note: "already running" };

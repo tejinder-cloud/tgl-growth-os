@@ -10,7 +10,7 @@ import { getSupabase } from "../prospect-researcher/db.js";
 import { supabaseStore } from "./store.js";
 import { AGENT, runTracker, summaryLine, type TrackerSummary } from "./tracker.js";
 
-export async function runCitationTracking(options?: { brandId?: string }): Promise<TrackerSummary | null> {
+export async function runCitationTracking(options?: { brandId?: string; kind?: "daily" | "audit" }): Promise<TrackerSummary | null> {
   const alert = (text: string) => postLine({ channel: getAlertsChannel(), text }).catch(() => {});
   if (isTestMode()) {
     console.log("[Citation Tracker] test mode — no API calls, no writes.");
@@ -33,6 +33,7 @@ export async function runCitationTracking(options?: { brandId?: string }): Promi
     runDate,
     usdInr,
     brandId: options?.brandId,
+    kind: options?.kind,
     canSpend: async () => (await checkAgentCostCap(AGENT)).allowed,
     // Gemini grounding: free searches per month (5,000 shared across Gemini 3 models, ai.google.dev pricing, 31 Oct 2026). Unset = 0 (spend is an upper bound).
     freeSearchesPerMonth: { gemini: Math.max(0, Number(process.env.AEO_GEMINI_FREE_SEARCHES_PER_MONTH) || 0) },
@@ -59,4 +60,31 @@ export async function runCitationTracking(options?: { brandId?: string }): Promi
     await alert(lines.join("\n"));
   }
   return summary;
+}
+
+
+// ── First audit on submit ────────────────────────────────────────────────────
+// Architect, 3 Nov: a customer who finishes setup should see numbers within minutes, not after verification.
+// Every minute: any brand whose latest setup submission is newer than its latest run gets an immediate audit
+// (all prompts × all engines). Verification still follows and refines competitors and prompts.
+const inFlight = new Set<string>();
+
+export async function runFirstAudits(): Promise<void> {
+  if (isTestMode()) return;
+  const sb = getSupabase();
+  if (!sb) return;
+  const { data: brands, error } = await sb.from("brands").select("id, name, setup_submitted_at")
+    .eq("onboarding_step", 4).not("setup_submitted_at", "is", null)
+    .in("setup_status", ["pending_verification", "needs_changes", "verified"]);
+  if (error || !brands?.length) return;
+  for (const b of brands) {
+    if (inFlight.has(b.id)) continue;
+    const { data: last } = await sb.from("runs").select("created_at").eq("brand_id", b.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
+    // Any run (even one still running) created after the submission means this submission is already being audited.
+    if (last && Date.parse(last.created_at) >= Date.parse(b.setup_submitted_at)) continue;
+    inFlight.add(b.id);
+    runCitationTracking({ brandId: b.id, kind: "audit" })
+      .catch((e) => console.error("[First Audit] failed", b.name, e))
+      .finally(() => inFlight.delete(b.id));
+  }
 }
