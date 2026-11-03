@@ -761,6 +761,17 @@ await t("no brand-specific constant exists in the aeo-strategist module", () => 
   }
 });
 
+await t("site snapshot: meta read by attribute (content before name, single quotes, og fallback); headings skip nav/footer/comments/svg", () => {
+  const html = `<html><head><title>Home - The Growth Lab</title>
+    <style>.case-name { font-family: var(--font-display); content: "x"; }</style>
+    <meta content='AI visibility for businesses whose customers ask AI first' name='description'></head>
+    <body><nav><h2>Menu</h2></nav><!-- <h1>old</h1> --><h1 class="hero">Be the answer <em>AI gives</em></h1><svg><text>icon</text></svg>
+    <h2>How it works</h2><footer><h3>Contact</h3></footer></body></html>`;
+  const site = extractSite(html, "https://thegrowthlab.co.in/");
+  assert.equal(site.description, "AI visibility for businesses whose customers ask AI first");
+  assert.deepEqual(site.headings, ["Be the answer AI gives", "How it works"]);
+  assert.equal(extractSite(`<html><head><meta property="og:description" content="OG only"></head><body></body></html>`, "u").description, "OG only");
+});
 await t("site evidence scraper strips style/script/noscript/svg, extracts schema.org & meta, caps at 4,000 chars, and contains 'Growth Lab' with no 'font-family'", async () => {
   const site = await fetchSite("thegrowthlab.co.in");
   assert.ok(site && site.ok, "fetchSite for thegrowthlab.co.in must succeed");

@@ -91,9 +91,15 @@ export function parseOpenAI(json: any): { text: string; citations: EngineCitatio
   const out: any[] = Array.isArray(json?.output) ? json.output : [];
   const parts: string[] = [];
   const cites: EngineCitation[] = [];
-  let searches = 0;
+  let searches = 0, pageActions = 0;
   for (const item of out) {
-    if (item?.type === "web_search_call") searches++;
+    // Only `search` actions are billed as web-search tool calls; open_page / find_in_page are not (OpenAI web search guide, 3 Nov 2026).
+    // A call without an action is counted as a search, so spend is never understated.
+    if (item?.type === "web_search_call") {
+      const kind = item?.action?.type;
+      if (!kind || kind === "search") searches++;
+      else pageActions++;
+    }
     if (item?.type === "message") {
       for (const c of item.content ?? []) {
         if (c?.type === "output_text") {
@@ -106,7 +112,7 @@ export function parseOpenAI(json: any): { text: string; citations: EngineCitatio
   return {
     text: parts.join("\n").trim(),
     citations: dedupeCitations(cites),
-    usage: { inputTokens: json?.usage?.input_tokens ?? 0, outputTokens: json?.usage?.output_tokens ?? 0, searches },
+    usage: { inputTokens: json?.usage?.input_tokens ?? 0, outputTokens: json?.usage?.output_tokens ?? 0, searches, ...(pageActions ? { pageActions } : {}) },
   };
 }
 

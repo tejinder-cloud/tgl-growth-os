@@ -41,6 +41,9 @@ export async function loadSnapshot(sb: SupabaseClient, brandId: string): Promise
     sb.from("competitors").select("id, name, domain").eq("brand_id", brandId).eq("status", "active").order("created_at"),
     sb.from("prompts").select("id, text, language, journey_phase").eq("brand_id", brandId).eq("status", "active").order("created_at"),
   ]);
+  // Reviewer instructions for the strategist come from the latest sent-back review — never from the customer-facing note.
+  const { data: lastBack } = await sb.from("setup_reviews").select("instructions, note")
+    .eq("brand_id", brandId).eq("status", "changes_requested").order("decided_at", { ascending: false }).limit(1).maybeSingle();
   const payers = [b.tenant_id, t.data?.parent_tenant_id].filter(Boolean);
   const sub = (subs.data ?? []).find((s: any) => payers.includes(s.tenant_id));
   return {
@@ -52,7 +55,7 @@ export async function loadSnapshot(sb: SupabaseClient, brandId: string): Promise
     plan: sub?.plan ?? "none", promptLimit: sub ? limitFor(sub.plan, sub.status, sub.trial_ends_at) : 0,
     submittedAt: b.updated_at,
     setupStatus: b.setup_status,
-    setupNote: b.setup_note,
+    setupNote: lastBack?.instructions ?? null,
   };
 }
 
@@ -200,13 +203,22 @@ export async function handleSetupAction(payload: any, action: any): Promise<void
       type: "modal", callback_id: "setup_changes_modal",
       private_metadata: JSON.stringify({ reviewId, channel: payload.channel?.id, ts: payload.container?.message_ts }),
       title: { type: "plain_text", text: "Needs changes" },
-      submit: { type: "plain_text", text: "Send to customer" },
-      blocks: [{
-        type: "input", block_id: "note",
-        label: { type: "plain_text", text: "Message to the customer (shown on their dashboard)" },
-        element: { type: "plain_text_input", action_id: "text", multiline: true, max_length: 500,
-          placeholder: { type: "plain_text", text: "e.g. Please add your main competitors in Mohali — we'll check again as soon as you save." } },
-      }],
+      submit: { type: "plain_text", text: "Send back" },
+      blocks: [
+        {
+          type: "input", block_id: "instructions", optional: true,
+          label: { type: "plain_text", text: "Instructions for the strategist (never shown to the customer)" },
+          element: { type: "plain_text_input", action_id: "text", multiline: true, max_length: 1500,
+            placeholder: { type: "plain_text", text: "e.g. Market is AI visibility (AEO/GEO) for hospitals, coaching and real estate, India-wide. Redo the prompts for that." } },
+        },
+        {
+          type: "input", block_id: "note", optional: true,
+          label: { type: "plain_text", text: "Message to the customer (shown on their dashboard)" },
+          hint: { type: "plain_text", text: "Leave empty if the customer doesn't need to do anything — they'll see “We're refining your setup”." },
+          element: { type: "plain_text_input", action_id: "text", multiline: true, max_length: 500,
+            placeholder: { type: "plain_text", text: "e.g. Please add your main competitors in Mohali — we'll check again as soon as you save." } },
+        },
+      ],
     });
     return;
   }
@@ -256,22 +268,23 @@ export async function handleSetupChangesSubmission(payload: any): Promise<void> 
   if (!sb) return;
   const meta = JSON.parse(payload.view?.private_metadata || "{}");
   const note = String(payload.view?.state?.values?.note?.text?.value ?? "").trim().slice(0, 500);
+  const instructions = String(payload.view?.state?.values?.instructions?.text?.value ?? "").trim().slice(0, 1500);
   const actor = await getActorDisplayName(payload.user);
   const { data: claimed } = await sb.from("setup_reviews")
-    .update({ status: "changes_requested", decided_by: actor, decided_at: new Date().toISOString(), note })
+    .update({ status: "changes_requested", decided_by: actor, decided_at: new Date().toISOString(), note: note || null, instructions: instructions || null })
     .eq("id", meta.reviewId).eq("status", "proposed").select("brand_id");
   if (!claimed?.length) return;
   const brandId = claimed[0].brand_id;
   await sb.from("brands").update({ setup_status: "needs_changes", setup_note: note || null }).eq("id", brandId);
   const { data: b } = await sb.from("brands").select("name").eq("id", brandId).single();
   const time = getCurrentTimeIST();
-  const outcome = `*Sent back* by ${actor} at ${time} IST — “${note}”`;
+  const outcome = `*Sent back* by ${actor} at ${time} IST${instructions ? ` — to strategist: “${instructions}”` : ""}${note ? ` — to customer: “${note}”` : " — customer sees “We're refining your setup”"}`;
   if (meta.channel && meta.ts) {
     const hist: any = await slackClient.conversations.history({ channel: meta.channel, latest: meta.ts, inclusive: true, limit: 1 }).catch(() => null);
     const blocks = hist?.messages?.[0]?.blocks ?? [];
     await slackClient.chat.update({ channel: meta.channel, ts: meta.ts, blocks: decidedBlocks(blocks, outcome), text: outcome }).catch(() => {});
   }
-  appendFileInRepo(`decisions/${getTodayDateString()}.md`, `- ${time} IST · ${actor} · REJECT · ${AGENT} · Setup needs changes: ${b?.name ?? brandId} — ${note} · review ${meta.reviewId}`,
+  appendFileInRepo(`decisions/${getTodayDateString()}.md`, `- ${time} IST · ${actor} · REJECT · ${AGENT} · Setup needs changes: ${b?.name ?? brandId} — ${instructions || note || "(no note)"} · review ${meta.reviewId}`,
     `chore(decision): setup sent back for ${b?.name ?? brandId} per ${actor}`).catch(() => {});
 }
 

@@ -34,6 +34,8 @@ export async function runCitationTracking(options?: { brandId?: string }): Promi
     usdInr,
     brandId: options?.brandId,
     canSpend: async () => (await checkAgentCostCap(AGENT)).allowed,
+    // Gemini grounding: free searches per month (5,000 shared across Gemini 3 models, ai.google.dev pricing, 31 Oct 2026). Unset = 0 (spend is an upper bound).
+    freeSearchesPerMonth: { gemini: Math.max(0, Number(process.env.AEO_GEMINI_FREE_SEARCHES_PER_MONTH) || 0) },
     onSpend: (engine, model, usd, detail) =>
       recordApiSpend({ agent: AGENT, apiName: `${engine}:${model}`, totalCostUsd: usd, details: detail }),
   });
