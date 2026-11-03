@@ -4,20 +4,84 @@ import { askEngine, loadEngineConfig } from "../aeo-audit-engine/engines.js";
 import type { Evidence, PriorPrompt, SetupSnapshot, SiteSnapshot } from "./types.js";
 
 const decode = (s: string) =>
-  s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&nbsp;/g, " ");
+  s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&nbsp;/g, " ")
+   .replace(/&#038;/g, "&").replace(/&#8217;/g, "'").replace(/&#8220;/g, "“").replace(/&#8221;/g, "”");
+
+/** Extracts schema.org Organization or LocalBusiness fields from application/ld+json blocks. */
+export function extractSchemaOrg(html: string): string[] {
+  const fields: string[] = [];
+  const scriptMatches = html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
+  for (const sm of scriptMatches) {
+    try {
+      const data = JSON.parse(sm[1]);
+      const items = Array.isArray(data) ? data : Array.isArray(data?.["@graph"]) ? data["@graph"] : [data];
+      for (const item of items) {
+        if (!item) continue;
+        const types = Array.isArray(item["@type"]) ? item["@type"] : [item["@type"]];
+        if (types.some((t: any) => typeof t === "string" && /organization|localbusiness/i.test(t))) {
+          if (item.name) fields.push(`Organization: ${item.name}`);
+          if (item.description) fields.push(`Description: ${item.description}`);
+          if (item.url) fields.push(`URL: ${item.url}`);
+          if (item.telephone) fields.push(`Phone: ${item.telephone}`);
+          if (item.address) {
+            const addr = typeof item.address === "object" ? Object.values(item.address).join(", ") : String(item.address);
+            fields.push(`Address: ${addr}`);
+          }
+          if (item.areaServed) fields.push(`Area Served: ${typeof item.areaServed === "object" ? JSON.stringify(item.areaServed) : item.areaServed}`);
+          if (item.knowsAbout) fields.push(`Knows About: ${typeof item.knowsAbout === "object" ? JSON.stringify(item.knowsAbout) : item.knowsAbout}`);
+        }
+      }
+    } catch {
+      // Ignore malformed ld+json
+    }
+  }
+  return fields;
+}
 
 export function extractSite(html: string, url: string): SiteSnapshot {
   const pick = (re: RegExp) => { const m = re.exec(html); return m ? decode(m[1].replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim() : undefined; };
   const title = pick(/<title[^>]*>([\s\S]*?)<\/title>/i);
-  const description = pick(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i) ?? pick(/<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["']/i);
+  let description = pick(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i) ?? pick(/<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["']/i);
+  // Strip out descriptions that are actually CSS code blocks
+  if (description && (/\{[\s\S]*\}/.test(description) || /font-family|var\(--/i.test(description))) {
+    description = undefined;
+  }
+
   const headings: string[] = [];
   for (const m of html.matchAll(/<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/gi)) {
     const h = decode(m[1].replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
     if (h && h.length < 160 && !headings.includes(h)) headings.push(h);
     if (headings.length >= 20) break;
   }
-  const text = decode(html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<noscript[\s\S]*?<\/noscript>/gi, " ").replace(/<[^>]+>/g, " "))
-    .replace(/\s+/g, " ").trim().slice(0, 3000);
+
+  // 1. Extract schema.org Organization or LocalBusiness fields
+  const schemaOrgFields = extractSchemaOrg(html);
+
+  // 2. Strip style, script, noscript, and svg elements
+  const cleanHtml = html
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
+    .replace(/<svg[\s\S]*?<\/svg>/gi, " ")
+    .replace(/<style[\s\S]*$/gi, " ")
+    .replace(/<script[\s\S]*$/gi, " ")
+    .replace(/<noscript[\s\S]*$/gi, " ")
+    .replace(/<svg[\s\S]*$/gi, " ");
+
+  // 3. Extract visible text by removing all remaining tags
+  const visibleText = decode(cleanHtml.replace(/<[^>]+>/g, " "))
+    .replace(/\s+/g, " ")
+    .trim();
+
+  // Combine visible text plus meta description, title, and schema.org Organization or LocalBusiness fields; cap at 4,000 characters
+  const parts: string[] = [];
+  if (title) parts.push(`Title: ${title}`);
+  if (description) parts.push(`Description: ${description}`);
+  if (schemaOrgFields.length > 0) parts.push(schemaOrgFields.join(" | "));
+  if (visibleText) parts.push(visibleText);
+
+  const text = parts.join("\n\n").slice(0, 4000);
+
   return { url, ok: true, title, description, headings, text };
 }
 
@@ -29,7 +93,7 @@ export async function fetchSite(domain: string | null, fetchImpl: typeof fetch =
   try {
     const res = await fetchImpl(url, { redirect: "follow", signal: ctrl.signal, headers: { "user-agent": "Mozilla/5.0 (compatible; TrueVisibleSetupCheck/1.0; +https://thegrowthlab.co.in)" } });
     if (!res.ok) return { url, ok: false, headings: [], text: "", error: `HTTP ${res.status}` };
-    return extractSite((await res.text()).slice(0, 600_000), res.url || url);
+    return extractSite(await res.text(), res.url || url);
   } catch (err: any) {
     return { url, ok: false, headings: [], text: "", error: String(err?.message ?? err).slice(0, 200) };
   } finally {
@@ -61,20 +125,6 @@ export function parseMarketOverride(note: string | null | undefined): { product?
     location: locM ? locM[1].trim() : undefined,
   };
 }
-
-/** 10 verified multi-vertical AEO prompts from review b13c2187 for The Growth Lab. */
-export const B13C2187_AEO_PROMPTS: PriorPrompt[] = [
-  { text: "Best AI visibility and generative engine optimization (GEO) agencies in India", language: "en", journey_phase: "decision", reason: "GEO/AEO agency intent" },
-  { text: "Top AI search marketing agencies for hospitals and healthcare clinics", language: "en", journey_phase: "consideration", reason: "Healthcare AI search intent" },
-  { text: "Leading AI automation and visibility consultants for real estate and luxury hotels", language: "en", journey_phase: "consideration", reason: "Real estate / hospitality AI visibility intent" },
-  { text: "ChatGPT par brand recommendation kaise badhaye for D2C brands", language: "hinglish", journey_phase: "awareness", reason: "D2C ChatGPT visibility intent" },
-  { text: "Hospital ya clinic ke liye AEO agency choose karte waqt kya dekhna chahiye", language: "hinglish", journey_phase: "consideration", reason: "Healthcare AEO evaluation intent" },
-  { text: "The Growth Lab reviews and case studies for generative search visibility", language: "en", journey_phase: "decision", reason: "TGL branded AEO evaluation intent" },
-  { text: "Best generative AI growth operators in Chandigarh and Delhi NCR", language: "en", journey_phase: "decision", reason: "Regional AI operator intent" },
-  { text: "How to get recommended by ChatGPT and Perplexity for coaching institutes", language: "en", journey_phase: "awareness", reason: "Coaching AEO discovery intent" },
-  { text: "Coaching institute ke admissions increase karne ke liye best AI WhatsApp automation operator", language: "hinglish", journey_phase: "decision", reason: "Coaching WhatsApp automation intent" },
-  { text: "Top AI growth partner for multi-branch test prep institutes in India", language: "en", journey_phase: "consideration", reason: "Coaching multi-branch test prep intent" },
-];
 
 /** Extracts all proposed prompts from prior reviews, including those rejected by the validator. */
 export function extractPriorPrompts(reviews: any[]): PriorPrompt[] {

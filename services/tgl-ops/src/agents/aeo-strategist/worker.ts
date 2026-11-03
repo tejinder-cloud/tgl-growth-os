@@ -15,7 +15,6 @@ import {
   extractPriorPrompts,
   parseMarketOverride,
   marketQuestion,
-  B13C2187_AEO_PROMPTS,
 } from "./evidence.js";
 import { proposeChanges, changeCount } from "./propose.js";
 import { buildReviewBlocks, decidedBlocks, readSelection } from "./card.js";
@@ -116,22 +115,13 @@ export async function openReview(sb: SupabaseClient, brandId: string): Promise<s
     .eq("brand_id", brandId)
     .order("created_at", { ascending: false });
 
-  let priorPrompts = extractPriorPrompts(priorReviews ?? []);
-  const isTgl = s.tenantId === "tgl" || /growth\s*lab/i.test(s.name) || s.domain === "thegrowthlab.co.in";
-  if (isTgl) {
-    const existingTexts = new Set(priorPrompts.map((p) => p.text.toLowerCase().trim()));
-    for (const p of B13C2187_AEO_PROMPTS) {
-      if (!existingTexts.has(p.text.toLowerCase().trim())) {
-        priorPrompts.push(p);
-      }
-    }
-  }
+  const priorPrompts = extractPriorPrompts(priorReviews ?? []);
 
   const override = parseMarketOverride(s.setupNote);
   const lastReview = (priorReviews ?? [])[0];
   const lastQ = lastReview?.evidence?.aiQuestion;
   const currentQ = marketQuestion(s);
-  const isMarketChange = !!override || (!!lastQ && !!currentQ && lastQ !== currentQ) || (isTgl && !lastQ?.includes("AI visibility"));
+  const isMarketChange = !!override || (!!lastQ && !!currentQ && lastQ !== currentQ);
 
   const { evidence, aiCostUsd } = await gatherEvidence(s, {
     isMarketChange,

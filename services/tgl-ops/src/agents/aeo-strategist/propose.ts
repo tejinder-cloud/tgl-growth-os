@@ -138,7 +138,7 @@ export function buildUserMessage(s: SetupSnapshot, ev: Evidence): string {
   const priorPromptsSection = ev.priorProposedPrompts && ev.priorProposedPrompts.length > 0
     ? `\nEVIDENCE 3 — prior reviews' proposed prompts (including reviewer-requested & validator-checked prompts):
 ${ev.priorProposedPrompts.map((p, i) => `${i + 1}. [${p.language ?? "en"} · ${p.journey_phase ?? "consideration"}] ${p.text}`).join("\n")}
-NOTE: Reviewer instructions requested adopting the valid multi-vertical AEO prompts from prior reviews (such as b13c2187). You MUST adopt these high-intent prompts in prompts_add (prompts need NO evidence).`
+NOTE: Reviewer instructions requested adopting valid high-intent prompts from prior reviews. Adopt these buyer prompts in prompts_add (prompts need NO evidence).`
     : "";
 
   return `CUSTOMER SETUP
@@ -412,23 +412,6 @@ export async function proposeChanges(
         } catch {
           // keep existing evidence on network failure
         }
-      }
-    }
-  }
-
-  // Ensure prompts are populated if raw proposal omitted them despite prior prompts being available in evidence
-  if ((!rawProposal?.prompts_add || rawProposal.prompts_add.length < 5) && ev.priorProposedPrompts && ev.priorProposedPrompts.length >= 5) {
-    const existing = new Set((rawProposal?.prompts_add ?? []).map((p: any) => norm(String(p?.text ?? ""))));
-    rawProposal.prompts_add = rawProposal.prompts_add ?? [];
-    for (const p of ev.priorProposedPrompts) {
-      if (!existing.has(norm(p.text))) {
-        rawProposal.prompts_add.push({
-          text: p.text,
-          language: p.language ?? "en",
-          journey_phase: p.journey_phase ?? "consideration",
-          reason: p.reason ?? "Adopted from prior review AEO prompt list",
-        });
-        existing.add(norm(p.text));
       }
     }
   }

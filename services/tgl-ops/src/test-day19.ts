@@ -11,12 +11,12 @@ import path from "node:path";
 import { config } from "./config.js";
 import {
   extractSite,
+  fetchSite,
   marketQuestion,
   evidenceCorpus,
   newMarketQuestion,
   parseMarketOverride,
   extractPriorPrompts,
-  B13C2187_AEO_PROMPTS,
 } from "./agents/aeo-strategist/evidence.js";
 import { splitTextIntoChunks } from "./lib/post.js";
 import { validateProposal, proposeChanges, buildUserMessage, changeCount, extractJson, normalizeLanguage, normalizeStage } from "./agents/aeo-strategist/propose.js";
@@ -698,18 +698,22 @@ await t("market change: neutral 'who leads' question, override parsing, and prio
     platform: null, languages: ["en"], variants: [], market: { id: "m", product: "AI", icp: "buyers", location: "India" },
     competitors: [], prompts: [], plan: "internal", promptLimit: 10, submittedAt: new Date().toISOString(),
   };
+  const testPriorPrompts = [
+    { text: "Best AI visibility and generative engine optimization in India", language: "en", journey_phase: "decision" as const },
+    { text: "Top AI growth partner for multi-branch test prep institutes in India", language: "en", journey_phase: "consideration" as const },
+  ];
   const dummyEv: Evidence = {
     site: null,
     aiQuestion: "Who leads AI in India?",
     aiAnswer: "Top companies...",
     aiEngine: "perplexity",
-    priorProposedPrompts: B13C2187_AEO_PROMPTS,
+    priorProposedPrompts: testPriorPrompts,
   };
   const msg = buildUserMessage(dummySnap, dummyEv);
   assert.match(msg, /EVIDENCE 3 — prior reviews' proposed prompts/);
   assert.match(msg, /Best AI visibility and generative engine optimization/);
 
-  // Test proposeChanges incorporates prior prompts into raw proposal if model returned < 5 prompts
+  // When model returns 0 prompts, no fallback injects prompts; promptsAdd stays empty and < 5 guardrail will handle it
   const mockAnthropic = {
     messages: {
       create: async () => ({
@@ -719,7 +723,7 @@ await t("market change: neutral 'who leads' question, override parsing, and prio
             type: "tool_use",
             name: "propose_setup_check",
             input: {
-              summary: "Model returned 0 prompts by mistake.",
+              summary: "Model returned 0 prompts.",
               market_change: null,
               competitors_add: [],
               competitors_remove: [],
@@ -732,7 +736,37 @@ await t("market change: neutral 'who leads' question, override parsing, and prio
     },
   };
   const res = await proposeChanges(dummySnap, dummyEv, mockAnthropic as any);
-  assert.equal(res.proposal.promptsAdd.length, 10, "Fallback must adopt all 10 prior AEO prompts when model omitted prompts");
+  assert.equal(res.proposal.promptsAdd.length, 0, "No prompt injection fallback should exist; promptsAdd stays empty");
+});
+
+await t("no brand-specific constant exists in the aeo-strategist module", () => {
+  const dir = fs.existsSync(path.resolve("src/agents/aeo-strategist"))
+    ? path.resolve("src/agents/aeo-strategist")
+    : path.resolve("services/tgl-ops/src/agents/aeo-strategist");
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith(".ts"));
+  for (const file of files) {
+    const content = fs.readFileSync(path.join(dir, file), "utf8");
+    assert.ok(
+      !content.includes("B13C2187_AEO_PROMPTS"),
+      `File ${file} must not contain B13C2187_AEO_PROMPTS`
+    );
+    assert.ok(
+      !/export\s+const\s+[A-Z0-9_]*TGL[A-Z0-9_]*\s*=/i.test(content),
+      `File ${file} must not export any brand-specific constant`
+    );
+    assert.ok(
+      !/export\s+const\s+[A-Z0-9_]*GROWTH_LAB[A-Z0-9_]*\s*=/i.test(content),
+      `File ${file} must not export any brand-specific constant`
+    );
+  }
+});
+
+await t("site evidence scraper strips style/script/noscript/svg, extracts schema.org & meta, caps at 4,000 chars, and contains 'Growth Lab' with no 'font-family'", async () => {
+  const site = await fetchSite("thegrowthlab.co.in");
+  assert.ok(site && site.ok, "fetchSite for thegrowthlab.co.in must succeed");
+  assert.ok(site.text.includes("Growth Lab"), "Site text must contain 'Growth Lab'");
+  assert.ok(!site.text.includes("font-family"), "Site text must not contain 'font-family'");
+  assert.ok(site.text.length <= 4000, `Site text must be capped at 4000 characters, got ${site.text.length}`);
 });
 
 await t("card: summary chunking across section blocks and approve guardrail (< 5 prompts)", () => {
