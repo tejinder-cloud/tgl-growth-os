@@ -971,3 +971,37 @@ export async function hasArchitectComment(
   }
 }
 
+export interface IssueCommentItem {
+  id: number;
+  user: string;
+  body: string;
+  created_at: string;
+}
+
+export async function getIssueComments(
+  issueNumber: number
+): Promise<IssueCommentItem[]> {
+  if (!config.githubToken) {
+    return [];
+  }
+
+  try {
+    const res = await octokit.issues.listComments({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      issue_number: issueNumber,
+      per_page: 100,
+    });
+
+    return res.data.map((c) => ({
+      id: c.id,
+      user: c.user?.login || "unknown",
+      body: c.body || "",
+      created_at: c.created_at,
+    }));
+  } catch (err: any) {
+    console.warn(`[GitHub API] Error listing comments on #${issueNumber}:`, err.message);
+    return [];
+  }
+}
+

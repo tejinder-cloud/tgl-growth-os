@@ -11,6 +11,7 @@ import {
   appendFileInRepo,
   deleteBranch,
   addCommentToIssue,
+  getIssueComments,
 } from "../lib/github-client.js";
 import { postCard, postLine } from "../lib/post.js";
 import { getIssueMapping } from "../lib/issues-index.js";
@@ -27,6 +28,10 @@ import { recordRunnerIssue } from "./state.js";
 // Concurrency 1 and one run per issue
 const runningIssues = new Set<number>();
 let isGlobalRunnerActive = false;
+
+export function isIssueRunningLocally(issueNumber: number): boolean {
+  return runningIssues.has(issueNumber);
+}
 
 export interface RunnerIssueInput {
   number: number;
@@ -135,12 +140,34 @@ export async function runIssueTask(
 
     console.log(`[Runner] Picked up issue #${issueNum} for @${agentName}: "${issue.title}"`);
 
+    // Record in-progress status immediately in runner state so restarts can be detected
+    await recordRunnerIssue(
+      issueNum,
+      {
+        agent: agentName,
+        door: issue.door || "core",
+        title: issue.title,
+        status: "in-progress",
+        runStartedAt: new Date().toISOString(),
+      },
+      { testMode: isTest }
+    ).catch((err) => console.warn("[Runner state start warning]", err));
+
     // Cost cap enforcement (Requirement 6): over cap -> run stops, status:blocked, #alerts
     const costCapCheck = await checkAgentCostCap(agentName);
     if (!costCapCheck.allowed) {
       const capMsg = `Daily cost cap exceeded for @${agentName} ($${costCapCheck.currentSpend.toFixed(2)} >= $${costCapCheck.cap.toFixed(2)}). Execution stopped.`;
       console.warn(`[Runner] ${capMsg}`);
       await addLabelsToIssue(issueNum, ["status:blocked"]);
+      await recordRunnerIssue(
+        issueNum,
+        {
+          status: "blocked",
+          error: capMsg,
+          runCompletedAt: new Date().toISOString(),
+        },
+        { testMode: isTest }
+      ).catch((err) => console.warn("[Runner state cost cap warning]", err));
       const alertsChannel = getAlertsChannel();
       await postLine({ channel: alertsChannel, text: `*@${agentName}* blocked: ${capMsg} (Issue #${issueNum})` });
       if (slackChannel && slackThreadTs) {
@@ -214,12 +241,15 @@ export async function runIssueTask(
     }
 
     // 3. Pre-flight check via live model call
+    const issueComments = !isTest ? await getIssueComments(issueNum) : [];
+
     const preflight = await runPreflightCheck({
       issueNumber: issueNum,
       title: issue.title,
       body: issue.body,
       deliverable,
       agentName,
+      comments: issueComments,
     });
 
     console.log(`[Runner Pre-flight Verdict on Issue #${issueNum}]: ${preflight.verdict} — ${preflight.reason}`);
@@ -285,6 +315,16 @@ export async function runIssueTask(
       await removeLabelFromIssue(issueNum, "status:in-progress");
       await addLabelsToIssue(issueNum, ["status:needs-brief"]);
 
+      await recordRunnerIssue(
+        issueNum,
+        {
+          status: "needs-brief",
+          error: preflight.reason,
+          runCompletedAt: new Date().toISOString(),
+        },
+        { testMode: isTest }
+      ).catch((err) => console.warn("[Runner state preflight warning]", err));
+
       return {
         success: false,
         issueNumber: issueNum,
@@ -297,6 +337,16 @@ export async function runIssueTask(
     if (preflight.verdict === "refuse") {
       await removeLabelFromIssue(issueNum, "status:in-progress");
       await addLabelsToIssue(issueNum, ["status:rejected", "approved:no"]);
+
+      await recordRunnerIssue(
+        issueNum,
+        {
+          status: "blocked",
+          error: `Refusal: ${preflight.reason}`,
+          runCompletedAt: new Date().toISOString(),
+        },
+        { testMode: isTest }
+      ).catch((err) => console.warn("[Runner state preflight warning]", err));
 
       return {
         success: false,
@@ -659,6 +709,16 @@ Fixes #${issueNum}
 
     await removeLabelFromIssue(issueNum, "status:in-progress");
     await addLabelsToIssue(issueNum, ["status:blocked"]);
+
+    await recordRunnerIssue(
+      issueNum,
+      {
+        status: "failed",
+        error: errMsg,
+        runCompletedAt: new Date().toISOString(),
+      },
+      { testMode: isTest }
+    ).catch((err) => console.warn("[Runner state failure warning]", err));
 
     await postLine({
       channel: getAlertsChannel(),

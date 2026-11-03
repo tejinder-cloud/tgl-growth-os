@@ -200,3 +200,23 @@ export async function recordRunnerIssue(
 
   await saveRunnerState(state, { testMode: isTest });
 }
+
+/**
+ * Returns any runner records currently in "in-progress" status.
+ */
+export async function getInterruptedRuns(
+  options?: { testMode?: boolean }
+): Promise<{ issueNumber: number; record: RunnerRecord }[]> {
+  const isTest = options?.testMode === true || isTestMode();
+  const state = await getRunnerState({ testMode: isTest });
+  const result: { issueNumber: number; record: RunnerRecord }[] = [];
+
+  for (const [key, record] of Object.entries(state.runs)) {
+    const num = Number(key);
+    if (!isNaN(num) && record.status === "in-progress") {
+      result.push({ issueNumber: num, record });
+    }
+  }
+
+  return result;
+}

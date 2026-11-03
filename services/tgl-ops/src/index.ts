@@ -161,7 +161,7 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
-import { catchUpRunnerIssues } from "./runner/index.js";
+import { catchUpRunnerIssues, recoverInterruptedRunnerIssues } from "./runner/index.js";
 
 // Every 30 minutes: Catch-up worker for in-progress issues with no PR (Asia/Kolkata)
 cron.schedule(
@@ -188,9 +188,13 @@ cron.schedule(
   }
 })();
 
-// Startup catch-up: pick up any eligible in-progress issues on boot
+// Startup catch-up: recover interrupted runs and pick up any eligible in-progress issues on boot
 (async () => {
   try {
+    const recovered = await recoverInterruptedRunnerIssues();
+    if (recovered.length > 0) {
+      console.log(`[Startup] Recovered ${recovered.length} interrupted run(s): ${recovered.join(", ")}`);
+    }
     await catchUpRunnerIssues();
   } catch (err: any) {
     const errMsg = err?.stack || err?.message || String(err);
