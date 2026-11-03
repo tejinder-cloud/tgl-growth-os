@@ -275,7 +275,11 @@ export async function handleSetupChangesSubmission(payload: any): Promise<void> 
     .eq("id", meta.reviewId).eq("status", "proposed").select("brand_id");
   if (!claimed?.length) return;
   const brandId = claimed[0].brand_id;
-  await sb.from("brands").update({ setup_status: "needs_changes", setup_note: note || null }).eq("id", brandId);
+  const brandPatch: Record<string, any> = { setup_status: "needs_changes" };
+  if (note) {
+    brandPatch.setup_note = note;
+  }
+  await sb.from("brands").update(brandPatch).eq("id", brandId);
   const { data: b } = await sb.from("brands").select("name").eq("id", brandId).single();
   const time = getCurrentTimeIST();
   const outcome = `*Sent back* by ${actor} at ${time} IST${instructions ? ` — to strategist: “${instructions}”` : ""}${note ? ` — to customer: “${note}”` : " — customer sees “We're refining your setup”"}`;

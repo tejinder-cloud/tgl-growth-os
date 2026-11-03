@@ -36,7 +36,8 @@ export type IntakeClassification =
   | "dispatch"
   | "ambiguous"
   | "command_resume"
-  | "command_block";
+  | "command_block"
+  | "command_setup";
 
 export interface IntakeClassificationResult {
   category: IntakeClassification;
@@ -47,6 +48,12 @@ export interface IntakeClassificationResult {
   door?: string;
   targetDay?: number;
   issueNumber?: number;
+  setupBrand?: string;
+  setupMarket?: {
+    product: string;
+    buyers: string;
+    location: string;
+  };
   confidence: number;
 }
 
@@ -168,6 +175,30 @@ export async function classifyArchitectMessage(
       brief: messageText,
       tokens: { input: 0, output: 0, costUsd: 0 },
     };
+  }
+
+  // Architect Operational Command: "setup <brand>: product = ...; buyers = ...; location = ..."
+  const setupCmdMatch = cleanCmdText.match(/^setup\s+([^:]+):\s*(.+)$/i);
+  if (setupCmdMatch) {
+    const brandTarget = setupCmdMatch[1].trim();
+    const paramsStr = setupCmdMatch[2].trim();
+    const productM = /(?:product|category)\s*=\s*([^;\n]+)/i.exec(paramsStr);
+    const buyersM = /(?:buyers?|icp|audience)\s*=\s*([^;\n]+)/i.exec(paramsStr);
+    const locationM = /(?:location|city|region)\s*=\s*([^;\n]+)/i.exec(paramsStr);
+    if (productM && buyersM && locationM) {
+      return {
+        category: "command_setup",
+        setupBrand: brandTarget,
+        setupMarket: {
+          product: productM[1].trim(),
+          buyers: buyersM[1].trim(),
+          location: locationM[1].trim(),
+        },
+        confidence: 1.0,
+        brief: messageText,
+        tokens: { input: 0, output: 0, costUsd: 0 },
+      };
+    }
   }
 
   // Test mode deterministic classifier if no API key
@@ -820,6 +851,90 @@ export async function pollChiefOfStaffIntake(options?: {
 
           // 4. Reply in-thread
           const replyText = `→ #${issueNum} blocked.`;
+          postResult = await postLine({ channel, text: replyText, thread_ts: threadTs });
+        } else if (classification.category === "command_setup" && classification.setupBrand && classification.setupMarket) {
+          const brandTarget = classification.setupBrand;
+          const market = classification.setupMarket;
+          const actor = await getActorDisplayName(msg.user);
+          const time = getCurrentTimeIST();
+          const today = getTodayDateString();
+
+          const { getSupabase } = await import("../prospect-researcher/db.js");
+          const sb = getSupabase();
+
+          let brandName = brandTarget;
+          let brandId: string | null = null;
+          let tenantId = "tgl";
+
+          if (sb) {
+            const { data: b } = await sb
+              .from("brands")
+              .select("id, tenant_id, name, setup_status, setup_note")
+              .or(`name.ilike.%${brandTarget}%,primary_domain.ilike.%${brandTarget}%`)
+              .limit(1)
+              .maybeSingle();
+
+            if (b) {
+              brandName = b.name;
+              brandId = b.id;
+              tenantId = b.tenant_id;
+
+              // 1. Write products_icps directly
+              const { data: existingMarket } = await sb
+                .from("products_icps")
+                .select("id")
+                .eq("brand_id", brandId)
+                .limit(1);
+
+              if (existingMarket && existingMarket.length > 0) {
+                await sb
+                  .from("products_icps")
+                  .update({
+                    product: market.product,
+                    icp: market.buyers,
+                    location: market.location,
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq("id", existingMarket[0].id);
+              } else {
+                await sb.from("products_icps").insert({
+                  tenant_id: tenantId,
+                  brand_id: brandId,
+                  product: market.product,
+                  icp: market.buyers,
+                  location: market.location,
+                });
+              }
+
+              // 2. Set brand to needs_changes with persistent setup_note
+              const noteText = `Architect market wording: product = ${market.product}; buyers = ${market.buyers}; location = ${market.location}`;
+              await sb
+                .from("brands")
+                .update({
+                  setup_status: "needs_changes",
+                  setup_note: noteText,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("id", brandId);
+            }
+          }
+
+          // 3. Log decision line to decisions/<date>.md
+          const decisionLine = `- ${time} IST · ${actor} · DECISION · chief-of-staff · Market wording updated for ${brandName}: product = ${market.product}; buyers = ${market.buyers}; location = ${market.location}`;
+          if (isTest) {
+            const decisionsPath = path.join(config.repoRoot, `logs/.test/decisions/${today}.md`);
+            fs.mkdirSync(path.dirname(decisionsPath), { recursive: true });
+            fs.appendFileSync(decisionsPath, decisionLine + "\n", "utf8");
+          } else {
+            await appendFileInRepo(
+              `decisions/${today}.md`,
+              decisionLine,
+              `chore(decision): update market wording for ${brandName} per ${actor}`
+            ).catch((e) => console.warn("[Intake] Decision log failed:", e));
+          }
+
+          // 4. Reply in-thread
+          const replyText = `Market wording updated for *${brandName}*:\n• *Product:* ${market.product}\n• *Buyers:* ${market.buyers}\n• *Location:* ${market.location}\n\nStatus set to \`needs_changes\`. Strategist will propose prompts and competitors for this market.`;
           postResult = await postLine({ channel, text: replyText, thread_ts: threadTs });
         } else if (classification.category === "task") {
           if (classification.issueNumber) {

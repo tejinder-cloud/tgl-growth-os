@@ -860,6 +860,161 @@ await t("card: summary chunking across section blocks and approve guardrail (< 5
   }
 });
 
+await t("validator errors: explicitly name rejected field and value", () => {
+  const dummySnap: SetupSnapshot = {
+    brandId: "b_err", tenantId: "t_err", tenantName: "Err Brand", name: "Err Brand", domain: "err.example",
+    platform: null, languages: ["en"], variants: [], market: { id: "m", product: "SaaS", icp: "startups", location: "India" },
+    competitors: [], prompts: [], plan: "internal", promptLimit: 10, submittedAt: new Date().toISOString(),
+  };
+
+  const dummyEv: Evidence = {
+    site: null,
+    aiQuestion: "Who leads SaaS in India?",
+    aiAnswer: "Top providers include Freshworks (freshworks.com) and Zoho.",
+    aiEngine: "perplexity",
+  };
+
+  const p = validateProposal({
+    summary: "Testing detailed validator error messages",
+    competitors_add: [
+      {
+        name: "Freshworks",
+        prompt: "Who leads SaaS in India?",
+        engine: "perplexity",
+        verbatim_excerpt: "Unrelated excerpt not in the answer",
+      },
+    ],
+    competitors_remove: [],
+    prompts_retire: [],
+    prompts_add: [
+      { text: "Invalid language prompt testing error format", language: "pa", journey_phase: "decision", reason: "test" },
+      { text: "Invalid stage prompt testing error format", language: "en", journey_phase: "unsupported_stage", reason: "test" },
+    ],
+  }, dummySnap, dummyEv);
+
+  assert.equal(p.competitorsAdd.length, 0);
+  assert.equal(p.promptsAdd.length, 0);
+
+  // Assert exact error format naming rejected field and value
+  assert.ok(
+    p.dropped.some((d) => d.includes("language 'pa' not in [en, hi, hinglish]")),
+    `Expected language error with rejected value, got: ${JSON.stringify(p.dropped)}`
+  );
+  assert.ok(
+    p.dropped.some((d) => d.includes("stage 'unsupported_stage' not in [awareness, consideration, decision]")),
+    `Expected stage error with rejected value, got: ${JSON.stringify(p.dropped)}`
+  );
+  assert.ok(
+    p.dropped.some((d) => d.includes("excerpt not found in answer perplexity/Who leads SaaS in India?")),
+    `Expected excerpt not found error naming engine and prompt, got: ${JSON.stringify(p.dropped)}`
+  );
+});
+
+await t("competitor verbatim check: normalizes markdown links, bold, code, whitespace and case", () => {
+  const customSnap: SetupSnapshot = {
+    brandId: "b_norm", tenantId: "t_norm", tenantName: "Norm Brand", name: "Norm Brand", domain: "norm.example",
+    platform: null, languages: ["en"], variants: [], market: { id: "m", product: "AEO", icp: "agencies", location: "India" },
+    competitors: [], prompts: [], plan: "internal", promptLimit: 10, submittedAt: new Date().toISOString(),
+  };
+
+  // AI answer containing markdown links and markdown formatting
+  const customEv: Evidence = {
+    site: null,
+    aiQuestion: "Who are the best performance marketing providers in chandigarh for coaching institutes?",
+    aiAnswer: "Top providers include:\n1. [Digital Patron](https://digitalpatron.in) — Strongest stated fit for education admissions funnels and lead tracking.\n2. **Baclinc** [1] (baclinc.com) — Serves IELTS/PTE institutes.",
+    aiEngine: "perplexity (sonar-pro)",
+  };
+
+  const rawProposal = {
+    summary: "Testing markdown-stripped verbatim check",
+    competitors_add: [
+      {
+        name: "Digital Patron",
+        website: "digitalpatron.in",
+        prompt: customEv.aiQuestion,
+        engine: customEv.aiEngine,
+        verbatim_excerpt: "**Digital Patron** — Strongest stated fit for education admissions funnels and lead tracking.",
+      },
+      {
+        name: "Baclinc",
+        website: "baclinc.com",
+        prompt: customEv.aiQuestion,
+        engine: customEv.aiEngine,
+        verbatim_excerpt: "Baclinc [1] (baclinc.com) — Serves IELTS/PTE institutes.",
+      },
+    ],
+    competitors_remove: [],
+    prompts_retire: [],
+    prompts_add: [],
+  };
+
+  const p = validateProposal(rawProposal, customSnap, customEv);
+
+  // Both competitors must pass verbatim check despite markdown links and bold formatting differences
+  assert.equal(p.competitorsAdd.length, 2, `Expected 2 competitors added, got ${p.competitorsAdd.length}: ${JSON.stringify(p.dropped)}`);
+  assert.equal(p.competitorsAdd[0].name, "Digital Patron");
+  assert.equal(p.competitorsAdd[1].name, "Baclinc");
+  assert.equal(p.dropped.length, 0);
+});
+
+await t("market wording protection: Strategist proposal cannot revert Architect-written market", () => {
+  const archSnap: SetupSnapshot = {
+    brandId: "b_tgl", tenantId: "tgl", tenantName: "The Growth Lab", name: "The Growth Lab", domain: "thegrowthlab.co.in",
+    platform: "custom", languages: ["en"], variants: ["TGL"],
+    market: {
+      id: "m_tgl",
+      product: "AI visibility (AEO/GEO) and AI automation",
+      icp: "hospitals and clinics, coaching institutes, hotels, real-estate developers and D2C brands across India",
+      location: "India-wide, Chandigarh home",
+    },
+    competitors: [], prompts: [], plan: "internal", promptLimit: 50, submittedAt: new Date().toISOString(),
+    setupNote: "Architect market wording: product = AI visibility (AEO/GEO) and AI automation; buyers = hospitals, clinics, coaching institutes, hotels, real-estate developers, D2C brands; location = India-wide, Chandigarh home",
+  };
+
+  const dummyEv: Evidence = {
+    site: null,
+    aiQuestion: "Who leads AEO in India?",
+    aiAnswer: "Top providers include SingleInterface.",
+    aiEngine: "perplexity",
+  };
+
+  // 1. Proposing a reversion back to performance marketing is dropped
+  const propRevert = validateProposal({
+    summary: "Attempting to revert market wording",
+    market_change: {
+      product: "performance marketing",
+      icp: "coaching institutes only",
+      reason: "old category",
+    },
+    competitors_add: [],
+    competitors_remove: [],
+    prompts_retire: [],
+    prompts_add: [],
+  }, archSnap, dummyEv);
+
+  assert.equal(propRevert.market, null, "Reverting Architect-written market must be blocked");
+  assert.ok(
+    propRevert.dropped.some((d) => d.includes("cannot revert Architect-written market")),
+    `Expected cannot revert error, got: ${JSON.stringify(propRevert.dropped)}`
+  );
+
+  // 2. Proposing a benign wording refinement is allowed
+  const propRefine = validateProposal({
+    summary: "Minor wording refinement",
+    market_change: {
+      location: "Pan-India and Chandigarh",
+      reason: "clearer scope",
+    },
+    competitors_add: [],
+    competitors_remove: [],
+    prompts_retire: [],
+    prompts_add: [],
+  }, archSnap, dummyEv);
+
+  assert.ok(propRefine.market, "Benign wording refinement should be accepted");
+  assert.equal(propRefine.market?.location, "Pan-India and Chandigarh");
+});
+
 console.log(`\nDay 19: ${passed} checks passed`);
 }
 main().catch((e) => { console.error(e); process.exit(1); });
