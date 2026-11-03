@@ -223,36 +223,25 @@ export async function recoverInterruptedRunnerIssues(options?: {
     const issueNum = Number(key);
     if (isNaN(issueNum)) continue;
 
-    if (run.status === "in-progress") {
+    if (run.status === "in-progress" || run.status === "interrupted") {
       // If currently executing locally in this process, it's not interrupted
       if (isIssueRunningLocally(issueNum)) {
         continue;
       }
 
       console.log(
-        `[Runner Boot Recovery] Interrupted run detected for Issue #${issueNum} ("${run.title}"): status was 'in-progress' but no active process.`
+        `[Runner Boot Recovery] Interrupted run detected for Issue #${issueNum} ("${run.title}"): status was '${run.status}' but no active process.`
       );
 
       // ERROR ISOLATION: wrap each issue in its own try/catch
       try {
-        const attempts = (run.recoveryAttempts || 0) + 1;
+        const attempts = run.recoveryAttempts || 0;
 
         // Requirement: a recovery that fails twice for the same issue stops re-queueing,
         // labels status:blocked and alerts once.
         if (attempts >= 2) {
           console.warn(
             `[Runner Boot Recovery] Issue #${issueNum} reached recovery limit (${attempts} attempts); stopping re-queue and marking status:blocked.`
-          );
-
-          await recordRunnerIssue(
-            issueNum,
-            {
-              status: "blocked",
-              recoveryAttempts: attempts,
-              error: `Boot recovery limit exceeded (${attempts} attempts). Execution stopped to prevent restart loops.`,
-              runCompletedAt: new Date().toISOString(),
-            },
-            { testMode: isTest }
           );
 
           if (!isTest) {
@@ -265,12 +254,37 @@ export async function recoverInterruptedRunnerIssues(options?: {
             ).catch(() => {});
           }
 
-          // Alert once on blocking
-          const alertsChannel = getAlertsChannel();
-          await postLine({
-            channel: alertsChannel,
-            text: `*[Runner Boot Recovery Blocked]* Issue #${issueNum} ("${run.title}") failed recovery twice. Stopped re-queueing and marked status:blocked.`,
-          }).catch(() => {});
+          // Alert deduplication: at most 1 recovery alert per issue per hour
+          const ONE_HOUR_MS = 60 * 60 * 1000;
+          const now = Date.now();
+          const lastAlertTs = run.lastRecoveryAlertAt ? new Date(run.lastRecoveryAlertAt).getTime() : 0;
+          const shouldAlert = now - lastAlertTs >= ONE_HOUR_MS;
+
+          let updatedAlertAt = run.lastRecoveryAlertAt;
+          if (shouldAlert) {
+            const alertsChannel = getAlertsChannel();
+            await postLine({
+              channel: alertsChannel,
+              text: `*[Runner Boot Recovery Blocked]* Issue #${issueNum} ("${run.title}") failed recovery twice. Stopped re-queueing and marked status:blocked.`,
+            }).catch(() => {});
+            updatedAlertAt = new Date(now).toISOString();
+          } else {
+            console.log(
+              `[Runner Boot Recovery] Suppressed blocked alert for Issue #${issueNum} (last alert sent ${Math.round((now - lastAlertTs) / 60000)}m ago; max 1 per hour).`
+            );
+          }
+
+          await recordRunnerIssue(
+            issueNum,
+            {
+              status: "blocked",
+              recoveryAttempts: attempts,
+              error: `Boot recovery limit exceeded (${attempts} attempts). Execution stopped to prevent restart loops.`,
+              runCompletedAt: new Date().toISOString(),
+              lastRecoveryAlertAt: updatedAlertAt,
+            },
+            { testMode: isTest }
+          );
 
           continue;
         }
@@ -369,7 +383,7 @@ export async function recoverInterruptedRunnerIssues(options?: {
             );
           }
 
-          // 5. Update recovery counter in state
+          // 5. Update recovery in state (resumed without counting attempts)
           await recordRunnerIssue(
             issueNum,
             {
@@ -383,7 +397,7 @@ export async function recoverInterruptedRunnerIssues(options?: {
           // 6. Ensure label is status:in-progress
           await addLabelsToIssue(issueNum, ["status:in-progress"]).catch(() => {});
         } else {
-          // In test mode: track attempts and deduplication timestamp
+          // In test mode: track deduplication timestamp (resumed without counting attempts)
           const ONE_HOUR_MS = 60 * 60 * 1000;
           const now = Date.now();
           const lastAlertTs = run.lastRecoveryAlertAt ? new Date(run.lastRecoveryAlertAt).getTime() : 0;
