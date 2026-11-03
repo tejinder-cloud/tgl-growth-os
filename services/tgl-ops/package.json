@@ -20,6 +20,7 @@
     "sync-labels": "tsx src/scripts/sync-labels.ts",
     "test:day17": "tsx src/test-day17.ts",
     "citations": "tsx src/scripts/run-citations.ts",
+    "reopen-review": "tsx src/scripts/reopen-review.ts",
     "test:day19": "tsx src/test-day19.ts"
   },
   "engines": {

@@ -10,7 +10,13 @@ import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
 import { checkAgentCostCap, recordApiSpend } from "../../lib/cost-cap.js";
 import { getSupabase } from "../prospect-researcher/db.js";
 import { runCitationTracking } from "../aeo-audit-engine/worker.js";
-import { gatherEvidence } from "./evidence.js";
+import {
+  gatherEvidence,
+  extractPriorPrompts,
+  parseMarketOverride,
+  marketQuestion,
+  B13C2187_AEO_PROMPTS,
+} from "./evidence.js";
 import { proposeChanges, changeCount } from "./propose.js";
 import { buildReviewBlocks, decidedBlocks, readSelection } from "./card.js";
 import { applyAndVerify, describePlan, EMPTY_PLAN, planApply, planSize } from "./apply.js";
@@ -103,7 +109,35 @@ export async function openReview(sb: SupabaseClient, brandId: string): Promise<s
   if (!cap.allowed) return null; // checkAgentCostCap already alerted; retried on the next poll
   const s = await loadSnapshot(sb, brandId);
 
-  const { evidence, aiCostUsd } = await gatherEvidence(s);
+  // Load prior reviews to extract prior proposed prompts and detect market changes
+  const { data: priorReviews } = await sb
+    .from("setup_reviews")
+    .select("id, status, proposal, evidence, created_at")
+    .eq("brand_id", brandId)
+    .order("created_at", { ascending: false });
+
+  let priorPrompts = extractPriorPrompts(priorReviews ?? []);
+  const isTgl = s.tenantId === "tgl" || /growth\s*lab/i.test(s.name) || s.domain === "thegrowthlab.co.in";
+  if (isTgl) {
+    const existingTexts = new Set(priorPrompts.map((p) => p.text.toLowerCase().trim()));
+    for (const p of B13C2187_AEO_PROMPTS) {
+      if (!existingTexts.has(p.text.toLowerCase().trim())) {
+        priorPrompts.push(p);
+      }
+    }
+  }
+
+  const override = parseMarketOverride(s.setupNote);
+  const lastReview = (priorReviews ?? [])[0];
+  const lastQ = lastReview?.evidence?.aiQuestion;
+  const currentQ = marketQuestion(s);
+  const isMarketChange = !!override || (!!lastQ && !!currentQ && lastQ !== currentQ) || (isTgl && !lastQ?.includes("AI visibility"));
+
+  const { evidence, aiCostUsd } = await gatherEvidence(s, {
+    isMarketChange,
+    marketOverride: override,
+    priorProposedPrompts: priorPrompts,
+  });
   const { proposal, usd, model, tokens } = await proposeChanges(s, evidence);
 
   recordApiSpend({ agent: AGENT, apiName: "perplexity:setup-evidence", totalCostUsd: aiCostUsd, details: `setup check ${s.name}` });
@@ -128,6 +162,9 @@ export async function openReview(sb: SupabaseClient, brandId: string): Promise<s
     if (/duplicate key|unique/i.test(error.message)) return null; // another process opened it
     throw new Error(`save review: ${error.message}`);
   }
+
+  // Brand status advances to pending_verification while under active review
+  await sb.from("brands").update({ setup_status: "pending_verification" }).eq("id", brandId);
 
   const evLine = [
     evidence.site ? (evidence.site.ok ? "site ok" : `site failed (${evidence.site.error})`) : "no site",
@@ -189,6 +226,16 @@ export async function handleSetupAction(payload: any, action: any): Promise<void
   const proposal = review.proposal as Proposal;
   const plan = action.action_id === "setup_approve" ? planApply(s, proposal, readSelection(payload.state?.values)) : EMPTY_PLAN;
 
+  if (action.action_id === "setup_approve" || action.action_id === "setup_approve_asis") {
+    const resultingCount = action.action_id === "setup_approve"
+      ? s.prompts.length - plan.promptsRetire.length + plan.promptsAdd.length
+      : s.prompts.length;
+    if (resultingCount < 5) {
+      await ephemeral(payload, `Cannot approve: resulting setup has only ${resultingCount} prompts. Minimum 5 prompts required for verification.`);
+      return;
+    }
+  }
+
   // Claim the review first so a double click can't apply twice.
   const { data: claimed } = await sb.from("setup_reviews")
     .update({ status: "approved", decided_by: actor, decided_at: new Date().toISOString(), applied: plan })
@@ -236,4 +283,24 @@ export async function handleSetupChangesSubmission(payload: any): Promise<void> 
   }
   appendFileInRepo(`decisions/${getTodayDateString()}.md`, `- ${time} IST · ${actor} · REJECT · ${AGENT} · Setup needs changes: ${b?.name ?? brandId} — ${note} · review ${meta.reviewId}`,
     `chore(decision): setup sent back for ${b?.name ?? brandId} per ${actor}`).catch(() => {});
+}
+
+/** Re-opens the setup review for a brand, superseding any pending ones and posting a fresh card. */
+export async function reopenReviewForBrand(sb: SupabaseClient, brandIdOrName: string): Promise<string | null> {
+  let brandId = brandIdOrName;
+  if (!/^[0-9a-f-]{36}$/i.test(brandIdOrName)) {
+    const { data: b } = await sb
+      .from("brands")
+      .select("id")
+      .or(`name.ilike.%${brandIdOrName}%,primary_domain.ilike.%${brandIdOrName}%`)
+      .limit(1)
+      .single();
+    if (!b) throw new Error(`brand "${brandIdOrName}" not found`);
+    brandId = b.id;
+  }
+
+  // Mark open proposed reviews as superseded
+  await sb.from("setup_reviews").update({ status: "superseded" }).eq("brand_id", brandId).eq("status", "proposed");
+  await sb.from("brands").update({ setup_status: "pending_verification", updated_at: new Date().toISOString() }).eq("id", brandId);
+  return openReview(sb, brandId);
 }
