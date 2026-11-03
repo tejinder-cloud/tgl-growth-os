@@ -5,10 +5,16 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getAnthropicModel, getAnthropicPricing } from "../../lib/anthropic-pricing.js";
 import { appendLog } from "../../lib/log.js";
 import { evidenceCorpus } from "./evidence.js";
-import type { Evidence, Journey, Proposal, SetupSnapshot } from "./types.js";
-
-const JOURNEYS: Journey[] = ["awareness", "consideration", "decision"];
-const LANGS = ["en", "hi", "hinglish"];
+import {
+  ALLOWED_LANGUAGES,
+  ALLOWED_STAGES,
+  type AllowedLanguage,
+  type AllowedStage,
+  type Evidence,
+  type Journey,
+  type Proposal,
+  type SetupSnapshot,
+} from "./types.js";
 
 export const SYSTEM = `You are TGL's AEO strategist checking a new TrueVisible customer's setup before their first audit.
 The setup decides which questions we ask ChatGPT, Gemini and Perplexity every day, and which businesses we compare the customer with.
@@ -23,7 +29,7 @@ Rules:
 - If REVIEWER FEEDBACK / INSTRUCTIONS are provided, they take strict precedence over default rules: adjust market, prompts, and competitors exactly as instructed.
 - Be sparing. A good setup gets an empty proposal and a one-line summary saying so.
 
-You must invoke the propose_setup_check tool with the verified proposal.`;
+Call the propose_setup_check tool to submit the proposal.`;
 
 export const PROPOSE_SETUP_CHECK_TOOL: Anthropic.Tool = {
   name: "propose_setup_check",
@@ -53,11 +59,13 @@ export const PROPOSE_SETUP_CHECK_TOOL: Anthropic.Tool = {
           properties: {
             name: { type: "string", description: "Business name of the competitor" },
             domain: { type: ["string", "null"], description: "Competitor website domain if known, or null" },
+            website: { type: ["string", "null"], description: "Alternative key for website domain if known, or null" },
             prompt: { type: "string", description: "The exact prompt that produced the AI answer" },
             engine: { type: "string", description: "The AI engine named in the evidence (e.g. perplexity)" },
             verbatim_excerpt: { type: "string", description: "Verbatim excerpt from the live AI answer quoting where this competitor was named" },
+            evidence_excerpt: { type: "string", description: "Alternative key for verbatim excerpt from the live AI answer" },
           },
-          required: ["name", "prompt", "engine", "verbatim_excerpt"],
+          required: ["name", "prompt", "engine"],
         },
       },
       competitors_remove: {
@@ -91,9 +99,21 @@ export const PROPOSE_SETUP_CHECK_TOOL: Anthropic.Tool = {
           type: "object",
           properties: {
             text: { type: "string", description: "The exact prompt text" },
-            language: { type: "string", enum: ["en", "hi", "hinglish"], description: "Language of the prompt" },
-            journey_phase: { type: "string", enum: ["awareness", "consideration", "decision"], description: "Buyer journey phase / intent" },
-            intent: { type: "string", enum: ["awareness", "consideration", "decision"], description: "Alternative key for buyer journey phase / intent" },
+            language: {
+              type: "string",
+              enum: [...ALLOWED_LANGUAGES],
+              description: "Language of the prompt: en, hi, or hinglish",
+            },
+            journey_phase: {
+              type: "string",
+              enum: [...ALLOWED_STAGES],
+              description: "Buyer journey phase: awareness, consideration, or decision",
+            },
+            intent: {
+              type: "string",
+              enum: [...ALLOWED_STAGES],
+              description: "Alternative key for buyer journey phase",
+            },
             reason: { type: "string", description: "Why this prompt adds buyer discovery value" },
           },
           required: ["text", "language", "reason"],
@@ -127,14 +147,49 @@ ${ev.aiAnswer ?? `(none: ${ev.aiError ?? "no market entered"})`}`;
 }
 
 export function extractJson(text: string): any {
-  const start = text.indexOf("{"), end = text.lastIndexOf("}");
+  // If the model wrapped in <invoke name="..."> tags, extract parameters
+  if (text.includes("<invoke") && text.includes("<parameter")) {
+    const obj: Record<string, any> = {};
+    const matches = text.matchAll(/<parameter\s+name=["']([^"']+)["']>([\s\S]*?)<\/parameter>/gi);
+    for (const m of matches) {
+      const key = m[1].trim();
+      const valStr = m[2].trim();
+      try {
+        obj[key] = JSON.parse(valStr);
+      } catch {
+        obj[key] = valStr;
+      }
+    }
+    if (Object.keys(obj).length > 0) return obj;
+  }
+
+  // Strip everything outside the outermost braces before parsing
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
   if (start < 0 || end <= start) throw new Error("model returned no JSON object");
-  return JSON.parse(text.slice(start, end + 1));
+  const stripped = text.slice(start, end + 1).trim();
+  return JSON.parse(stripped);
 }
 
 const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
 const normClean = (s: string) => s.toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().replace(/\s+/g, " ").slice(0, max) : "");
+
+export function normalizeLanguage(lang: unknown): AllowedLanguage | null {
+  const l = norm(String(lang ?? ""));
+  if (l === "en" || l === "english") return "en";
+  if (l === "hi" || l === "hindi") return "hi";
+  if (l === "hinglish") return "hinglish";
+  return null;
+}
+
+export function normalizeStage(stage: unknown): AllowedStage | null {
+  const s = norm(String(stage ?? ""));
+  if (s === "awareness") return "awareness";
+  if (s === "consideration") return "consideration";
+  if (s === "decision") return "decision";
+  return null;
+}
 
 /** Turns the model's JSON into a proposal that can only contain supported, applicable changes. */
 export function validateProposal(raw: any, s: SetupSnapshot, ev: Evidence): Proposal {
@@ -155,7 +210,7 @@ export function validateProposal(raw: any, s: SetupSnapshot, ev: Evidence): Prop
 
     const nameNorm = norm(name);
     const nameClean = normClean(name);
-    const excerpt = str(c?.verbatim_excerpt || c?.evidence_quote || c?.evidence, 300);
+    const excerpt = str(c?.verbatim_excerpt || c?.evidence_excerpt || c?.evidence_quote || c?.evidence || c?.quote, 300);
     const excerptClean = normClean(excerpt);
 
     const prompt = str(c?.prompt, 300) || str(ev.aiQuestion, 300);
@@ -184,7 +239,8 @@ export function validateProposal(raw: any, s: SetupSnapshot, ev: Evidence): Prop
       continue;
     }
 
-    const domain = str(c?.domain, 80).toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, "") || null;
+    const domainRaw = str(c?.domain || c?.website, 80);
+    const domain = domainRaw.toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, "") || null;
     competitorsAdd.push({
       name,
       domain: domain && /^[a-z0-9.-]+\.[a-z]{2,}$/.test(domain) ? domain : null,
@@ -207,15 +263,15 @@ export function validateProposal(raw: any, s: SetupSnapshot, ev: Evidence): Prop
     if (p && !promptsRetire.some((x) => x.id === p.id)) promptsRetire.push({ id: p.id, text: p.text, reason: str(r?.reason, 200) });
   }
 
-  const allowedLangs = new Set([...s.languages, "en", ...(s.setupNote ? LANGS : [])].filter((l) => LANGS.includes(l)));
   const room = Math.max(0, s.promptLimit - (s.prompts.length - promptsRetire.length));
   const seen = new Set(s.prompts.map((p) => norm(p.text)));
   const promptsAdd: Proposal["promptsAdd"] = [];
   for (const p of Array.isArray(raw?.prompts_add) ? raw.prompts_add : []) {
     const text = str(p?.text, 300);
     if (text.length < 5 || seen.has(norm(text))) continue;
-    const stage = (p?.journey_phase || p?.intent || "") as Journey;
-    if (!allowedLangs.has(p?.language) || !JOURNEYS.includes(stage)) {
+    const lang = normalizeLanguage(p?.language);
+    const stage = normalizeStage(p?.journey_phase || p?.intent);
+    if (!lang || !stage) {
       dropped.push(`prompt “${text.slice(0, 60)}” — language/stage not allowed`);
       continue;
     }
@@ -224,7 +280,7 @@ export function validateProposal(raw: any, s: SetupSnapshot, ev: Evidence): Prop
       continue;
     }
     seen.add(norm(text));
-    promptsAdd.push({ text, language: p.language, journey_phase: stage, reason: str(p?.reason, 200) });
+    promptsAdd.push({ text, language: lang, journey_phase: stage, reason: str(p?.reason, 200) });
   }
 
   let market: Proposal["market"] = null;
@@ -275,11 +331,21 @@ export async function proposeChanges(
     if (toolBlock && toolBlock.input) {
       rawProposal = typeof toolBlock.input === "string" ? JSON.parse(toolBlock.input) : toolBlock.input;
     } else {
-      lastRawReply = (res.content ?? [])
+      const textBlock = (res.content ?? [])
         .filter((b: any) => b.type === "text")
         .map((b: any) => b.text)
         .join("");
-      throw new Error("tool_use block for propose_setup_check missing from response");
+      lastRawReply = textBlock;
+      if (textBlock && (textBlock.includes("<invoke") || textBlock.includes("{"))) {
+        try {
+          rawProposal = extractJson(textBlock);
+        } catch {
+          // fall through to fallback
+        }
+      }
+      if (!rawProposal) {
+        throw new Error("tool_use block for propose_setup_check missing from response");
+      }
     }
   } catch (toolErr: any) {
     // Keep a one-retry fallback that asks the model to re-emit only the JSON if the tool path fails
@@ -287,12 +353,12 @@ export async function proposeChanges(
       const fallbackRes: any = await anthropic.messages.create({
         model,
         max_tokens: 4096,
-        system: `${SYSTEM}\nOutput only valid JSON matching the schema. No conversational text or markdown code fences.`,
+        system: `${SYSTEM}\nOutput only a single valid JSON object starting with { and ending with }. Do NOT use <invoke> tags, XML, conversational text or markdown code fences.`,
         messages: [
           { role: "user", content: buildUserMessage(s, ev) },
           {
             role: "user",
-            content: "Re-emit only the proposal as a single valid JSON object matching the propose_setup_check schema. No other text or formatting.",
+            content: "Re-emit only the proposal as a single valid JSON object starting with { and ending with }. No <invoke> tags, no markdown formatting.",
           },
         ],
       });

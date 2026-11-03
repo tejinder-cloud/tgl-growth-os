@@ -1,6 +1,12 @@
 // services/tgl-ops/src/agents/aeo-strategist/types.ts — Setup-verification queue (plan Day 19)
 
-export type Journey = "awareness" | "consideration" | "decision";
+export const ALLOWED_LANGUAGES = ["en", "hi", "hinglish"] as const;
+export type AllowedLanguage = (typeof ALLOWED_LANGUAGES)[number];
+
+export const ALLOWED_STAGES = ["awareness", "consideration", "decision"] as const;
+export type AllowedStage = (typeof ALLOWED_STAGES)[number];
+
+export type Journey = AllowedStage;
 
 /** Everything a reviewer needs to judge one brand's setup, as the customer entered it. */
 export interface SetupSnapshot {
