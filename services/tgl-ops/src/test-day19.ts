@@ -136,13 +136,166 @@ await t("selection: unticked items are not applied; prompt adds trimmed to the p
 });
 await t("decided card keeps the setup summary, drops boxes and buttons", () => {
   const blocks = buildReviewBlocks(snap, proposal, "r", "x");
-  const done = decidedBlocks(blocks, "✅ Verified");
+  const done = decidedBlocks(blocks, "Verified");
   assert.ok(!done.some((b) => b.type === "actions"));
   assert.ok(!done.some((b) => String(b.block_id ?? "").endsWith("_label")));
-  assert.equal(done[done.length - 1].text.text, "✅ Verified");
+  assert.equal(done[done.length - 1].text.text, "Verified");
   assert.match(evidenceCorpus(ev), /Elite Nursing Institute/);
   assert.match(buildUserMessage(snap, ev), /EVIDENCE 1 — customer's homepage/);
 });
+
+await t("needs_changes note propagates into user message and respects reviewer instructions", () => {
+  const tglSnap: SetupSnapshot = {
+    brandId: "brand_tgl_zero",
+    tenantId: "tgl",
+    tenantName: "The Growth Lab",
+    name: "The Growth Lab",
+    domain: "thegrowthlab.co.in",
+    platform: "custom",
+    languages: ["en"],
+    variants: ["TGL", "Growth Lab"],
+    market: {
+      id: "m_tgl",
+      product: "AI visibility (AEO/GEO) and AI automation",
+      icp: "hospitals and clinics, coaching institutes, hotels, real-estate developers and D2C brands across India",
+      location: "India-wide, Chandigarh home",
+    },
+    competitors: [
+      { id: "c_ls", name: "LeadSquared", domain: "leadsquared.com" },
+      { id: "c_cp", name: "Classplus", domain: "classplusapp.com" },
+    ],
+    prompts: [
+      { id: "p1", text: "How to scale student admissions from Meta ads without hiring more counsellors", language: "en", journey_phase: "consideration" },
+      { id: "p2", text: "Best agencies to improve lead quality and counselling conversion for test prep institutes", language: "en", journey_phase: "consideration" },
+    ],
+    plan: "internal",
+    promptLimit: 50,
+    submittedAt: "2026-11-02T12:33:05Z",
+    setupStatus: "needs_changes",
+    setupNote:
+      "Market wording is outdated. TGL = AI visibility (AEO/GEO) + growth, for any business whose customers ask AI before buying: hospitals, clinics, coaching, hotels, real estate; India-wide, Chandigarh home. Redo the 10 prompts for that market (>=6 AEO/AI-visibility intents, <=3 coaching, en + hinglish) and re-propose competitors from the live answers for those prompts. Keep your two prompt retirements. · review 9779874b-141f-4db7-a541-c6227e4106f7",
+  };
+
+  const userMsg = buildUserMessage(tglSnap, ev);
+  assert.match(userMsg, /REVIEWER FEEDBACK \/ INSTRUCTIONS/);
+  assert.match(userMsg, /review 9779874b-141f-4db7-a541-c6227e4106f7/);
+  assert.match(userMsg, /Redo the 10 prompts for that market/);
+});
+
+await t("TGL setup re-proposal: 10 prompts (>=6 AEO, <=3 coaching, en + hinglish), live competitors with quotes, 2 retirements, unverified", () => {
+  const tglSnap: SetupSnapshot = {
+    brandId: "brand_tgl_zero",
+    tenantId: "tgl",
+    tenantName: "The Growth Lab",
+    name: "The Growth Lab",
+    domain: "thegrowthlab.co.in",
+    platform: "custom",
+    languages: ["en"],
+    variants: ["TGL", "Growth Lab"],
+    market: {
+      id: "m_tgl",
+      product: "AI visibility (AEO/GEO) and AI automation",
+      icp: "hospitals and clinics, coaching institutes, hotels, real-estate developers and D2C brands across India",
+      location: "India-wide, Chandigarh home",
+    },
+    competitors: [
+      { id: "c_ls", name: "LeadSquared", domain: "leadsquared.com" },
+      { id: "c_cp", name: "Classplus", domain: "classplusapp.com" },
+    ],
+    prompts: [
+      { id: "p1", text: "How to scale student admissions from Meta ads without hiring more counsellors", language: "en", journey_phase: "consideration" },
+      { id: "p2", text: "Best agencies to improve lead quality and counselling conversion for test prep institutes", language: "en", journey_phase: "consideration" },
+    ],
+    plan: "internal",
+    promptLimit: 50,
+    submittedAt: "2026-11-02T12:33:05Z",
+    setupStatus: "needs_changes",
+    setupNote:
+      "Market wording is outdated. TGL = AI visibility (AEO/GEO) + growth, for any business whose customers ask AI before buying: hospitals, clinics, coaching, hotels, real estate; India-wide, Chandigarh home. Redo the 10 prompts for that market (>=6 AEO/AI-visibility intents, <=3 coaching, en + hinglish) and re-propose competitors from the live answers for those prompts. Keep your two prompt retirements. · review 9779874b-141f-4db7-a541-c6227e4106f7",
+  };
+
+  const tglEvidence: Evidence = {
+    site: extractSite("<html><head><title>The Growth Lab | AI Visibility & Automation</title></head><body><h1>AEO & GEO Operators</h1><p>We help businesses be recommended by ChatGPT, Perplexity and Gemini.</p></body></html>", "https://thegrowthlab.co.in/"),
+    aiQuestion: "Who are the best AI visibility and generative search optimization agencies in India for hospitals, coaching institutes and hotels?",
+    aiAnswer: "Top providers in India include SingleInterface (powers multi-location AI search visibility and local brand discoverability across digital agents), Performics India (leads generative search engine optimization for enterprise healthcare and consumer brands), Schbang (delivers AI-first search discoverability for consumer brands and hospitality), and Digital Pundit (provides emerging search visibility solutions).",
+    aiEngine: "perplexity (sonar-pro)",
+  };
+
+  const rawProposal = {
+    summary: "Re-proposed 10 multi-vertical buyer prompts across healthcare, coaching, hospitality, real estate and D2C (7 AI-visibility intents, 3 coaching intents, English + Hinglish) and competitors from live search answers. Kept two prompt retirements.",
+    market_change: {
+      product: "AI visibility (AEO/GEO) and AI automation",
+      icp: "hospitals and clinics, coaching institutes, hotels, real-estate developers and D2C brands across India",
+      location: "India-wide, Chandigarh home",
+      reason: "Multi-vertical positioning requested by Architect.",
+    },
+    competitors_add: [
+      { name: "SingleInterface", domain: "singleinterface.com", evidence_quote: "SingleInterface powers multi-location AI search visibility and local brand discoverability across digital agents" },
+      { name: "Performics", domain: "performics.com", evidence_quote: "Performics India leads generative search engine optimization for enterprise healthcare and consumer brands" },
+      { name: "Schbang", domain: "schbang.com", evidence_quote: "Schbang delivers AI-first search discoverability for consumer brands and hospitality" },
+      { name: "Digital Pundit", domain: "digitalpundit.in", evidence_quote: "Digital Pundit provides emerging search visibility solutions" },
+    ],
+    competitors_remove: [
+      { name: "LeadSquared", reason: "Coaching CRM, not an AI visibility agency" },
+      { name: "Classplus", reason: "Coaching app, not an AI visibility agency" },
+    ],
+    prompts_retire: [
+      { number: 1, reason: "Ad-spend specific coaching intent, replaced by multi-vertical generative AI visibility" },
+      { number: 2, reason: "General agency coaching intent, replaced by multi-vertical generative AI visibility" },
+    ],
+    prompts_add: [
+      { text: "Best AI visibility and generative engine optimization (GEO) agencies in India", language: "en", journey_phase: "decision", reason: "GEO/AEO agency intent" },
+      { text: "Top AI search marketing agencies for hospitals and healthcare clinics", language: "en", journey_phase: "consideration", reason: "Healthcare AI search intent" },
+      { text: "Leading AI automation and visibility consultants for real estate and luxury hotels", language: "en", journey_phase: "consideration", reason: "Real estate / hospitality AI visibility intent" },
+      { text: "ChatGPT par brand recommendation kaise badhaye for D2C brands", language: "hinglish", journey_phase: "awareness", reason: "D2C ChatGPT visibility intent" },
+      { text: "Hospital ya clinic ke liye AEO agency choose karte waqt kya dekhna chahiye", language: "hinglish", journey_phase: "consideration", reason: "Healthcare AEO evaluation intent" },
+      { text: "The Growth Lab reviews and case studies for generative search visibility", language: "en", journey_phase: "decision", reason: "TGL branded AEO evaluation intent" },
+      { text: "Best generative AI growth operators in Chandigarh and Delhi NCR", language: "en", journey_phase: "decision", reason: "Regional AI operator intent" },
+      { text: "How to get recommended by ChatGPT and Perplexity for coaching institutes", language: "en", journey_phase: "awareness", reason: "Coaching AEO discovery intent" },
+      { text: "Coaching institute ke admissions increase karne ke liye best AI WhatsApp automation operator", language: "hinglish", journey_phase: "decision", reason: "Coaching WhatsApp automation intent" },
+      { text: "Top AI growth partner for multi-branch test prep institutes in India", language: "en", journey_phase: "consideration", reason: "Coaching multi-branch test prep intent" },
+    ],
+  };
+
+  const prop = validateProposal(rawProposal, tglSnap, tglEvidence);
+
+  // Assertions on the validated proposal
+  assert.equal(prop.promptsAdd.length, 10);
+  const aeoIntents = prop.promptsAdd.filter((p) => !p.text.toLowerCase().includes("coaching"));
+  const coachingIntents = prop.promptsAdd.filter((p) => p.text.toLowerCase().includes("coaching"));
+  assert.ok(aeoIntents.length >= 6, `Expected >=6 AEO intents, got ${aeoIntents.length}`);
+  assert.ok(coachingIntents.length <= 3, `Expected <=3 coaching intents, got ${coachingIntents.length}`);
+
+  const hasEn = prop.promptsAdd.some((p) => p.language === "en");
+  const hasHinglish = prop.promptsAdd.some((p) => p.language === "hinglish");
+  assert.ok(hasEn && hasHinglish, "Expected both English and Hinglish prompts");
+
+  assert.equal(prop.competitorsAdd.length, 4);
+  for (const c of prop.competitorsAdd) {
+    assert.ok(c.evidence, `Expected evidence quote for competitor ${c.name}`);
+  }
+
+  assert.equal(prop.promptsRetire.length, 2);
+  assert.deepEqual(prop.promptsRetire.map((p) => p.id), ["p1", "p2"]);
+
+  // Card generation
+  const cardBlocks = buildReviewBlocks(tglSnap, prop, "9779874b-new-review", "site ok · AI answer ok · $0.0210");
+  const paBox = cardBlocks.find((b) => b.block_id === "setup_pa");
+  assert.equal(paBox.elements[0].options.length, 10, "Card must show all 10 proposed prompts");
+
+  const prBox = cardBlocks.find((b) => b.block_id === "setup_pr");
+  assert.equal(prBox.elements[0].options.length, 2, "Card must show the two prompt retirements");
+
+  const caBox = cardBlocks.find((b) => b.block_id === "setup_ca");
+  assert.equal(caBox.elements[0].options.length, 4, "Card must show 4 competitors");
+  for (const o of caBox.elements[0].options) {
+    assert.ok(o.description && o.description.text.length > 5, "Competitor card option must show answer evidence quote");
+  }
+
+  // Ensure setup is unverified
+  assert.equal(tglSnap.setupStatus, "needs_changes");
+});
+
 console.log(`\nDay 19: ${passed} checks passed`);
 }
 main().catch((e) => { console.error(e); process.exit(1); });

@@ -104,6 +104,7 @@ export interface ShortFormOptions {
   testMode?: boolean;
   engineMock?: (engine: EngineId, prompt: string) => Promise<EngineAnswer>;
   saveRawJson?: boolean;
+  supabase?: any;
 }
 
 /**
@@ -232,6 +233,7 @@ export async function runShortFormAudit(
   } else {
     const lookupKey = lensOrProfile.domains[0] || lensOrProfile.name;
     verifiedProfile = await loadVerifiedBrandProfile(lookupKey, {
+      supabase: options?.supabase,
       testMode: options?.testMode,
     });
   }

@@ -3,7 +3,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { config, isTestMode } from "../../config.js";
 import { slackClient, openModal, getActorDisplayName } from "../../lib/slack-client.js";
-import { postLine } from "../../lib/post.js";
+import { postLine, resolveChannelId } from "../../lib/post.js";
 import { getAlertsChannel } from "../../lib/cron-wrapper.js";
 import { appendFileInRepo } from "../../lib/github-client.js";
 import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
@@ -26,7 +26,7 @@ function limitFor(plan: string, status: string, trialEndsAt: string | null): num
 }
 
 export async function loadSnapshot(sb: SupabaseClient, brandId: string): Promise<SetupSnapshot> {
-  const { data: b, error } = await sb.from("brands").select("id, tenant_id, name, primary_domain, site_platform, languages, updated_at").eq("id", brandId).single();
+  const { data: b, error } = await sb.from("brands").select("id, tenant_id, name, primary_domain, site_platform, languages, updated_at, setup_status, setup_note").eq("id", brandId).single();
   if (error || !b) throw new Error(`brand ${brandId}: ${error?.message ?? "not found"}`);
   const [t, subs, v, m, c, p] = await Promise.all([
     sb.from("tenants").select("name, parent_tenant_id").eq("id", b.tenant_id).single(),
@@ -46,6 +46,8 @@ export async function loadSnapshot(sb: SupabaseClient, brandId: string): Promise
     competitors: c.data ?? [], prompts: (p.data ?? []) as SetupSnapshot["prompts"],
     plan: sub?.plan ?? "none", promptLimit: sub ? limitFor(sub.plan, sub.status, sub.trial_ends_at) : 0,
     submittedAt: b.updated_at,
+    setupStatus: b.setup_status,
+    setupNote: b.setup_note,
   };
 }
 
@@ -55,12 +57,12 @@ export async function pollSetupQueue(): Promise<void> {
   const sb = getSupabase();
   if (!sb) return;
 
-  const [{ data: pending }, { data: open }] = await Promise.all([
-    sb.from("brands").select("id, tenant_id, name, updated_at").eq("setup_status", "pending_verification"),
+  const [{ data: pendingOrNeedsChanges }, { data: open }] = await Promise.all([
+    sb.from("brands").select("id, tenant_id, name, updated_at, setup_status, setup_note").in("setup_status", ["pending_verification", "needs_changes"]),
     sb.from("setup_reviews").select("id, brand_id, created_at, slack_channel, slack_ts, reminded_at").eq("status", "proposed"),
   ]);
 
-  for (const b of pending ?? []) {
+  for (const b of pendingOrNeedsChanges ?? []) {
     const review = (open ?? []).find((r: any) => r.brand_id === b.id);
     if (review) {
       // Customer re-submitted after the card went out → the card is stale.
@@ -134,8 +136,10 @@ export async function openReview(sb: SupabaseClient, brandId: string): Promise<s
   ].join(" · ");
   const blocks = buildReviewBlocks(s, proposal, review.id, evLine);
   if (!config.slackBotToken) return review.id;
+  const targetChannel = "#doors-aeo";
+  const channelId = await resolveChannelId(targetChannel);
   const msg = await slackClient.chat.postMessage({
-    channel: config.approvalsChannelId, blocks,
+    channel: channelId || config.approvalsChannelId, blocks,
     text: `Setup check · ${s.name} — ${changeCount(proposal)} suggested change(s)`,
   });
   await sb.from("setup_reviews").update({ slack_channel: msg.channel, slack_ts: msg.ts }).eq("id", review.id);

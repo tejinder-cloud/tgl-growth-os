@@ -6,178 +6,321 @@ import fs from "node:fs";
 import path from "node:path";
 import { runShortFormAudit } from "./agents/aeo-audit-engine/short-form.js";
 import { renderAuditHtml, generateAuditPdf } from "./agents/aeo-audit-engine/pdf.js";
-import {
-  loadVerifiedBrandProfile,
-  registerBrandProfile,
-  resetBrandProfileRegistry,
-  TGL_SETUP_PROFILE,
-} from "./agents/aeo-audit-engine/setup-profile.js";
+import * as setupModule from "./agents/aeo-audit-engine/setup-profile.js";
+import { loadVerifiedBrandProfile } from "./agents/aeo-audit-engine/setup-profile.js";
 import { runShortFormAuditCli } from "./scripts/run-short-form-audit.js";
 import { mockPostedLines, resetMockPostedLines } from "./lib/post.js";
 import type { AddressInfo } from "node:net";
 import { createApp } from "./app.js";
 import { resetAuditRateLimit } from "./routes/audit.js";
+import { setMockSupabaseClientForTests } from "./agents/prospect-researcher/db.js";
+
+interface MockDbStore {
+  brands: any[];
+  prompts: any[];
+  competitors: any[];
+  brand_variants: any[];
+  domains: any[];
+  products_icps: any[];
+}
+
+function createMockSupabase(store: MockDbStore) {
+  return {
+    from: (table: string) => {
+      if (table === "brands") {
+        return {
+          select: () => ({
+            or: (query: string) => {
+              // Parse simple query e.g. primary_domain.eq.xyz,name.ilike.%xyz%
+              const match = query.match(/primary_domain\.eq\.([^,]+)/);
+              const domain = match ? match[1].toLowerCase().trim() : "";
+              const brand = store.brands.find(
+                (b) => (b.primary_domain && b.primary_domain.toLowerCase().trim() === domain) ||
+                       (b.name && query.toLowerCase().includes(b.name.toLowerCase().trim()))
+              );
+              return {
+                maybeSingle: async () => ({ data: brand || null, error: null }),
+                single: async () => ({ data: brand || null, error: brand ? null : new Error("Row not found") }),
+              };
+            },
+          }),
+        };
+      }
+      if (table === "prompts") {
+        return {
+          select: () => ({
+            eq: (col: string, val: string) => ({
+              eq: async (_col2: string, _val2: string) => ({
+                data: store.prompts.filter((p) => p.brand_id === val && p.status === "active"),
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === "competitors") {
+        return {
+          select: () => ({
+            eq: (col: string, val: string) => ({
+              eq: async (_col2: string, _val2: string) => ({
+                data: store.competitors.filter((c) => c.brand_id === val && c.status === "active"),
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === "brand_variants") {
+        return {
+          select: () => ({
+            eq: async (_col: string, val: string) => ({
+              data: store.brand_variants.filter((v) => v.brand_id === val),
+              error: null,
+            }),
+          }),
+        };
+      }
+      if (table === "domains") {
+        return {
+          select: () => ({
+            eq: async (_col: string, val: string) => ({
+              data: store.domains.filter((d) => d.brand_id === val),
+              error: null,
+            }),
+          }),
+        };
+      }
+      if (table === "products_icps") {
+        return {
+          select: () => ({
+            eq: (_col: string, val: string) => ({
+              limit: () => ({
+                maybeSingle: async () => ({
+                  data: store.products_icps.find((m) => m.brand_id === val) || null,
+                  error: null,
+                }),
+              }),
+            }),
+          }),
+        };
+      }
+      return {
+        select: () => ({ eq: async () => ({ data: [], error: null }) }),
+      };
+    },
+  } as any;
+}
 
 async function runDay08AeoTests() {
   console.log("==========================================================================");
   console.log("Day 8 AEO Audit Engine & Short-Form PDF Honesty Verification Suite");
-  console.log("1. Setup Profile Verification Gate: refuses unverified/guessed brands");
-  console.log("2. TGL Profile Reversion: thegrowthlab.co.in holds pending_verification");
-  console.log("3. Prompt Honesty: multi-vertical AI visibility prompts (hospitals/clinics/coaching)");
-  console.log("4. Cell Honesty: actual positions (Named #1/#2/#3, Mentioned, —), not all #1");
-  console.log("5. Count Honesty: actual answer appearances for competitors/sources, not 15");
-  console.log("6. Dynamic Next Steps: derived from matrix (weakest engine, queries lost, winner)");
-  console.log("7. Lower 40% Excerpt Proof: 1-line answer excerpt per query proving each cell");
-  console.log("8. Traceable Storage: raw answers in logs/.test/ (test mode) / Contents API (prod)");
-  console.log("9. Slack Summary: unfurl_links false and unfurl_media false strictly enforced");
-  console.log("10. Design Token & Pure-Node Vector PDF under 2MB, Zero Emojis, Route Security");
+  console.log("1. No Fallback Constants: TGL_SETUP_PROFILE / profileRegistry deleted");
+  console.log("2. Supabase Only: unknown domains and unverified brands strictly refused");
+  console.log("3. TGL Profile: held in Supabase needs_changes awaiting card approval");
+  console.log("4. Prompt Honesty: multi-vertical AI visibility prompts (hospitals/clinics/coaching)");
+  console.log("5. Cell Honesty: actual positions (Named #1/#2/#3, Mentioned, —), not all #1");
+  console.log("6. Count Honesty: actual answer appearances for competitors/sources, not 15");
+  console.log("7. Dynamic Next Steps: derived from matrix (weakest engine, queries lost, winner)");
+  console.log("8. Lower 40% Excerpt Proof: 1-line answer excerpt per query proving each cell");
+  console.log("9. Traceable Storage: raw answers in logs/.test/ (test mode) / Contents API (prod)");
+  console.log("10. Slack Summary: unfurl_links false and unfurl_media false strictly enforced");
+  console.log("11. Design Token & Pure-Node Vector PDF under 2MB, Zero Emojis, Route Security");
   console.log("==========================================================================\n");
 
-  resetBrandProfileRegistry();
   resetMockPostedLines();
 
-  // -------------------------------------------------------------------------
-  // Test 1: Setup Profile Verification Gate & Refusal
-  // -------------------------------------------------------------------------
-  console.log("[Test 1] Testing Setup Profile Verification Gate & Refusal...");
+  // Setup mock Supabase data store
+  const mockStore: MockDbStore = {
+    brands: [
+      {
+        id: "brand_tgl_zero",
+        tenant_id: "tgl",
+        name: "The Growth Lab",
+        primary_domain: "thegrowthlab.co.in",
+        setup_status: "needs_changes",
+        setup_verified_at: null,
+        setup_verified_by: null,
+        setup_note:
+          "Market wording is outdated. TGL = AI visibility (AEO/GEO) + growth, for any business whose customers ask AI before buying: hospitals, clinics, coaching, hotels, real estate; India-wide, Chandigarh home. Redo the 10 prompts for that market (>=6 AEO/AI-visibility intents, <=3 coaching, en + hinglish) and re-propose competitors from the live answers for those prompts. Keep your two prompt retirements. · review 9779874b-141f-4db7-a541-c6227e4106f7",
+      },
+      {
+        id: "brand_pending_test",
+        tenant_id: "t_pending",
+        name: "Pending Healthcare",
+        primary_domain: "pendinghealth.example",
+        setup_status: "pending_verification",
+        setup_verified_at: null,
+        setup_verified_by: null,
+        setup_note: null,
+      },
+      {
+        id: "brand_sparse_test",
+        tenant_id: "t_sparse",
+        name: "Sparse Prompts Brand",
+        primary_domain: "sparse.example",
+        setup_status: "verified",
+        setup_verified_at: "2026-11-03T10:00:00Z",
+        setup_verified_by: "architect",
+        setup_note: null,
+      },
+      {
+        id: "brand_verified_test",
+        tenant_id: "tgl",
+        name: "Verified Test Brand",
+        primary_domain: "verified-brand.example",
+        setup_status: "verified",
+        setup_verified_at: "2026-11-03T10:00:00Z",
+        setup_verified_by: "architect",
+        setup_note: null,
+      },
+    ],
+    prompts: [
+      // Sparse brand only has 3 prompts (< 5)
+      { id: "sp_1", brand_id: "brand_sparse_test", text: "query 1", language: "en", journey_phase: "awareness", status: "active" },
+      { id: "sp_2", brand_id: "brand_sparse_test", text: "query 2", language: "en", journey_phase: "consideration", status: "active" },
+      { id: "sp_3", brand_id: "brand_sparse_test", text: "query 3", language: "en", journey_phase: "decision", status: "active" },
 
-  // 1.1 Unregistered brand must be refused
-  let unregisteredRefused = false;
+      // Verified test brand has 5 verified multi-vertical prompts
+      { id: "vp_1", brand_id: "brand_verified_test", text: "Best AI visibility and generative engine optimization (GEO) agencies in India", language: "en", journey_phase: "decision", status: "active" },
+      { id: "vp_2", brand_id: "brand_verified_test", text: "Top AI search marketing agencies for hospitals and healthcare clinics", language: "en", journey_phase: "consideration", status: "active" },
+      { id: "vp_3", brand_id: "brand_verified_test", text: "How to get recommended by ChatGPT and Perplexity for multi-branch coaching institutes", language: "en", journey_phase: "awareness", status: "active" },
+      { id: "vp_4", brand_id: "brand_verified_test", text: "Leading AI automation and visibility consultants for real estate and hospitality", language: "en", journey_phase: "consideration", status: "active" },
+      { id: "vp_5", brand_id: "brand_verified_test", text: "The Growth Lab AI visibility and growth reviews", language: "en", journey_phase: "decision", status: "active" },
+    ],
+    competitors: [
+      { id: "comp_1", brand_id: "brand_verified_test", name: "SingleInterface", domain: "singleinterface.com", status: "active" },
+      { id: "comp_2", brand_id: "brand_verified_test", name: "Performics", domain: "performics.com", status: "active" },
+      { id: "comp_3", brand_id: "brand_verified_test", name: "Schbang", domain: "schbang.com", status: "active" },
+      { id: "comp_4", brand_id: "brand_verified_test", name: "Digital Pundit", domain: "digitalpundit.in", status: "active" },
+    ],
+    brand_variants: [
+      { brand_id: "brand_verified_test", name: "verified test brand" },
+    ],
+    domains: [
+      { brand_id: "brand_verified_test", domain: "verified-brand.example" },
+    ],
+    products_icps: [
+      {
+        brand_id: "brand_verified_test",
+        product: "AI visibility (AEO/GEO) and AI automation",
+        icp: "hospitals and clinics, coaching institutes, hotels, real-estate developers and D2C brands across India",
+        location: "India-wide, Chandigarh home",
+      },
+    ],
+  };
+
+  const mockSb = createMockSupabase(mockStore);
+  setMockSupabaseClientForTests(mockSb);
+
+  // -------------------------------------------------------------------------
+  // Test 1: No Fallback Constants in setup-profile.ts
+  // -------------------------------------------------------------------------
+  console.log("[Test 1] Testing that no fallback constants or seed registries exist in setup-profile.ts...");
+
+  if ("TGL_SETUP_PROFILE" in setupModule) {
+    throw new Error("Test 1.1 Failed: TGL_SETUP_PROFILE must be deleted from setup-profile.ts");
+  }
+  if ("TGL_VERIFIED_PROFILE" in setupModule) {
+    throw new Error("Test 1.2 Failed: TGL_VERIFIED_PROFILE must be deleted from setup-profile.ts");
+  }
+  if ("profileRegistry" in setupModule) {
+    throw new Error("Test 1.3 Failed: profileRegistry must be deleted from setup-profile.ts");
+  }
+
+  console.log("  [Passed] TGL_SETUP_PROFILE constant does not exist");
+  console.log("  [Passed] TGL_VERIFIED_PROFILE constant does not exist");
+  console.log("  [Passed] profileRegistry fallback does not exist");
+  console.log("[Test 1 Passed] No fallback constants verified.\n");
+
+  // -------------------------------------------------------------------------
+  // Test 2: Supabase Only — Unknown & Unverified Domains Refuse Run
+  // -------------------------------------------------------------------------
+  console.log("[Test 2] Testing Supabase-Only Reads & Refusal on Unknown / Unverified Domains...");
+
+  // 2.1 Unknown domain must refuse
+  let unknownRefused = false;
   try {
-    await runShortFormAudit({
-      name: "Random Unknown Brand",
-      domains: ["unknownbrand.example"],
-      variants: ["unknown"],
-      competitors: [],
-    }, { testMode: true });
+    await loadVerifiedBrandProfile("unknown-nonexistent-domain.xyz");
   } catch (err: any) {
-    if (err.message.includes("Audit refused") && err.message.includes("not registered")) {
-      unregisteredRefused = true;
+    if (err.message.includes("Audit refused") && err.message.includes("was not found")) {
+      unknownRefused = true;
     }
   }
-  if (!unregisteredRefused) {
-    throw new Error("Test 1.1 Failed: Unregistered brand was not refused with 'Audit refused'");
+  if (!unknownRefused) {
+    throw new Error("Test 2.1 Failed: Unknown domain did not refuse with 'was not found in TrueVisible setup queue. Audit refused.'");
   }
 
-  // 1.2 Unverified brand (status = pending_verification) must be refused
-  registerBrandProfile({
-    brandId: "brand_pending_test",
-    tenantId: "t_pending",
-    name: "Pending Healthcare",
-    primaryDomain: "pendinghealth.example",
-    domains: ["pendinghealth.example"],
-    variants: ["pending healthcare"],
-    setupStatus: "pending_verification",
-    competitors: [{ name: "CompA", domain: "compa.example" }],
-    prompts: Array.from({ length: 5 }, (_, i) => ({
-      id: `p_${i}`,
-      text: `buyer query ${i + 1}`,
-      language: "en",
-    })),
-  });
-
+  // 2.2 Unverified brand (pending_verification) must refuse
   let pendingRefused = false;
   try {
-    await runShortFormAudit({
-      name: "Pending Healthcare",
-      domains: ["pendinghealth.example"],
-      variants: ["pending healthcare"],
-      competitors: [],
-    }, { testMode: true });
+    await loadVerifiedBrandProfile("pendinghealth.example");
   } catch (err: any) {
-    if (err.message.includes("Audit refused") && err.message.includes("is not verified")) {
+    if (err.message.includes("Audit refused") && err.message.includes("is not verified (status: pending_verification)")) {
       pendingRefused = true;
     }
   }
   if (!pendingRefused) {
-    throw new Error("Test 1.2 Failed: Brand with pending_verification status was not refused");
+    throw new Error("Test 2.2 Failed: pending_verification brand was not refused with status message");
   }
 
-  console.log("  [Passed] Unregistered brands refused without guessing");
-  console.log("  [Passed] Unverified brand profiles strictly rejected ('Audit refused')");
-  console.log("[Test 1 Passed] Setup Profile Verification Gate strictly enforced.\n");
-
-  // -------------------------------------------------------------------------
-  // Test 2: TGL Setup Profile Reversion (Pending Architect Card Approval)
-  // -------------------------------------------------------------------------
-  console.log("[Test 2] Testing TGL Setup Profile Status & Refusal before Architect Approval...");
-
-  const tglSnapshot = await loadVerifiedBrandProfile("thegrowthlab.co.in").catch((e) => e);
-  if (!(tglSnapshot instanceof Error) || !tglSnapshot.message.includes("is not verified (status: pending_verification)")) {
-    throw new Error(`Test 2.1 Failed: Expected thegrowthlab.co.in to be pending_verification and refuse run, got ${tglSnapshot}`);
-  }
-
-  if (TGL_SETUP_PROFILE.setupStatus !== "pending_verification") {
-    throw new Error(`Test 2.2 Failed: TGL_SETUP_PROFILE must be pending_verification, got ${TGL_SETUP_PROFILE.setupStatus}`);
-  }
-  if (TGL_SETUP_PROFILE.setupVerifiedAt || TGL_SETUP_PROFILE.setupVerifiedBy) {
-    throw new Error("Test 2.3 Failed: TGL_SETUP_PROFILE verification metadata must be undefined until Architect card tap");
-  }
-
-  // TGL market definition check
-  if (!TGL_SETUP_PROFILE.market?.icp?.includes("hospitals and clinics")) {
-    throw new Error("Test 2.4 Failed: TGL market ICP must include hospitals and clinics");
-  }
-
-  let tglDirectRunBlocked = false;
+  // 2.3 Needs changes brand (thegrowthlab.co.in) must refuse
+  let tglRefused = false;
   try {
-    await runShortFormAudit({
-      name: "The Growth Lab",
-      domains: ["thegrowthlab.co.in"],
-      variants: ["tgl"],
-      competitors: [],
-    }, { testMode: true });
+    await loadVerifiedBrandProfile("thegrowthlab.co.in");
   } catch (err: any) {
-    if (err.message.includes("Audit refused") && err.message.includes("pending_verification")) {
-      tglDirectRunBlocked = true;
+    if (err.message.includes("Audit refused") && err.message.includes("is not verified (status: needs_changes)")) {
+      tglRefused = true;
     }
   }
-  if (!tglDirectRunBlocked) {
-    throw new Error("Test 2.5 Failed: Direct audit run for thegrowthlab.co.in was not blocked while pending verification");
+  if (!tglRefused) {
+    throw new Error("Test 2.3 Failed: thegrowthlab.co.in was not refused with 'status: needs_changes'");
   }
 
-  console.log("  [Passed] TGL profile held in pending_verification status with multi-vertical ICP");
-  console.log("  [Passed] Direct audit run strictly refused pending Architect Setup-check card approval");
-  console.log("[Test 2 Passed] TGL Setup Profile Reversion verified.\n");
+  // 2.4 Brand with fewer than 5 prompts must refuse
+  let sparseRefused = false;
+  try {
+    await loadVerifiedBrandProfile("sparse.example");
+  } catch (err: any) {
+    if (err.message.includes("Audit refused") && err.message.includes("fewer than 5 verified buyer prompts")) {
+      sparseRefused = true;
+    }
+  }
+  if (!sparseRefused) {
+    throw new Error("Test 2.4 Failed: Brand with < 5 prompts was not refused");
+  }
+
+  console.log("  [Passed] Unknown domain refused ('was not found in TrueVisible setup queue')");
+  console.log("  [Passed] pending_verification domain refused ('is not verified (status: pending_verification)')");
+  console.log("  [Passed] needs_changes domain refused ('is not verified (status: needs_changes)')");
+  console.log("  [Passed] Brand with < 5 prompts refused ('fewer than 5 verified buyer prompts')");
+  console.log("[Test 2 Passed] Supabase Read & Refusal Gates verified.\n");
 
   // -------------------------------------------------------------------------
-  // Test 3: Verified Fixture Setup & Buyer Prompts (Hospitals, Clinics, Coaching)
+  // Test 3: Verified Fixture Setup & Multi-Vertical Buyer Prompts
   // -------------------------------------------------------------------------
   console.log("[Test 3] Testing Verified Setup & Multi-Vertical Buyer Prompts...");
 
-  // Register verified test profile simulating an Architect-approved brand
-  const verifiedTestProfile = {
-    ...TGL_SETUP_PROFILE,
-    brandId: "brand_verified_test",
-    name: "Verified Test Brand",
-    primaryDomain: "verified-brand.example",
-    domains: ["verified-brand.example"],
-    variants: ["verified test brand"],
-    setupStatus: "verified" as const,
-    setupVerifiedAt: "2026-11-03T10:00:00Z",
-    setupVerifiedBy: "architect",
-  };
-  registerBrandProfile(verifiedTestProfile);
-
-  for (const p of verifiedTestProfile.prompts) {
-    if (p.text.toLowerCase().includes("best coaching institute for digital marketing in india")) {
-      throw new Error(`Test 3.1 Failed: Found old coaching institute prompt: ${p.text}`);
-    }
+  const verifiedProfile = await loadVerifiedBrandProfile("verified-brand.example");
+  if (verifiedProfile.setupStatus !== "verified") {
+    throw new Error(`Test 3.1 Failed: Expected status verified, got ${verifiedProfile.setupStatus}`);
+  }
+  if (verifiedProfile.prompts.length !== 5) {
+    throw new Error(`Test 3.2 Failed: Expected 5 prompts, got ${verifiedProfile.prompts.length}`);
   }
 
-  const result = await runShortFormAudit(verifiedTestProfile, { testMode: true });
+  const result = await runShortFormAudit(verifiedProfile, { testMode: true });
 
   if (result.promptsCount !== 5) {
-    throw new Error(`Test 3.2 Failed: Expected 5 prompts, got ${result.promptsCount}`);
+    throw new Error(`Test 3.3 Failed: Expected 5 prompts, got ${result.promptsCount}`);
   }
   if (result.enginesCount !== 3) {
-    throw new Error(`Test 3.3 Failed: Expected 3 engines, got ${result.enginesCount}`);
+    throw new Error(`Test 3.4 Failed: Expected 3 engines, got ${result.enginesCount}`);
   }
   if (result.totalQueries !== 15) {
-    throw new Error(`Test 3.4 Failed: Expected 15 total queries, got ${result.totalQueries}`);
+    throw new Error(`Test 3.5 Failed: Expected 15 total queries, got ${result.totalQueries}`);
   }
 
-  console.log("  [Passed] Multi-vertical AI visibility prompts loaded");
+  console.log("  [Passed] Multi-vertical AI visibility prompts loaded from Supabase");
   console.log("  [Passed] Evaluated 5 prompts × 3 engines = 15 queries");
   console.log("[Test 3 Passed] Verified Setup & Buyer Prompts verified.\n");
 
@@ -219,7 +362,7 @@ async function runDay08AeoTests() {
   if (citeCounts.length === 0) throw new Error("Test 5.4 Failed: Expected citation domains, found 0");
 
   for (const [dom, count] of citeCounts) {
-    if (dom !== verifiedTestProfile.primaryDomain && count === 15) {
+    if (dom !== verifiedProfile.primaryDomain && count === 15) {
       throw new Error(`Test 5.5 Failed: Domain '${dom}' has placeholder count 15!`);
     }
   }

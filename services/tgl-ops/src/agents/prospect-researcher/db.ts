@@ -16,6 +16,10 @@ export function setMockProspectRecordsForTests(records: ProspectRecord[] | null)
   mockProspectRecordsForTests = records;
 }
 
+export function setMockSupabaseClientForTests(client: SupabaseClient | null): void {
+  supabaseClient = client;
+}
+
 export function getSupabase(): SupabaseClient | null {
   if (supabaseClient) return supabaseClient;
   if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
