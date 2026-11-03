@@ -6,6 +6,9 @@ process.env.ANTHROPIC_PRICE_IN = process.env.ANTHROPIC_PRICE_IN || "3";
 process.env.ANTHROPIC_PRICE_OUT = process.env.ANTHROPIC_PRICE_OUT || "15";
 
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { config } from "./config.js";
 import { extractSite, marketQuestion, evidenceCorpus } from "./agents/aeo-strategist/evidence.js";
 import { validateProposal, proposeChanges, buildUserMessage, changeCount } from "./agents/aeo-strategist/propose.js";
 import { buildReviewBlocks, readSelection, decidedBlocks } from "./agents/aeo-strategist/card.js";
@@ -88,14 +91,170 @@ await t("validation: market change only for fields that actually differ", () => 
 await t("proposeChanges: calls the model with setup + both evidence blocks, prices the call, validates the reply", async () => {
   let seen: any;
   const fake = { messages: { create: async (req: any) => { seen = req; return {
-    content: [{ type: "text", text: 'Here you go: {"summary":"Fine overall.","competitors_add":[{"name":"Elite Nursing Institute","domain":null,"evidence_quote":"Elite Nursing Institute"}]}' }],
+    content: [{
+      type: "tool_use",
+      id: "call_1",
+      name: "propose_setup_check",
+      input: {
+        summary: "Fine overall.",
+        market_change: null,
+        competitors_add: [{
+          name: "Elite Nursing Institute",
+          domain: null,
+          prompt: "Who are the best coaching providers in Mohali for students?",
+          engine: "perplexity",
+          verbatim_excerpt: "Elite Nursing Institute",
+        }],
+        competitors_remove: [],
+        prompts_retire: [],
+        prompts_add: [],
+      },
+    }],
     usage: { input_tokens: 2000, output_tokens: 300 } }; } } } as any;
   const r = await proposeChanges(snap, ev, fake);
+  assert.equal(seen.tools?.[0]?.name, "propose_setup_check");
+  assert.deepEqual(seen.tool_choice, { type: "tool", name: "propose_setup_check" });
+  assert.equal(seen.max_tokens, 4096);
   assert.match(seen.messages[0].content, /EVIDENCE 2 — live AI answer from perplexity/);
   assert.match(seen.messages[0].content, /9\. \[en · consideration\] question number 9/);
   assert.equal(r.proposal.competitorsAdd[0].name, "Elite Nursing Institute");
   assert.equal(Number(r.usd.toFixed(4)), Number((2000 * 3 / 1e6 + 300 * 15 / 1e6).toFixed(4)));
   assert.equal(changeCount(r.proposal), 1);
+});
+
+await t("proposeChanges handles Hinglish prompt containing internal quotes via tool_use without parse error", async () => {
+  const fake = {
+    messages: {
+      create: async () => ({
+        content: [
+          {
+            type: "tool_use",
+            id: "call_hinglish",
+            name: "propose_setup_check",
+            input: {
+              summary: "Added Hinglish prompt with internal quotes.",
+              market_change: null,
+              competitors_add: [],
+              competitors_remove: [],
+              prompts_retire: [{ number: 1, reason: "replaced" }],
+              prompts_add: [
+                {
+                  text: 'Mohali mein "best nursing coaching" kaunsi hai?',
+                  language: "hinglish",
+                  journey_phase: "consideration",
+                  reason: "buyer intent with quotes",
+                },
+                {
+                  text: 'ChatGPT par "top results" kaise dekhein',
+                  language: "hinglish",
+                  journey_phase: "awareness",
+                  reason: "AEO discovery with quotes",
+                },
+              ],
+            },
+          },
+        ],
+        usage: { input_tokens: 1500, output_tokens: 200 },
+      }),
+    },
+  } as any;
+  const r = await proposeChanges(snap, ev, fake);
+  assert.equal(r.proposal.promptsAdd.length, 2);
+  assert.equal(r.proposal.promptsAdd[0].text, 'Mohali mein "best nursing coaching" kaunsi hai?');
+  assert.equal(r.proposal.promptsAdd[0].language, "hinglish");
+  assert.equal(r.proposal.promptsAdd[1].text, 'ChatGPT par "top results" kaise dekhein');
+});
+
+await t("competitor evidence: must be verbatim excerpt from live AI answer with prompt and engine; site tagline is rejected", () => {
+  const customEv: Evidence = {
+    site: extractSite(`<html><head><title>Super Academy</title></head><body><h1>Official Site Tagline: Best coaching in town</h1><p>Welcome to Super Academy</p></body></html>`, "https://super.example/"),
+    aiQuestion: "Who are the best test prep coaching centers?",
+    aiAnswer: "Top centers include Alpha Classes (alpha.example) and Beta Institute.",
+    aiEngine: "perplexity (sonar-pro)",
+  };
+
+  const p = validateProposal({
+    summary: "Testing evidence rules",
+    competitors_add: [
+      // 1. Valid: in AI answer, verbatim excerpt, prompt and engine named
+      {
+        name: "Alpha Classes",
+        domain: "alpha.example",
+        prompt: "Who are the best test prep coaching centers?",
+        engine: "perplexity (sonar-pro)",
+        verbatim_excerpt: "Alpha Classes (alpha.example)",
+      },
+      // 2. Invalid: excerpt from site tagline instead of AI answer
+      {
+        name: "Beta Institute",
+        domain: "beta.example",
+        prompt: "Who are the best test prep coaching centers?",
+        engine: "perplexity (sonar-pro)",
+        verbatim_excerpt: "Official Site Tagline: Best coaching in town",
+      },
+      // 3. Invalid: competitor only found on site, not in AI answer
+      {
+        name: "Super Academy",
+        domain: "super.example",
+        prompt: "Who are the best test prep coaching centers?",
+        engine: "perplexity (sonar-pro)",
+        verbatim_excerpt: "Welcome to Super Academy",
+      },
+      // 4. Invalid: missing prompt and engine
+      {
+        name: "Beta Institute",
+        domain: "beta.example",
+        prompt: "",
+        engine: "",
+        verbatim_excerpt: "Beta Institute",
+      },
+    ],
+    competitors_remove: [],
+    prompts_retire: [],
+    prompts_add: [],
+  }, { ...snap, market: null, competitors: [] }, { ...customEv, aiQuestion: null, aiEngine: null });
+
+  assert.equal(p.competitorsAdd.length, 1);
+  assert.equal(p.competitorsAdd[0].name, "Alpha Classes");
+  assert.equal(p.competitorsAdd[0].evidence, "Alpha Classes (alpha.example)");
+  assert.equal(p.competitorsAdd[0].prompt, "Who are the best test prep coaching centers?");
+  assert.equal(p.competitorsAdd[0].engine, "perplexity (sonar-pro)");
+
+  assert.ok(p.dropped.some((d) => d.includes("Beta Institute") && d.includes("site tagline is not evidence")));
+  assert.ok(p.dropped.some((d) => d.includes("Super Academy") && d.includes("site tagline is not evidence")));
+  assert.ok(p.dropped.some((d) => d.includes("Beta Institute") && d.includes("prompt and engine must be named")));
+});
+
+await t("proposeChanges fallback retry on tool failure and logs raw reply to aeo-strategist.md on parse error", async () => {
+  let callCount = 0;
+  const invalidRawText = "Raw invalid reply that fails to parse {broken: json [";
+  const fake = {
+    messages: {
+      create: async () => {
+        callCount++;
+        if (callCount === 1) {
+          // Tool call fails (e.g. no tool block)
+          return { content: [{ type: "text", text: "Something went wrong without tool" }], usage: { input_tokens: 100, output_tokens: 20 } };
+        }
+        // Fallback returns invalid text
+        return { content: [{ type: "text", text: invalidRawText }], usage: { input_tokens: 100, output_tokens: 20 } };
+      },
+    },
+  } as any;
+
+  await assert.rejects(async () => {
+    await proposeChanges(snap, ev, fake);
+  }, /model returned no JSON object/);
+
+  assert.equal(callCount, 2, "Expected fallback retry to be called after primary tool failure");
+
+  // Verify that appendLog wrote the raw reply to logs/.test/<date>/aeo-strategist.md
+  const today = new Date().toISOString().slice(0, 10);
+  const logFile = path.join(config.repoRoot, "logs/.test", today, "aeo-strategist.md");
+  assert.ok(fs.existsSync(logFile), `Expected log file ${logFile} to exist`);
+  const logContent = fs.readFileSync(logFile, "utf8");
+  assert.ok(logContent.includes("proposal parse failure:"), "Log must mention proposal parse failure");
+  assert.ok(logContent.includes("Raw invalid reply that fails to parse"), "Log must contain the raw reply text");
 });
 
 const proposal = validateProposal({

@@ -44,7 +44,7 @@ export interface Evidence {
 export interface Proposal {
   summary: string;
   market: { product?: string; icp?: string; location?: string; reason: string } | null;
-  competitorsAdd: { name: string; domain: string | null; evidence: string }[];
+  competitorsAdd: { name: string; domain: string | null; prompt?: string; engine?: string; evidence: string }[];
   competitorsRemove: { id: string; name: string; reason: string }[];
   promptsRetire: { id: string; text: string; reason: string }[];
   promptsAdd: { text: string; language: string; journey_phase: Journey; reason: string }[];
