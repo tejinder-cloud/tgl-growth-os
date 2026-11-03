@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-03T06:35:25.176Z",
+  "updatedAt": "2026-11-03T06:35:25.468Z",
   "runs": {
     "13": {
       "agent": "web-builder",
@@ -61,11 +61,11 @@
     "72": {
       "agent": "web-builder",
       "title": "[PLAN-D10]: Outreach Sequencer SKILL.md + 5-touch worker",
-      "status": "in-progress",
-      "runStartedAt": "2026-11-03T06:35:25.011Z",
+      "status": "needs-brief",
+      "runStartedAt": "2026-11-03T06:35:17.590Z",
       "door": "core",
-      "error": "The brief is still underspecified. It does not violate §8 Never and does not touch `decisions/` or `logs/`. Writing to `agents/` and `services/` on a branch is allowed, so the problem is missing specifics, not scope or protected paths. Three pre-flight verdicts have already asked for details, and the Architect has not answered any of them. Nothing in the thread resolves the ambiguity, and the thread contains no Architect instructions to treat as authoritative.\n\nOnly `agents/outreach-sequencer/SKILL.md` has an exact target. The worker is most of the work, and it has no file path or service location. The brief also leaves these open:\n- The 5-touch cadence: timing, channels, copy source, and stop conditions.\n- How the one-pager audit is produced and found for touch 2, and what happens if none exists.\n- Which GHL API endpoints, objects, and auth or secrets handling the worker uses.\n- The reply-webhook route and payload shape, and the Sales Desk interface and intent labels.\n\nThe DoD items \"automated through GHL API\" and \"routes intent to Sales Desk\" cannot be verified as written. They need mock-based tests, fixtures, or a dry-run acceptance criterion.\n\nThis system sends real prospect communications, so building it on guesses is unsafe. It also sits outside normal web-builder discipline, so the Architect should confirm that `web-builder` is the right owner. I'm holding the build until the Architect answers the questions below.",
-      "runCompletedAt": "2026-11-03T06:35:19.406Z"
+      "error": "The brief doesn't violate §8 Never. It doesn't touch `decisions/` or `logs/`, and writing to `agents/` and `services/` on a branch is allowed. The problem is that it's still underspecified, and the Architect hasn't answered any of the three earlier needs-brief verdicts. The thread has no instructions, DoD audit findings, or earlier proceed confirmation that would resolve the ambiguity.\n\nOnly `agents/outreach-sequencer/SKILL.md` has an exact target. The worker is most of the work and has no file path or service location. These details are missing:\n- The 5-touch cadence: day offsets, channels, copy source, and stop conditions.\n- How the one-pager audit is produced and located for touch 2, and what happens when none exists.\n- Which GHL API endpoints and objects are used, and how auth and secrets are handled.\n- The reply-webhook route and payload shape, the Sales Desk interface, and what \"intent\" classification means.\n\nThe DoD items \"automated through GHL API\" and \"routes intent to Sales Desk\" can't be verified as written. They need a mock, fixture, or test-based acceptance criterion. This system sends real prospect communications, so building it on guesses is unsafe. Outreach and sales automation also sits outside normal web-builder discipline, so ownership needs confirming. I'm holding the build until the Architect answers.",
+      "runCompletedAt": "2026-11-03T06:35:25.313Z"
     }
   }
 }
