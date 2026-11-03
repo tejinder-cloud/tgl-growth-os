@@ -6,10 +6,11 @@ import { gatherStandupMaterial } from "./agents/chief-of-staff/gather.js";
 import { doesCronRunOnDate, isAgentScheduledOnDate, type AgentRecord } from "./lib/agents.js";
 import { execute1815SilenceCheck } from "./agents/chief-of-staff/worker.js";
 import { getCurrentPlanDay } from "./lib/plan.js";
-import { getRunnerState, saveRunnerState, recordRunnerIssue } from "./runner/state.js";
+import { getRunnerState, saveRunnerState, recordRunnerIssue, clearMockRunnerStateDbForTests } from "./runner/state.js";
 import { catchUpRunnerIssues, recoverInterruptedRunnerIssues } from "./runner/catch-up.js";
 import { runPreflightCheck } from "./runner/preflight.js";
 import { handleRunnerShutdown, setActiveIssueNumberForTests } from "./runner/runner.js";
+import { resetMockPostedLines, mockPostedLines } from "./lib/post.js";
 
 async function runFixesVerificationSuite(): Promise<void> {
   console.log("==========================================================================");
@@ -371,6 +372,70 @@ async function runFixesVerificationSuite(): Promise<void> {
   }
 
   console.log("  ✓ Both re-queue alerts and blocked alerts strictly obey the 1-hour per-issue deduplication check");
+
+  // Part 5: Multi-instance concurrency: two simulated instances booting with the same in-progress issue produce exactly one recovery and one alert
+  console.log("  [Multi-Instance Concurrency] Testing two simulated instances booting concurrently with same in-progress issue...");
+  resetMockPostedLines();
+
+  // Reset runner state with issue #72 in-progress and no prior alerts
+  clearMockRunnerStateDbForTests();
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        "72": {
+          agent: "web-builder",
+          door: "aeo",
+          title: "[PLAN-D10]: Outreach Sequencer SKILL.md + 5-touch worker",
+          status: "in-progress" as const,
+          runStartedAt: new Date().toISOString(),
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  const instanceAlpha = "container-alpha-101";
+  const instanceBravo = "container-bravo-202";
+
+  // Simulate both instances booting and executing recovery concurrently
+  const [resAlpha, resBravo] = await Promise.all([
+    recoverInterruptedRunnerIssues({ instanceId: instanceAlpha, testMode: true }),
+    recoverInterruptedRunnerIssues({ instanceId: instanceBravo, testMode: true }),
+  ]);
+
+  const recoveredAlpha = resAlpha.includes(72);
+  const recoveredBravo = resBravo.includes(72);
+
+  // Exactly one instance must have won the atomic claim and executed recovery
+  if (recoveredAlpha && recoveredBravo) {
+    throw new Error("Test 4.12 Failed: Both instances claimed issue #72 simultaneously! Atomic lock failed.");
+  }
+  if (!recoveredAlpha && !recoveredBravo) {
+    throw new Error("Test 4.13 Failed: Neither instance recovered issue #72.");
+  }
+
+  // Verify alert count: exactly one boot recovery alert posted across both instances
+  const bootAlerts = mockPostedLines.filter(
+    (p) => p.text.includes("[Runner Boot Recovery]") && p.text.includes("#72")
+  );
+  if (bootAlerts.length !== 1) {
+    throw new Error(`Test 4.14 Failed: Expected exactly 1 recovery alert, got ${bootAlerts.length}`);
+  }
+
+  // Verify the losing instance does nothing and alerts nothing on subsequent boot cycle
+  const losingInstance = recoveredAlpha ? instanceBravo : instanceAlpha;
+  const resLosing = await recoverInterruptedRunnerIssues({ instanceId: losingInstance, testMode: true });
+  const alertsAfter = mockPostedLines.filter(
+    (p) => p.text.includes("[Runner Boot Recovery]") && p.text.includes("#72")
+  );
+  if (alertsAfter.length !== 1) {
+    throw new Error(`Test 4.15 Failed: Losing instance generated duplicate alert, total alerts: ${alertsAfter.length}`);
+  }
+
+  console.log("  ✓ Two simulated instances booting with same in-progress issue produce exactly one recovery and one alert");
   console.log("✅ [Test 4 Passed] Graceful SIGTERM, non-counting boot recovery & dual alert deduplication verified.\n");
   passed++;
 

@@ -751,18 +751,14 @@ export async function pollChiefOfStaffIntake(options?: {
           }
           const doorChannel = `#doors-${door}`;
 
-          // 5. Clear recoveryAttempts in runner state and set status:in-progress
-          const { recordRunnerIssue } = await import("../../runner/state.js");
-          await recordRunnerIssue(
+          // 5. Clear recoveryAttempts in runner state, release any active claim, and set status:in-progress
+          const { resetRunnerIssue } = await import("../../runner/state.js");
+          await resetRunnerIssue(
             issueNum,
             {
               agent: assignedAgent,
               door,
               title: existingIssue?.title || `Issue #${issueNum}`,
-              status: "in-progress",
-              recoveryAttempts: 0,
-              error: undefined,
-              lastRecoveryAt: new Date().toISOString(),
             },
             { testMode: isTest }
           );
@@ -809,10 +805,11 @@ export async function pollChiefOfStaffIntake(options?: {
           await removeLabelFromIssue(issueNum, "status:in-progress").catch(() => {});
           await addLabelsToIssue(issueNum, ["status:blocked"]).catch(() => {});
 
-          // 3. Update runner state
-          const { recordRunnerIssue } = await import("../../runner/state.js");
-          await recordRunnerIssue(
+          // 3. Update runner state and release claim
+          const { releaseRunnerClaim } = await import("../../runner/state.js");
+          await releaseRunnerClaim(
             issueNum,
+            undefined,
             {
               status: "blocked",
               error: "Blocked by Architect command (#N: block).",

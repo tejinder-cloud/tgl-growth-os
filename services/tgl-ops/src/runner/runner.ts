@@ -23,7 +23,16 @@ export { usageCostsLedger, type UsageCostEntry };
 import { runPreflightCheck } from "./preflight.js";
 import { buildRunnerSystemPrompt, buildRunnerUserMessage } from "./prompt.js";
 import { RUNNER_TOOLS, executeRunnerTool, type RunnerToolContext } from "./tools.js";
-import { recordRunnerIssue, getRunnerState } from "./state.js";
+import {
+  recordRunnerIssue,
+  getRunnerState,
+  CONTAINER_INSTANCE_ID,
+  claimRunnerIssue,
+  updateRunnerHeartbeat,
+  releaseRunnerClaim,
+  incrementRecoveryAttempts,
+  claimAlertSlot,
+} from "./state.js";
 
 // Concurrency 1 and one run per issue
 const runningIssues = new Set<number>();
@@ -44,19 +53,21 @@ export function setActiveIssueNumberForTests(num: number | null): void {
 
 /**
  * Graceful shutdown handler on SIGTERM / SIGINT.
- * On SIGTERM the runner writes status "interrupted" for the active run and exits cleanly.
+ * On SIGTERM the runner writes status "interrupted" for the active run and releases atomic claim cleanly.
  */
 export async function handleRunnerShutdown(
   signal?: string,
-  options?: { testMode?: boolean }
+  options?: { instanceId?: string; testMode?: boolean }
 ): Promise<void> {
   const isTest = options?.testMode === true || isTestMode();
+  const instanceId = options?.instanceId || CONTAINER_INSTANCE_ID;
   if (activeIssueNumber !== null) {
     const issueNum = activeIssueNumber;
-    console.log(`[Runner Shutdown] Received ${signal || "shutdown signal"}. Marking active issue #${issueNum} as 'interrupted'...`);
+    console.log(`[Runner Shutdown] Received ${signal || "shutdown signal"}. Marking active issue #${issueNum} as 'interrupted' and releasing claim...`);
     try {
-      await recordRunnerIssue(
+      await releaseRunnerClaim(
         issueNum,
+        instanceId,
         {
           status: "interrupted",
           error: `Run interrupted by process termination (${signal || "SIGTERM"}).`,
@@ -64,9 +75,9 @@ export async function handleRunnerShutdown(
         },
         { testMode: isTest }
       );
-      console.log(`[Runner Shutdown] Active issue #${issueNum} marked 'interrupted'.`);
+      console.log(`[Runner Shutdown] Active issue #${issueNum} marked 'interrupted' and claim released.`);
     } catch (err) {
-      console.error(`[Runner Shutdown] Failed to mark active issue #${issueNum} as 'interrupted':`, err);
+      console.error(`[Runner Shutdown] Failed to release claim for active issue #${issueNum}:`, err);
     }
   }
 }
@@ -117,9 +128,10 @@ export function generateBranchSlug(issueNumber: number, title: string, prefix = 
  */
 export async function runIssueTask(
   issue: RunnerIssueInput,
-  options?: { testMode?: boolean; throwawayPrefix?: string }
+  options?: { testMode?: boolean; throwawayPrefix?: string; instanceId?: string }
 ): Promise<RunnerRunResult> {
   const isTest = options?.testMode === true || isTestMode();
+  const instanceId = options?.instanceId || CONTAINER_INSTANCE_ID;
   const issueNum = issue.number;
   const timeStr = getCurrentTimeIST();
   const dateStr = getTodayDateString();
@@ -149,6 +161,8 @@ export async function runIssueTask(
     }
   }
 
+  let heartbeatInterval: NodeJS.Timeout | null = null;
+
   try {
     // 2. Identify agent
     const agentLabel = issue.labels.find((l) => l.startsWith("for:"));
@@ -177,10 +191,12 @@ export async function runIssueTask(
     const agentName = agentRecord?.name || rawAgentName;
     const reviewer = agentRecord?.reviewer || "Creative Director";
 
-    console.log(`[Runner] Picked up issue #${issueNum} for @${agentName}: "${issue.title}"`);
+    console.log(`[Runner] Picked up issue #${issueNum} for @${agentName}: "${issue.title}" on instance ${instanceId}`);
 
-    // Record in-progress status immediately in runner state so restarts can be detected
-    await recordRunnerIssue(
+    // Atomic claim:
+    // Claiming an issue (start, resume, recovery) is one atomic UPDATE ... WHERE owner_instance IS NULL OR heartbeat_at < now() - interval '3 minutes'
+    // A claim that affects 0 rows means another instance owns it, and this instance does nothing and alerts nothing.
+    const claimed = await claimRunnerIssue(
       issueNum,
       {
         agent: agentName,
@@ -189,8 +205,26 @@ export async function runIssueTask(
         status: "in-progress",
         runStartedAt: new Date().toISOString(),
       },
-      { testMode: isTest }
-    ).catch((err) => console.warn("[Runner state start warning]", err));
+      { instanceId, testMode: isTest }
+    );
+
+    if (!claimed) {
+      console.log(`[Runner] Issue #${issueNum} claim affected 0 rows (owned by another instance); doing nothing and alerting nothing.`);
+      return {
+        success: false,
+        issueNumber: issueNum,
+        status: "skipped",
+        toolCallsCount: 0,
+        error: "Owned by another instance",
+      };
+    }
+
+    // Heartbeat every 30 seconds while run is active
+    heartbeatInterval = setInterval(() => {
+      updateRunnerHeartbeat(issueNum, instanceId, { testMode: isTest }).catch((err) => {
+        console.warn(`[Runner Heartbeat] Heartbeat update error on Issue #${issueNum}:`, err);
+      });
+    }, 30000);
 
     // Cost cap enforcement (Requirement 6): over cap -> run stops, status:blocked, #alerts
     const costCapCheck = await checkAgentCostCap(agentName);
@@ -201,8 +235,9 @@ export async function runIssueTask(
       const existingRun = state.runs[String(issueNum)];
       const attempts = (existingRun?.recoveryAttempts || 0) + 1;
       await addLabelsToIssue(issueNum, ["status:blocked"]);
-      await recordRunnerIssue(
+      await releaseRunnerClaim(
         issueNum,
+        instanceId,
         {
           status: "blocked",
           error: capMsg,
@@ -262,8 +297,9 @@ export async function runIssueTask(
       await removeLabelFromIssue(issueNum, "status:in-progress");
       await addLabelsToIssue(issueNum, ["status:reviewed"]);
 
-      await recordRunnerIssue(
+      await releaseRunnerClaim(
         issueNum,
+        instanceId,
         {
           agent: agentName,
           door: issue.door || "aeo",
@@ -709,9 +745,10 @@ Fixes #${issueNum}
       branch: branchName,
     }).catch((err) => console.warn("[Runner card post error]", err));
 
-    // 11. Record completed run in runner state
-    await recordRunnerIssue(
+    // 11. Record completed run in runner state and release claim
+    await releaseRunnerClaim(
       issueNum,
+      instanceId,
       {
         agent: agentName,
         door: issue.door || "core",
@@ -744,10 +781,9 @@ Fixes #${issueNum}
     console.error(`[Runner Run Error on Issue #${issueNum}]:`, err);
     const errMsg = err?.message || String(err);
 
-    // Read current recovery attempts from state
-    const state = await getRunnerState({ testMode: isTest });
-    const existingRun = state.runs[String(issueNum)];
-    const attempts = (existingRun?.recoveryAttempts || 0) + 1;
+    // Increments recovery_attempts ONLY when a resumed run throws during execution
+    const failureInfo = await incrementRecoveryAttempts(issueNum, errMsg, { instanceId, testMode: isTest });
+    const attempts = failureInfo.attempts;
 
     // Fail loudly: post error in card thread
     if (slackChannel && slackThreadTs) {
@@ -758,39 +794,22 @@ Fixes #${issueNum}
       }).catch(() => {});
     }
 
-    if (attempts >= 2) {
-      // Reached limit: mark blocked
+    if (failureInfo.isBlocked) {
+      // Reached limit: mark blocked on GitHub
       await removeLabelFromIssue(issueNum, "status:in-progress").catch(() => {});
       await addLabelsToIssue(issueNum, ["status:blocked"]).catch(() => {});
 
-      await recordRunnerIssue(
-        issueNum,
-        {
-          status: "blocked",
-          error: errMsg,
-          runCompletedAt: new Date().toISOString(),
-          recoveryAttempts: attempts,
-        },
-        { testMode: isTest }
-      ).catch((err) => console.warn("[Runner state failure warning]", err));
-
-      await postLine({
-        channel: getAlertsChannel(),
-        text: `*[Issue Runner Failure Blocked]* Issue #${issueNum} failed ${attempts} times; marked status:blocked.\n• Error: \`${errMsg.slice(0, 300)}\``,
-      }).catch(() => {});
+      const canAlert = await claimAlertSlot(issueNum, { testMode: isTest });
+      if (canAlert) {
+        await postLine({
+          channel: getAlertsChannel(),
+          text: `*[Issue Runner Failure Blocked]* Issue #${issueNum} failed ${attempts} times; marked status:blocked.\n• Error: \`${errMsg.slice(0, 300)}\``,
+        }).catch(() => {});
+      } else {
+        console.log(`[Runner] Suppressed blocked alert for Issue #${issueNum} (1-hour dedupe active).`);
+      }
     } else {
-      // First failure: record attempt count and status failed
-      await recordRunnerIssue(
-        issueNum,
-        {
-          status: "failed",
-          error: errMsg,
-          runCompletedAt: new Date().toISOString(),
-          recoveryAttempts: attempts,
-        },
-        { testMode: isTest }
-      ).catch((err) => console.warn("[Runner state failure warning]", err));
-
+      // First failure
       await postLine({
         channel: getAlertsChannel(),
         text: `*[Issue Runner Failure]* Issue #${issueNum} (attempt ${attempts} of 2)\n• Error: \`${errMsg.slice(0, 300)}\``,
@@ -805,6 +824,10 @@ Fixes #${issueNum}
       error: errMsg,
     };
   } finally {
+    if (heartbeatInterval) {
+      clearInterval(heartbeatInterval);
+      heartbeatInterval = null;
+    }
     runningIssues.delete(issueNum);
     isGlobalRunnerActive = false;
     if (activeIssueNumber === issueNum) {
