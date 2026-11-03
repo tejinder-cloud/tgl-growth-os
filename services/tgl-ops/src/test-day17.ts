@@ -108,11 +108,11 @@ await t("citation: owned, directory, competitor domain, Gemini redirect resolved
 
 // ── tracker end-to-end with an in-memory store and fake providers ──
 function memoryStore(brand: TrackedBrand) {
-  const db = { runs: [] as any[], answers: [] as any[], citations: [] as any[], usage: [] as any[], priorSearches: {} as Record<string, number> };
+  const db = { runs: [] as any[], answers: [] as any[], citations: [] as any[], usage: [] as any[], priorSearches: {} as Record<string, number>, eligibleOpts: [] as any[] };
   const store: TrackerStore = {
-    async loadEligibleBrands() { return [brand]; },
+    async loadEligibleBrands(_id?: string, opts?: { includeUnverified?: boolean }) { db.eligibleOpts.push(opts ?? {}); return [brand]; },
     async hasCompletedRun(id, date, engine) { return db.runs.some((r) => r.brand === id && r.date === date && r.engine === engine && ["succeeded", "partial"].includes(r.status)); },
-    async startRun(b, date, engine) { const id = `run${db.runs.length + 1}`; db.runs.push({ id, brand: b.id, date, engine, status: "running" }); return id; },
+    async startRun(b, date, engine, kind = "daily") { const id = `run${db.runs.length + 1}`; db.runs.push({ id, brand: b.id, date, engine, kind, status: "running" }); return id; },
     async saveAnswer(_b, runId, promptId, ans, a, cites) { db.answers.push({ runId, promptId, engine: ans.engine, ...a }); db.citations.push(...cites); },
     async finishRun(runId, status, error) { Object.assign(db.runs.find((r) => r.id === runId), { status, error }); },
     async recordUsageCost(_b, date, engine, row) { db.usage.push({ date, engine, ...row }); },
@@ -191,6 +191,17 @@ await t("Gemini free grounding allowance: searches inside the monthly allowance 
   const m2 = memoryStore(brand);
   await runTracker({ store: m2.store, runDate: "2026-11-03", usdInr: 88, env: geminiEnv, engines: ["gemini"], fetchImpl: gfetch });
   assert.equal(Number(m2.db.usage[0].usd.toFixed(6)), Number((2 * tokenUsd + 4 * 14 / 1000).toFixed(6)));
+});
+
+await t("first audit (kind audit): runs again the same day after a daily run, includes unverified brands, recorded as kind audit", async () => {
+  const { db, store } = memoryStore(brand);
+  await runTracker({ store, runDate: "2026-11-03", usdInr: 88, env, fetchImpl: fakeFetch });
+  const again = await runTracker({ store, runDate: "2026-11-03", usdInr: 88, env, fetchImpl: fakeFetch });
+  assert.ok(again.outcomes.every((o) => o.status === "skipped")); // daily: once a day
+  const audit = await runTracker({ store, runDate: "2026-11-03", usdInr: 88, env, fetchImpl: fakeFetch, kind: "audit" });
+  assert.ok(audit.outcomes.every((o) => o.status !== "skipped"));
+  assert.deepEqual(db.runs.filter((r) => r.kind === "audit").map((r) => r.engine).sort(), ["chatgpt", "perplexity"]);
+  assert.deepEqual(db.eligibleOpts.map((o) => !!o.includeUnverified), [false, false, true]);
 });
 
 console.log(`\nDay 17: ${passed} checks passed`);

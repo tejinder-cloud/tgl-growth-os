@@ -139,13 +139,22 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
-import { runCitationTracking } from "./agents/aeo-audit-engine/worker.js";
+import { runCitationTracking, runFirstAudits } from "./agents/aeo-audit-engine/worker.js";
 
 // 06:00 IST daily: Citation Tracker — every eligible brand × prompt × engine (config/agents.yaml routine daily_citation_tracking)
 cron.schedule(
   "0 6 * * *",
   wrapCronJob("06:00 IST Citation Tracker", async () => {
     await runCitationTracking();
+  }),
+  { timezone: config.timezone }
+);
+
+// Every minute: first audit for any setup submitted since the brand's last run (numbers within minutes of finishing setup)
+cron.schedule(
+  "* * * * *",
+  wrapCronJob("1-min First Audit Queue", async () => {
+    await runFirstAudits();
   }),
   { timezone: config.timezone }
 );
