@@ -21,6 +21,8 @@ export interface TrackerStore {
   saveAnswer(b: TrackedBrand, runId: string, promptId: string, ans: EngineAnswer, a: AnswerAnalysis, cites: CitationAnalysis[]): Promise<void>;
   finishRun(runId: string, status: "succeeded" | "partial" | "failed", error: string | null): Promise<void>;
   recordUsageCost(b: TrackedBrand, runDate: string, engine: EngineId, row: { calls: number; usd: number; inr: number; detail: Record<string, unknown> }): Promise<void>;
+  /** Billable searches already recorded this calendar month for an engine, across all tenants (free allowances are per provider account). */
+  monthSearches(engine: EngineId, runDate: string): Promise<number>;
 }
 
 function must<T>(res: { data: T; error: { message: string } | null }, what: string): T {
@@ -115,6 +117,13 @@ export function supabaseStore(sb: SupabaseClient): TrackerStore {
 
     async finishRun(runId, status, error) {
       must(await sb.from("runs").update({ status, error, finished_at: new Date().toISOString() }).eq("id", runId), "finish run");
+    },
+
+    async monthSearches(engine, runDate) {
+      const rows = must(await sb.from("usage_costs").select("detail").eq("category", "engine_api").eq("engine", engine)
+        .gte("cost_date", runDate.slice(0, 8) + "01").lte("cost_date", runDate).limit(5000), "month searches") as any[];
+      // Count every search the provider saw (free + billed) — the allowance is consumed by both.
+      return rows.reduce((n, r) => n + (Number(r.detail?.searches) || 0) + (Number(r.detail?.free_searches) || 0), 0);
     },
 
     async recordUsageCost(b, runDate, engine, row) {

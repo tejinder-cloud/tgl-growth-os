@@ -38,18 +38,30 @@ export function extractSchemaOrg(html: string): string[] {
   return fields;
 }
 
+/** Attributes of one tag, in any order and either quote style. */
+function tagAttrs(tag: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const m of tag.matchAll(/([a-zA-Z:-]+)\s*=\s*("([^"]*)"|'([^']*)')/g)) out[m[1].toLowerCase()] = decode(m[3] ?? m[4] ?? "");
+  return out;
+}
+
 export function extractSite(html: string, url: string): SiteSnapshot {
   const pick = (re: RegExp) => { const m = re.exec(html); return m ? decode(m[1].replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim() : undefined; };
   const title = pick(/<title[^>]*>([\s\S]*?)<\/title>/i);
-  let description = pick(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i) ?? pick(/<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["']/i);
-  // Strip out descriptions that are actually CSS code blocks
-  if (description && (/\{[\s\S]*\}/.test(description) || /font-family|var\(--/i.test(description))) {
-    description = undefined;
-  }
+  // Meta tags parsed one tag at a time by attribute (3 Nov: a regex across the head picked up inline CSS as the description).
+  const metas = [...html.matchAll(/<meta\b[^>]*>/gi)].map((m) => tagAttrs(m[0]));
+  const meta = (key: string) => metas.find((a) => (a.name ?? a.property ?? "").toLowerCase() === key)?.content?.trim() || undefined;
+  let description = meta("description") ?? meta("og:description");
+  if (description && (/\{[\s\S]*\}/.test(description) || /font-family|var\(--/i.test(description))) description = undefined;
 
+  // Headings a visitor sees: read after code, styles, comments, nav and footer are removed.
+  const visible = html
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<(script|style|noscript|svg|template|iframe)\b[\s\S]*?<\/\1>/gi, " ")
+    .replace(/<(nav|footer)\b[\s\S]*?<\/\1>/gi, " ");
   const headings: string[] = [];
-  for (const m of html.matchAll(/<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/gi)) {
-    const h = decode(m[1].replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
+  for (const m of visible.matchAll(/<h([1-3])\b[^>]*>([\s\S]*?)<\/h\1>/gi)) {
+    const h = decode(m[2].replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
     if (h && h.length < 160 && !headings.includes(h)) headings.push(h);
     if (headings.length >= 20) break;
   }

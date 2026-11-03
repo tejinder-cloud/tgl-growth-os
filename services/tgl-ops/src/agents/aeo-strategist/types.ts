@@ -25,6 +25,7 @@ export interface SetupSnapshot {
   promptLimit: number;
   submittedAt: string;    // brands.updated_at
   setupStatus?: string;
+  /** Reviewer instructions for the next proposal (setup_reviews.instructions of the latest sent-back review). Never the customer-facing note. */
   setupNote?: string | null;
 }
 
