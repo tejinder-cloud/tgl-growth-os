@@ -227,6 +227,7 @@ export async function runIssueTask(
           title: issue.title,
           status: "completed",
           runCompletedAt: new Date().toISOString(),
+          recoveryAttempts: 0,
         },
         { testMode: isTest }
       ).catch((err) => console.warn("[Runner state save warning]", err));
@@ -321,6 +322,7 @@ export async function runIssueTask(
           status: "needs-brief",
           error: preflight.reason,
           runCompletedAt: new Date().toISOString(),
+          recoveryAttempts: 0,
         },
         { testMode: isTest }
       ).catch((err) => console.warn("[Runner state preflight warning]", err));
@@ -676,6 +678,7 @@ Fixes #${issueNum}
         prNumber: prRes.number,
         prUrl: prRes.html_url,
         runCompletedAt: new Date().toISOString(),
+        recoveryAttempts: 0,
       },
       { testMode: isTest }
     ).catch((err) => console.warn("[Runner state save warning]", err));
@@ -716,6 +719,7 @@ Fixes #${issueNum}
         status: "failed",
         error: errMsg,
         runCompletedAt: new Date().toISOString(),
+        recoveryAttempts: 0,
       },
       { testMode: isTest }
     ).catch((err) => console.warn("[Runner state failure warning]", err));
