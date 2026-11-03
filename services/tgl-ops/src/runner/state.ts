@@ -7,7 +7,7 @@ export interface RunnerRecord {
   agent: string;
   door?: string;
   title: string;
-  status: "in-progress" | "completed" | "failed" | "needs-brief" | "blocked";
+  status: "in-progress" | "completed" | "failed" | "needs-brief" | "blocked" | "interrupted";
   branch?: string;
   prNumber?: number;
   prUrl?: string;
@@ -216,7 +216,7 @@ export async function getInterruptedRuns(
 
   for (const [key, record] of Object.entries(state.runs)) {
     const num = Number(key);
-    if (!isNaN(num) && record.status === "in-progress") {
+    if (!isNaN(num) && (record.status === "in-progress" || record.status === "interrupted")) {
       result.push({ issueNumber: num, record });
     }
   }

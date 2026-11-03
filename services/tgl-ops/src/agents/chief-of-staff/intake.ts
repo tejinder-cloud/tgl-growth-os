@@ -28,7 +28,15 @@ import {
 import { getAnthropicModel, getAnthropicPricing } from "./anthropic.js";
 import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
 
-export type IntakeClassification = "task" | "report" | "question" | "decision" | "dispatch" | "ambiguous";
+export type IntakeClassification =
+  | "task"
+  | "report"
+  | "question"
+  | "decision"
+  | "dispatch"
+  | "ambiguous"
+  | "command_resume"
+  | "command_block";
 
 export interface IntakeClassificationResult {
   category: IntakeClassification;
@@ -135,6 +143,32 @@ export async function classifyArchitectMessage(
   const isTest = options?.testMode === true || isTestMode();
   const modelName = getAnthropicModel();
   const { priceInPerMTok, priceOutPerMTok } = getAnthropicPricing();
+
+  // Architect Operational Commands: "#N: resume" and "#N: block"
+  const cleanCmdText = messageText.replace(/^[*_~`]+|[*_~`]+$/g, "").trim();
+  const resumeCmdMatch = cleanCmdText.match(/^(?:issue\s*)?#?(\d+)\s*:\s*resume\b/i);
+  if (resumeCmdMatch) {
+    const issueNum = parseInt(resumeCmdMatch[1], 10);
+    return {
+      category: "command_resume",
+      issueNumber: issueNum,
+      confidence: 1.0,
+      brief: messageText,
+      tokens: { input: 0, output: 0, costUsd: 0 },
+    };
+  }
+
+  const blockCmdMatch = cleanCmdText.match(/^(?:issue\s*)?#?(\d+)\s*:\s*block\b/i);
+  if (blockCmdMatch) {
+    const issueNum = parseInt(blockCmdMatch[1], 10);
+    return {
+      category: "command_block",
+      issueNumber: issueNum,
+      confidence: 1.0,
+      brief: messageText,
+      tokens: { input: 0, output: 0, costUsd: 0 },
+    };
+  }
 
   // Test mode deterministic classifier if no API key
   if (isTest && !config.anthropicApiKey) {
@@ -683,7 +717,114 @@ export async function pollChiefOfStaffIntake(options?: {
       let postResult: { ok: boolean; error?: string } = { ok: true };
 
       try {
-        if (classification.category === "task") {
+        if (classification.category === "command_resume" && classification.issueNumber) {
+          const issueNum = classification.issueNumber;
+          const existingIssue = await getIssue(issueNum);
+
+          // 1. Add Architect command comment
+          await addCommentToIssue(
+            issueNum,
+            `**Architect Command (via Slack intake):** Resumed via \`#${issueNum}: resume\`. Cleared recovery attempts, removed status:blocked, set status:in-progress, and re-queued.`
+          );
+
+          // 2. Identify assigned agent
+          let assignedAgent = "web-builder";
+          if (existingIssue) {
+            const forLabel = existingIssue.labels.find((l) => l.startsWith("for:"));
+            if (forLabel) {
+              assignedAgent = forLabel.replace(/^for:/, "");
+            }
+          }
+
+          // 3. GitHub labels: remove status:blocked and status:needs-brief, add status:in-progress
+          await removeLabelFromIssue(issueNum, "status:blocked").catch(() => {});
+          await removeLabelFromIssue(issueNum, "status:needs-brief").catch(() => {});
+          await addLabelsToIssue(issueNum, ["status:in-progress", `for:${assignedAgent}`]).catch(() => {});
+
+          // 4. Door and channel
+          let door = "core";
+          if (existingIssue) {
+            const doorLabel = existingIssue.labels.find((l) => l.startsWith("door:"));
+            if (doorLabel) {
+              door = doorLabel.replace(/^door:/, "");
+            }
+          }
+          const doorChannel = `#doors-${door}`;
+
+          // 5. Clear recoveryAttempts in runner state and set status:in-progress
+          const { recordRunnerIssue } = await import("../../runner/state.js");
+          await recordRunnerIssue(
+            issueNum,
+            {
+              agent: assignedAgent,
+              door,
+              title: existingIssue?.title || `Issue #${issueNum}`,
+              status: "in-progress",
+              recoveryAttempts: 0,
+              error: undefined,
+              lastRecoveryAt: new Date().toISOString(),
+            },
+            { testMode: isTest }
+          );
+
+          // 6. Re-queue once: trigger runner
+          lastTriggeredRunnerIssue = issueNum;
+          try {
+            if (!isTest || options?.triggerRunnerInTestMode) {
+              const { runIssueTask } = await import("../../runner/runner.js");
+              const issueInput = {
+                number: issueNum,
+                title: existingIssue?.title || `Issue #${issueNum}`,
+                body: existingIssue?.body || "",
+                labels: existingIssue?.labels || ["status:in-progress", `for:${assignedAgent}`, `door:${door}`],
+                html_url: existingIssue?.html_url,
+                agentName: assignedAgent,
+                door,
+                slackChannel: channel,
+                slackThreadTs: threadTs,
+              };
+              runIssueTask(issueInput, { testMode: isTest }).catch((err) => {
+                console.warn(`[Intake] Error executing runner for issue #${issueNum}:`, err);
+              });
+            } else {
+              console.log(`[Intake Test Mode] Runner re-queued for issue #${issueNum} (@${assignedAgent})`);
+            }
+          } catch (err: any) {
+            console.warn(`[Intake] Could not trigger runner for issue #${issueNum}:`, err?.message || String(err));
+          }
+
+          // 7. Reply in-thread
+          const replyText = `→ @${assignedAgent}, #${issueNum} resumed, re-queued.`;
+          postResult = await postLine({ channel, text: replyText, thread_ts: threadTs });
+        } else if (classification.category === "command_block" && classification.issueNumber) {
+          const issueNum = classification.issueNumber;
+
+          // 1. Add Architect command comment
+          await addCommentToIssue(
+            issueNum,
+            `**Architect Command (via Slack intake):** Halted via \`#${issueNum}: block\`. Status set to **status:blocked**.`
+          );
+
+          // 2. GitHub labels: remove status:in-progress, add status:blocked
+          await removeLabelFromIssue(issueNum, "status:in-progress").catch(() => {});
+          await addLabelsToIssue(issueNum, ["status:blocked"]).catch(() => {});
+
+          // 3. Update runner state
+          const { recordRunnerIssue } = await import("../../runner/state.js");
+          await recordRunnerIssue(
+            issueNum,
+            {
+              status: "blocked",
+              error: "Blocked by Architect command (#N: block).",
+              runCompletedAt: new Date().toISOString(),
+            },
+            { testMode: isTest }
+          );
+
+          // 4. Reply in-thread
+          const replyText = `→ #${issueNum} blocked.`;
+          postResult = await postLine({ channel, text: replyText, thread_ts: threadTs });
+        } else if (classification.category === "task") {
           if (classification.issueNumber) {
             const issueNum = classification.issueNumber;
             const existingIssue = await getIssue(issueNum);

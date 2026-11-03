@@ -23,14 +23,52 @@ export { usageCostsLedger, type UsageCostEntry };
 import { runPreflightCheck } from "./preflight.js";
 import { buildRunnerSystemPrompt, buildRunnerUserMessage } from "./prompt.js";
 import { RUNNER_TOOLS, executeRunnerTool, type RunnerToolContext } from "./tools.js";
-import { recordRunnerIssue } from "./state.js";
+import { recordRunnerIssue, getRunnerState } from "./state.js";
 
 // Concurrency 1 and one run per issue
 const runningIssues = new Set<number>();
 let isGlobalRunnerActive = false;
+let activeIssueNumber: number | null = null;
 
 export function isIssueRunningLocally(issueNumber: number): boolean {
   return runningIssues.has(issueNumber);
+}
+
+export function getActiveIssueNumber(): number | null {
+  return activeIssueNumber;
+}
+
+export function setActiveIssueNumberForTests(num: number | null): void {
+  activeIssueNumber = num;
+}
+
+/**
+ * Graceful shutdown handler on SIGTERM / SIGINT.
+ * On SIGTERM the runner writes status "interrupted" for the active run and exits cleanly.
+ */
+export async function handleRunnerShutdown(
+  signal?: string,
+  options?: { testMode?: boolean }
+): Promise<void> {
+  const isTest = options?.testMode === true || isTestMode();
+  if (activeIssueNumber !== null) {
+    const issueNum = activeIssueNumber;
+    console.log(`[Runner Shutdown] Received ${signal || "shutdown signal"}. Marking active issue #${issueNum} as 'interrupted'...`);
+    try {
+      await recordRunnerIssue(
+        issueNum,
+        {
+          status: "interrupted",
+          error: `Run interrupted by process termination (${signal || "SIGTERM"}).`,
+          runCompletedAt: new Date().toISOString(),
+        },
+        { testMode: isTest }
+      );
+      console.log(`[Runner Shutdown] Active issue #${issueNum} marked 'interrupted'.`);
+    } catch (err) {
+      console.error(`[Runner Shutdown] Failed to mark active issue #${issueNum} as 'interrupted':`, err);
+    }
+  }
 }
 
 export interface RunnerIssueInput {
@@ -98,6 +136,7 @@ export async function runIssueTask(
 
   isGlobalRunnerActive = true;
   runningIssues.add(issueNum);
+  activeIssueNumber = issueNum;
 
   // Locate Slack thread mapping if not provided directly
   let slackChannel = issue.slackChannel;
@@ -158,6 +197,9 @@ export async function runIssueTask(
     if (!costCapCheck.allowed) {
       const capMsg = `Daily cost cap exceeded for @${agentName} ($${costCapCheck.currentSpend.toFixed(2)} >= $${costCapCheck.cap.toFixed(2)}). Execution stopped.`;
       console.warn(`[Runner] ${capMsg}`);
+      const state = await getRunnerState({ testMode: isTest });
+      const existingRun = state.runs[String(issueNum)];
+      const attempts = (existingRun?.recoveryAttempts || 0) + 1;
       await addLabelsToIssue(issueNum, ["status:blocked"]);
       await recordRunnerIssue(
         issueNum,
@@ -165,6 +207,7 @@ export async function runIssueTask(
           status: "blocked",
           error: capMsg,
           runCompletedAt: new Date().toISOString(),
+          recoveryAttempts: attempts,
         },
         { testMode: isTest }
       ).catch((err) => console.warn("[Runner state cost cap warning]", err));
@@ -701,33 +744,58 @@ Fixes #${issueNum}
     console.error(`[Runner Run Error on Issue #${issueNum}]:`, err);
     const errMsg = err?.message || String(err);
 
-    // Fail loudly: post error in card thread and label status:blocked
+    // Read current recovery attempts from state
+    const state = await getRunnerState({ testMode: isTest });
+    const existingRun = state.runs[String(issueNum)];
+    const attempts = (existingRun?.recoveryAttempts || 0) + 1;
+
+    // Fail loudly: post error in card thread
     if (slackChannel && slackThreadTs) {
       await postLine({
         channel: slackChannel,
         thread_ts: slackThreadTs,
-        text: `*[Task Execution Failed on Issue #${issueNum}]*\n• Error: \`${errMsg.slice(0, 300)}\`\n• Status marked \`status:blocked\`.`,
+        text: `*[Task Execution Failed on Issue #${issueNum}]*\n• Error: \`${errMsg.slice(0, 300)}\`\n• Attempt: ${attempts} of 2.`,
       }).catch(() => {});
     }
 
-    await removeLabelFromIssue(issueNum, "status:in-progress");
-    await addLabelsToIssue(issueNum, ["status:blocked"]);
+    if (attempts >= 2) {
+      // Reached limit: mark blocked
+      await removeLabelFromIssue(issueNum, "status:in-progress").catch(() => {});
+      await addLabelsToIssue(issueNum, ["status:blocked"]).catch(() => {});
 
-    await recordRunnerIssue(
-      issueNum,
-      {
-        status: "failed",
-        error: errMsg,
-        runCompletedAt: new Date().toISOString(),
-        recoveryAttempts: 0,
-      },
-      { testMode: isTest }
-    ).catch((err) => console.warn("[Runner state failure warning]", err));
+      await recordRunnerIssue(
+        issueNum,
+        {
+          status: "blocked",
+          error: errMsg,
+          runCompletedAt: new Date().toISOString(),
+          recoveryAttempts: attempts,
+        },
+        { testMode: isTest }
+      ).catch((err) => console.warn("[Runner state failure warning]", err));
 
-    await postLine({
-      channel: getAlertsChannel(),
-      text: `*[Issue Runner Failure]* Issue #${issueNum}\n• Error: \`${errMsg.slice(0, 300)}\``,
-    }).catch(() => {});
+      await postLine({
+        channel: getAlertsChannel(),
+        text: `*[Issue Runner Failure Blocked]* Issue #${issueNum} failed ${attempts} times; marked status:blocked.\n• Error: \`${errMsg.slice(0, 300)}\``,
+      }).catch(() => {});
+    } else {
+      // First failure: record attempt count and status failed
+      await recordRunnerIssue(
+        issueNum,
+        {
+          status: "failed",
+          error: errMsg,
+          runCompletedAt: new Date().toISOString(),
+          recoveryAttempts: attempts,
+        },
+        { testMode: isTest }
+      ).catch((err) => console.warn("[Runner state failure warning]", err));
+
+      await postLine({
+        channel: getAlertsChannel(),
+        text: `*[Issue Runner Failure]* Issue #${issueNum} (attempt ${attempts} of 2)\n• Error: \`${errMsg.slice(0, 300)}\``,
+      }).catch(() => {});
+    }
 
     return {
       success: false,
@@ -739,6 +807,9 @@ Fixes #${issueNum}
   } finally {
     runningIssues.delete(issueNum);
     isGlobalRunnerActive = false;
+    if (activeIssueNumber === issueNum) {
+      activeIssueNumber = null;
+    }
   }
 }
 
