@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-30T07:55:18.273Z",
+  "updatedAt": "2026-11-03T06:34:10.446Z",
   "runs": {
     "13": {
       "agent": "web-builder",
@@ -57,6 +57,13 @@
       "runStartedAt": "2026-10-30T07:55:18.273Z",
       "door": "aeo",
       "runCompletedAt": "2026-10-30T07:55:18.030Z"
+    },
+    "72": {
+      "agent": "web-builder",
+      "title": "[PLAN-D10]: Outreach Sequencer SKILL.md + 5-touch worker",
+      "status": "in-progress",
+      "runStartedAt": "2026-11-03T06:34:10.230Z",
+      "door": "core"
     }
   }
 }
