@@ -100,10 +100,10 @@ export async function relayManagedAeoRequests(): Promise<void> {
       : { data: null };
     const channel = (await resolveChannelId("#doors-aeo")) || config.approvalsChannelId;
     const text = [
-      `:raised_hand: *Start managed AEO* — *${brand?.name ?? r.brand_id}*${brand?.primary_domain ? ` (${brand.primary_domain})` : ""}`,
+      `:raised_hand: *Clicked Start managed AEO* — *${brand?.name ?? r.brand_id}*${brand?.primary_domain ? ` (${brand.primary_domain})` : ""}`,
       `From ${r.email ?? "unknown"} · plan ${sub ? `${sub.plan} (${sub.status})` : "—"}${rec?.title ? ` · from “${rec.title}”` : ""}`,
-      r.note ? `> ${String(r.note).slice(0, 500)}` : null,
-      `They were told we'll be in touch to agree a 90-day plan. Reply to them, then mark the request contacted.`,
+      r.note && !/^Clicked Start managed AEO/.test(r.note) ? `> ${String(r.note).slice(0, 500)}` : null,
+      `They clicked it in the dashboard and were sent to the AEO page on thegrowthlab.co.in. Worth a personal follow-up.`,
     ].filter(Boolean).join("\n");
     const msg = await slackClient.chat.postMessage({ channel, text }).catch((e) => { console.error("[Managed AEO] slack", e); return null; });
     if (msg?.ts) await sb.from("managed_aeo_requests").update({ notified_at: new Date().toISOString(), slack_ts: msg.ts }).eq("id", r.id);
