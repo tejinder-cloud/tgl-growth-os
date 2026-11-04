@@ -170,6 +170,26 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
+import { pollRecommendations, relayManagedAeoRequests } from "./agents/aeo-recommender/worker.js";
+
+// Every 30 minutes: recommendations for verified brands — first after their first completed run, then weekly (plan Day 22)
+cron.schedule(
+  "*/30 * * * *",
+  wrapCronJob("30-min Recommendations", async () => {
+    await pollRecommendations();
+  }),
+  { timezone: config.timezone }
+);
+
+// Every minute: "Start managed AEO" requests from the dashboard → #doors-aeo
+cron.schedule(
+  "* * * * *",
+  wrapCronJob("1-min Managed AEO Requests", async () => {
+    await relayManagedAeoRequests();
+  }),
+  { timezone: config.timezone }
+);
+
 import { catchUpRunnerIssues, recoverInterruptedRunnerIssues } from "./runner/index.js";
 
 // Every 30 minutes: Catch-up worker for in-progress issues with no PR (Asia/Kolkata)
