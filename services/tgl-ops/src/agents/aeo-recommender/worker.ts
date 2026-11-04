@@ -90,15 +90,18 @@ export async function relayManagedAeoRequests(): Promise<void> {
   if (!sb || !config.slackBotToken) return;
   const { data: reqs } = await sb.from("managed_aeo_requests").select("id, brand_id, email, note, recommendation_id, created_at").is("notified_at", null).order("created_at").limit(10);
   for (const r of reqs ?? []) {
-    const [{ data: brand }, { data: rec }, { data: sub }] = await Promise.all([
+    const [{ data: brand }, { data: rec }] = await Promise.all([
       sb.from("brands").select("name, primary_domain, tenant_id").eq("id", r.brand_id).single(),
       r.recommendation_id ? sb.from("recommendations").select("title").eq("id", r.recommendation_id).maybeSingle() : Promise.resolve({ data: null }),
-      sb.from("subscriptions").select("plan, status").eq("product", "truevisible").is("brand_id", null).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     ]);
+    // The requesting tenant's own plan (service role sees every tenant — filter explicitly).
+    const { data: sub } = brand?.tenant_id
+      ? await sb.from("subscriptions").select("plan, status").eq("tenant_id", brand.tenant_id).eq("product", "truevisible").is("brand_id", null).order("created_at", { ascending: false }).limit(1).maybeSingle()
+      : { data: null };
     const channel = (await resolveChannelId("#doors-aeo")) || config.approvalsChannelId;
     const text = [
       `:raised_hand: *Start managed AEO* — *${brand?.name ?? r.brand_id}*${brand?.primary_domain ? ` (${brand.primary_domain})` : ""}`,
-      `From ${r.email ?? "unknown"} · plan ${sub?.plan ?? "—"}${rec?.title ? ` · from “${rec.title}”` : ""}`,
+      `From ${r.email ?? "unknown"} · plan ${sub ? `${sub.plan} (${sub.status})` : "—"}${rec?.title ? ` · from “${rec.title}”` : ""}`,
       r.note ? `> ${String(r.note).slice(0, 500)}` : null,
       `They were told we'll be in touch to agree a 90-day plan. Reply to them, then mark the request contacted.`,
     ].filter(Boolean).join("\n");
