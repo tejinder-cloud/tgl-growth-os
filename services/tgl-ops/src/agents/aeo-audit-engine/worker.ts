@@ -98,7 +98,18 @@ export async function runFirstAudits(): Promise<void> {
       }
     }
     if (running.length - stalled > 0) continue;                       // still in progress somewhere
-    if (runs.some((r: any) => r.status === "succeeded" || r.status === "partial")) continue; // this submission has numbers
+    // Done when every active prompt has an answer since the submission (or from today's runs — the tracker skips
+    // those too, so an approval that adds prompts after the 06:00 run asks only the new ones).
+    if (Date.now() - Date.parse(b.setup_submitted_at) > 2 * 86_400_000) continue;   // old submissions: the daily run covers them
+    const today = getTodayDateString();
+    const from = new Date(Math.min(Date.parse(b.setup_submitted_at), Date.parse(`${today}T00:00:00+05:30`))).toISOString();
+    const [{ data: act }, { data: ans }] = await Promise.all([
+      sb.from("prompts").select("id").eq("brand_id", b.id).eq("status", "active"),
+      sb.from("answers").select("prompt_id, runs!inner(status)").eq("brand_id", b.id).gte("created_at", from).in("runs.status", ["succeeded", "partial"]).limit(2000),
+    ]);
+    const answered = new Set((ans ?? []).map((x: any) => x.prompt_id));
+    const unanswered = (act ?? []).filter((p: any) => !answered.has(p.id)).length;
+    if (!act?.length || unanswered === 0) continue;
     const attempts = new Set(runs.map((r: any) => String(r.created_at).slice(0, 16))).size;  // runs of one attempt start together
     if (attempts >= MAX_ATTEMPTS) continue;
 

@@ -72,5 +72,8 @@ export async function applyAndVerify(sb: SupabaseClient, s: SetupSnapshot, a: Ap
   }
   must(await sb.from("competitors").update({ verified_at: now }).eq("brand_id", s.brandId).eq("status", "active").is("verified_at", null), "verify competitors");
   if (s.market) must(await sb.from("products_icps").update({ verified_at: now }).eq("id", s.market.id), "verify market");
-  must(await sb.from("brands").update({ setup_status: "verified", setup_verified_at: now, setup_verified_by: actor, setup_note: null }).eq("id", s.brandId), "verify brand");
+  // New prompts → mark a fresh submission so the first-audit queue asks them within a minute (and the dashboard shows progress).
+  const patch: Record<string, unknown> = { setup_status: "verified", setup_verified_at: now, setup_verified_by: actor, setup_note: null };
+  if (a.promptsAdd.length) patch.setup_submitted_at = now;
+  must(await sb.from("brands").update(patch).eq("id", s.brandId), "verify brand");
 }
