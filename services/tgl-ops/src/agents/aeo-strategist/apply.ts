@@ -1,5 +1,6 @@
 // services/tgl-ops/src/agents/aeo-strategist/apply.ts — turn a reviewer's ticks into database changes.
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { isArchitectUser } from "../../lib/org.js";
 import type { Proposal, Selection, SetupSnapshot } from "./types.js";
 
 export interface ApplyPlan {
@@ -44,36 +45,70 @@ function must(res: { error: { message: string } | null }, what: string) {
   if (res.error) throw new Error(`${what}: ${res.error.message}`);
 }
 
-/** Applies the plan and marks the setup verified. Service role: tenant_id set explicitly on every row. */
-export async function applyAndVerify(sb: SupabaseClient, s: SetupSnapshot, a: ApplyPlan, actor: string): Promise<void> {
+/** Applies the plan and marks the setup verified. Service role: tenant_id and review_id set explicitly on every row. */
+export async function applyAndVerify(
+  sb: SupabaseClient,
+  s: SetupSnapshot,
+  a: ApplyPlan,
+  actor: string,
+  reviewId: string
+): Promise<void> {
+  const isArch = await isArchitectUser(actor);
+  if (!isArch) {
+    throw new Error(`Only the Architect may verify a brand setup profile. Refused for actor: "${actor}".`);
+  }
+
   const now = new Date().toISOString();
   if (a.market && s.market) {
-    const patch: Record<string, string> = {};
+    const patch: Record<string, string> = { review_id: reviewId };
     for (const k of ["product", "icp", "location"] as const) if (a.market[k]) patch[k] = a.market[k]!;
     must(await sb.from("products_icps").update(patch).eq("id", s.market.id), "update market");
   }
   if (a.competitorsRemove.length) {
-    must(await sb.from("competitors").update({ status: "rejected" }).in("id", a.competitorsRemove.map((c) => c.id)), "remove competitors");
+    must(await sb.from("competitors").update({ status: "rejected", review_id: reviewId }).in("id", a.competitorsRemove.map((c) => c.id)), "remove competitors");
   }
   if (a.competitorsAdd.length) {
     must(await sb.from("competitors").upsert(
-      a.competitorsAdd.map((c) => ({ tenant_id: s.tenantId, brand_id: s.brandId, name: c.name, domain: c.domain, source: "setup_agent", status: "active", verified_at: now })),
+      a.competitorsAdd.map((c) => ({
+        tenant_id: s.tenantId,
+        brand_id: s.brandId,
+        name: c.name,
+        domain: c.domain,
+        source: "setup_agent",
+        status: "active",
+        verified_at: now,
+        review_id: reviewId,
+      })),
       { onConflict: "brand_id,name" }
     ), "add competitors");
   }
   if (a.promptsRetire.length) {
-    must(await sb.from("prompts").update({ status: "retired", retired_at: now }).in("id", a.promptsRetire.map((x) => x.id)), "retire prompts");
+    must(await sb.from("prompts").update({ status: "retired", retired_at: now, review_id: reviewId }).in("id", a.promptsRetire.map((x) => x.id)), "retire prompts");
   }
   if (a.promptsAdd.length) {
     must(await sb.from("prompts").insert(a.promptsAdd.map((x) => ({
-      tenant_id: s.tenantId, brand_id: s.brandId, product_icp_id: s.market?.id ?? null,
-      text: x.text, language: x.language, journey_phase: x.journey_phase, status: "active", source: "setup_agent",
+      tenant_id: s.tenantId,
+      brand_id: s.brandId,
+      product_icp_id: s.market?.id ?? null,
+      text: x.text,
+      language: x.language,
+      journey_phase: x.journey_phase,
+      status: "active",
+      source: "setup_agent",
+      review_id: reviewId,
     }))), "add prompts");
   }
-  must(await sb.from("competitors").update({ verified_at: now }).eq("brand_id", s.brandId).eq("status", "active").is("verified_at", null), "verify competitors");
-  if (s.market) must(await sb.from("products_icps").update({ verified_at: now }).eq("id", s.market.id), "verify market");
+  must(await sb.from("competitors").update({ verified_at: now, review_id: reviewId }).eq("brand_id", s.brandId).eq("status", "active").is("verified_at", null), "verify competitors");
+  if (s.market) must(await sb.from("products_icps").update({ verified_at: now, review_id: reviewId }).eq("id", s.market.id), "verify market");
   // New prompts → mark a fresh submission so the first-audit queue asks them within a minute (and the dashboard shows progress).
-  const patch: Record<string, unknown> = { setup_status: "verified", setup_verified_at: now, setup_verified_by: actor, setup_note: null };
+  const patch: Record<string, unknown> = {
+    setup_status: "verified",
+    setup_verified_at: now,
+    setup_verified_by: actor,
+    setup_note: null,
+    review_id: reviewId,
+    setup_review_id: reviewId,
+  };
   if (a.promptsAdd.length) patch.setup_submitted_at = now;
   must(await sb.from("brands").update(patch).eq("id", s.brandId), "verify brand");
 }

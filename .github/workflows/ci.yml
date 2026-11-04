@@ -27,6 +27,13 @@ jobs:
       - name: Build TypeScript (tsc)
         run: npm --prefix services/tgl-ops run build
 
+      - name: Verify PR description issue linking
+        if: github.event_name == 'pull_request'
+        run: npm --prefix services/tgl-ops run check-pr
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_HEAD_REF: ${{ github.head_ref }}
+
       - name: Run test suite
         run: npm --prefix services/tgl-ops test
         env:

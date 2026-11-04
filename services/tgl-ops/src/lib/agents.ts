@@ -142,11 +142,19 @@ export async function loadAgents(): Promise<AgentRecord[]> {
     return agentsCache.data;
   }
 
-  // 1. Local-file fallback for development
+  // 1. Local-file fallback for development & container execution
   const localCandidates = [
     path.join(config.repoRoot, "config/agents.yaml"),
     path.join(process.cwd(), "config/agents.yaml"),
     path.join(process.cwd(), "../../config/agents.yaml"),
+    path.join(process.cwd(), "../config/agents.yaml"),
+    path.join(__dirname, "../../../config/agents.yaml"),
+    path.join(__dirname, "../../config/agents.yaml"),
+    path.join(__dirname, "../config/agents.yaml"),
+    path.join(__dirname, "../assets/config/agents.yaml"),
+    path.join(__dirname, "./assets/config/agents.yaml"),
+    path.join(process.cwd(), "src/assets/config/agents.yaml"),
+    path.join(process.cwd(), "dist/assets/config/agents.yaml"),
   ];
 
   for (const localPath of localCandidates) {

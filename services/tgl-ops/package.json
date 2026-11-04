@@ -21,7 +21,8 @@
     "test:day17": "tsx src/test-day17.ts",
     "citations": "tsx src/scripts/run-citations.ts",
     "reopen-review": "tsx src/scripts/reopen-review.ts",
-    "test:day19": "tsx src/test-day19.ts"
+    "test:day19": "tsx src/test-day19.ts",
+    "check-pr": "tsx src/ci/check-pr-description.ts"
   },
   "engines": {
     "node": ">=22.0.0"

@@ -22,7 +22,7 @@ import { splitTextIntoChunks } from "./lib/post.js";
 import { validateProposal, proposeChanges, buildUserMessage, changeCount, extractJson, normalizeLanguage, normalizeStage } from "./agents/aeo-strategist/propose.js";
 import { ALLOWED_LANGUAGES, ALLOWED_STAGES } from "./agents/aeo-strategist/types.js";
 import { buildReviewBlocks, readSelection, decidedBlocks } from "./agents/aeo-strategist/card.js";
-import { planApply, describePlan, planSize } from "./agents/aeo-strategist/apply.js";
+import { planApply, describePlan, planSize, applyAndVerify } from "./agents/aeo-strategist/apply.js";
 import type { Evidence, Proposal, SetupSnapshot } from "./agents/aeo-strategist/types.js";
 
 let passed = 0;
@@ -1024,6 +1024,106 @@ await t("market wording protection: Strategist proposal cannot revert Architect-
 
   assert.ok(propRefine.market, "Benign wording refinement should be accepted");
   assert.equal(propRefine.market?.location, "Pan-India and Chandigarh");
+});
+
+await t("applyAndVerify: review_id on every written row, and verified status allowed only by Architect action", async () => {
+  const writtenRows: Array<{ table: string; op: string; payload: any }> = [];
+
+  const mockSb: any = {
+    from: (table: string) => {
+      let currentQuery: any = {
+        table,
+        update: (payload: any) => {
+          writtenRows.push({ table, op: "update", payload });
+          return currentQuery;
+        },
+        insert: (payload: any) => {
+          writtenRows.push({ table, op: "insert", payload });
+          return currentQuery;
+        },
+        upsert: (payload: any) => {
+          writtenRows.push({ table, op: "upsert", payload });
+          return currentQuery;
+        },
+        eq: () => currentQuery,
+        in: () => currentQuery,
+        is: () => currentQuery,
+        then: (resolve: any) => resolve({ data: null, error: null }),
+      };
+      return currentQuery;
+    },
+  };
+
+  const testReviewId = "11111111-2222-3333-4444-555555555555";
+  const testSnap: SetupSnapshot = {
+    brandId: "brand_audit_test",
+    tenantId: "tenant_tgl",
+    tenantName: "The Growth Lab",
+    name: "The Growth Lab",
+    domain: "thegrowthlab.co.in",
+    platform: "custom",
+    languages: ["en"],
+    variants: ["TGL"],
+    market: { id: "market_1", product: "AI visibility", icp: "coaching", location: "India" },
+    competitors: [{ id: "c1", name: "Comp 1", domain: "comp1.com" }],
+    prompts: [{ id: "p1", text: "Prompt 1", language: "en", journey_phase: "decision" }],
+    plan: "internal",
+    promptLimit: 50,
+    submittedAt: new Date().toISOString(),
+  };
+
+  const testPlan = {
+    market: { product: "AI visibility & automation", icp: "all verticals", location: "Pan-India", reason: "updated category" },
+    competitorsAdd: [{ name: "Comp New", domain: "compnew.com", evidence: "AI cited" }],
+    competitorsRemove: [{ id: "c1", name: "Comp 1", reason: "wrong market" }],
+    promptsRetire: [{ id: "p1", text: "Prompt 1", reason: "old category" }],
+    promptsAdd: [{ text: "Prompt New", language: "en", journey_phase: "decision" as const, reason: "high intent" }],
+  };
+
+  // 1. Non-architect actor must be refused
+  let nonArchError: Error | null = null;
+  try {
+    await applyAndVerify(mockSb, testSnap, testPlan, "unauthorized_user", testReviewId);
+  } catch (err: any) {
+    nonArchError = err;
+  }
+  assert.ok(nonArchError, "Non-architect actor must be rejected from applyAndVerify");
+  assert.ok(
+    nonArchError.message.includes("Only the Architect may verify a brand setup profile"),
+    `Expected Architect refusal message, got: ${nonArchError.message}`
+  );
+
+  // 2. Architect actor ("Tejinder Singh" / "architect") succeeds and writes review_id to every row
+  writtenRows.length = 0;
+  await applyAndVerify(mockSb, testSnap, testPlan, "Tejinder Singh", testReviewId);
+
+  // Assert every single written row carried review_id
+  assert.ok(writtenRows.length >= 5, `Expected multiple DB writes, got ${writtenRows.length}`);
+  for (const w of writtenRows) {
+    if (Array.isArray(w.payload)) {
+      for (const item of w.payload) {
+        assert.equal(
+          item.review_id,
+          testReviewId,
+          `Every inserted/upserted row in table '${w.table}' must carry review_id: ${JSON.stringify(item)}`
+        );
+      }
+    } else {
+      assert.equal(
+        w.payload.review_id,
+        testReviewId,
+        `Update payload in table '${w.table}' must carry review_id: ${JSON.stringify(w.payload)}`
+      );
+    }
+  }
+
+  // Specifically check brand verification
+  const brandWrite = writtenRows.find((w) => w.table === "brands");
+  assert.ok(brandWrite, "Must update brands table");
+  assert.equal(brandWrite.payload.setup_status, "verified");
+  assert.equal(brandWrite.payload.setup_verified_by, "Tejinder Singh");
+  assert.equal(brandWrite.payload.review_id, testReviewId);
+  assert.equal(brandWrite.payload.setup_review_id, testReviewId);
 });
 
 console.log(`\nDay 19: ${passed} checks passed`);
