@@ -139,7 +139,17 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
-import { runCitationTracking, runFirstAudits } from "./agents/aeo-audit-engine/worker.js";
+import { runCitationTracking, runFirstAudits, runGeminiExperimentJob } from "./agents/aeo-audit-engine/worker.js";
+
+// Every 30 min: Gemini cost experiment — runs once a day after today's Gemini answers exist, only while
+// AEO_GEMINI_EXPERIMENT_MODELS is set (Architect decision 4 Nov 2026). Writes public.experiments only.
+cron.schedule(
+  "15,45 * * * *",
+  wrapCronJob("Gemini cost experiment", async () => {
+    await runGeminiExperimentJob();
+  }),
+  { timezone: config.timezone }
+);
 
 // 06:00 IST daily: Citation Tracker — every eligible brand × prompt × engine (config/agents.yaml routine daily_citation_tracking)
 cron.schedule(
@@ -172,7 +182,7 @@ cron.schedule(
 
 import { pollRecommendations, relayManagedAeoRequests } from "./agents/aeo-recommender/worker.js";
 
-// Every 30 minutes: recommendations for verified brands — first after their first completed run, then weekly (plan Day 22)
+// On boot (after 2 min) and every 30 minutes: recommendations for verified brands — first after their first completed run, then weekly (plan Day 22)
 cron.schedule(
   "*/30 * * * *",
   wrapCronJob("30-min Recommendations", async () => {
@@ -180,6 +190,8 @@ cron.schedule(
   }),
   { timezone: config.timezone }
 );
+
+setTimeout(wrapCronJob("Boot Recommendations", async () => { await pollRecommendations(); }), 120_000);
 
 // Every minute: "Start managed AEO" requests from the dashboard → #doors-aeo
 cron.schedule(

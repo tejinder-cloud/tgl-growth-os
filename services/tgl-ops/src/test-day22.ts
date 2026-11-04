@@ -9,6 +9,7 @@ import { promptEvidence, containsName } from "./agents/aeo-recommender/gather.js
 import { validateRecommendations, buildUserMessage, proposeRecommendations } from "./agents/aeo-recommender/propose.js";
 import { isDue } from "./agents/aeo-recommender/worker.js";
 import type { RecEvidence } from "./agents/aeo-recommender/types.js";
+import { summarise } from "./agents/aeo-audit-engine/experiment.js";
 
 let passed = 0;
 async function t(name: string, fn: () => void | Promise<void>) {
@@ -101,6 +102,15 @@ await t("schedule: first batch after the first run; then weekly, only if a newer
   assert.equal(isDue("2026-11-10T10:00:00Z", "2026-11-12", now), false);   // under a week
   assert.equal(isDue("2026-11-04T10:00:00Z", "2026-11-12", now), true);
   assert.equal(isDue("2026-11-04T10:00:00Z", "2026-11-03", now), false);   // no new run since
+});
+
+await t("Gemini experiment summary: same-mention count, cited-site overlap, searches/tokens, errors excluded", () => {
+  const rows = [
+    { prompt: "a", baseline: { mentioned: false, competitors: [], domains: ["a.com", "b.com"] }, candidates: { lite: { mentioned: false, competitors: [], domains: ["a.com"], searches: 1, inTok: 10, outTok: 100 } } },
+    { prompt: "b", baseline: { mentioned: true, competitors: [], domains: [] }, candidates: { lite: { mentioned: false, competitors: [], domains: [], searches: 2, inTok: 10, outTok: 50 } } },
+    { prompt: "c", baseline: null, candidates: { lite: { mentioned: false, competitors: [], domains: [], searches: 0, inTok: 0, outTok: 0, error: "HTTP 404" } } },
+  ];
+  assert.deepEqual(summarise(rows as any, ["lite"]).lite, { compared: 2, sameBrandMention: 1, avgSiteOverlap: 0.75, searches: 3, inputTokens: 20, outputTokens: 150, errors: 1 });
 });
 
 console.log(`\nDay 22: ${passed} checks passed`);

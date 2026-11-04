@@ -40,6 +40,8 @@ export async function pollRecommendations(): Promise<void> {
     try { await generateRecommendations(sb, b.id); }
     catch (err: any) {
       console.error("[Recommendations] failed", b.name, err);
+      // Also kept in the database so a failure is visible without access to the service logs.
+      await sb.from("experiments").insert({ name: "recommender_log", run_date: getTodayDateString(), brand_id: b.id, summary: { error: String(err?.message ?? err).slice(0, 1000) } }).then(() => {}, () => {});
       await postLine({ channel: getAlertsChannel(), text: `[Warning] *@${AGENT}* couldn't write recommendations for *${b.name}*: \`${String(err?.message ?? err).slice(0, 300)}\`` }).catch(() => {});
     } finally { inFlight.delete(b.id); }
   }
@@ -47,7 +49,10 @@ export async function pollRecommendations(): Promise<void> {
 
 export async function generateRecommendations(sb: SupabaseClient, brandId: string): Promise<number> {
   const cap = await checkAgentCostCap(AGENT);
-  if (!cap.allowed) return 0;
+  if (!cap.allowed) {
+    await sb.from("experiments").insert({ name: "recommender_log", run_date: getTodayDateString(), brand_id: brandId, summary: { skipped: "daily cost cap", spend: cap.currentSpend, cap: cap.cap } }).then(() => {}, () => {});
+    return 0;
+  }
   const ev = await gatherRecEvidence(sb, brandId);
   if (!ev || !ev.prompts.length) return 0;
   const { recs, dropped, usd, model, tokens } = await proposeRecommendations(ev);
