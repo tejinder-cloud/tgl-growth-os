@@ -26,7 +26,7 @@ export interface TrackerDeps {
   freeSearchesPerMonth?: Partial<Record<EngineId, number>>;
 }
 
-export interface EngineOutcome { brand: string; engine: EngineId; status: "succeeded" | "partial" | "failed" | "skipped"; ok: number; total: number; mentioned: number; usd: number; note?: string }
+export interface EngineOutcome { brand: string; brandId?: string; engine: EngineId; status: "succeeded" | "partial" | "failed" | "skipped"; ok: number; total: number; mentioned: number; usd: number; note?: string }
 export interface TrackerSummary { brands: number; outcomes: EngineOutcome[]; notConfigured: { engine: EngineId; missing: string[] }[]; stoppedByCap: boolean; usd: number }
 
 export async function runTracker(d: TrackerDeps): Promise<TrackerSummary> {
@@ -55,7 +55,7 @@ export async function runTracker(d: TrackerDeps): Promise<TrackerSummary> {
       // Audits ask only what this engine hasn't answered today (new prompts after a setup change, or a retry) — never pay twice.
       const answered = kind === "audit" ? await d.store.answeredPromptIds(b.id, d.runDate, cfg.engine) : new Set<string>();
       const todo = b.prompts.filter((p) => !answered.has(p.id));
-      const base = { brand: b.name, engine: cfg.engine, ok: 0, total: todo.length, mentioned: 0, usd: 0 };
+      const base = { brand: b.name, brandId: b.id, engine: cfg.engine, ok: 0, total: todo.length, mentioned: 0, usd: 0 };
       if (!todo.length) return { ...base, status: "skipped", note: "all prompts already answered today" };
       if (kind === "daily" && await d.store.hasCompletedRun(b.id, d.runDate, cfg.engine)) return { ...base, status: "skipped", note: "already ran today" };
       if (d.canSpend && !(await d.canSpend())) { stoppedByCap = true; return { ...base, status: "skipped", note: "daily cost cap" }; }

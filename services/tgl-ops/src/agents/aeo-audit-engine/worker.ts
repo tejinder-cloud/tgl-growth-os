@@ -49,6 +49,14 @@ export async function runCitationTracking(options?: { brandId?: string; kind?: "
       console.warn("[Citation Tracker] log append failed:", err?.message ?? err)
     );
   }
+  // Recommendations follow a completed run (event-driven, no polling). The recommender decides whether a new
+  // batch is due; this only tells it which brands just got fresh answers.
+  const fresh = [...new Set(ran.filter((o) => (o.status === "succeeded" || o.status === "partial") && o.brandId).map((o) => o.brandId!))];
+  if (fresh.length) {
+    import("../aeo-recommender/worker.js")
+      .then(async (m) => { for (const id of fresh) await m.recommendAfterRun(sb, id); })
+      .catch((err) => console.error("[Citation Tracker] recommendations after run failed:", err?.message ?? err));
+  }
   const failed = ran.filter((o) => o.status !== "succeeded");
   if (failed.length || summary.notConfigured.length || summary.stoppedByCap) {
     const lines = [

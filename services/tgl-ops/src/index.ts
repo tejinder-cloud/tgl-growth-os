@@ -180,18 +180,8 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
-import { pollRecommendations, relayManagedAeoRequests } from "./agents/aeo-recommender/worker.js";
-
-// On boot (after 2 min) and every 30 minutes: recommendations for verified brands — first after their first completed run, then weekly (plan Day 22)
-cron.schedule(
-  "*/30 * * * *",
-  wrapCronJob("30-min Recommendations", async () => {
-    await pollRecommendations();
-  }),
-  { timezone: config.timezone }
-);
-
-setTimeout(wrapCronJob("Boot Recommendations", async () => { await pollRecommendations(); }), 120_000);
+import { relayManagedAeoRequests } from "./agents/aeo-recommender/worker.js";
+// Recommendations are triggered by the Citation Tracker when a brand's run completes (no polling).
 
 // Every minute: "Start managed AEO" requests from the dashboard → #doors-aeo
 cron.schedule(
