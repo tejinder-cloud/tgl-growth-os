@@ -3,6 +3,7 @@
 // a human decides. Anything the evidence doesn't support is dropped before the card is posted.
 import Anthropic from "@anthropic-ai/sdk";
 import { getAnthropicModel, getAnthropicPricing } from "../../lib/anthropic-pricing.js";
+import { callStructuredTool, extractOutermostJson } from "../../lib/anthropic-structured.js";
 import { appendLog } from "../../lib/log.js";
 import { askEngine, loadEngineConfig } from "../aeo-audit-engine/engines.js";
 import { evidenceCorpus, newMarketQuestion, normalizeAnswerText } from "./evidence.js";
@@ -157,30 +158,7 @@ EVIDENCE 2 — live AI answer${ev.aiEngine ? ` from ${ev.aiEngine}` : ""} to: "$
 ${ev.aiAnswer ?? `(none: ${ev.aiError ?? "no market entered"})`}${priorPromptsSection}`;
 }
 
-export function extractJson(text: string): any {
-  // If the model wrapped in <invoke name="..."> tags, extract parameters
-  if (text.includes("<invoke") && text.includes("<parameter")) {
-    const obj: Record<string, any> = {};
-    const matches = text.matchAll(/<parameter\s+name=["']([^"']+)["']>([\s\S]*?)<\/parameter>/gi);
-    for (const m of matches) {
-      const key = m[1].trim();
-      const valStr = m[2].trim();
-      try {
-        obj[key] = JSON.parse(valStr);
-      } catch {
-        obj[key] = valStr;
-      }
-    }
-    if (Object.keys(obj).length > 0) return obj;
-  }
-
-  // Strip everything outside the outermost braces before parsing
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start < 0 || end <= start) throw new Error("model returned no JSON object");
-  const stripped = text.slice(start, end + 1).trim();
-  return JSON.parse(stripped);
-}
+export const extractJson = extractOutermostJson;
 
 const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
 const normClean = (s: string) => s.toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
@@ -377,81 +355,19 @@ export async function proposeChanges(
   const { priceInPerMTok, priceOutPerMTok } = getAnthropicPricing();
   const anthropic = client ?? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  let tin = 0;
-  let tout = 0;
-  let rawProposal: any = null;
-  let lastRawReply: string = "";
+  const structuredRes = await callStructuredTool<any>({
+    client: anthropic,
+    model,
+    maxTokens: 4096,
+    system: SYSTEM,
+    messages: [{ role: "user", content: buildUserMessage(s, ev) }],
+    tool: PROPOSE_SETUP_CHECK_TOOL,
+    agent: "aeo-strategist",
+  });
 
-  try {
-    const res: any = await anthropic.messages.create({
-      model,
-      max_tokens: 4096,
-      system: SYSTEM,
-      messages: [{ role: "user", content: buildUserMessage(s, ev) }],
-      tools: [PROPOSE_SETUP_CHECK_TOOL],
-      tool_choice: { type: "tool", name: "propose_setup_check" },
-    });
-
-    tin += res.usage?.input_tokens ?? 0;
-    tout += res.usage?.output_tokens ?? 0;
-
-    const toolBlock = (res.content ?? []).find(
-      (b: any) => b.type === "tool_use" && b.name === "propose_setup_check"
-    );
-
-    if (toolBlock && toolBlock.input) {
-      rawProposal = typeof toolBlock.input === "string" ? JSON.parse(toolBlock.input) : toolBlock.input;
-    } else {
-      const textBlock = (res.content ?? [])
-        .filter((b: any) => b.type === "text")
-        .map((b: any) => b.text)
-        .join("");
-      lastRawReply = textBlock;
-      if (textBlock && (textBlock.includes("<invoke") || textBlock.includes("{"))) {
-        try {
-          rawProposal = extractJson(textBlock);
-        } catch {
-          // fall through to fallback
-        }
-      }
-      if (!rawProposal) {
-        throw new Error("tool_use block for propose_setup_check missing from response");
-      }
-    }
-  } catch (toolErr: any) {
-    // Keep a one-retry fallback that asks the model to re-emit only the JSON if the tool path fails
-    try {
-      const fallbackRes: any = await anthropic.messages.create({
-        model,
-        max_tokens: 4096,
-        system: `${SYSTEM}\nOutput only a single valid JSON object starting with { and ending with }. Do NOT use <invoke> tags, XML, conversational text or markdown code fences.`,
-        messages: [
-          { role: "user", content: buildUserMessage(s, ev) },
-          {
-            role: "user",
-            content: "Re-emit only the proposal as a single valid JSON object starting with { and ending with }. No <invoke> tags, no markdown formatting.",
-          },
-        ],
-      });
-
-      tin += fallbackRes.usage?.input_tokens ?? 0;
-      tout += fallbackRes.usage?.output_tokens ?? 0;
-
-      const fallbackText = (fallbackRes.content ?? [])
-        .filter((b: any) => b.type === "text")
-        .map((b: any) => b.text)
-        .join("");
-      lastRawReply = fallbackText;
-      rawProposal = extractJson(fallbackText);
-    } catch (fallbackErr: any) {
-      // Log the raw reply to logs/<date>/aeo-strategist.md on any parse failure so the cause is visible
-      await appendLog({
-        agent: "aeo-strategist",
-        text: `proposal parse failure: ${lastRawReply.slice(0, 1000) || String(fallbackErr?.message || toolErr?.message)}`,
-      }).catch(() => {});
-      throw fallbackErr;
-    }
-  }
+  const rawProposal = structuredRes.data;
+  let tin = structuredRes.tokens.in;
+  let tout = structuredRes.tokens.out;
 
   // If the model proposes a market wording change and ev.aiQuestion didn't already ask about that market,
   // fetch one fresh live AI answer for the new market before finalizing competitors.

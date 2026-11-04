@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { getAnthropicModel, getAnthropicPricing } from "../../lib/anthropic-pricing.js";
+import { getAnthropicModel } from "../../lib/anthropic-pricing.js";
+import { callStructuredTool } from "../../lib/anthropic-structured.js";
 import { ASSET_KINDS, CATEGORIES, type AssetKind, type RecEvidence, type Recommendation } from "./types.js";
 
 export const SYSTEM = `You are TGL's AEO strategist. A TrueVisible customer wants AI engines (ChatGPT, Gemini, Perplexity) to name them when buyers ask the questions below.
@@ -131,18 +132,16 @@ export function validateRecommendations(raw: any, ev: RecEvidence): { recs: Reco
 
 export async function proposeRecommendations(ev: RecEvidence, client?: Pick<Anthropic, "messages">): Promise<{ recs: Recommendation[]; dropped: string[]; usd: number; model: string; tokens: { in: number; out: number } }> {
   const model = getAnthropicModel();
-  const { priceInPerMTok, priceOutPerMTok } = getAnthropicPricing();
   const anthropic = client ?? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  const res: any = await anthropic.messages.create({
-    model, max_tokens: 12000, system: SYSTEM,
+  const structuredRes = await callStructuredTool<any>({
+    client: anthropic,
+    model,
+    maxTokens: 12000,
+    system: SYSTEM,
     messages: [{ role: "user", content: buildUserMessage(ev) }],
-    tools: [TOOL], tool_choice: { type: "tool", name: TOOL.name },
+    tool: TOOL,
+    agent: "aeo-strategist",
   });
-  const tin = res.usage?.input_tokens ?? 0, tout = res.usage?.output_tokens ?? 0;
-  const usd = (tin * priceInPerMTok + tout * priceOutPerMTok) / 1_000_000;
-  const block = (res.content ?? []).find((b: any) => b.type === "tool_use" && b.name === TOOL.name);
-  const raw = block?.input ? (typeof block.input === "string" ? JSON.parse(block.input) : block.input) : null;
-  if (!raw) throw new Error("model returned no recommendations");
-  const { recs, dropped } = validateRecommendations(raw, ev);
-  return { recs, dropped, usd, model, tokens: { in: tin, out: tout } };
+  const { recs, dropped } = validateRecommendations(structuredRes.data, ev);
+  return { recs, dropped, usd: structuredRes.usd, model: structuredRes.model, tokens: structuredRes.tokens };
 }
