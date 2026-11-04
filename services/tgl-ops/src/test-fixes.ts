@@ -3,14 +3,15 @@ process.env.TGL_TEST_MODE = "1";
 process.env.NODE_ENV = "test";
 
 import { gatherStandupMaterial } from "./agents/chief-of-staff/gather.js";
-import { doesCronRunOnDate, isAgentScheduledOnDate, type AgentRecord } from "./lib/agents.js";
+import { doesCronRunOnDate, isAgentScheduledOnDate, findAgentByName, getAgentRunnerLimits, type AgentRecord } from "./lib/agents.js";
 import { execute1815SilenceCheck } from "./agents/chief-of-staff/worker.js";
 import { getCurrentPlanDay } from "./lib/plan.js";
 import { getRunnerState, saveRunnerState, recordRunnerIssue, clearMockRunnerStateDbForTests } from "./runner/state.js";
 import { catchUpRunnerIssues, recoverInterruptedRunnerIssues } from "./runner/catch-up.js";
 import { runPreflightCheck } from "./runner/preflight.js";
 import { handleRunnerShutdown, setActiveIssueNumberForTests, computeBriefHash, runIssueTask } from "./runner/runner.js";
-import { buildRunnerSystemPrompt, buildRunnerUserMessage } from "./runner/prompt.js";
+import { buildRunnerSystemPrompt, buildRunnerUserMessage, buildRepositoryMap, extractAndLoadBriefFiles } from "./runner/prompt.js";
+import { verifyPrDescriptionIssueLinking } from "./ci/check-pr-description.js";
 import { resetMockPostedLines, mockPostedLines } from "./lib/post.js";
 
 async function runFixesVerificationSuite(): Promise<void> {
@@ -615,7 +616,7 @@ async function runFixesVerificationSuite(): Promise<void> {
   if (runRes.branchName !== existingBranch) {
     throw new Error(`Test 8.1 Failed: Resume changed branch from ${existingBranch} to ${runRes.branchName}`);
   }
-  console.log(`  ✓ Resume continued on existing branch: ${runRes.branchName}`);
+  console.log(`  [Passed] Resume continued on existing branch: ${runRes.branchName}`);
 
   const stateAfter = await getRunnerState({ testMode: true });
   const runRecord = stateAfter.runs[String(testIssueNum)];
@@ -626,8 +627,8 @@ async function runFixesVerificationSuite(): Promise<void> {
   if (runRecord?.lastModelMessage !== expectedMessage) {
     throw new Error(`Test 8.3 Failed: Expected lastModelMessage '${expectedMessage}', got '${runRecord?.lastModelMessage}'`);
   }
-  console.log("  ✓ Branch and model message preserved in runner state database");
-  console.log("✅ [Test 8 Passed] Resume branch and budget state preservation verified.\n");
+  console.log("  [Passed] Branch and model message preserved in runner state database");
+  console.log("[Test 8 Passed] Resume branch and budget state preservation verified.\n");
   passed++;
 
   // -------------------------------------------------------------------------
@@ -648,10 +649,10 @@ async function runFixesVerificationSuite(): Promise<void> {
     throw new Error(`Test 9.4 Failed: Zero-commit run counted as a failure! recoveryAttempts=${runRecord?.recoveryAttempts}`);
   }
 
-  console.log("  ✓ Zero-commit run halted before createPullRequest");
-  console.log("  ✓ Marked status:needs-brief with reason 'run produced no files'");
-  console.log("  ✓ Does not count as a failure: recoveryAttempts strictly 0");
-  console.log("✅ [Test 9 Passed] Zero-commit gate & needs-brief handling verified.\n");
+  console.log("  [Passed] Zero-commit run halted before createPullRequest");
+  console.log("  [Passed] Marked status:needs-brief with reason 'run produced no files'");
+  console.log("  [Passed] Does not count as a failure: recoveryAttempts strictly 0");
+  console.log("[Test 9 Passed] Zero-commit gate & needs-brief handling verified.\n");
   passed++;
 
   // -------------------------------------------------------------------------
@@ -766,13 +767,174 @@ async function runFixesVerificationSuite(): Promise<void> {
   console.log("[Test 10 Passed] Runner prompt directives and fixture proceed write_file verified.\n");
   passed++;
 
+  // -------------------------------------------------------------------------
+  // Test 11: Per-agent runner limits, repository map & brief files, prompt pacing, verbatim message, PR linking check
+  // -------------------------------------------------------------------------
+  console.log("[Test 11] Testing per-agent runner limits, repository map, prompt pacing, verbatim message, and PR linking gate...");
+
+  // Part 1: Verify web-builder gets 150 calls / 60 min from agents.yaml
+  const webBuilderAgent = await findAgentByName("web-builder");
+  if (!webBuilderAgent) {
+    throw new Error("Test 11.1 Failed: findAgentByName('web-builder') returned undefined!");
+  }
+  if (webBuilderAgent.runner_limits?.max_tool_calls !== 150) {
+    throw new Error(`Test 11.2 Failed: Expected web-builder max_tool_calls 150, got ${webBuilderAgent.runner_limits?.max_tool_calls}`);
+  }
+  if (webBuilderAgent.runner_limits?.timeout_minutes !== 60) {
+    throw new Error(`Test 11.3 Failed: Expected web-builder timeout_minutes 60, got ${webBuilderAgent.runner_limits?.timeout_minutes}`);
+  }
+  const wbLimits = getAgentRunnerLimits(webBuilderAgent);
+  if (wbLimits.maxToolCalls !== 150 || wbLimits.timeoutMinutes !== 60 || wbLimits.timeoutMs !== 3600000) {
+    throw new Error(`Test 11.4 Failed: getAgentRunnerLimits returned unexpected limits: ${JSON.stringify(wbLimits)}`);
+  }
+  console.log("  [Passed] web-builder loads 150 tool calls / 60 min limit from config/agents.yaml");
+
+  // Part 2: Verify repository map & referenced file contents up front
+  const repoFiles = buildRepositoryMap();
+  if (!repoFiles || repoFiles.length === 0) {
+    throw new Error("Test 11.5 Failed: buildRepositoryMap returned empty list!");
+  }
+  const hasAgents = repoFiles.some((f) => f.startsWith("agents/"));
+  const hasConfig = repoFiles.some((f) => f.startsWith("config/"));
+  const hasTglOps = repoFiles.some((f) => f.startsWith("services/tgl-ops/src/"));
+  if (!hasAgents || !hasConfig || !hasTglOps) {
+    throw new Error(`Test 11.6 Failed: buildRepositoryMap missing root prefixes: hasAgents=${hasAgents}, hasConfig=${hasConfig}, hasTglOps=${hasTglOps}`);
+  }
+  console.log(`  [Passed] buildRepositoryMap returned ${repoFiles.length} file paths across agents/, config/, services/tgl-ops/src/`);
+
+  const briefWithFiles = "Please inspect config/agents.yaml and AGENTS.md before building.";
+  const referencedFileContents = extractAndLoadBriefFiles(briefWithFiles);
+  const foundAgentsYaml = referencedFileContents.some((f) => f.path.includes("config/agents.yaml") && f.content.length > 0);
+  const foundAgentsMd = referencedFileContents.some((f) => f.path.includes("AGENTS.md") && f.content.length > 0);
+  if (!foundAgentsYaml || !foundAgentsMd) {
+    throw new Error(`Test 11.7 Failed: extractAndLoadBriefFiles did not extract referenced files: foundAgentsYaml=${foundAgentsYaml}, foundAgentsMd=${foundAgentsMd}`);
+  }
+  console.log("  [Passed] extractAndLoadBriefFiles extracts and loads contents of files named in brief");
+
+  // Part 3: Verify runner prompt pacing directives and budget injection
+  const test11Branch = "task/72-plan-d10-outreach-sequencer-sk";
+  const pacedSysPrompt = buildRunnerSystemPrompt("web-builder", test11Branch, wbLimits);
+  const pacedUserMsg = buildRunnerUserMessage({
+    agentName: "web-builder",
+    issueNumber: 72,
+    issueTitle: "[PLAN-D10]: Outreach Sequencer SKILL.md + 5-touch worker",
+    issueBody: "Deliverable: agents/outreach-sequencer/SKILL.md from config/agents.yaml",
+    branchName: test11Branch,
+    runnerLimits: wbLimits,
+  });
+
+  if (!pacedSysPrompt.includes("Maximum 150 tool calls (60 min timeout)")) {
+    throw new Error("Test 11.8 Failed: System prompt does not reflect dynamic budget limits (150 calls / 60 min)");
+  }
+  if (!pacedSysPrompt.includes("Research may use at most a third of the budget")) {
+    throw new Error("Test 11.9 Failed: System prompt missing research <= 1/3 budget directive");
+  }
+  if (!pacedSysPrompt.includes("The first write_file must happen before 40% of the budget")) {
+    throw new Error("Test 11.10 Failed: System prompt missing first write_file <= 40% budget directive");
+  }
+  if (!pacedSysPrompt.includes("After that, writes before reads")) {
+    throw new Error("Test 11.11 Failed: System prompt missing 'writes before reads' directive");
+  }
+  if (!pacedUserMsg.includes("=== REPOSITORY MAP (PATHS ONLY) ===")) {
+    throw new Error("Test 11.12 Failed: User message missing repository map block");
+  }
+  if (!pacedUserMsg.includes("=== REFERENCED FILE CONTENTS (FROM BRIEF) ===")) {
+    throw new Error("Test 11.13 Failed: User message missing referenced file contents block");
+  }
+  if (!pacedUserMsg.includes("research may use at most a third of the budget") || !pacedUserMsg.includes("the first write_file must happen before 40% of the budget") || !pacedUserMsg.includes("after that, writes before reads")) {
+    throw new Error("Test 11.14 Failed: User message missing execution directives for budget pacing");
+  }
+  console.log("  [Passed] Runner prompt includes repository map, brief files, and 1/3 research / 40% first write pacing");
+
+  // Part 4: Verify verbatim last_model_message in zero-commits needs-brief handling
+  clearMockRunnerStateDbForTests();
+  const test11IssueNum = 9973;
+  const verbatimMessage = "I ran out of my 25-tool-call limit on research and wrote no files.";
+  const test11Issue = {
+    number: test11IssueNum,
+    title: "Needs brief verbatim check",
+    body: "Needs brief verbatim check body",
+    labels: ["for:web-builder", "status:in-progress"],
+  };
+  const test11BriefHash = computeBriefHash(test11Issue.body, []);
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        [String(test11IssueNum)]: {
+          agent: "web-builder",
+          door: "core",
+          title: test11Issue.title,
+          status: "in-progress",
+          branch: "task/9973-test-verbatim",
+          toolCallsCount: 0,
+          preflightHash: test11BriefHash,
+          preflightVerdict: "proceed",
+          preflightReason: "Cached proceed verdict for test",
+          runStartedAt: new Date().toISOString(),
+          ownerInstance: null,
+          heartbeatAt: null,
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+  const test11RunRes = await runIssueTask(test11Issue, {
+    testMode: true,
+    mockModelResponse: verbatimMessage,
+  });
+
+  if (test11RunRes.status !== "needs-brief") {
+    throw new Error(`Test 11.15 Failed: Expected status 'needs-brief', got ${test11RunRes.status}`);
+  }
+  const stateAfter11 = await getRunnerState({ testMode: true });
+  const run11Record = stateAfter11.runs[String(test11IssueNum)];
+  if (run11Record?.lastModelMessage !== verbatimMessage) {
+    throw new Error(`Test 11.16 Failed: runner_state lastModelMessage is not verbatim: '${run11Record?.lastModelMessage}'`);
+  }
+  console.log("  [Passed] needs-brief preserves last_model_message verbatim without generic fallback");
+
+  // Part 5: Verify PR description issue linking gate (verifyPrDescriptionIssueLinking)
+  // Case A: Closes keyword on non-task branch fails
+  const checkFail1 = verifyPrDescriptionIssueLinking("Fixes #72", "fix/runner-budget-limits");
+  if (checkFail1.valid || checkFail1.errors.length === 0) {
+    throw new Error("Test 11.17 Failed: 'Fixes #72' on 'fix/runner-budget-limits' was not rejected!");
+  }
+
+  // Case B: Closes keyword on matching task branch passes
+  const checkPass1 = verifyPrDescriptionIssueLinking("Fixes #72", "task/72-plan-d10-outreach-sequencer-sk");
+  if (!checkPass1.valid) {
+    throw new Error(`Test 11.18 Failed: 'Fixes #72' on 'task/72-plan-d10...' was rejected: ${checkPass1.errors.join(", ")}`);
+  }
+  const checkPass2 = verifyPrDescriptionIssueLinking("Resolves: #72", "task/72");
+  if (!checkPass2.valid) {
+    throw new Error(`Test 11.19 Failed: 'Resolves: #72' on 'task/72' was rejected: ${checkPass2.errors.join(", ")}`);
+  }
+
+  // Case C: Non-closing reference on non-task branch passes
+  const checkPass3 = verifyPrDescriptionIssueLinking("Relates to #72 and addresses review", "fix/runner-budget");
+  if (!checkPass3.valid) {
+    throw new Error(`Test 11.20 Failed: 'Relates to #72' on non-task branch was rejected: ${checkPass3.errors.join(", ")}`);
+  }
+
+  // Case D: Multiple issue references where one mismatches fails
+  const checkFail2 = verifyPrDescriptionIssueLinking("Closes #72 and fixes #73", "task/72-outreach");
+  if (checkFail2.valid || checkFail2.errors.length === 0) {
+    throw new Error("Test 11.21 Failed: Multi-issue close where #73 doesn't match branch was not rejected!");
+  }
+  console.log("  [Passed] PR description issue linking gate strictly enforces task/N-* for fixes/closes/resolves #N");
+  console.log("[Test 11 Passed] Per-agent limits, repository map, prompt pacing, verbatim message, and CI gate verified.\n");
+  passed++;
+
   console.log("==========================================================================");
   console.log(`ALL ${passed} HOUSEKEEPING FIX TESTS PASSED CLEANLY!`);
   console.log("==========================================================================");
 }
 
 runFixesVerificationSuite().catch((err) => {
-  console.error("❌ Verification Suite Failed:", err);
+  console.error("[FAILED] Verification Suite Failed:", err);
   process.exit(1);
 });
 

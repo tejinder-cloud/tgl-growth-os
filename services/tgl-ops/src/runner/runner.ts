@@ -223,8 +223,9 @@ export async function runIssueTask(
     const agentRecord = await findAgentByName(rawAgentName);
     const agentName = agentRecord?.name || rawAgentName;
     const reviewer = agentRecord?.reviewer || "Creative Director";
+    const runnerLimits = getAgentRunnerLimits(agentRecord);
 
-    console.log(`[Runner] Picked up issue #${issueNum} for @${agentName}: "${issue.title}" on instance ${instanceId}`);
+    console.log(`[Runner] Picked up issue #${issueNum} for @${agentName}: "${issue.title}" on instance ${instanceId} (budget: ${runnerLimits.maxToolCalls} calls / ${runnerLimits.timeoutMinutes} min)`);
 
     // Load existing runner state before claim to inspect preflight cache and branch/budget
     const state = await getRunnerState({ testMode: isTest });
@@ -534,13 +535,12 @@ export async function runIssueTask(
     let totalOutputTokens = 0;
     let toolCallsCount = existingRecord?.toolCallsCount || 0;
     let lastModelMessage = existingRecord?.lastModelMessage || "";
-    const runnerLimits = getAgentRunnerLimits(agentRecord);
     const MAX_TOOL_CALLS = runnerLimits.maxToolCalls;
     const MAX_RUNTIME_MS = runnerLimits.timeoutMs;
     const modelName = getAnthropicModel();
     let hitLimit = false;
 
-    const systemPrompt = buildRunnerSystemPrompt(agentName, branchName);
+    const systemPrompt = buildRunnerSystemPrompt(agentName, branchName, runnerLimits);
     const userMessage = buildRunnerUserMessage({
       agentName,
       issueNumber: issueNum,
@@ -548,6 +548,7 @@ export async function runIssueTask(
       issueBody: issue.body,
       threadContext: slackThreadTs ? `Originating card thread ts: ${slackThreadTs}` : undefined,
       branchName,
+      runnerLimits,
     });
 
     // 6. Execute Run Loop strictly via Anthropic and Tools
@@ -813,7 +814,7 @@ Work in progress — fixes #${issueNum}
     if (commitsAhead === 0) {
       console.warn(`[Runner Zero Commits Gate] Branch ${branchName} has 0 commits beyond main. Run produced no files.`);
       const noFilesReason = "run produced no files";
-      const explanation = lastModelMessage || "The model finished execution without writing any files to the working branch.";
+      const explanation = (lastModelMessage && lastModelMessage.trim()) || (existingRecord?.lastModelMessage && existingRecord.lastModelMessage.trim()) || "";
 
       // Post model's final message to issue thread
       if (!isTest) {
