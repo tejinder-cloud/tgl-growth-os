@@ -111,6 +111,7 @@ export interface RunnerRunResult {
     costUsd: number;
   };
   error?: string;
+  writtenFiles?: string[];
 }
 
 /**
@@ -154,7 +155,13 @@ export function computeBriefHash(
  */
 export async function runIssueTask(
   issue: RunnerIssueInput,
-  options?: { testMode?: boolean; throwawayPrefix?: string; instanceId?: string; mockModelResponse?: string }
+  options?: {
+    testMode?: boolean;
+    throwawayPrefix?: string;
+    instanceId?: string;
+    mockModelResponse?: string;
+    mockToolCalls?: Array<{ name: string; input: Record<string, any> }>;
+  }
 ): Promise<RunnerRunResult> {
   const isTest = options?.testMode === true || isTestMode();
   const instanceId = options?.instanceId || CONTAINER_INSTANCE_ID;
@@ -544,9 +551,18 @@ export async function runIssueTask(
     });
 
     // 6. Execute Run Loop strictly via Anthropic and Tools
-    if (isTest && options?.mockModelResponse !== undefined) {
-      lastModelMessage = options.mockModelResponse;
-      console.log(`[Runner Test Mode] Using mock model response for issue #${issueNum}: "${lastModelMessage.slice(0, 80)}"`);
+    if (isTest && (options?.mockModelResponse !== undefined || options?.mockToolCalls !== undefined)) {
+      if (options?.mockToolCalls) {
+        for (const toolCall of options.mockToolCalls) {
+          toolCallsCount++;
+          console.log(`[Runner Test Mode Tool Call #${toolCallsCount}] ${toolCall.name}(${JSON.stringify(toolCall.input)})`);
+          await executeRunnerTool(toolCall.name, toolCall.input, toolContext);
+        }
+      }
+      if (options?.mockModelResponse !== undefined) {
+        lastModelMessage = options.mockModelResponse;
+        console.log(`[Runner Test Mode] Using mock model response for issue #${issueNum}: "${lastModelMessage.slice(0, 80)}"`);
+      }
     } else {
       const apiKey = config.anthropicApiKey || process.env.ANTHROPIC_API_KEY;
       if (!apiKey) {
@@ -594,6 +610,8 @@ export async function runIssueTask(
 
         // Check for tool use
         const toolUseBlocks = response.content.filter((b) => b.type === "tool_use") as Anthropic.ToolUseBlock[];
+        console.log(`[Runner Model Response] Turn returned ${response.content.length} blocks (text: ${textBlocks.length}, tool_use: ${toolUseBlocks.length})`);
+
         if (toolUseBlocks.length === 0) {
           // Model finished with text response
           break;
@@ -747,6 +765,7 @@ Work in progress — fixes #${issueNum}
           output: totalOutputTokens,
           costUsd: totalCostUsd,
         },
+        writtenFiles: toolContext.virtualFiles ? Array.from(toolContext.virtualFiles.keys()) : undefined,
       };
     }
 
@@ -851,6 +870,7 @@ Work in progress — fixes #${issueNum}
           costUsd: totalCostUsd,
         },
         error: noFilesReason,
+        writtenFiles: toolContext.virtualFiles ? Array.from(toolContext.virtualFiles.keys()) : undefined,
       };
     }
 
@@ -975,6 +995,7 @@ Fixes #${issueNum}
         output: totalOutputTokens,
         costUsd: totalCostUsd,
       },
+      writtenFiles: toolContext.virtualFiles ? Array.from(toolContext.virtualFiles.keys()) : undefined,
     };
   } catch (err: any) {
     console.error(`[Runner Run Error on Issue #${issueNum}]:`, err);

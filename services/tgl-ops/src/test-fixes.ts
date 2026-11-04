@@ -10,6 +10,7 @@ import { getRunnerState, saveRunnerState, recordRunnerIssue, clearMockRunnerStat
 import { catchUpRunnerIssues, recoverInterruptedRunnerIssues } from "./runner/catch-up.js";
 import { runPreflightCheck } from "./runner/preflight.js";
 import { handleRunnerShutdown, setActiveIssueNumberForTests, computeBriefHash, runIssueTask } from "./runner/runner.js";
+import { buildRunnerSystemPrompt, buildRunnerUserMessage } from "./runner/prompt.js";
 import { resetMockPostedLines, mockPostedLines } from "./lib/post.js";
 
 async function runFixesVerificationSuite(): Promise<void> {
@@ -651,6 +652,118 @@ async function runFixesVerificationSuite(): Promise<void> {
   console.log("  ✓ Marked status:needs-brief with reason 'run produced no files'");
   console.log("  ✓ Does not count as a failure: recoveryAttempts strictly 0");
   console.log("✅ [Test 9 Passed] Zero-commit gate & needs-brief handling verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 10: Runner prompt directives & fixture issue proceed execution producing write_file
+  // -------------------------------------------------------------------------
+  console.log("[Test 10] Testing runner prompt directives & fixture issue proceed execution producing write_file...");
+
+  // Part 1: Verify prompt directives in buildRunnerSystemPrompt & buildRunnerUserMessage
+  const testBranch = "task/72-plan-d10-outreach-sequencer-sk";
+  const sysPrompt = buildRunnerSystemPrompt("web-builder", testBranch);
+  const usrMessage = buildRunnerUserMessage({
+    agentName: "web-builder",
+    issueNumber: 72,
+    issueTitle: "[PLAN-D10]: Outreach Sequencer SKILL.md + 5-touch worker",
+    issueBody: "Deliverable: agents/outreach-sequencer/SKILL.md + 5-touch worker",
+    branchName: testBranch,
+  });
+
+  if (!sysPrompt.includes("The pre-flight proceed verdict is the Architect's approval")) {
+    throw new Error("Test 10.1 Failed: System prompt missing 'pre-flight proceed verdict is the Architect's approval'");
+  }
+  if (!sysPrompt.includes("the brief review goes into the PR description, not a message")) {
+    throw new Error("Test 10.2 Failed: System prompt missing 'the brief review goes into the PR description, not a message'");
+  }
+  if (!sysPrompt.includes("The model must create or change files in this session using write_file")) {
+    throw new Error("Test 10.3 Failed: System prompt missing 'The model must create or change files in this session using write_file'");
+  }
+  if (!sysPrompt.includes("A session that ends with no write_file is a task failure, not caution")) {
+    throw new Error("Test 10.4 Failed: System prompt missing 'A session that ends with no write_file is a task failure, not caution'");
+  }
+  if (!sysPrompt.includes("§8 NEVER RULES (WHAT YOU NEVER DO):")) {
+    throw new Error("Test 10.5 Failed: System prompt missing §8 Never rules section");
+  }
+  if (!sysPrompt.includes("Publish or change a live page") || !sysPrompt.includes("Send a message to a prospect or client")) {
+    throw new Error("Test 10.6 Failed: System prompt missing §8 Never guardrails");
+  }
+  if (!usrMessage.includes("The pre-flight proceed verdict is the Architect's approval")) {
+    throw new Error("Test 10.7 Failed: User message missing proceed verdict approval directive");
+  }
+  if (!usrMessage.includes("The model must create or change files in this session using write_file")) {
+    throw new Error("Test 10.8 Failed: User message missing mandatory write_file directive");
+  }
+  console.log("  [Passed] System prompt and user message verify all required runner directives and §8 Never rules");
+
+  // Part 2: Fixture issue with a proceed verdict produces at least one write_file call
+  clearMockRunnerStateDbForTests();
+  const fixtureIssueNum = 9972;
+  const fixtureIssue = {
+    number: fixtureIssueNum,
+    title: "[PLAN-D10]: Outreach Sequencer SKILL.md + 5-touch worker",
+    body: "### deliverable\nagents/outreach-sequencer/SKILL.md + 5-touch worker\n\n### cadence\nT1 email, T2 WhatsApp, T3 email with audit PDF, T4 WhatsApp, T5 email",
+    labels: ["for:web-builder", "status:in-progress", "door:aeo"],
+    agentName: "web-builder",
+    door: "aeo",
+  };
+
+  const fixtureBriefHash = computeBriefHash(fixtureIssue.body, []);
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        [String(fixtureIssueNum)]: {
+          agent: "web-builder",
+          door: "aeo",
+          title: fixtureIssue.title,
+          status: "in-progress",
+          branch: "task/9972-plan-d10-outreach-sequencer-sk",
+          toolCallsCount: 0,
+          preflightHash: fixtureBriefHash,
+          preflightVerdict: "proceed",
+          preflightReason: "Concrete deliverable and acceptance criteria verified.",
+          runStartedAt: new Date().toISOString(),
+          ownerInstance: null,
+          heartbeatAt: null,
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  const fixtureRunRes = await runIssueTask(fixtureIssue, {
+    testMode: true,
+    mockToolCalls: [
+      {
+        name: "write_file",
+        input: {
+          path: "agents/outreach-sequencer/SKILL.md",
+          content: "# Outreach Sequencer SKILL.md\nAutonomous multi-touch sequencer for GHL and WhatsApp.",
+        },
+      },
+    ],
+    mockModelResponse: "Brief review: Delivered agents/outreach-sequencer/SKILL.md cleanly on working branch.",
+  });
+
+  if (!fixtureRunRes.success || fixtureRunRes.status !== "completed") {
+    throw new Error(`Test 10.9 Failed: Expected fixture issue to complete cleanly, got ${JSON.stringify(fixtureRunRes)}`);
+  }
+  if (!fixtureRunRes.writtenFiles || fixtureRunRes.writtenFiles.length === 0) {
+    throw new Error("Test 10.10 Failed: Fixture issue produced 0 write_file calls!");
+  }
+  if (!fixtureRunRes.writtenFiles.includes("agents/outreach-sequencer/SKILL.md")) {
+    throw new Error(`Test 10.11 Failed: Expected agents/outreach-sequencer/SKILL.md in writtenFiles, got ${JSON.stringify(fixtureRunRes.writtenFiles)}`);
+  }
+  if (fixtureRunRes.prNumber === undefined) {
+    throw new Error("Test 10.12 Failed: Expected PR number to be defined upon completed run with write_file");
+  }
+
+  console.log(`  [Passed] Fixture issue with proceed verdict executed write_file: ${fixtureRunRes.writtenFiles.join(", ")}`);
+  console.log(`  [Passed] Completed run successfully opened PR #${fixtureRunRes.prNumber}`);
+  console.log("[Test 10 Passed] Runner prompt directives and fixture proceed write_file verified.\n");
   passed++;
 
   console.log("==========================================================================");
