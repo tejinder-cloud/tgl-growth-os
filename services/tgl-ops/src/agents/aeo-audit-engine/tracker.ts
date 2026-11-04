@@ -52,7 +52,11 @@ export async function runTracker(d: TrackerDeps): Promise<TrackerSummary> {
     if (!b.prompts.length) continue;
     // Engines run in parallel; prompts run one after another within an engine (gentle on rate limits).
     const results = await Promise.all(configs.map(async (cfg): Promise<EngineOutcome> => {
-      const base = { brand: b.name, engine: cfg.engine, ok: 0, total: b.prompts.length, mentioned: 0, usd: 0 };
+      // Audits ask only what this engine hasn't answered today (new prompts after a setup change, or a retry) — never pay twice.
+      const answered = kind === "audit" ? await d.store.answeredPromptIds(b.id, d.runDate, cfg.engine) : new Set<string>();
+      const todo = b.prompts.filter((p) => !answered.has(p.id));
+      const base = { brand: b.name, engine: cfg.engine, ok: 0, total: todo.length, mentioned: 0, usd: 0 };
+      if (!todo.length) return { ...base, status: "skipped", note: "all prompts already answered today" };
       if (kind === "daily" && await d.store.hasCompletedRun(b.id, d.runDate, cfg.engine)) return { ...base, status: "skipped", note: "already ran today" };
       if (d.canSpend && !(await d.canSpend())) { stoppedByCap = true; return { ...base, status: "skipped", note: "daily cost cap" }; }
 
@@ -66,7 +70,7 @@ export async function runTracker(d: TrackerDeps): Promise<TrackerSummary> {
       }
       let firstError: string | null = null;
       let tokensIn = 0, tokensOut = 0, searches = 0, freeSearches = 0, pageActions = 0, costSource = "computed";
-      for (const p of b.prompts) {
+      for (const p of todo) {
         try {
           const ans = await askEngine(cfg, p.text, { country: b.country, city: b.city ?? undefined, fetchImpl: d.fetchImpl });
           const left = freeLeft[cfg.engine] ?? 0;

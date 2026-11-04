@@ -260,6 +260,8 @@ export async function handleSetupAction(payload: any, action: any): Promise<void
     `chore(decision): setup verified for ${s.name} per ${actor}`).catch((e) => console.warn("[Setup Queue] decision log failed", e?.message ?? e));
 
   // First audit for this brand right away (Citation Tracker; idempotent per engine × day).
+  // New prompts are asked by the first-audit queue within a minute (apply set setup_submitted_at); this daily call only
+  // matters for a brand verified before its first daily run, and is skipped for engines that already ran today.
   runCitationTracking({ brandId: s.brandId }).catch((e) => console.error("[Setup Queue] first run failed", e));
 }
 

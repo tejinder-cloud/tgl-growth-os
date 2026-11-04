@@ -24,6 +24,8 @@ export interface TrackerStore {
   saveAnswer(b: TrackedBrand, runId: string, promptId: string, ans: EngineAnswer, a: AnswerAnalysis, cites: CitationAnalysis[]): Promise<void>;
   finishRun(runId: string, status: "succeeded" | "partial" | "failed", error: string | null): Promise<void>;
   recordUsageCost(b: TrackedBrand, runDate: string, engine: EngineId, row: { calls: number; usd: number; inr: number; detail: Record<string, unknown> }): Promise<void>;
+  /** Prompts this engine already answered on runDate in a completed run (audits ask only the rest). */
+  answeredPromptIds(brandId: string, runDate: string, engine: EngineId): Promise<Set<string>>;
   /** Billable searches already recorded this calendar month for an engine, across all tenants (free allowances are per provider account). */
   monthSearches(engine: EngineId, runDate: string): Promise<number>;
 }
@@ -124,6 +126,12 @@ export function supabaseStore(sb: SupabaseClient): TrackerStore {
 
     async finishRun(runId, status, error) {
       must(await sb.from("runs").update({ status, error, finished_at: new Date().toISOString() }).eq("id", runId), "finish run");
+    },
+
+    async answeredPromptIds(brandId, runDate, engine) {
+      const rows = must(await sb.from("answers").select("prompt_id, runs!inner(run_date, engine, status)")
+        .eq("brand_id", brandId).eq("runs.run_date", runDate).eq("runs.engine", engine).in("runs.status", ["succeeded", "partial"]).limit(1000), "answered prompts") as any[];
+      return new Set(rows.map((r) => r.prompt_id as string));
     },
 
     async monthSearches(engine, runDate) {

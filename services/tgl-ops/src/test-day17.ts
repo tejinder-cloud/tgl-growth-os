@@ -116,6 +116,10 @@ function memoryStore(brand: TrackedBrand) {
     async saveAnswer(_b, runId, promptId, ans, a, cites) { db.answers.push({ runId, promptId, engine: ans.engine, ...a }); db.citations.push(...cites); },
     async finishRun(runId, status, error) { Object.assign(db.runs.find((r) => r.id === runId), { status, error }); },
     async recordUsageCost(_b, date, engine, row) { db.usage.push({ date, engine, ...row }); },
+    async answeredPromptIds(id, date, engine) {
+      const ok = new Set(db.runs.filter((r) => r.brand === id && r.date === date && r.engine === engine && ["succeeded", "partial"].includes(r.status)).map((r) => r.id));
+      return new Set(db.answers.filter((x) => ok.has(x.runId)).map((x) => x.promptId as string));
+    },
     async monthSearches(engine) { return db.usage.filter((u) => u.engine === engine).reduce((n, u) => n + (u.detail.searches ?? 0) + (u.detail.free_searches ?? 0), 0) + (db.priorSearches[engine] ?? 0); },
   };
   return { db, store };
@@ -193,15 +197,25 @@ await t("Gemini free grounding allowance: searches inside the monthly allowance 
   assert.equal(Number(m2.db.usage[0].usd.toFixed(6)), Number((2 * tokenUsd + 4 * 14 / 1000).toFixed(6)));
 });
 
-await t("first audit (kind audit): runs again the same day after a daily run, includes unverified brands, recorded as kind audit", async () => {
-  const { db, store } = memoryStore(brand);
+await t("first audit (kind audit): after a daily run, asks only prompts not yet answered today; includes unverified brands", async () => {
+  const b2: TrackedBrand = { ...brand, prompts: [...brand.prompts] };
+  const { db, store } = memoryStore(b2);
   await runTracker({ store, runDate: "2026-11-03", usdInr: 88, env, fetchImpl: fakeFetch });
   const again = await runTracker({ store, runDate: "2026-11-03", usdInr: 88, env, fetchImpl: fakeFetch });
   assert.ok(again.outcomes.every((o) => o.status === "skipped")); // daily: once a day
+  const nothingNew = await runTracker({ store, runDate: "2026-11-03", usdInr: 88, env, fetchImpl: fakeFetch, kind: "audit" });
+  const gpt = nothingNew.outcomes.find((o) => o.engine === "chatgpt");
+  assert.equal(gpt?.status, "skipped"); // every prompt already answered by ChatGPT today → no paid calls
+  assert.equal(db.runs.filter((r) => r.kind === "audit" && r.engine === "chatgpt").length, 0);
+  b2.prompts.push({ id: "p3", text: "aeo agency india", language: "en" }); // approval added a prompt
+  const before = db.answers.length;
   const audit = await runTracker({ store, runDate: "2026-11-03", usdInr: 88, env, fetchImpl: fakeFetch, kind: "audit" });
-  assert.ok(audit.outcomes.every((o) => o.status !== "skipped"));
-  assert.deepEqual(db.runs.filter((r) => r.kind === "audit").map((r) => r.engine).sort(), ["chatgpt", "perplexity"]);
-  assert.deepEqual(db.eligibleOpts.map((o) => !!o.includeUnverified), [false, false, true]);
+  const gpt2 = audit.outcomes.find((o) => o.engine === "chatgpt");
+  assert.equal(gpt2?.total, 1); assert.equal(gpt2?.status, "succeeded");
+  assert.ok(db.answers.slice(before).every((x) => x.promptId !== "p1" && x.promptId !== "p2" || x.engine === "perplexity"));
+  assert.ok(db.answers.slice(before).some((x) => x.promptId === "p3" && x.engine === "chatgpt"));
+  assert.ok(db.runs.some((r) => r.kind === "audit" && r.engine === "chatgpt"));
+  assert.ok(db.eligibleOpts.slice(2).every((o) => !!o.includeUnverified));
 });
 
 console.log(`\nDay 17: ${passed} checks passed`);
