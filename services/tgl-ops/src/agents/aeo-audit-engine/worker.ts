@@ -119,3 +119,13 @@ export async function runFirstAudits(): Promise<void> {
       .finally(() => inFlight.delete(b.id));
   }
 }
+
+/** Daily at 07:00 IST (after the 06:00 run): the Gemini cost experiment, only while AEO_GEMINI_EXPERIMENT_MODELS is set. */
+export async function runGeminiExperimentJob(): Promise<void> {
+  if (isTestMode() || !process.env.AEO_GEMINI_EXPERIMENT_MODELS?.trim()) return;
+  const sb = getSupabase();
+  if (!sb) return;
+  const { runGeminiExperiment } = await import("./experiment.js");
+  const out = await runGeminiExperiment(sb, getTodayDateString());
+  if (out) console.log("[Gemini Experiment]", out);
+}

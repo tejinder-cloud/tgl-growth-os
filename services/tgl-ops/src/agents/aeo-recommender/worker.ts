@@ -40,6 +40,8 @@ export async function pollRecommendations(): Promise<void> {
     try { await generateRecommendations(sb, b.id); }
     catch (err: any) {
       console.error("[Recommendations] failed", b.name, err);
+      // Also kept in the database so a failure is visible without access to the service logs.
+      await sb.from("experiments").insert({ name: "recommender_log", run_date: getTodayDateString(), brand_id: b.id, summary: { error: String(err?.message ?? err).slice(0, 1000) } }).then(() => {}, () => {});
       await postLine({ channel: getAlertsChannel(), text: `[Warning] *@${AGENT}* couldn't write recommendations for *${b.name}*: \`${String(err?.message ?? err).slice(0, 300)}\`` }).catch(() => {});
     } finally { inFlight.delete(b.id); }
   }
@@ -47,7 +49,10 @@ export async function pollRecommendations(): Promise<void> {
 
 export async function generateRecommendations(sb: SupabaseClient, brandId: string): Promise<number> {
   const cap = await checkAgentCostCap(AGENT);
-  if (!cap.allowed) return 0;
+  if (!cap.allowed) {
+    await sb.from("experiments").insert({ name: "recommender_log", run_date: getTodayDateString(), brand_id: brandId, summary: { skipped: "daily cost cap", spend: cap.currentSpend, cap: cap.cap } }).then(() => {}, () => {});
+    return 0;
+  }
   const ev = await gatherRecEvidence(sb, brandId);
   if (!ev || !ev.prompts.length) return 0;
   const { recs, dropped, usd, model, tokens } = await proposeRecommendations(ev);
@@ -100,10 +105,10 @@ export async function relayManagedAeoRequests(): Promise<void> {
       : { data: null };
     const channel = (await resolveChannelId("#doors-aeo")) || config.approvalsChannelId;
     const text = [
-      `:raised_hand: *Start managed AEO* — *${brand?.name ?? r.brand_id}*${brand?.primary_domain ? ` (${brand.primary_domain})` : ""}`,
+      `:raised_hand: *Clicked Start managed AEO* — *${brand?.name ?? r.brand_id}*${brand?.primary_domain ? ` (${brand.primary_domain})` : ""}`,
       `From ${r.email ?? "unknown"} · plan ${sub ? `${sub.plan} (${sub.status})` : "—"}${rec?.title ? ` · from “${rec.title}”` : ""}`,
-      r.note ? `> ${String(r.note).slice(0, 500)}` : null,
-      `They were told we'll be in touch to agree a 90-day plan. Reply to them, then mark the request contacted.`,
+      r.note && !/^Clicked Start managed AEO/.test(r.note) ? `> ${String(r.note).slice(0, 500)}` : null,
+      `They clicked it in the dashboard and were sent to the AEO page on thegrowthlab.co.in. Worth a personal follow-up.`,
     ].filter(Boolean).join("\n");
     const msg = await slackClient.chat.postMessage({ channel, text }).catch((e) => { console.error("[Managed AEO] slack", e); return null; });
     if (msg?.ts) await sb.from("managed_aeo_requests").update({ notified_at: new Date().toISOString(), slack_ts: msg.ts }).eq("id", r.id);

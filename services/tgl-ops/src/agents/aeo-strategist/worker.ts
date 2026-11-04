@@ -25,10 +25,11 @@ import type { Proposal, SetupSnapshot } from "./types.js";
 export const AGENT = "aeo-strategist";
 const REMIND_AFTER_H = 20; // SLA is 24h (SPEC §3)
 
-function limitFor(plan: string, status: string, trialEndsAt: string | null): number {
+// Mirrors private.tv_prompt_limit: paid plans 25 + extra packs (decision 4 Nov 2026), trial 10, internal 50.
+function limitFor(plan: string, status: string, trialEndsAt: string | null, extra = 0): number {
   if (plan === "internal") return 50;
   if (plan === "trial") return status === "trialing" && trialEndsAt && Date.parse(trialEndsAt) > Date.now() ? 10 : 0;
-  return ["active", "past_due"].includes(status) ? 50 : 0;
+  return ["active", "past_due"].includes(status) ? 25 + extra : 0;
 }
 
 export async function loadSnapshot(sb: SupabaseClient, brandId: string): Promise<SetupSnapshot> {
@@ -36,7 +37,7 @@ export async function loadSnapshot(sb: SupabaseClient, brandId: string): Promise
   if (error || !b) throw new Error(`brand ${brandId}: ${error?.message ?? "not found"}`);
   const [t, subs, v, m, c, p] = await Promise.all([
     sb.from("tenants").select("name, parent_tenant_id").eq("id", b.tenant_id).single(),
-    sb.from("subscriptions").select("tenant_id, plan, status, trial_ends_at, created_at").eq("product", "truevisible").is("brand_id", null).order("created_at", { ascending: false }),
+    sb.from("subscriptions").select("tenant_id, plan, status, trial_ends_at, extra_prompts, created_at").eq("product", "truevisible").is("brand_id", null).order("created_at", { ascending: false }),
     sb.from("brand_variants").select("name").eq("brand_id", brandId),
     sb.from("products_icps").select("id, product, icp, location").eq("brand_id", brandId).order("created_at").limit(1),
     sb.from("competitors").select("id, name, domain").eq("brand_id", brandId).eq("status", "active").order("created_at"),
@@ -53,7 +54,7 @@ export async function loadSnapshot(sb: SupabaseClient, brandId: string): Promise
     variants: (v.data ?? []).map((x: any) => x.name),
     market: (m.data ?? [])[0] ?? null,
     competitors: c.data ?? [], prompts: (p.data ?? []) as SetupSnapshot["prompts"],
-    plan: sub?.plan ?? "none", promptLimit: sub ? limitFor(sub.plan, sub.status, sub.trial_ends_at) : 0,
+    plan: sub?.plan ?? "none", promptLimit: sub ? limitFor(sub.plan, sub.status, sub.trial_ends_at, sub.extra_prompts ?? 0) : 0,
     submittedAt: b.updated_at,
     setupStatus: b.setup_status,
     setupNote: lastBack?.instructions ?? null,
