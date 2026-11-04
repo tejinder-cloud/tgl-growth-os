@@ -8,6 +8,7 @@ import {
   createIssue,
   appendFileInRepo,
   getIssue,
+  reopenIssue,
   addCommentToIssue,
   removeLabelFromIssue,
   addLabelsToIssue,
@@ -768,7 +769,8 @@ export async function pollChiefOfStaffIntake(options?: {
             }
           }
 
-          // 3. GitHub labels: remove status:blocked and status:needs-brief, add status:in-progress
+          // 3. GitHub state & labels: reopen issue if closed, remove status:blocked and status:needs-brief, add status:in-progress
+          await reopenIssue(issueNum).catch(() => {});
           await removeLabelFromIssue(issueNum, "status:blocked").catch(() => {});
           await removeLabelFromIssue(issueNum, "status:needs-brief").catch(() => {});
           await addLabelsToIssue(issueNum, ["status:in-progress", `for:${assignedAgent}`]).catch(() => {});

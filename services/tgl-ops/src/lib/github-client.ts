@@ -106,6 +106,32 @@ export async function updateIssueBody(issueNumber: number, body: string): Promis
   }
 }
 
+export async function reopenIssue(issueNumber: number): Promise<boolean> {
+  if (mockIssuesStore.has(issueNumber)) {
+    mockIssuesStore.get(issueNumber)!.state = "open";
+    return true;
+  }
+
+  if (!config.githubToken) {
+    console.warn(`[GitHub] GITHUB_TOKEN not set; simulating reopening issue #${issueNumber}`);
+    return true;
+  }
+
+  try {
+    await octokit.issues.update({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      issue_number: issueNumber,
+      state: "open",
+    });
+    console.log(`[GitHub API] Reopened issue #${issueNumber}`);
+    return true;
+  } catch (err: any) {
+    console.warn(`[GitHub API] Failed to reopen issue #${issueNumber}:`, err.message);
+    return false;
+  }
+}
+
 export async function addLabelsToIssue(issueNumber: number, labels: string[]): Promise<void> {
   if (mockIssuesStore.has(issueNumber)) {
     const item = mockIssuesStore.get(issueNumber)!;

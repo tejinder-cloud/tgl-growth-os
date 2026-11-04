@@ -100,7 +100,7 @@ export interface RunnerIssueInput {
 export interface RunnerRunResult {
   success: boolean;
   issueNumber: number;
-  status: "completed" | "needs-brief" | "blocked" | "skipped";
+  status: "completed" | "needs-brief" | "blocked" | "skipped" | "in-progress";
   branchName?: string;
   prNumber?: number;
   prUrl?: string;
@@ -532,6 +532,7 @@ export async function runIssueTask(
     let totalInputTokens = 0;
     let totalOutputTokens = 0;
     let toolCallsCount = existingRecord?.toolCallsCount || 0;
+    let sessionToolCalls = 0;
     let lastModelMessage = existingRecord?.lastModelMessage || "";
     const runnerLimits = getAgentRunnerLimits(agentRecord);
     const MAX_TOOL_CALLS = runnerLimits.maxToolCalls;
@@ -556,6 +557,7 @@ export async function runIssueTask(
     });
 
     // 6. Execute Run Loop strictly via Anthropic and Tools
+    // Resume on a proceed verdict always starts a model run on the existing branch
     if (isTest && options?.mockModelResponse !== undefined) {
       lastModelMessage = options.mockModelResponse;
       console.log(`[Runner Test Mode] Using mock model response for issue #${issueNum}: "${lastModelMessage.slice(0, 80)}"`);
@@ -572,9 +574,9 @@ export async function runIssueTask(
 
       const startTime = Date.now();
 
-      while (toolCallsCount < MAX_TOOL_CALLS) {
+      while (sessionToolCalls < MAX_TOOL_CALLS) {
         if (Date.now() - startTime >= MAX_RUNTIME_MS) {
-          console.warn(`[Runner Limit Reached] Execution reached ${runnerLimits.timeoutMinutes}m timeout (${toolCallsCount} calls). Preserving progress.`);
+          console.warn(`[Runner Limit Reached] Execution reached ${runnerLimits.timeoutMinutes}m timeout (${sessionToolCalls} calls this session). Preserving progress.`);
           hitLimit = true;
           break;
         }
@@ -617,14 +619,15 @@ export async function runIssueTask(
         // Process tool calls
         const toolResultBlocks: Anthropic.ToolResultBlockParam[] = [];
         for (const toolUse of toolUseBlocks) {
-          if (toolCallsCount >= MAX_TOOL_CALLS) {
-            console.warn(`[Runner Limit Reached] Reached ${MAX_TOOL_CALLS} tool calls limit. Preserving progress.`);
+          if (sessionToolCalls >= MAX_TOOL_CALLS) {
+            console.warn(`[Runner Limit Reached] Reached ${MAX_TOOL_CALLS} tool calls limit in session. Preserving progress.`);
             hitLimit = true;
             break;
           }
 
+          sessionToolCalls++;
           toolCallsCount++;
-          console.log(`[Runner Tool Call #${toolCallsCount}/${MAX_TOOL_CALLS}] ${toolUse.name}(${JSON.stringify(toolUse.input)})`);
+          console.log(`[Runner Tool Call #${sessionToolCalls}/${MAX_TOOL_CALLS} (total: ${toolCallsCount})] ${toolUse.name}(${JSON.stringify(toolUse.input)})`);
           const resultStr = await executeRunnerTool(toolUse.name, toolUse.input, toolContext);
 
           toolResultBlocks.push({
@@ -749,7 +752,7 @@ Work in progress — fixes #${issueNum}
       return {
         success: true,
         issueNumber: issueNum,
-        status: "completed",
+        status: "in-progress",
         branchName,
         prNumber: draftPrNumber,
         prUrl: draftPrUrl,

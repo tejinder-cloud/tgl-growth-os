@@ -484,12 +484,27 @@ export async function releaseRunnerClaim(
   const nowIso = new Date().toISOString();
   const sb = !isTest ? getSupabase() : null;
 
+  const row = mockRunnerStateDb.get(issueNumber);
+
+  let targetStatus = updates?.status;
+  if (targetStatus === "completed") {
+    // Completed is set ONLY when a PR exists for the issue (or specialized agent like prospect-researcher)
+    const hasPr = Boolean(updates?.prNumber || (row && row.pr_number));
+    const isDbAgent = updates?.agent === "prospect-researcher" || (row && row.agent === "prospect-researcher");
+    if (!hasPr && !isDbAgent) {
+      console.warn(
+        `[RunnerState Invariant Gate] Cannot set status='completed' for issue #${issueNumber} without a PR. Retaining status='in-progress'.`
+      );
+      targetStatus = "in-progress";
+    }
+  }
+
   const payload: any = {
     owner_instance: null,
     heartbeat_at: null,
     updated_at: nowIso,
   };
-  if (updates?.status) payload.status = updates.status;
+  if (targetStatus) payload.status = targetStatus;
   if (updates?.error) payload.error = updates.error;
   if (updates?.runCompletedAt) payload.run_completed_at = updates.runCompletedAt;
   if (updates?.recoveryAttempts !== undefined) payload.recovery_attempts = updates.recoveryAttempts;
@@ -518,12 +533,11 @@ export async function releaseRunnerClaim(
     }
   }
 
-  const row = mockRunnerStateDb.get(issueNumber);
   if (row) {
     row.owner_instance = null;
     row.heartbeat_at = null;
     row.updated_at = nowIso;
-    if (updates?.status) row.status = updates.status;
+    if (targetStatus) row.status = targetStatus;
     if (updates?.error) row.error = updates.error;
     if (updates?.runCompletedAt) row.run_completed_at = updates.runCompletedAt;
     if (updates?.recoveryAttempts !== undefined) row.recovery_attempts = updates.recoveryAttempts;
@@ -538,6 +552,25 @@ export async function releaseRunnerClaim(
     if (updates?.preflightReason) row.preflight_reason = updates.preflightReason;
     if (updates?.lastModelMessage) row.last_model_message = updates.lastModelMessage;
 
+    const state = rowsToRunnerState(Array.from(mockRunnerStateDb.values()));
+    syncMirrorFile(state, { testMode: true }).catch(() => {});
+  } else {
+    mockRunnerStateDb.set(issueNumber, {
+      issue_number: issueNumber,
+      status: targetStatus || "interrupted",
+      owner_instance: null,
+      heartbeat_at: null,
+      recovery_attempts: updates?.recoveryAttempts || 0,
+      updated_at: nowIso,
+      agent: updates?.agent || "web-builder",
+      door: updates?.door || "core",
+      title: updates?.title || `Issue #${issueNumber}`,
+      pr_number: updates?.prNumber || null,
+      pr_url: updates?.prUrl || null,
+      branch: updates?.branch || null,
+      error: updates?.error || null,
+      last_model_message: updates?.lastModelMessage || null,
+    });
     const state = rowsToRunnerState(Array.from(mockRunnerStateDb.values()));
     syncMirrorFile(state, { testMode: true }).catch(() => {});
   }
@@ -652,11 +685,15 @@ export async function resetRunnerIssue(
     owner_instance: null,
     heartbeat_at: null,
     error: null,
+    tool_calls_count: 0,
     updated_at: nowIso,
     agent: updates?.agent || "web-builder",
     door: updates?.door || "core",
     title: updates?.title || `Issue #${issueNumber}`,
   };
+  if (updates?.branch) {
+    rowData.branch = updates.branch;
+  }
 
   if (sb && !isTest) {
     try {
@@ -678,6 +715,8 @@ export async function resetRunnerIssue(
     owner_instance: null,
     heartbeat_at: null,
     recovery_attempts: 0,
+    tool_calls_count: 0,
+    branch: updates?.branch || existing?.branch || null,
     last_alert_at: existing?.last_alert_at || null,
     updated_at: nowIso,
     agent: updates?.agent || existing?.agent || "web-builder",

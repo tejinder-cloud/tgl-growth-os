@@ -345,22 +345,41 @@ export async function recoverInterruptedRunnerIssues(options?: {
             continue;
           }
 
-          // 2. Check if issue is closed on GitHub
+          // 2. Check if issue is closed on GitHub (completed is set ONLY when a PR exists for the issue)
           const issue = await getIssue(issueNum);
           if (!issue || issue.state === "closed") {
-            console.log(
-              `[Runner Boot Recovery] Issue #${issueNum} is closed on GitHub; updating runner state to completed.`
-            );
-            await releaseRunnerClaim(
-              issueNum,
-              instanceId,
-              {
-                status: "completed",
-                runCompletedAt: new Date().toISOString(),
-                recoveryAttempts: 0,
-              },
-              { testMode: isTest }
-            );
+            const linkedPr = await findLinkedPR(issueNum);
+            if (linkedPr) {
+              console.log(
+                `[Runner Boot Recovery] Issue #${issueNum} is closed on GitHub with linked PR #${linkedPr.number}; updating runner state to completed.`
+              );
+              await releaseRunnerClaim(
+                issueNum,
+                instanceId,
+                {
+                  status: "completed",
+                  prNumber: linkedPr.number,
+                  prUrl: linkedPr.html_url,
+                  runCompletedAt: new Date().toISOString(),
+                  recoveryAttempts: 0,
+                },
+                { testMode: isTest }
+              );
+            } else {
+              console.log(
+                `[Runner Boot Recovery] Issue #${issueNum} is closed on GitHub with NO PR; cannot set completed. Setting status to interrupted.`
+              );
+              await releaseRunnerClaim(
+                issueNum,
+                instanceId,
+                {
+                  status: "interrupted",
+                  runCompletedAt: new Date().toISOString(),
+                  recoveryAttempts: 0,
+                },
+                { testMode: isTest }
+              );
+            }
             continue;
           }
 

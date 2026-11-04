@@ -6,7 +6,14 @@ import { gatherStandupMaterial } from "./agents/chief-of-staff/gather.js";
 import { doesCronRunOnDate, isAgentScheduledOnDate, type AgentRecord } from "./lib/agents.js";
 import { execute1815SilenceCheck } from "./agents/chief-of-staff/worker.js";
 import { getCurrentPlanDay } from "./lib/plan.js";
-import { getRunnerState, saveRunnerState, recordRunnerIssue, clearMockRunnerStateDbForTests } from "./runner/state.js";
+import {
+  getRunnerState,
+  saveRunnerState,
+  recordRunnerIssue,
+  clearMockRunnerStateDbForTests,
+  releaseRunnerClaim,
+  resetRunnerIssue,
+} from "./runner/state.js";
 import { catchUpRunnerIssues, recoverInterruptedRunnerIssues } from "./runner/catch-up.js";
 import { runPreflightCheck } from "./runner/preflight.js";
 import { handleRunnerShutdown, setActiveIssueNumberForTests, computeBriefHash, runIssueTask } from "./runner/runner.js";
@@ -759,6 +766,101 @@ async function runFixesVerificationSuite(): Promise<void> {
   console.log("  ✓ User message context contains strictly issue body, Architect comments, and latest verdict");
   console.log("  ✓ Zero prior runner comments or recovery notices present in prompt context");
   console.log("[Test 10 Passed] Runner context builder strict filtering verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 11: Completed is set ONLY when a PR exists & resume on proceed starts model run
+  // -------------------------------------------------------------------------
+  console.log("[Test 11] Testing completed PR gate and resume model execution on existing branch...");
+
+  clearMockRunnerStateDbForTests();
+
+  // 1. releaseRunnerClaim with status: "completed" without a PR must NOT set completed
+  await releaseRunnerClaim(72, "inst_test", {
+    agent: "web-builder",
+    status: "completed",
+    // No prNumber provided
+  }, { testMode: true });
+
+  const stateWithoutPr = await getRunnerState({ testMode: true });
+  if (stateWithoutPr.runs["72"]?.status === "completed") {
+    throw new Error("Test 11.1 Failed: releaseRunnerClaim allowed status='completed' without a PR!");
+  }
+  if (stateWithoutPr.runs["72"]?.status !== "in-progress") {
+    throw new Error(`Test 11.2 Failed: Expected demotion to 'in-progress', got '${stateWithoutPr.runs["72"]?.status}'`);
+  }
+  console.log("  ✓ releaseRunnerClaim without PR strictly demotes status to 'in-progress'");
+
+  // 2. releaseRunnerClaim with status: "completed" WITH a PR succeeds
+  await releaseRunnerClaim(72, "inst_test", {
+    agent: "web-builder",
+    status: "completed",
+    prNumber: 99,
+    prUrl: "https://github.com/org/repo/pull/99",
+  }, { testMode: true });
+
+  const stateWithPr = await getRunnerState({ testMode: true });
+  if (stateWithPr.runs["72"]?.status !== "completed") {
+    throw new Error(`Test 11.3 Failed: Expected status='completed' when PR is provided, got '${stateWithPr.runs["72"]?.status}'`);
+  }
+  console.log("  ✓ releaseRunnerClaim with PR successfully sets status='completed'");
+
+  // 3. resetRunnerIssue for #N: resume clears recovery_attempts and resets tool_calls_count
+  await resetRunnerIssue(72, { agent: "web-builder", branch: "task/72-plan-d10-outreach-sequencer-sk" }, { testMode: true });
+  const stateAfterReset = await getRunnerState({ testMode: true });
+  if (stateAfterReset.runs["72"]?.recoveryAttempts !== 0) {
+    throw new Error(`Test 11.4 Failed: resetRunnerIssue did not reset recoveryAttempts to 0: ${stateAfterReset.runs["72"]?.recoveryAttempts}`);
+  }
+  if (stateAfterReset.runs["72"]?.toolCallsCount !== 0) {
+    throw new Error(`Test 11.5 Failed: resetRunnerIssue did not reset toolCallsCount to 0: ${stateAfterReset.runs["72"]?.toolCallsCount}`);
+  }
+  if (stateAfterReset.runs["72"]?.status !== "in-progress") {
+    throw new Error(`Test 11.6 Failed: resetRunnerIssue did not set status to 'in-progress': ${stateAfterReset.runs["72"]?.status}`);
+  }
+  if (stateAfterReset.runs["72"]?.branch !== "task/72-plan-d10-outreach-sequencer-sk") {
+    throw new Error(`Test 11.7 Failed: resetRunnerIssue did not preserve existing branch: ${stateAfterReset.runs["72"]?.branch}`);
+  }
+  console.log("  ✓ resetRunnerIssue resets recovery_attempts to 0, tool_calls_count to 0, and preserves branch");
+
+  // 4. Resume on proceed verdict executes model even if prior toolCallsCount was at limit (25)
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        "72": {
+          agent: "web-builder",
+          door: "aeo",
+          title: "[PLAN-D10]: Outreach Sequencer SKILL.md",
+          status: "in-progress",
+          branch: "task/72-plan-d10-outreach-sequencer-sk",
+          toolCallsCount: 25, // Previously at limit!
+          preflightVerdict: "proceed",
+          preflightReason: "Previous proceed verdict",
+          preflightHash: computeBriefHash("Outreach Sequencer brief", []),
+          runStartedAt: new Date().toISOString(),
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  const resumeRes = await runIssueTask(
+    {
+      number: 72,
+      title: "[PLAN-D10]: Outreach Sequencer SKILL.md",
+      body: "Outreach Sequencer brief",
+      labels: ["for:web-builder", "status:in-progress", "door:aeo"],
+    },
+    { testMode: true, mockModelResponse: "Model executed on existing branch on resume" }
+  );
+
+  if (resumeRes.branchName !== "task/72-plan-d10-outreach-sequencer-sk") {
+    throw new Error(`Test 11.8 Failed: Resume did not run on existing branch: ${resumeRes.branchName}`);
+  }
+  console.log("  ✓ Resume on proceed verdict starts model run on existing branch with fresh session budget");
+  console.log("[Test 11 Passed] Completed PR gate and resume model execution verified.\n");
   passed++;
 
   console.log("==========================================================================");
