@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TGL Ops Project Dashboard</title>
+<meta name="description" content="Live progress of The Growth Lab's agent-run company build: plan days, phases, gates, spend, blockers and decisions, read directly from the tgl-growth-os repository.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --cream:#F7F4EE; --paper:#FFFDF9; --ink:#1F2421; --ink-2:#4A524D; --ink-3:#7C847F; --line:#DED8CC;
+    --terracotta:#C85A32; --coral:#E07A5F; --sage:#7F9A7A; --mustard:#D9A541; --teal:#3F7D83; --plum:#7A5C8E;
+    --ok:#5F8F5A; --warn:#D9A541; --bad:#C85A32; --muted:#B7B0A3;
+    --bg:var(--cream); --card:var(--paper); --fg:var(--ink); --radius:14px;
+    --font-display:'Fraunces',Georgia,serif; --font-body:'DM Sans',system-ui,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1A1D1B; --card:#232724; --fg:#EFEAE0; --ink:#EFEAE0; --ink-2:#C9C3B6; --ink-3:#9A948A; --line:#3A3F3B; --paper:#232724; --muted:#6F6A61;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#1A1D1B; --card:#232724; --fg:#EFEAE0; --ink:#EFEAE0; --ink-2:#C9C3B6; --ink-3:#9A948A; --line:#3A3F3B; --paper:#232724; --muted:#6F6A61;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.45}
+  a{color:var(--terracotta)}
+  .wrap{max-width:1200px;margin:0 auto;padding:24px 16px 64px}
+  header{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:16px;margin-bottom:20px}
+  h1{font-family:var(--font-display);font-weight:700;font-size:clamp(26px,4vw,40px);margin:0;line-height:1.05}
+  .eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--coral);font-weight:600}
+  .sub{color:var(--ink-2);margin-top:6px;font-size:14px}
+  .daybadge{display:inline-flex;flex-direction:column;align-items:flex-end;gap:4px}
+  .daybadge .big{font-family:var(--font-display);font-size:44px;line-height:1;font-weight:700}
+  .daybadge .lab{font-size:12px;color:var(--ink-3);letter-spacing:.1em;text-transform:uppercase}
+  body{overflow-x:hidden}
+  .grid{display:grid;gap:14px}
+  .grid>*{min-width:0}
+  canvas{max-width:100%}
+  .kpis{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:0 1px 0 rgba(0,0,0,.03)}
+  .kpi .v{font-family:var(--font-display);font-size:32px;font-weight:700;line-height:1.1}
+  .kpi .l{font-size:12px;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+  .kpi .d{font-size:13px;color:var(--ink-2);margin-top:6px}
+  h2{font-family:var(--font-display);font-size:20px;margin:0 0 10px;font-weight:700}
+  .two{grid-template-columns:1fr 1fr}
+  @media (max-width:860px){.two{grid-template-columns:1fr}}
+  .section{margin-bottom:18px}
+  .progress{position:relative;height:14px;background:var(--line);border-radius:999px;overflow:hidden}
+  .progress>span{position:absolute;inset:0 auto 0 0;background:var(--terracotta);border-radius:999px}
+  .progress>span.partial{background:var(--mustard)}
+  .overall{height:22px}
+  .phase{display:grid;grid-template-columns:150px 1fr 70px;gap:12px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
+  .phase:last-child{border-bottom:0}
+  .phase .n{font-weight:600}
+  .phase .m{font-size:12px;color:var(--ink-3)}
+  .phase .pct{text-align:right;font-family:var(--font-display);font-weight:700;font-size:18px}
+  @media (max-width:600px){.phase{grid-template-columns:1fr 60px}.phase .bar{grid-column:1/-1}}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;letter-spacing:.02em;white-space:nowrap}
+  .p-done{background:#E3EEE1;color:#2F5E2B}.p-prog{background:#FBE9D2;color:#8A4A1F}.p-block{background:#F7D9D0;color:#8E2F14}.p-brief{background:#F4E6C2;color:#6E5410}.p-todo{background:var(--line);color:var(--ink-2)}.p-review{background:#DCE8EA;color:#2A5A60}.p-parked{background:#E6DFEA;color:#4E3A5E}
+  :root[data-theme="dark"] .p-todo,:root:not([data-theme="light"]) .p-todo{color:var(--ink-2)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);text-align:left;padding:8px 8px;border-bottom:1px solid var(--line)}
+  td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr.cur td{background:rgba(224,122,95,.10)}
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .muted{color:var(--ink-3)}
+  .small{font-size:13px}
+  ul.clean{list-style:none;padding:0;margin:0}
+  ul.clean li{padding:8px 0;border-bottom:1px dashed var(--line)}
+  ul.clean li:last-child{border-bottom:0}
+  .dod li{display:flex;gap:8px;align-items:flex-start}
+  .dod .tick{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--ink-3);flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:12px;margin-top:2px}
+  .dod .tick.on{background:var(--ok);border-color:var(--ok);color:#fff}
+  .chartbox{position:relative;height:260px}
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--ink-3)}
+  button{font:inherit;background:var(--ink);color:var(--cream);border:0;border-radius:8px;padding:8px 14px;cursor:pointer}
+  :root[data-theme="dark"] button,:root:not([data-theme="light"]) button{background:var(--terracotta);color:#fff}
+  button.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+  .err{background:#F7D9D0;color:#8E2F14;padding:10px 14px;border-radius:10px;margin-bottom:14px;display:none}
+  .gate{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
+  .gate:last-child{border-bottom:0}
+  .gate .dot{width:12px;height:12px;border-radius:50%;flex:none;background:var(--line)}
+  .gate .dot.on{background:var(--ok)}.gate .dot.cur{background:var(--coral)}
+  footer{margin-top:28px;color:var(--ink-3);font-size:12px;border-top:1px solid var(--line);padding-top:12px}
+  .skel{color:var(--ink-3)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">The Growth Lab · TGL Ops</div>
+      <h1>Project Dashboard</h1>
+      <div class="sub">An agent-run company, built in 68 plan days. Everything below is read live from the <a href="https://github.com/tejinder-cloud/tgl-growth-os" target="_blank" rel="noopener">tgl-growth-os</a> repository: the plan, its issues, pull requests, decisions and cost logs.</div>
+    </div>
+    <div class="daybadge"><div class="big" id="curDay">—</div><div class="lab">current plan day</div></div>
+  </header>
+
+  <div class="err" id="err"></div>
+
+  <div class="card section">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+      <h2 style="margin:0">Overall progress</h2>
+      <div class="small muted" id="overallLabel">—</div>
+    </div>
+    <div class="progress overall" style="margin-top:10px"><span id="overallBar" style="width:0%"></span></div>
+    <div class="small muted" style="margin-top:8px">Days 1–7 (Phase 0 plumbing and the first two Phase 1 briefs) were completed before the self-dispatching plan started; Days 8–68 are tracked in <code>config/plan.yaml</code>.</div>
+  </div>
+
+  <div class="grid kpis">
+    <div class="card kpi"><div class="v" id="kDays">—</div><div class="l">plan days complete</div><div class="d" id="kDaysD"></div></div>
+    <div class="card kpi"><div class="v" id="kOpen">—</div><div class="l">days in progress</div><div class="d" id="kOpenD"></div></div>
+    <div class="card kpi"><div class="v" id="kPRs">—</div><div class="l">PRs merged</div><div class="d" id="kPRsD"></div></div>
+    <div class="card kpi"><div class="v" id="kSpend">—</div><div class="l">agent spend, 7 days</div><div class="d" id="kSpendD"></div></div>
+    <div class="card kpi"><div class="v" id="kDec">—</div><div class="l">decisions recorded</div><div class="d" id="kDecD"></div></div>
+    <div class="card kpi"><div class="v" id="kBlock">—</div><div class="l">needs attention</div><div class="d" id="kBlockD"></div></div>
+  </div>
+
+  <div class="grid two section">
+    <div class="card">
+      <h2>Phases and gates</h2>
+      <div id="phases" class="skel">Loading…</div>
+    </div>
+    <div class="card">
+      <h2>Gate status</h2>
+      <div id="gates" class="skel">Loading…</div>
+    </div>
+  </div>
+
+  <div class="grid two section">
+    <div class="card">
+      <h2>Plan days completed over time</h2>
+      <div class="chartbox"><canvas id="burnup"></canvas></div>
+      <div class="small muted" style="margin-top:6px">Actual cumulative completions against a one-day-per-calendar-day pace from 24 Oct 2026. Days advance on the Architect's word, not the calendar; the pace line is a reference, not a target.</div>
+    </div>
+    <div class="card">
+      <h2>Delivery and spend, last 14 days</h2>
+      <div class="chartbox"><canvas id="velocity"></canvas></div>
+      <div class="small muted" style="margin-top:6px">Merged pull requests per day (bars) and model spend in USD per day from the agents' own cost logs (line).</div>
+    </div>
+  </div>
+
+  <div class="grid two section">
+    <div class="card">
+      <h2 id="todayTitle">Current day</h2>
+      <div id="today" class="skel">Loading…</div>
+    </div>
+    <div class="card">
+      <h2>Needs attention</h2>
+      <div id="attention" class="skel">Loading…</div>
+    </div>
+  </div>
+
+  <div class="grid two section">
+    <div class="card">
+      <h2>Spend by agent, last 7 days</h2>
+      <div class="chartbox"><canvas id="spendAgent"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Recent decisions</h2>
+      <ul class="clean small" id="decisions"><li class="skel">Loading…</li></ul>
+    </div>
+  </div>
+
+  <div class="card section">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <h2 style="margin:0">All plan days</h2>
+      <div class="toolbar">
+        <label><input type="checkbox" id="hideDone"> hide completed</label>
+        <label><input type="checkbox" id="hideParked" checked> hide parked</label>
+      </div>
+    </div>
+    <div class="tbl-wrap" style="margin-top:10px">
+      <table id="planTable">
+        <thead><tr><th>Day</th><th>Title</th><th>Agent</th><th>Door</th><th>Status</th><th>Evidence</th></tr></thead>
+        <tbody><tr><td colspan="6" class="skel">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <div class="toolbar">
+      <span id="fetchedAt">Not loaded yet.</span>
+      <button class="ghost" id="refresh">Refresh now</button>
+      <span>Auto-refreshes every 15 minutes. Sources: config/plan.yaml, GitHub issues and pull requests, decisions/, logs/&lt;date&gt;/*.md. No number on this page is typed by hand.</span>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  const OWNER='tejinder-cloud', REPO='tgl-growth-os', BRANCH='main';
+  const RAW=`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/`;
+  const API=`https://api.github.com/repos/${OWNER}/${REPO}/`;
+  const TOTAL_DAYS=68, PRE_PLAN_DONE=7; // Days 1–7 done before the plan file existed
+  const PLAN_START=new Date('2026-10-24T00:00:00+05:30');
+  const AGENTS=['chief-of-staff','web-builder','prospect-researcher','aeo-audit-engine','aeo-strategist','aeo-recommender','outreach-sequencer','sales-desk','finance','content-writer','people-ops','creative-director','video-team','repurposer-publisher','ads-analyst'];
+  const PHASES=[
+    {n:'Phase 0 · Foundations',from:1,to:5,gate:'Gate 0',gateDay:5,gateText:'Approve one task from a phone without opening a file.'},
+    {n:'Phase 1 · Revenue pod + audit engine',from:6,to:15,gate:'Gate 1',gateDay:15,gateText:'100 prospects, 50 touched, 5 audits delivered, 0 QA failures.'},
+    {n:'Phase 2 · TrueVisible v1 + AEO delivery',from:16,to:33,gate:'Gate 2',gateDay:33,gateText:'A stranger signs up, gets the day-1 audit, sees the dashboard, can be upsold untouched.'},
+    {n:'Phase 3 · Marketing engine + Mission Control',from:34,to:46,gate:'Gate 3',gateDay:46,gateText:'4 posts a week; homepage and product page live; first ad-sourced trial.'},
+    {n:'Phase 4 · TrueLead (parked) + AI doors',from:47,to:58,gate:'Gate 4',gateDay:58,gateText:'Three doors live, each with a pipeline and a scorecard line.'},
+    {n:'Phase 5 · Hardening',from:59,to:68,gate:'Gate 5',gateDay:68,gateText:'A week where the only input is the 18:00 thread.'}
+  ];
+  const COLORS={terracotta:'#C85A32',coral:'#E07A5F',sage:'#7F9A7A',mustard:'#D9A541',teal:'#3F7D83',plum:'#7A5C8E',ink:'#4A524D',muted:'#B7B0A3'};
+  const PALETTE=[COLORS.terracotta,COLORS.teal,COLORS.sage,COLORS.mustard,COLORS.plum,COLORS.coral,COLORS.ink];
+
+  const $=id=>document.getElementById(id);
+  const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const fmtUSD=n=>'$'+(Math.round(n*100)/100).toFixed(2);
+  const istDate=d=>new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',timeZone:'Asia/Kolkata'});
+  const dayKey=d=>new Date(new Date(d).getTime()+5.5*3600e3).toISOString().slice(0,10); // IST calendar day
+
+  let charts={};
+  function chart(id,cfg){ if(charts[id]) charts[id].destroy(); charts[id]=new Chart($(id).getContext('2d'),cfg); }
+  function fg(){ return getComputedStyle(document.documentElement).getPropertyValue('--ink-3').trim()||'#7C847F'; }
+  function gridc(){ return getComputedStyle(document.documentElement).getPropertyValue('--line').trim()||'#DED8CC'; }
+
+  async function getJSON(url,opts){ const r=await fetch(url,opts); if(!r.ok) throw new Error(`${r.status} ${url}`); return r.json(); }
+  async function getText(url){ const r=await fetch(url); if(!r.ok) return null; return r.text(); }
+  async function ghAll(path){ // paginate issues/pulls up to 300
+    let out=[]; for(let p=1;p<=3;p++){ const page=await getJSON(`${API}${path}${path.includes('?')?'&':'?'}per_page=100&page=${p}`); out=out.concat(page); if(page.length<100) break; } return out;
+  }
+
+  function statusOfDay(entry,issue){
+    if(entry.status==='completed') return {k:'done',t:'Completed'};
+    if(/parked/i.test(entry.title||'')||/parked/i.test(entry.brief||'')) return {k:'parked',t:'Parked'};
+    if(!issue) return {k:'todo',t:'Not started'};
+    const labels=(issue.labels||[]).map(l=>typeof l==='string'?l:l.name);
+    if(issue.state==='closed') return {k:'done',t:'Closed'};
+    if(labels.includes('status:blocked')) return {k:'block',t:'Blocked'};
+    if(labels.includes('status:needs-brief')) return {k:'brief',t:'Needs brief'};
+    if(labels.includes('status:in-progress')) return {k:'prog',t:'In progress'};
+    return {k:'review',t:'Dispatched'};
+  }
+  const pill=s=>`<span class="pill p-${s.k}">${s.t}</span>`;
+
+  async function load(){
+    $('err').style.display='none';
+    try{
+      const [planText, issues, pulls] = await Promise.all([
+        getText(RAW+'config/plan.yaml'),
+        ghAll('issues?state=all'),
+        ghAll('pulls?state=closed&sort=updated&direction=desc')
+      ]);
+      if(!planText) throw new Error('plan.yaml not reachable');
+      const plan=jsyaml.load(planText).plan||[];
+      const onlyIssues=issues.filter(i=>!i.pull_request);
+      const planIssues={};
+      for(const iss of onlyIssues){ const m=iss.title.match(/\[PLAN-D(\d+)\]/i); if(m){ const d=+m[1]; if(!planIssues[d]||new Date(iss.created_at)>new Date(planIssues[d].created_at)) planIssues[d]=iss; } }
+      const merged=pulls.filter(p=>p.merged_at);
+      const prByNum={}; for(const p of merged) prByNum[p.number]=p;
+
+      // Current day: max dispatched PLAN day (same rule as the service)
+      const dispatched=Object.keys(planIssues).map(Number);
+      const curDay=dispatched.length?Math.max(...dispatched):8;
+      $('curDay').textContent='Day '+curDay;
+
+      // Day statuses + completion dates
+      const rows=plan.map(e=>{
+        const iss=planIssues[e.day]; const st=statusOfDay(e,iss);
+        let doneAt=null;
+        if(st.k==='done'){
+          if(iss&&iss.closed_at) doneAt=iss.closed_at;
+          const ev=String(e.evidence||''); const nums=[...ev.matchAll(/#(\d+)/g)].map(m=>+m[1]);
+          for(const n of nums){ if(prByNum[n]) doneAt=doneAt&&new Date(doneAt)<new Date(prByNum[n].merged_at)?doneAt:prByNum[n].merged_at; }
+          if(!doneAt) doneAt=null;
+        }
+        return {e,iss,st,doneAt};
+      });
+      const doneRows=rows.filter(r=>r.st.k==='done');
+      const progRows=rows.filter(r=>['prog','block','brief','review'].includes(r.st.k));
+      const totalDone=PRE_PLAN_DONE+doneRows.length;
+      const pct=Math.round(totalDone/TOTAL_DAYS*100);
+      $('overallBar').style.width=pct+'%';
+      $('overallLabel').textContent=`${totalDone} of ${TOTAL_DAYS} days · ${pct}%`;
+      $('kDays').textContent=`${doneRows.length}/${plan.length}`;
+      $('kDaysD').textContent=`${Math.round(doneRows.length/plan.length*100)}% of the plan file`;
+      $('kOpen').textContent=progRows.length;
+      $('kOpenD').textContent=progRows.map(r=>'Day '+r.e.day).join(', ')||'none open';
+      $('kPRs').textContent=merged.length;
+      const last7=merged.filter(p=>Date.now()-new Date(p.merged_at)<7*864e5).length;
+      $('kPRsD').textContent=`${last7} in the last 7 days`;
+
+      // Phases
+      const phaseHtml=PHASES.map(ph=>{
+        const inPhase=rows.filter(r=>r.e.day>=ph.from&&r.e.day<=ph.to);
+        const pre=Math.max(0,Math.min(ph.to,7)-ph.from+1); // days 1–7 done
+        const total=ph.to-ph.from+1; const done=pre+inPhase.filter(r=>r.st.k==='done').length;
+        const partial=inPhase.filter(r=>r.st.k!=='done'&&r.st.k!=='todo'&&r.st.k!=='parked').length;
+        const p=Math.round(done/total*100), pp=Math.round((done+partial)/total*100);
+        return `<div class="phase"><div><div class="n">${esc(ph.n)}</div><div class="m">Days ${ph.from}–${ph.to} · ${done}/${total} done${partial?` · ${partial} in progress`:''}</div></div><div class="bar progress"><span class="partial" style="width:${pp}%"></span><span style="width:${p}%"></span></div><div class="pct">${p}%</div></div>`;
+      }).join('');
+      $('phases').innerHTML=phaseHtml; $('phases').classList.remove('skel');
+
+      // Gates
+      $('gates').innerHTML=PHASES.map(ph=>{
+        const row=rows.find(r=>r.e.day===ph.gateDay); const done=ph.gateDay<=7||(row&&row.st.k==='done');
+        const cur=!done&&curDay>=ph.from&&curDay<=ph.to;
+        const when=done?(ph.gateDay<=7?'passed 26 Oct 2026':(row&&row.doneAt?'passed '+istDate(row.doneAt):'passed')):(cur?`target: Day ${ph.gateDay}`:`Day ${ph.gateDay}`);
+        return `<div class="gate"><div class="dot ${done?'on':cur?'cur':''}"></div><div><div><strong>${esc(ph.gate)}</strong> <span class="muted small">· ${esc(when)}</span></div><div class="small muted">${esc(ph.gateText)}</div></div></div>`;
+      }).join(''); $('gates').classList.remove('skel');
+
+      // Burn-up
+      const days=[]; for(let d=new Date(PLAN_START); d<=new Date(); d.setDate(d.getDate()+1)) days.push(dayKey(d));
+      const doneByDay={}; for(const r of doneRows){ const k=r.doneAt?dayKey(r.doneAt):days[days.length-1]; doneByDay[k]=(doneByDay[k]||0)+1; }
+      let cum=PRE_PLAN_DONE; const actual=days.map((k,i)=>{ if(i===0) cum=PRE_PLAN_DONE; cum+=doneByDay[k]||0; return cum; });
+      // Days 1–7 in Phase 0 were done 24–26 Oct; model as linear over first 3 days
+      for(let i=0;i<Math.min(3,actual.length);i++){ actual[i]=Math.min(actual[i],Math.round(PRE_PLAN_DONE*(i+1)/3)+(actual[i]-PRE_PLAN_DONE)); }
+      const pace=days.map((k,i)=>Math.min(TOTAL_DAYS,i+1));
+      chart('burnup',{type:'line',data:{labels:days.map(k=>istDate(k)),datasets:[
+        {label:'Completed (actual)',data:actual,borderColor:COLORS.terracotta,backgroundColor:'rgba(200,90,50,.12)',fill:true,tension:.25,pointRadius:2},
+        {label:'1 day per calendar day',data:pace,borderColor:COLORS.muted,borderDash:[6,4],pointRadius:0,fill:false}
+      ]},options:{maintainAspectRatio:false,plugins:{legend:{labels:{color:fg()}}},scales:{x:{ticks:{color:fg(),maxTicksLimit:8},grid:{color:gridc()}},y:{min:0,max:TOTAL_DAYS,ticks:{color:fg()},grid:{color:gridc()},title:{display:true,text:'plan days',color:fg()}}}}});
+
+      // Spend from logs, last 14 days
+      const last14=[]; for(let i=13;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); last14.push(dayKey(d)); }
+      const spendByDay={}, spendByAgent={}; let spend7=0, calls7=0;
+      await Promise.all(last14.flatMap(date=>AGENTS.map(async a=>{
+        const t=await getText(`${RAW}logs/${date}/${a}.md`); if(!t) return;
+        let sum=0; for(const m of t.matchAll(/Cost:\s*\$([0-9.]+)/g)){ sum+=parseFloat(m[1]); if(last14.indexOf(date)>=7) calls7++; }
+        if(sum>0){ spendByDay[date]=(spendByDay[date]||0)+sum; if(last14.indexOf(date)>=7){ spendByAgent[a]=(spendByAgent[a]||0)+sum; spend7+=sum; } }
+      })));
+      $('kSpend').textContent=fmtUSD(spend7); $('kSpendD').textContent=`${calls7} model calls · about ₹${Math.round(spend7*84)}`;
+      const prsByDay={}; for(const p of merged){ const k=dayKey(p.merged_at); prsByDay[k]=(prsByDay[k]||0)+1; }
+      chart('velocity',{data:{labels:last14.map(istDate),datasets:[
+        {type:'bar',label:'PRs merged',data:last14.map(k=>prsByDay[k]||0),backgroundColor:COLORS.teal,yAxisID:'y'},
+        {type:'line',label:'Spend (USD)',data:last14.map(k=>Math.round((spendByDay[k]||0)*100)/100),borderColor:COLORS.terracotta,backgroundColor:COLORS.terracotta,tension:.25,yAxisID:'y1',pointRadius:3}
+      ]},options:{maintainAspectRatio:false,plugins:{legend:{labels:{color:fg()}}},scales:{x:{ticks:{color:fg(),maxTicksLimit:7},grid:{color:gridc()}},y:{beginAtZero:true,ticks:{color:fg(),precision:0},grid:{color:gridc()},title:{display:true,text:'PRs',color:fg()}},y1:{beginAtZero:true,position:'right',ticks:{color:fg()},grid:{drawOnChartArea:false},title:{display:true,text:'USD',color:fg()}}}}});
+      const agentsSorted=Object.entries(spendByAgent).sort((a,b)=>b[1]-a[1]);
+      chart('spendAgent',{type:'bar',data:{labels:agentsSorted.map(a=>a[0]),datasets:[{label:'USD, last 7 days',data:agentsSorted.map(a=>Math.round(a[1]*100)/100),backgroundColor:agentsSorted.map((_,i)=>PALETTE[i%PALETTE.length])}]},options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{color:fg()},grid:{color:gridc()}},y:{ticks:{color:fg()},grid:{display:false}}}}});
+
+      // Current day card
+      const cur=rows.find(r=>r.e.day===curDay);
+      if(cur){
+        const e=cur.e, iss=cur.iss;
+        const prs=merged.filter(p=>p.body&&new RegExp(`#${curDay}\\b|PLAN-D${curDay}\\b`).test(p.body)||(iss&&p.head&&p.head.ref&&p.head.ref.startsWith(`task/${iss.number}-`)));
+        $('todayTitle').textContent=`Day ${curDay} · ${e.title}`;
+        $('today').innerHTML=`
+          <div style="margin-bottom:8px">${pill(cur.st)} <span class="muted small">@${esc(e.agent)} · door ${esc(e.door)}${iss?` · <a href="${iss.html_url}" target="_blank" rel="noopener">issue #${iss.number}</a>`:''}${prs.length?` · ${prs.map(p=>`<a href="${p.html_url}" target="_blank" rel="noopener">PR #${p.number}</a>`).join(', ')}`:''}</span></div>
+          <p class="small" style="margin:0 0 10px">${esc(e.brief)}</p>
+          <div class="small" style="font-weight:600;margin-bottom:4px">Definition of done</div>
+          <ul class="clean dod small">${(e.definition_of_done||[]).map(d=>`<li><span class="tick ${cur.st.k==='done'?'on':''}">${cur.st.k==='done'?'✓':''}</span><span>${esc(d)}</span></li>`).join('')}</ul>
+          <div class="small" style="margin-top:10px"><strong>Architect's hour:</strong> ${esc(e.architect_hour||'—')}</div>`;
+      } else { $('today').textContent='No plan entry for the current day.'; }
+      $('today').classList.remove('skel');
+
+      // Attention: blocked / needs-brief issues, open PRs awaiting approval
+      const openPRs=await getJSON(`${API}pulls?state=open&per_page=50`);
+      const attn=[];
+      for(const iss of onlyIssues.filter(i=>i.state==='open')){
+        const labels=(iss.labels||[]).map(l=>l.name);
+        if(labels.includes('status:blocked')) attn.push({k:'block',t:'Blocked',txt:`#${iss.number} ${iss.title}`,url:iss.html_url});
+        else if(labels.includes('status:needs-brief')) attn.push({k:'brief',t:'Needs brief',txt:`#${iss.number} ${iss.title}`,url:iss.html_url});
+      }
+      for(const p of openPRs) attn.push({k:'review',t:'PR open',txt:`#${p.number} ${p.title}`,url:p.html_url});
+      $('kBlock').textContent=attn.length; $('kBlockD').textContent=`${attn.filter(a=>a.k==='block').length} blocked · ${attn.filter(a=>a.k==='brief').length} needs brief · ${openPRs.length} PRs open`;
+      $('attention').innerHTML=attn.length?`<ul class="clean small">${attn.map(a=>`<li><span class="pill p-${a.k}">${a.t}</span> <a href="${a.url}" target="_blank" rel="noopener">${esc(a.txt)}</a></li>`).join('')}</ul>`:'<div class="muted">Nothing waiting on the Architect.</div>';
+      $('attention').classList.remove('skel');
+
+      // Decisions: list directory, read the last 5 files
+      let decCount=0, decLines=[];
+      try{
+        const dir=await getJSON(`${API}contents/decisions`);
+        const files=dir.filter(f=>/^\d{4}-\d{2}-\d{2}\.md$/.test(f.name)).sort((a,b)=>a.name<b.name?1:-1);
+        const texts=await Promise.all(files.slice(0,6).map(async f=>({name:f.name,t:await getText(RAW+'decisions/'+f.name)})));
+        const allTexts=await Promise.all(files.map(f=>getText(RAW+'decisions/'+f.name)));
+        for(const t of allTexts) decCount+=(t||'').split('\n').filter(l=>l.trim().startsWith('-')).length;
+        for(const f of texts){ for(const l of (f.t||'').split('\n').filter(l=>l.trim().startsWith('-'))) decLines.push({d:f.name.replace('.md',''),l:l.replace(/^-\s*/,'')}); }
+      }catch(e){}
+      $('kDec').textContent=decCount; $('kDecD').textContent='lines in decisions/';
+      $('decisions').innerHTML=decLines.slice(0,10).map(x=>`<li><span class="muted">${esc(x.d)}</span> · ${esc(x.l)}</li>`).join('')||'<li class="muted">No decisions found.</li>';
+
+      // Plan table
+      window.__rows=rows;
+      renderTable();
+
+      const now=new Date();
+      $('fetchedAt').textContent=`Fetched ${now.toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})} IST.`;
+    }catch(err){
+      $('err').style.display='block';
+      $('err').textContent='Could not load live data: '+err.message+' (GitHub allows about 60 unauthenticated requests an hour per viewer; try again in a few minutes.)';
+    }
+  }
+
+  function renderTable(){
+    const rows=window.__rows||[]; const hideDone=$('hideDone').checked, hideParked=$('hideParked').checked;
+    const cur=parseInt(($('curDay').textContent.match(/\d+/)||[0])[0],10);
+    const tb=$('planTable').querySelector('tbody');
+    tb.innerHTML=rows.filter(r=>!(hideDone&&r.st.k==='done')&&!(hideParked&&r.st.k==='parked')).map(r=>{
+      const e=r.e; const ev=String(e.evidence||'').replace(/PR #(\d+)/g,(m,n)=>`<a href="https://github.com/${OWNER}/${REPO}/pull/${n}" target="_blank" rel="noopener">PR #${n}</a>`);
+      return `<tr class="${e.day===cur?'cur':''}"><td><strong>${e.day}</strong></td><td>${esc(e.title)}${r.iss?` <a class="small" href="${r.iss.html_url}" target="_blank" rel="noopener">#${r.iss.number}</a>`:''}</td><td class="small">@${esc(e.agent)}</td><td class="small">${esc(e.door)}</td><td>${pill(r.st)}${r.doneAt?`<div class="small muted">${istDate(r.doneAt)}</div>`:''}</td><td class="small">${ev||'<span class="muted">—</span>'}</td></tr>`;
+    }).join('')||'<tr><td colspan="6" class="muted">Nothing to show with these filters.</td></tr>';
+  }
+
+  $('hideDone').addEventListener('change',renderTable);
+  $('hideParked').addEventListener('change',renderTable);
+  $('refresh').addEventListener('click',load);
+  try{ const h=localStorage.getItem('tgl-dash-hideDone'); if(h) $('hideDone').checked=h==='1'; }catch(e){}
+  $('hideDone').addEventListener('change',()=>{ try{ localStorage.setItem('tgl-dash-hideDone',$('hideDone').checked?'1':'0'); }catch(e){} });
+  load();
+  setInterval(load,15*60*1000);
+})();
+</script>
+</body>
+</html>
