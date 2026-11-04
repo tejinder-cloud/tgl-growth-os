@@ -433,6 +433,38 @@ export async function createBranch(
 }
 
 /**
+ * Checks whether a head branch has commits beyond the base branch (default: main).
+ */
+export async function getBranchCommitsAhead(
+  headBranch: string,
+  baseBranch = "main"
+): Promise<{ success: boolean; aheadBy: number; error?: string }> {
+  if (!config.githubToken) {
+    return { success: true, aheadBy: 1 };
+  }
+
+  try {
+    const res = await octokit.repos.compareCommitsWithBasehead({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      basehead: `${baseBranch}...${headBranch}`,
+    });
+
+    return {
+      success: true,
+      aheadBy: res.data.ahead_by ?? 0,
+    };
+  } catch (err: any) {
+    console.error(`[GitHub Git API] Error comparing ${baseBranch}...${headBranch}:`, err);
+    return {
+      success: false,
+      aheadBy: 0,
+      error: err.response?.data?.message || err.message || "Failed to compare commits",
+    };
+  }
+}
+
+/**
  * Creates or updates a file directly on a specific git branch via the GitHub Contents API.
  */
 export async function createOrUpdateFileOnBranch(

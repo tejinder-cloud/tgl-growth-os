@@ -594,6 +594,7 @@ export async function pollChiefOfStaffIntake(options?: {
   testMode?: boolean;
   mockMessages?: any[];
   triggerRunnerInTestMode?: boolean;
+  channelId?: string;
 }): Promise<{
   polledCount: number;
   processedCount: number;

@@ -27,6 +27,11 @@ export interface RunnerRecord {
   lastRecoveryAlertAt?: string;
   ownerInstance?: string | null;
   heartbeatAt?: string | null;
+  toolCallsCount?: number;
+  preflightHash?: string;
+  preflightVerdict?: string;
+  preflightReason?: string;
+  lastModelMessage?: string;
 }
 
 export interface RunnerState {
@@ -53,6 +58,11 @@ export interface RunnerStateDbRow {
   run_completed_at?: string | null;
   last_recovery_at?: string | null;
   error?: string | null;
+  tool_calls_count?: number | null;
+  preflight_hash?: string | null;
+  preflight_verdict?: string | null;
+  preflight_reason?: string | null;
+  last_model_message?: string | null;
 }
 
 const RUNNER_STATE_PATH = "logs/.state/runner.json";
@@ -173,6 +183,11 @@ function rowsToRunnerState(rows: RunnerStateDbRow[]): RunnerState {
       lastRecoveryAlertAt: row.last_alert_at || undefined,
       ownerInstance: row.owner_instance,
       heartbeatAt: row.heartbeat_at,
+      toolCallsCount: row.tool_calls_count ?? undefined,
+      preflightHash: row.preflight_hash || undefined,
+      preflightVerdict: row.preflight_verdict || undefined,
+      preflightReason: row.preflight_reason || undefined,
+      lastModelMessage: row.last_model_message || undefined,
     };
   }
   return {
@@ -244,6 +259,11 @@ export async function saveRunnerState(
     run_completed_at: record.runCompletedAt || null,
     last_recovery_at: record.lastRecoveryAt || null,
     error: record.error || null,
+    tool_calls_count: record.toolCallsCount ?? null,
+    preflight_hash: record.preflightHash || null,
+    preflight_verdict: record.preflightVerdict || null,
+    preflight_reason: record.preflightReason || null,
+    last_model_message: record.lastModelMessage || null,
   }));
 
   if (sb && !isTest) {
@@ -331,7 +351,12 @@ export async function claimRunnerIssue(
       if (params?.agent) updatePayload.agent = params.agent;
       if (params?.door) updatePayload.door = params.door;
       if (params?.title) updatePayload.title = params.title;
+      if (params?.branch) updatePayload.branch = params.branch;
       if (params?.recoveryAttempts !== undefined) updatePayload.recovery_attempts = params.recoveryAttempts;
+      if (params?.toolCallsCount !== undefined) updatePayload.tool_calls_count = params.toolCallsCount;
+      if (params?.preflightHash) updatePayload.preflight_hash = params.preflightHash;
+      if (params?.preflightVerdict) updatePayload.preflight_verdict = params.preflightVerdict;
+      if (params?.preflightReason) updatePayload.preflight_reason = params.preflightReason;
 
       const { data, error } = await sb
         .from("runner_state")
@@ -390,8 +415,13 @@ export async function claimRunnerIssue(
     if (params?.agent) row.agent = params.agent;
     if (params?.door) row.door = params.door;
     if (params?.title) row.title = params.title;
+    if (params?.branch) row.branch = params.branch;
     if (params?.recoveryAttempts !== undefined) row.recovery_attempts = params.recoveryAttempts;
     if (params?.lastRecoveryAlertAt) row.last_alert_at = params.lastRecoveryAlertAt;
+    if (params?.toolCallsCount !== undefined) row.tool_calls_count = params.toolCallsCount;
+    if (params?.preflightHash) row.preflight_hash = params.preflightHash;
+    if (params?.preflightVerdict) row.preflight_verdict = params.preflightVerdict;
+    if (params?.preflightReason) row.preflight_reason = params.preflightReason;
 
     const state = rowsToRunnerState(Array.from(mockRunnerStateDb.values()));
     syncMirrorFile(state, { testMode: true }).catch(() => {});
@@ -468,6 +498,11 @@ export async function releaseRunnerClaim(
   if (updates?.branch) payload.branch = updates.branch;
   if (updates?.prNumber !== undefined) payload.pr_number = updates.prNumber;
   if (updates?.prUrl) payload.pr_url = updates.prUrl;
+  if (updates?.toolCallsCount !== undefined) payload.tool_calls_count = updates.toolCallsCount;
+  if (updates?.preflightHash) payload.preflight_hash = updates.preflightHash;
+  if (updates?.preflightVerdict) payload.preflight_verdict = updates.preflightVerdict;
+  if (updates?.preflightReason) payload.preflight_reason = updates.preflightReason;
+  if (updates?.lastModelMessage) payload.last_model_message = updates.lastModelMessage;
 
   if (sb && !isTest) {
     try {
@@ -497,6 +532,11 @@ export async function releaseRunnerClaim(
     if (updates?.branch) row.branch = updates.branch;
     if (updates?.prNumber !== undefined) row.pr_number = updates.prNumber;
     if (updates?.prUrl) row.pr_url = updates.prUrl;
+    if (updates?.toolCallsCount !== undefined) row.tool_calls_count = updates.toolCallsCount;
+    if (updates?.preflightHash) row.preflight_hash = updates.preflightHash;
+    if (updates?.preflightVerdict) row.preflight_verdict = updates.preflightVerdict;
+    if (updates?.preflightReason) row.preflight_reason = updates.preflightReason;
+    if (updates?.lastModelMessage) row.last_model_message = updates.lastModelMessage;
 
     const state = rowsToRunnerState(Array.from(mockRunnerStateDb.values()));
     syncMirrorFile(state, { testMode: true }).catch(() => {});
@@ -681,6 +721,11 @@ export async function recordRunnerIssue(
       if (record.recoveryAttempts !== undefined) payload.recovery_attempts = record.recoveryAttempts;
       if (record.lastRecoveryAt) payload.last_recovery_at = record.lastRecoveryAt;
       if (record.lastRecoveryAlertAt) payload.last_alert_at = record.lastRecoveryAlertAt;
+      if (record.toolCallsCount !== undefined) payload.tool_calls_count = record.toolCallsCount;
+      if (record.preflightHash) payload.preflight_hash = record.preflightHash;
+      if (record.preflightVerdict) payload.preflight_verdict = record.preflightVerdict;
+      if (record.preflightReason) payload.preflight_reason = record.preflightReason;
+      if (record.lastModelMessage) payload.last_model_message = record.lastModelMessage;
 
       await sb.from("runner_state").upsert(payload, { onConflict: "issue_number" });
       const fresh = await getRunnerState({ testMode: false });
@@ -720,6 +765,11 @@ export async function recordRunnerIssue(
     recovery_attempts: record.recoveryAttempts !== undefined ? record.recoveryAttempts : existing.recovery_attempts,
     last_recovery_at: record.lastRecoveryAt || existing.last_recovery_at,
     last_alert_at: record.lastRecoveryAlertAt || existing.last_alert_at,
+    tool_calls_count: record.toolCallsCount !== undefined ? record.toolCallsCount : existing.tool_calls_count,
+    preflight_hash: record.preflightHash || existing.preflight_hash,
+    preflight_verdict: record.preflightVerdict || existing.preflight_verdict,
+    preflight_reason: record.preflightReason || existing.preflight_reason,
+    last_model_message: record.lastModelMessage || existing.last_model_message,
   };
 
   mockRunnerStateDb.set(issueNumber, updatedRow);

@@ -141,9 +141,21 @@ export async function catchUpRunnerIssues(options?: {
       }
 
       // 2. Check runner state
-      // Mandate: catch-up must pick up any for:web-builder issue in status:in-progress with no open PR
-      // regardless of stale state (e.g. stale completed or running in runner.json).
+      // Rule 1: Catch-up must not re-run on an issue that is claimed or actively in-progress in runner_state
       const existingRecord = state.runs[String(issueNum)];
+      if (existingRecord?.status === "in-progress" && (existingRecord.ownerInstance || isIssueRunningLocally(issueNum))) {
+        console.log(`[Catch-Up] Issue #${issueNum} is currently claimed/in-progress in runner state; skipping.`);
+        skippedCount++;
+        results.push({
+          issueNumber: issueNum,
+          status: "skipped",
+          reason: "Claimed or in-progress in runner state",
+        });
+        continue;
+      }
+
+      // Mandate: catch-up must pick up any for:web-builder issue in status:in-progress with no open PR
+      // regardless of stale state (e.g. stale completed in runner.json).
       if (existingRecord?.status === "completed") {
         if (agent.name === "web-builder") {
           console.log(

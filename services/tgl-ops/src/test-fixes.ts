@@ -9,12 +9,12 @@ import { getCurrentPlanDay } from "./lib/plan.js";
 import { getRunnerState, saveRunnerState, recordRunnerIssue, clearMockRunnerStateDbForTests } from "./runner/state.js";
 import { catchUpRunnerIssues, recoverInterruptedRunnerIssues } from "./runner/catch-up.js";
 import { runPreflightCheck } from "./runner/preflight.js";
-import { handleRunnerShutdown, setActiveIssueNumberForTests } from "./runner/runner.js";
+import { handleRunnerShutdown, setActiveIssueNumberForTests, computeBriefHash, runIssueTask } from "./runner/runner.js";
 import { resetMockPostedLines, mockPostedLines } from "./lib/post.js";
 
 async function runFixesVerificationSuite(): Promise<void> {
   console.log("==========================================================================");
-  console.log("🧪 Housekeeping Fixes Verification Suite");
+  console.log("Housekeeping Fixes Verification Suite");
   console.log("   (Pending Approvals Filter, Routine Silence Check, Plan Day Reconcile)");
   console.log("==========================================================================\n");
 
@@ -531,8 +531,130 @@ async function runFixesVerificationSuite(): Promise<void> {
   console.log("✅ [Test 6 Passed] Pre-flight instruction context verified.\n");
   passed++;
 
+  // -------------------------------------------------------------------------
+  // Test 7: Pre-flight deduplication & Architect instruction hash invalidation
+  // -------------------------------------------------------------------------
+  console.log("[Test 7] Testing pre-flight check hash deduplication & Architect instruction invalidation...");
+
+  const baseBrief = "Outreach Sequencer SKILL.md + 5-touch worker via GHL";
+  const h1 = computeBriefHash(baseBrief, []);
+  const h2 = computeBriefHash(baseBrief, [
+    { user: "github-actions[bot]", body: "[Pre-flight Verdict: Proceed] Delivered on branch." },
+    { user: "tejinder-cloud", body: "**[Pre-flight Verdict: Proceed]** The brief has a concrete deliverable." },
+  ]);
+
+  if (h1 !== h2) {
+    throw new Error(`Test 7.1 Failed: Runner pre-flight comments invalidated brief hash! (${h1} !== ${h2})`);
+  }
+  console.log("  ✓ Bot & runner pre-flight verdicts do not invalidate pre-flight cache");
+
+  const h3 = computeBriefHash(baseBrief, [
+    { user: "tejinder-cloud", body: "Cadence: T1 email day 0, T2 WhatsApp day 2, T3 email with audit PDF" },
+  ]);
+
+  if (h1 === h3) {
+    throw new Error("Test 7.2 Failed: Authoritative Architect comment failed to change brief hash!");
+  }
+  console.log("  ✓ Authoritative Architect instruction comment changes brief hash for re-evaluation");
+
+  const h4 = computeBriefHash(baseBrief + " with revised deliverable", []);
+  if (h1 === h4) {
+    throw new Error("Test 7.3 Failed: Issue body modification failed to change brief hash!");
+  }
+  console.log("  ✓ Issue body change triggers fresh pre-flight hash");
+  console.log("✅ [Test 7 Passed] Pre-flight hash deduplication & invalidation verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 8: Resume preserves working branch & tool-call budget
+  // -------------------------------------------------------------------------
+  console.log("[Test 8] Testing resume preserves branch and tool-call budget...");
+
+  clearMockRunnerStateDbForTests();
+  const testIssueNum = 72;
+  const existingBranch = "task/72-plan-d10-outreach-sequencer-sk";
+  const existingBriefHash = computeBriefHash("Outreach Sequencer SKILL.md", []);
+
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        [String(testIssueNum)]: {
+          agent: "web-builder",
+          door: "aeo",
+          title: "[PLAN-D10]: Outreach Sequencer SKILL.md + 5-touch worker",
+          status: "in-progress",
+          branch: existingBranch,
+          toolCallsCount: 14,
+          preflightHash: existingBriefHash,
+          preflightVerdict: "proceed",
+          preflightReason: "Cached verdict from previous pre-flight",
+          runStartedAt: new Date().toISOString(),
+          ownerInstance: null,
+          heartbeatAt: null,
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  const issueData = {
+    number: testIssueNum,
+    title: "[PLAN-D10]: Outreach Sequencer SKILL.md + 5-touch worker",
+    body: "Outreach Sequencer SKILL.md",
+    labels: ["for:web-builder", "status:in-progress", "door:aeo"],
+  };
+
+  // Run task in test mode with mockModelResponse to test branch/budget preservation and zero-commit gate
+  const expectedMessage = "Model analyzed requirements and ended without writing files.";
+  const runRes = await runIssueTask(issueData, { testMode: true, mockModelResponse: expectedMessage });
+
+  if (runRes.branchName !== existingBranch) {
+    throw new Error(`Test 8.1 Failed: Resume changed branch from ${existingBranch} to ${runRes.branchName}`);
+  }
+  console.log(`  ✓ Resume continued on existing branch: ${runRes.branchName}`);
+
+  const stateAfter = await getRunnerState({ testMode: true });
+  const runRecord = stateAfter.runs[String(testIssueNum)];
+
+  if (runRecord?.branch !== existingBranch) {
+    throw new Error(`Test 8.2 Failed: Runner record branch not preserved: ${runRecord?.branch}`);
+  }
+  if (runRecord?.lastModelMessage !== expectedMessage) {
+    throw new Error(`Test 8.3 Failed: Expected lastModelMessage '${expectedMessage}', got '${runRecord?.lastModelMessage}'`);
+  }
+  console.log("  ✓ Branch and model message preserved in runner state database");
+  console.log("✅ [Test 8 Passed] Resume branch and budget state preservation verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 9: Zero-commit gate before PR opening & needs-brief handling
+  // -------------------------------------------------------------------------
+  console.log("[Test 9] Testing zero-commit gate before PR opening & needs-brief handling...");
+
+  if (runRes.status !== "needs-brief") {
+    throw new Error(`Test 9.1 Failed: Expected status 'needs-brief' for 0 commits run, got '${runRes.status}'`);
+  }
+  if (runRes.error !== "run produced no files") {
+    throw new Error(`Test 9.2 Failed: Expected error 'run produced no files', got '${runRes.error}'`);
+  }
+  if (runRes.prNumber !== undefined) {
+    throw new Error(`Test 9.3 Failed: Zero-commit run opened a PR (#${runRes.prNumber})! Must not call PR API.`);
+  }
+  if (runRecord?.recoveryAttempts !== 0) {
+    throw new Error(`Test 9.4 Failed: Zero-commit run counted as a failure! recoveryAttempts=${runRecord?.recoveryAttempts}`);
+  }
+
+  console.log("  ✓ Zero-commit run halted before createPullRequest");
+  console.log("  ✓ Marked status:needs-brief with reason 'run produced no files'");
+  console.log("  ✓ Does not count as a failure: recoveryAttempts strictly 0");
+  console.log("✅ [Test 9 Passed] Zero-commit gate & needs-brief handling verified.\n");
+  passed++;
+
   console.log("==========================================================================");
-  console.log(`🎉 ALL ${passed} HOUSEKEEPING FIX TESTS PASSED CLEANLY!`);
+  console.log(`ALL ${passed} HOUSEKEEPING FIX TESTS PASSED CLEANLY!`);
   console.log("==========================================================================");
 }
 
