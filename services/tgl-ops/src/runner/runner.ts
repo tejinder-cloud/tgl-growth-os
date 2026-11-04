@@ -243,7 +243,7 @@ export async function runIssueTask(
         status: "in-progress",
         runStartedAt: new Date().toISOString(),
         branch: existingRecord?.branch,
-        toolCallsCount: existingRecord?.toolCallsCount || 0,
+        toolCallsCount: 0,
         preflightHash: existingRecord?.preflightHash,
         preflightVerdict: existingRecord?.preflightVerdict,
         preflightReason: existingRecord?.preflightReason,
@@ -348,6 +348,7 @@ export async function runIssueTask(
           door: issue.door || "aeo",
           title: issue.title,
           status: "completed",
+          prNumber: issueNum,
           runCompletedAt: new Date().toISOString(),
           recoveryAttempts: 0,
         },
@@ -533,7 +534,7 @@ export async function runIssueTask(
 
     let totalInputTokens = 0;
     let totalOutputTokens = 0;
-    let toolCallsCount = existingRecord?.toolCallsCount || 0;
+    let toolCallsCount = 0;
     let lastModelMessage = existingRecord?.lastModelMessage || "";
     const MAX_TOOL_CALLS = runnerLimits.maxToolCalls;
     const MAX_RUNTIME_MS = runnerLimits.timeoutMs;
