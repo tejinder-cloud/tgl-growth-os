@@ -948,6 +948,49 @@ export async function closeIssue(
 }
 
 /**
+ * Reopens a GitHub issue and optionally posts a comment explaining the reopening.
+ */
+export async function reopenIssue(
+  issueNumber: number,
+  comment?: string
+): Promise<{ success: boolean; error?: string }> {
+  if (mockIssuesStore.has(issueNumber)) {
+    const item = mockIssuesStore.get(issueNumber)!;
+    item.state = "open";
+    if (comment) {
+      await addCommentToIssue(issueNumber, comment);
+    }
+    return { success: true };
+  }
+
+  if (!config.githubToken) {
+    console.warn(`[GitHub] GITHUB_TOKEN not set; simulating issue #${issueNumber} reopening`);
+    return { success: true };
+  }
+
+  try {
+    if (comment) {
+      await addCommentToIssue(issueNumber, comment);
+    }
+
+    await octokit.issues.update({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      issue_number: issueNumber,
+      state: "open",
+    });
+
+    return { success: true };
+  } catch (err: any) {
+    console.error(`[GitHub API] Error reopening issue #${issueNumber}:`, err);
+    return {
+      success: false,
+      error: err.response?.data?.message || err.message || "Failed to reopen issue",
+    };
+  }
+}
+
+/**
  * Removes a specific label from a GitHub issue.
  */
 export async function removeLabelFromIssue(

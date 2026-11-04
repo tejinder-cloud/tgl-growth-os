@@ -231,6 +231,21 @@ export async function getRunnerState(options?: { testMode?: boolean }): Promise<
 }
 
 /**
+ * Enforces the database constraint: status = 'completed' requires pr_number NOT NULL.
+ */
+export function assertValidRunnerStatusAndPr(
+  status?: string,
+  prNumber?: number | null,
+  issueNumber?: number
+): void {
+  if (status === "completed" && (prNumber === undefined || prNumber === null)) {
+    throw new Error(
+      `DB constraint violation: runner_state status = 'completed' requires pr_number not null (issue #${issueNumber || "unknown"})`
+    );
+  }
+}
+
+/**
  * Saves runner state into public.runner_state table and updates mirror.
  */
 export async function saveRunnerState(
@@ -240,6 +255,11 @@ export async function saveRunnerState(
   const isTest = options?.testMode === true || isTestMode();
   const sb = !isTest ? getSupabase() : null;
   const nowIso = new Date().toISOString();
+
+  // Enforce DB check constraint: status = 'completed' requires pr_number not null
+  for (const [key, record] of Object.entries(state.runs)) {
+    assertValidRunnerStatusAndPr(record.status, record.prNumber, Number(key));
+  }
 
   const rows: RunnerStateDbRow[] = Object.entries(state.runs).map(([key, record]) => ({
     issue_number: Number(key),
@@ -484,6 +504,13 @@ export async function releaseRunnerClaim(
   const nowIso = new Date().toISOString();
   const sb = !isTest ? getSupabase() : null;
 
+  // Enforce DB check constraint: status = 'completed' requires pr_number not null
+  if (updates?.status === "completed") {
+    const existing = isTest ? mockRunnerStateDb.get(issueNumber) : null;
+    const finalPr = updates.prNumber !== undefined ? updates.prNumber : existing?.pr_number;
+    assertValidRunnerStatusAndPr("completed", finalPr, issueNumber);
+  }
+
   const payload: any = {
     owner_instance: null,
     heartbeat_at: null,
@@ -635,7 +662,7 @@ export async function claimAlertSlot(
 
 /**
  * Resets runner issue state for Architect resume (#N: resume).
- * Clears recovery_attempts to 0, sets status in-progress, releases owner claim.
+ * Clears recovery_attempts to 0, sets status in-progress, resets tool_calls_count to 0, releases owner claim.
  */
 export async function resetRunnerIssue(
   issueNumber: number,
@@ -645,6 +672,7 @@ export async function resetRunnerIssue(
   const isTest = options?.testMode === true || isTestMode();
   const nowIso = new Date().toISOString();
   const sb = !isTest ? getSupabase() : null;
+  const existing = mockRunnerStateDb.get(issueNumber);
 
   const rowData: Partial<RunnerStateDbRow> = {
     recovery_attempts: 0,
@@ -652,11 +680,18 @@ export async function resetRunnerIssue(
     owner_instance: null,
     heartbeat_at: null,
     error: null,
+    tool_calls_count: 0,
     updated_at: nowIso,
-    agent: updates?.agent || "web-builder",
-    door: updates?.door || "core",
-    title: updates?.title || `Issue #${issueNumber}`,
+    agent: updates?.agent || existing?.agent || "web-builder",
+    door: updates?.door || existing?.door || "core",
+    title: updates?.title || existing?.title || `Issue #${issueNumber}`,
   };
+
+  if (updates?.branch || existing?.branch) rowData.branch = updates?.branch || existing?.branch;
+  if (updates?.preflightHash || existing?.preflight_hash) rowData.preflight_hash = updates?.preflightHash || existing?.preflight_hash;
+  if (updates?.preflightVerdict || existing?.preflight_verdict) rowData.preflight_verdict = updates?.preflightVerdict || existing?.preflight_verdict;
+  if (updates?.preflightReason || existing?.preflight_reason) rowData.preflight_reason = updates?.preflightReason || existing?.preflight_reason;
+  if (updates?.lastModelMessage || existing?.last_model_message) rowData.last_model_message = updates?.lastModelMessage || existing?.last_model_message;
 
   if (sb && !isTest) {
     try {
@@ -671,19 +706,24 @@ export async function resetRunnerIssue(
     }
   }
 
-  const existing = mockRunnerStateDb.get(issueNumber);
   mockRunnerStateDb.set(issueNumber, {
     issue_number: issueNumber,
     status: "in-progress",
     owner_instance: null,
     heartbeat_at: null,
     recovery_attempts: 0,
+    tool_calls_count: 0,
     last_alert_at: existing?.last_alert_at || null,
     updated_at: nowIso,
     agent: updates?.agent || existing?.agent || "web-builder",
     door: updates?.door || existing?.door || "core",
     title: updates?.title || existing?.title || `Issue #${issueNumber}`,
     error: null,
+    branch: updates?.branch || existing?.branch,
+    preflight_hash: updates?.preflightHash || existing?.preflight_hash,
+    preflight_verdict: updates?.preflightVerdict || existing?.preflight_verdict,
+    preflight_reason: updates?.preflightReason || existing?.preflight_reason,
+    last_model_message: updates?.lastModelMessage || existing?.last_model_message,
   });
 
   const state = rowsToRunnerState(Array.from(mockRunnerStateDb.values()));
@@ -701,6 +741,13 @@ export async function recordRunnerIssue(
   const isTest = options?.testMode === true || isTestMode();
   const sb = !isTest ? getSupabase() : null;
   const nowIso = new Date().toISOString();
+
+  // Enforce DB check constraint: status = 'completed' requires pr_number not null
+  if (record.status === "completed") {
+    const existing = isTest ? mockRunnerStateDb.get(issueNumber) : null;
+    const finalPr = record.prNumber !== undefined ? record.prNumber : existing?.pr_number;
+    assertValidRunnerStatusAndPr("completed", finalPr, issueNumber);
+  }
 
   if (sb && !isTest) {
     try {

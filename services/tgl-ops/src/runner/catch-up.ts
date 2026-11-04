@@ -5,6 +5,7 @@ import {
   findLinkedPR,
   hasArchitectComment,
   getIssue,
+  reopenIssue,
   addLabelsToIssue,
   removeLabelFromIssue,
   addCommentToIssue,
@@ -18,7 +19,7 @@ import {
   releaseRunnerClaim,
   claimAlertSlot,
 } from "./state.js";
-import { runIssueTask, isIssueRunningLocally, type RunnerRunResult } from "./runner.js";
+import { runIssueTask, isIssueRunningLocally, type RunnerRunResult, type RunnerIssueInput } from "./runner.js";
 import { postLine } from "../lib/post.js";
 import { getAlertsChannel } from "../lib/cron-wrapper.js";
 import { getCurrentTimeIST } from "../lib/standup.js";
@@ -234,6 +235,9 @@ export async function catchUpRunnerIssues(options?: {
 export async function recoverInterruptedRunnerIssues(options?: {
   instanceId?: string;
   testMode?: boolean;
+  triggerRunnerInTestMode?: boolean;
+  mockModelResponse?: string;
+  mockToolCalls?: Array<{ name: string; input: Record<string, any> }>;
 }): Promise<number[]> {
   const isTest = options?.testMode === true || isTestMode();
   const instanceId = options?.instanceId || CONTAINER_INSTANCE_ID;
@@ -323,49 +327,30 @@ export async function recoverInterruptedRunnerIssues(options?: {
           continue;
         }
 
-        if (!isTest) {
-          // 1. Check if an open PR exists
-          const openPr = await findLinkedPR(issueNum, { state: "open" });
-          if (openPr && openPr.state === "open") {
-            console.log(
-              `[Runner Boot Recovery] Issue #${issueNum} already has open PR #${openPr.number}; updating runner state to completed.`
-            );
-            await releaseRunnerClaim(
-              issueNum,
-              instanceId,
-              {
-                status: "completed",
-                prNumber: openPr.number,
-                prUrl: openPr.html_url,
-                runCompletedAt: new Date().toISOString(),
-                recoveryAttempts: 0,
-              },
-              { testMode: isTest }
-            );
-            continue;
-          }
+        // 1. Check if an open PR exists
+        const openPr = !isTest ? await findLinkedPR(issueNum, { state: "open" }) : null;
+        if (openPr && openPr.state === "open") {
+          console.log(
+            `[Runner Boot Recovery] Issue #${issueNum} already has open PR #${openPr.number}; updating runner state to completed.`
+          );
+          await releaseRunnerClaim(
+            issueNum,
+            instanceId,
+            {
+              status: "completed",
+              prNumber: openPr.number,
+              prUrl: openPr.html_url,
+              runCompletedAt: new Date().toISOString(),
+              recoveryAttempts: 0,
+            },
+            { testMode: isTest }
+          );
+          continue;
+        }
 
-          // 2. Check if issue is closed on GitHub
-          const issue = await getIssue(issueNum);
-          if (!issue || issue.state === "closed") {
-            console.log(
-              `[Runner Boot Recovery] Issue #${issueNum} is closed on GitHub; updating runner state to completed.`
-            );
-            await releaseRunnerClaim(
-              issueNum,
-              instanceId,
-              {
-                status: "completed",
-                runCompletedAt: new Date().toISOString(),
-                recoveryAttempts: 0,
-              },
-              { testMode: isTest }
-            );
-            continue;
-          }
-
-          // 3. Reconcile with GitHub labels: if issue already labeled status:needs-brief or status:blocked,
-          // do NOT resurrect it into status:in-progress!
+        // 2. Fetch issue metadata from GitHub (or mock store in test mode)
+        let issue: any = await getIssue(issueNum);
+        if (issue) {
           const labels = issue.labels?.map((l: any) => (typeof l === "string" ? l : l.name)) || [];
           if (labels.includes("status:needs-brief")) {
             console.log(
@@ -400,6 +385,17 @@ export async function recoverInterruptedRunnerIssues(options?: {
             );
             continue;
           }
+
+          // If issue was closed on GitHub without an open PR, reopen it so it stays active
+          if (issue.state === "closed") {
+            console.log(
+              `[Runner Boot Recovery] Issue #${issueNum} was closed on GitHub without an open PR; reopening issue for resumed run.`
+            );
+            await reopenIssue(
+              issueNum,
+              "**[Runner Boot Recovery]** Reopening issue: run was interrupted without a PR."
+            ).catch(() => {});
+          }
         }
 
         // Alert deduplication: at most one boot-recovery alert per issue per hour
@@ -416,7 +412,7 @@ export async function recoverInterruptedRunnerIssues(options?: {
           );
         }
 
-        // Resumed without counting attempts!
+        // Resumed without counting attempts, with fresh session budget!
         await releaseRunnerClaim(
           issueNum,
           instanceId,
@@ -424,6 +420,7 @@ export async function recoverInterruptedRunnerIssues(options?: {
             status: "in-progress",
             recoveryAttempts: attempts,
             lastRecoveryAt: new Date().toISOString(),
+            toolCallsCount: 0,
           },
           { testMode: isTest }
         );
@@ -433,6 +430,39 @@ export async function recoverInterruptedRunnerIssues(options?: {
         }
 
         recovered.push(issueNum);
+
+        // Requirement (3): Boot recovery of an interrupted run with a proceed verdict and no PR
+        // must start a model session on the existing branch with a fresh session budget, never mark it completed.
+        if (run.preflightVerdict === "proceed") {
+          console.log(
+            `[Runner Boot Recovery] Starting model session on branch ${run.branch || "task/" + issueNum} with fresh session budget for Issue #${issueNum}...`
+          );
+          if (!isTest || options?.triggerRunnerInTestMode) {
+            const issueInput: RunnerIssueInput = {
+              number: issueNum,
+              title: issue?.title || run.title || `Issue #${issueNum}`,
+              body: issue?.body || "",
+              labels: issue?.labels?.map((l: any) => (typeof l === "string" ? l : l.name)) || [
+                "status:in-progress",
+                `for:${run.agent || "web-builder"}`,
+                `door:${run.door || "core"}`,
+              ],
+              html_url: issue?.html_url,
+              agentName: run.agent || "web-builder",
+              door: run.door || "core",
+            };
+            const runPromise = runIssueTask(issueInput, {
+              testMode: isTest,
+              mockModelResponse: options?.mockModelResponse,
+              mockToolCalls: options?.mockToolCalls,
+            }).catch((err) => {
+              console.warn(`[Runner Boot Recovery] Error running issue #${issueNum}:`, err);
+            });
+            if (options?.triggerRunnerInTestMode) {
+              await runPromise;
+            }
+          }
+        }
       } catch (issueErr: any) {
         // Individual issue recovery failure is captured and reported without crashing boot
         const errMsg = issueErr?.stack || issueErr?.message || String(issueErr);

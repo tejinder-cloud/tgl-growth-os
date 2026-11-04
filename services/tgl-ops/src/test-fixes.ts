@@ -6,13 +6,14 @@ import { gatherStandupMaterial } from "./agents/chief-of-staff/gather.js";
 import { doesCronRunOnDate, isAgentScheduledOnDate, findAgentByName, getAgentRunnerLimits, type AgentRecord } from "./lib/agents.js";
 import { execute1815SilenceCheck } from "./agents/chief-of-staff/worker.js";
 import { getCurrentPlanDay } from "./lib/plan.js";
-import { getRunnerState, saveRunnerState, recordRunnerIssue, clearMockRunnerStateDbForTests } from "./runner/state.js";
+import { getRunnerState, saveRunnerState, recordRunnerIssue, resetRunnerIssue, releaseRunnerClaim, assertValidRunnerStatusAndPr, clearMockRunnerStateDbForTests } from "./runner/state.js";
 import { catchUpRunnerIssues, recoverInterruptedRunnerIssues } from "./runner/catch-up.js";
 import { runPreflightCheck } from "./runner/preflight.js";
 import { handleRunnerShutdown, setActiveIssueNumberForTests, computeBriefHash, runIssueTask } from "./runner/runner.js";
 import { buildRunnerSystemPrompt, buildRunnerUserMessage, buildRepositoryMap, extractAndLoadBriefFiles } from "./runner/prompt.js";
 import { verifyPrDescriptionIssueLinking } from "./ci/check-pr-description.js";
 import { resetMockPostedLines, mockPostedLines } from "./lib/post.js";
+import { mockIssuesStore } from "./lib/github-client.js";
 
 async function runFixesVerificationSuite(): Promise<void> {
   console.log("==========================================================================");
@@ -457,6 +458,8 @@ async function runFixesVerificationSuite(): Promise<void> {
           door: "aeo",
           title: "[PLAN-D8]: AEO Audit Engine SKILL.md + short-form engine",
           status: "completed", // STALE state!
+          prNumber: 53,
+          prUrl: "https://github.com/tejinder-cloud/tgl-growth-os/pull/53",
           runStartedAt: "2026-10-30T00:00:00.000Z",
           runCompletedAt: "2026-10-30T00:00:00.000Z",
         },
@@ -926,6 +929,266 @@ async function runFixesVerificationSuite(): Promise<void> {
   }
   console.log("  [Passed] PR description issue linking gate strictly enforces task/N-* for fixes/closes/resolves #N");
   console.log("[Test 11 Passed] Per-agent limits, repository map, prompt pacing, verbatim message, and CI gate verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 12: DB check constraint on runner_state: status = completed requires pr_number not null
+  // -------------------------------------------------------------------------
+  console.log("[Test 12] Testing DB check constraint: status = completed requires pr_number not null...");
+
+  // Case A: assertValidRunnerStatusAndPr throws on completed with null/undefined prNumber
+  let threwNullPr = false;
+  try {
+    assertValidRunnerStatusAndPr("completed", null, 72);
+  } catch (err: any) {
+    if (err.message.includes("status = 'completed' requires pr_number not null")) {
+      threwNullPr = true;
+    }
+  }
+  if (!threwNullPr) {
+    throw new Error("Test 12.1 Failed: assertValidRunnerStatusAndPr did not throw for null pr_number with completed status");
+  }
+
+  // Case B: saveRunnerState rejects status: "completed" with no prNumber
+  let threwSave = false;
+  try {
+    await saveRunnerState(
+      {
+        version: 1,
+        updatedAt: new Date().toISOString(),
+        runs: {
+          "72": {
+            agent: "web-builder",
+            door: "aeo",
+            title: "Issue #72",
+            status: "completed",
+            runStartedAt: new Date().toISOString(),
+          },
+        },
+      },
+      { testMode: true }
+    );
+  } catch (err: any) {
+    if (err.message.includes("status = 'completed' requires pr_number not null")) {
+      threwSave = true;
+    }
+  }
+  if (!threwSave) {
+    throw new Error("Test 12.2 Failed: saveRunnerState allowed status 'completed' with prNumber null!");
+  }
+
+  // Case C: releaseRunnerClaim rejects status: "completed" when no prNumber is supplied
+  clearMockRunnerStateDbForTests();
+  await recordRunnerIssue(
+    72,
+    {
+      agent: "web-builder",
+      status: "in-progress",
+      title: "Issue #72",
+    },
+    { testMode: true }
+  );
+  let threwRelease = false;
+  try {
+    await releaseRunnerClaim(
+      72,
+      "inst_test",
+      {
+        status: "completed",
+        runCompletedAt: new Date().toISOString(),
+      },
+      { testMode: true }
+    );
+  } catch (err: any) {
+    if (err.message.includes("status = 'completed' requires pr_number not null")) {
+      threwRelease = true;
+    }
+  }
+  if (!threwRelease) {
+    throw new Error("Test 12.3 Failed: releaseRunnerClaim allowed status 'completed' with prNumber undefined!");
+  }
+
+  // Case D: Valid prNumber allows status: "completed" to succeed
+  await releaseRunnerClaim(
+    72,
+    "inst_test",
+    {
+      status: "completed",
+      prNumber: 95,
+      prUrl: "https://github.com/tejinder-cloud/tgl-growth-os/pull/95",
+      runCompletedAt: new Date().toISOString(),
+    },
+    { testMode: true }
+  );
+  const stateWithPr = await getRunnerState({ testMode: true });
+  if (stateWithPr.runs["72"]?.status !== "completed" || stateWithPr.runs["72"]?.prNumber !== 95) {
+    throw new Error("Test 12.4 Failed: Valid completed record with prNumber was not saved properly");
+  }
+
+  console.log("  [Passed] DB constraint check strictly rejects status = 'completed' without a non-null pr_number");
+  console.log("[Test 12 Passed] DB check constraint enforcement verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 13: Boot recovery of interrupted run with proceed verdict and no PR
+  // -------------------------------------------------------------------------
+  console.log("[Test 13] Testing boot recovery starts model session on existing branch with fresh budget...");
+
+  clearMockRunnerStateDbForTests();
+  const test13IssueNum = 72;
+  const test13Branch = "task/72-plan-d10-outreach-sequencer-sk";
+  const test13BriefBody = "Outreach Sequencer SKILL.md";
+  const test13BriefHash = computeBriefHash(test13BriefBody, []);
+
+  // Set issue on GitHub as closed with no PR (the exact scenario from #89 that caused the bug)
+  mockIssuesStore.set(test13IssueNum, {
+    number: test13IssueNum,
+    title: "[PLAN-D10]: Outreach Sequencer SKILL.md + 5-touch worker",
+    body: test13BriefBody,
+    state: "closed",
+    labels: ["for:web-builder", "status:in-progress", "door:aeo"],
+    html_url: `https://github.com/tejinder-cloud/tgl-growth-os/issues/${test13IssueNum}`,
+  });
+
+  // Simulate issue state in runner_state: interrupted run with proceed verdict and 25 prior tool calls
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        [String(test13IssueNum)]: {
+          agent: "web-builder",
+          door: "aeo",
+          title: "[PLAN-D10]: Outreach Sequencer SKILL.md + 5-touch worker",
+          status: "interrupted",
+          branch: test13Branch,
+          toolCallsCount: 25,
+          preflightHash: test13BriefHash,
+          preflightVerdict: "proceed",
+          preflightReason: "Preflight confirmed proceed",
+          runStartedAt: new Date().toISOString(),
+          ownerInstance: null,
+          heartbeatAt: null,
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  // Run boot recovery with triggerRunnerInTestMode
+  const test13MockResponse = "Model session executed on branch with fresh session budget.";
+  const recovered13 = await recoverInterruptedRunnerIssues({
+    testMode: true,
+    triggerRunnerInTestMode: true,
+    mockModelResponse: test13MockResponse,
+  });
+
+  if (!recovered13.includes(test13IssueNum)) {
+    throw new Error(`Test 13.1 Failed: Issue #${test13IssueNum} not in recovered list: ${recovered13.join(", ")}`);
+  }
+
+  const stateAfter13 = await getRunnerState({ testMode: true });
+  const run13 = stateAfter13.runs[String(test13IssueNum)];
+
+  // Invariant check: MUST NEVER be marked completed without a PR!
+  if (run13?.status === "completed") {
+    throw new Error("Test 13.2 Failed: Boot recovery marked issue 'completed' without a PR!");
+  }
+  // Must continue on existing branch
+  if (run13?.branch !== test13Branch) {
+    throw new Error(`Test 13.3 Failed: Boot recovery changed branch from ${test13Branch} to ${run13?.branch}`);
+  }
+  // Must have executed with fresh budget (0 tool calls in mock response run, not 25)
+  if (run13?.toolCallsCount !== 0) {
+    throw new Error(`Test 13.4 Failed: Expected toolCallsCount to reset to 0 for fresh budget, got: ${run13?.toolCallsCount}`);
+  }
+  if (run13?.lastModelMessage !== test13MockResponse) {
+    throw new Error(`Test 13.5 Failed: Expected lastModelMessage '${test13MockResponse}', got '${run13?.lastModelMessage}'`);
+  }
+  // Must have reopened closed GitHub issue
+  if (mockIssuesStore.get(test13IssueNum)?.state !== "open") {
+    throw new Error("Test 13.6 Failed: Boot recovery did not reopen closed issue on GitHub!");
+  }
+
+  console.log("  [Passed] Boot recovery continues on existing branch with fresh session budget and never marks completed without PR");
+  console.log("[Test 13 Passed] Interrupted run boot recovery behavior verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 14: resetRunnerIssue resets tool_calls_count to 0
+  // -------------------------------------------------------------------------
+  console.log("[Test 14] Testing resetRunnerIssue resets tool_calls_count to 0 and preserves branch/verdict...");
+
+  clearMockRunnerStateDbForTests();
+  const test14IssueNum = 72;
+  const test14Branch = "task/72-plan-d10-outreach-sequencer-sk";
+
+  // Simulate stale state: 25 tool calls used, recovery attempts 2, status interrupted
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        [String(test14IssueNum)]: {
+          agent: "web-builder",
+          door: "aeo",
+          title: "[PLAN-D10]: Outreach Sequencer SKILL.md + 5-touch worker",
+          status: "interrupted",
+          branch: test14Branch,
+          toolCallsCount: 25,
+          recoveryAttempts: 2,
+          preflightHash: "hash-test-14",
+          preflightVerdict: "proceed",
+          preflightReason: "Verdict reason",
+          lastModelMessage: "Old model message",
+          ownerInstance: "inst_old_stale",
+          heartbeatAt: new Date().toISOString(),
+          runStartedAt: new Date().toISOString(),
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  // Execute resetRunnerIssue
+  await resetRunnerIssue(
+    test14IssueNum,
+    {
+      agent: "web-builder",
+      door: "aeo",
+      title: "[PLAN-D10]: Outreach Sequencer SKILL.md + 5-touch worker",
+    },
+    { testMode: true }
+  );
+
+  const stateAfter14 = await getRunnerState({ testMode: true });
+  const run14 = stateAfter14.runs[String(test14IssueNum)];
+
+  if (run14?.toolCallsCount !== 0) {
+    throw new Error(`Test 14.1 Failed: resetRunnerIssue did NOT reset tool_calls_count to 0! Current value: ${run14?.toolCallsCount}`);
+  }
+  if (run14?.recoveryAttempts !== 0) {
+    throw new Error(`Test 14.2 Failed: resetRunnerIssue did NOT reset recoveryAttempts to 0! Current value: ${run14?.recoveryAttempts}`);
+  }
+  if (run14?.status !== "in-progress") {
+    throw new Error(`Test 14.3 Failed: Expected status 'in-progress', got '${run14?.status}'`);
+  }
+  if (run14?.ownerInstance !== null) {
+    throw new Error(`Test 14.4 Failed: Expected ownerInstance null, got '${run14?.ownerInstance}'`);
+  }
+  if (run14?.heartbeatAt !== null) {
+    throw new Error(`Test 14.5 Failed: Expected heartbeatAt null, got '${run14?.heartbeatAt}'`);
+  }
+  if (run14?.branch !== test14Branch) {
+    throw new Error(`Test 14.6 Failed: resetRunnerIssue lost existing branch! Expected '${test14Branch}', got '${run14?.branch}'`);
+  }
+  if (run14?.preflightVerdict !== "proceed") {
+    throw new Error(`Test 14.7 Failed: resetRunnerIssue lost preflightVerdict! Expected 'proceed', got '${run14?.preflightVerdict}'`);
+  }
+
+  console.log("  [Passed] resetRunnerIssue resets tool_calls_count to 0, recoveryAttempts to 0, and preserves branch and preflight cache");
+  console.log("[Test 14 Passed] resetRunnerIssue zeroing verified.\n");
   passed++;
 
   console.log("==========================================================================");
