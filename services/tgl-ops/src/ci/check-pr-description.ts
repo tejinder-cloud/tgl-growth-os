@@ -120,3 +120,4 @@ export function runCli(): void {
 if (process.argv[1] && process.argv[1].endsWith("check-pr-description.ts")) {
   runCli();
 }
+

@@ -2,6 +2,7 @@
 // Poll → snapshot → evidence → proposal → #approvals card → human decision → apply + verify → first run.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { config, isTestMode } from "../../config.js";
+import { isArchitectUser } from "../../lib/org.js";
 import { slackClient, openModal, getActorDisplayName } from "../../lib/slack-client.js";
 import { postLine, resolveChannelId } from "../../lib/post.js";
 import { getAlertsChannel } from "../../lib/cron-wrapper.js";
@@ -229,6 +230,11 @@ export async function handleSetupAction(payload: any, action: any): Promise<void
   const plan = action.action_id === "setup_approve" ? planApply(s, proposal, readSelection(payload.state?.values)) : EMPTY_PLAN;
 
   if (action.action_id === "setup_approve" || action.action_id === "setup_approve_asis") {
+    const isArch = (await isArchitectUser(payload.user)) || (await isArchitectUser(actor));
+    if (!isArch) {
+      await ephemeral(payload, "Only the Architect may verify a brand setup profile.");
+      return;
+    }
     const resultingCount = action.action_id === "setup_approve"
       ? s.prompts.length - plan.promptsRetire.length + plan.promptsAdd.length
       : s.prompts.length;
@@ -245,7 +251,7 @@ export async function handleSetupAction(payload: any, action: any): Promise<void
   if (!claimed?.length) return;
 
   try {
-    await applyAndVerify(sb, s, plan, actor);
+    await applyAndVerify(sb, s, plan, actor, reviewId);
   } catch (err: any) {
     await sb.from("setup_reviews").update({ status: "failed", error: String(err?.message ?? err).slice(0, 500) }).eq("id", reviewId);
     await ephemeral(payload, `Couldn't apply: ${String(err?.message ?? err).slice(0, 300)}. Nothing was marked verified.`);

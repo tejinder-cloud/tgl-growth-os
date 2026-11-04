@@ -87,3 +87,35 @@ export async function getArchitectConfig(): Promise<{ slack_user_id?: string; di
     display_name: org.architect?.display_name || "Tejinder Singh",
   };
 }
+
+/**
+ * Checks whether a given user or actor string/object represents the Architect.
+ */
+export async function isArchitectUser(userOrActor: any): Promise<boolean> {
+  const architect = await getArchitectConfig();
+  if (!userOrActor) return false;
+
+  const actorStr = typeof userOrActor === "string" ? userOrActor.toLowerCase().trim() : "";
+  const userId = typeof userOrActor === "object" ? userOrActor?.id : undefined;
+  const username = typeof userOrActor === "object" ? userOrActor?.name || userOrActor?.username : undefined;
+
+  const archDisplayName = architect.display_name.toLowerCase().trim();
+  if (actorStr) {
+    if (actorStr === archDisplayName) return true;
+    if (actorStr === "architect") return true;
+    if (actorStr === "tejinder singh") return true;
+    if (actorStr === "falkanmedia") return true;
+    if (architect.slack_user_id && actorStr === architect.slack_user_id.toLowerCase()) return true;
+  }
+
+  if (userId) {
+    if (userId === "falkanmedia" || userId === "architect") return true;
+    if (architect.slack_user_id && userId === architect.slack_user_id) return true;
+  }
+
+  if (username) {
+    if (username === "falkanmedia" || username === "architect") return true;
+  }
+
+  return false;
+}
