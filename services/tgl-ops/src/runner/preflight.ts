@@ -4,6 +4,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { config, isTestMode } from "../config.js";
 import { getAnthropicModel } from "../agents/chief-of-staff/anthropic.js";
 import { callAnthropicWithCostCap } from "../lib/cost-cap.js";
+import { filterArchitectComments, extractLatestVerdict } from "./prompt.js";
 
 export interface PreflightResult {
   verdict: "proceed" | "needs-brief" | "refuse";
@@ -24,6 +25,7 @@ export interface IssueBriefContext {
   agentName: string;
   comments?: { user: string; body: string; created_at?: string }[];
   instruction?: string;
+  latestVerdict?: string;
 }
 
 function safeReadFile(filePath: string): string {
@@ -255,11 +257,18 @@ You must submit your verdict by calling the tool \`submit_preflight_verdict\` wi
 
 Call tool \`submit_preflight_verdict\` now (or reply with JSON { "verdict": "...", "reason": "...", "questions": [...] }).`;
 
-  const commentsBlock =
-    context.comments && context.comments.length > 0
-      ? `\n- Recent Issue Thread / Architect Comments:\n` +
-        context.comments.slice(-5).map((c) => `[${c.user}]: ${c.body}`).join("\n\n")
-      : "";
+  const architectComments = filterArchitectComments(context.comments);
+  const latestVerdict = context.latestVerdict || extractLatestVerdict(context.comments);
+
+  let threadBlock = "";
+  if (architectComments.length > 0) {
+    threadBlock +=
+      `\n- Authoritative Architect Comments:\n` +
+      architectComments.map((c) => `[${c.user}]: ${c.body.trim()}`).join("\n\n");
+  }
+  if (latestVerdict) {
+    threadBlock += `\n- Latest Pre-flight Verdict:\n${latestVerdict.trim()}`;
+  }
 
   const instructionBlock = context.instruction ? `\n- Direct Architect Instruction:\n${context.instruction}` : "";
 
@@ -268,7 +277,7 @@ Call tool \`submit_preflight_verdict\` now (or reply with JSON { "verdict": "...
 - Issue Title: ${title}
 - Deliverable: ${deliverable}
 - Full Body:
-${body || "(No additional body provided)"}${instructionBlock}${commentsBlock}`;
+${body || "(No additional body provided)"}${instructionBlock}${threadBlock}`;
 
   let response: Anthropic.Message | undefined;
   try {

@@ -10,6 +10,12 @@ import { getRunnerState, saveRunnerState, recordRunnerIssue, clearMockRunnerStat
 import { catchUpRunnerIssues, recoverInterruptedRunnerIssues } from "./runner/catch-up.js";
 import { runPreflightCheck } from "./runner/preflight.js";
 import { handleRunnerShutdown, setActiveIssueNumberForTests, computeBriefHash, runIssueTask } from "./runner/runner.js";
+import {
+  buildRunnerUserMessage,
+  filterArchitectComments,
+  extractLatestVerdict,
+  isRunnerComment,
+} from "./runner/prompt.js";
 import { resetMockPostedLines, mockPostedLines } from "./lib/post.js";
 
 async function runFixesVerificationSuite(): Promise<void> {
@@ -651,6 +657,108 @@ async function runFixesVerificationSuite(): Promise<void> {
   console.log("  ✓ Marked status:needs-brief with reason 'run produced no files'");
   console.log("  ✓ Does not count as a failure: recoveryAttempts strictly 0");
   console.log("✅ [Test 9 Passed] Zero-commit gate & needs-brief handling verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 10: Runner context builder includes only body, Architect comments, and latest verdict
+  // -------------------------------------------------------------------------
+  console.log("[Test 10] Testing runner context builder filters out all prior runner noise...");
+
+  const mockComments = [
+    {
+      user: "tejinder-cloud",
+      body: "**Architect Instruction (via Slack intake):**\nUse 5-touch sequence with WhatsApp and email.",
+      created_at: "2026-11-03T07:38:06Z",
+    },
+    {
+      user: "tejinder-cloud",
+      body: "**[Pre-flight Verdict: Needs Brief — Questions before build]**\nNeed more clarity on cadence.",
+      created_at: "2026-11-03T07:38:15Z",
+    },
+    {
+      user: "tejinder-cloud",
+      body: "**[Runner Boot Recovery Blocked]** Execution halted after 2 recovery attempts.",
+      created_at: "2026-11-03T07:38:54Z",
+    },
+    {
+      user: "tejinder-cloud",
+      body: "**Architect Command (via Slack intake):** Resumed via `#72: resume`.",
+      created_at: "2026-11-03T08:30:03Z",
+    },
+    {
+      user: "tejinder-cloud",
+      body: "**[Pre-flight Verdict: Proceed]**\nOld proceed verdict from yesterday morning.",
+      created_at: "2026-11-03T08:30:19Z",
+    },
+    {
+      user: "tejinder-cloud",
+      body: "**[Runner Boot Recovery Blocked]** Execution halted after 3 recovery attempts.",
+      created_at: "2026-11-03T08:31:00Z",
+    },
+    {
+      user: "tejinder-cloud",
+      body: "**[Pre-flight Verdict: Proceed]**\nLatest proceed verdict settling all ambiguities.",
+      created_at: "2026-11-04T08:12:15Z",
+    },
+  ];
+
+  // 1. Verify comment filtering helper
+  const filteredArchitect = filterArchitectComments(mockComments);
+  if (filteredArchitect.length !== 2) {
+    throw new Error(`Test 10.1 Failed: Expected 2 Architect comments, got ${filteredArchitect.length}`);
+  }
+  if (!filteredArchitect[0].body.includes("Architect Instruction")) {
+    throw new Error(`Test 10.2 Failed: First comment is not Architect instruction`);
+  }
+  if (!filteredArchitect[1].body.includes("Architect Command")) {
+    throw new Error(`Test 10.3 Failed: Second comment is not Architect command`);
+  }
+  console.log("  ✓ Filtered comments contain only 2 authoritative Architect comments");
+
+  // 2. Verify latest verdict extraction
+  const latestVerdict = extractLatestVerdict(mockComments);
+  if (!latestVerdict || !latestVerdict.includes("Latest proceed verdict settling all ambiguities")) {
+    throw new Error(`Test 10.4 Failed: Unexpected latest verdict: ${latestVerdict}`);
+  }
+  console.log("  ✓ Extracted strictly the single latest pre-flight verdict");
+
+  // 3. Verify buildRunnerUserMessage format
+  const contextMessage = buildRunnerUserMessage({
+    agentName: "web-builder",
+    issueNumber: 72,
+    issueTitle: "[PLAN-D10]: Outreach Sequencer SKILL.md",
+    issueBody: "Brief body specification for outreach sequencer.",
+    branchName: "task/72-plan-d10",
+    comments: mockComments,
+  });
+
+  if (!contextMessage.includes("Brief body specification for outreach sequencer.")) {
+    throw new Error("Test 10.5 Failed: Context missing issue body");
+  }
+  if (!contextMessage.includes("Use 5-touch sequence with WhatsApp and email.")) {
+    throw new Error("Test 10.6 Failed: Context missing Architect instruction");
+  }
+  if (!contextMessage.includes("Resumed via `#72: resume`.")) {
+    throw new Error("Test 10.7 Failed: Context missing Architect command");
+  }
+  if (!contextMessage.includes("Latest proceed verdict settling all ambiguities")) {
+    throw new Error("Test 10.8 Failed: Context missing latest proceed verdict");
+  }
+
+  // Ensure NO prior runner comments or recovery notices exist in built context
+  if (contextMessage.includes("Old proceed verdict from yesterday morning.")) {
+    throw new Error("Test 10.9 Failed: Context erroneously includes prior proceed verdict!");
+  }
+  if (contextMessage.includes("Need more clarity on cadence.")) {
+    throw new Error("Test 10.10 Failed: Context erroneously includes prior needs-brief verdict!");
+  }
+  if (contextMessage.includes("Runner Boot Recovery Blocked")) {
+    throw new Error("Test 10.11 Failed: Context erroneously includes runner recovery alerts!");
+  }
+
+  console.log("  ✓ User message context contains strictly issue body, Architect comments, and latest verdict");
+  console.log("  ✓ Zero prior runner comments or recovery notices present in prompt context");
+  console.log("[Test 10 Passed] Runner context builder strict filtering verified.\n");
   passed++;
 
   console.log("==========================================================================");

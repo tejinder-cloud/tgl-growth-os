@@ -154,7 +154,13 @@ export function computeBriefHash(
  */
 export async function runIssueTask(
   issue: RunnerIssueInput,
-  options?: { testMode?: boolean; throwawayPrefix?: string; instanceId?: string; mockModelResponse?: string }
+  options?: {
+    testMode?: boolean;
+    throwawayPrefix?: string;
+    instanceId?: string;
+    mockModelResponse?: string;
+    mockComments?: { user: string; body: string; created_at?: string }[];
+  }
 ): Promise<RunnerRunResult> {
   const isTest = options?.testMode === true || isTestMode();
   const instanceId = options?.instanceId || CONTAINER_INSTANCE_ID;
@@ -356,7 +362,7 @@ export async function runIssueTask(
     }
 
     // 3. Pre-flight check via live model call (cached if brief & Architect comments unchanged)
-    const issueComments = !isTest ? await getIssueComments(issueNum) : [];
+    const issueComments = !isTest ? await getIssueComments(issueNum) : (options?.mockComments || []);
     const currentBriefHash = computeBriefHash(issue.body, issueComments);
 
     let preflight: { verdict: "proceed" | "needs-brief" | "refuse"; reason: string; questions?: string[]; tokens?: any };
@@ -534,6 +540,10 @@ export async function runIssueTask(
     let hitLimit = false;
 
     const systemPrompt = buildRunnerSystemPrompt(agentName, branchName);
+    const currentVerdictText = preflight
+      ? `**[Pre-flight Verdict: ${preflight.verdict === "proceed" ? "Proceed" : preflight.verdict === "needs-brief" ? "Needs Brief" : "Refuse"}]**\n\n${preflight.reason}`
+      : undefined;
+
     const userMessage = buildRunnerUserMessage({
       agentName,
       issueNumber: issueNum,
@@ -541,6 +551,8 @@ export async function runIssueTask(
       issueBody: issue.body,
       threadContext: slackThreadTs ? `Originating card thread ts: ${slackThreadTs}` : undefined,
       branchName,
+      comments: issueComments,
+      latestVerdict: currentVerdictText,
     });
 
     // 6. Execute Run Loop strictly via Anthropic and Tools

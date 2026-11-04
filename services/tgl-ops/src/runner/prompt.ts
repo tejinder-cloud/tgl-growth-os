@@ -3,6 +3,12 @@ import path from "node:path";
 import { config } from "../config.js";
 import { getTodayDateString } from "../lib/standup.js";
 
+export interface PromptComment {
+  user: string;
+  body: string;
+  created_at?: string;
+}
+
 export interface PromptContext {
   agentName: string;
   issueNumber: number;
@@ -10,6 +16,52 @@ export interface PromptContext {
   issueBody: string;
   threadContext?: string;
   branchName: string;
+  comments?: PromptComment[];
+  latestVerdict?: string;
+}
+
+/**
+ * Checks if a comment body originated from the runner or pre-flight loop.
+ * Matches pre-flight verdicts, recovery alerts, and run completion messages.
+ */
+export function isRunnerComment(body: string): boolean {
+  const trimmed = (body || "").trim();
+  return (
+    trimmed.startsWith("**[Pre-flight Verdict:") ||
+    trimmed.startsWith("[Pre-flight Verdict:") ||
+    trimmed.startsWith("**[Runner Boot Recovery Blocked]") ||
+    trimmed.startsWith("[Runner Boot Recovery Blocked]") ||
+    trimmed.startsWith("**[Run Completed:") ||
+    trimmed.startsWith("[Run Completed:") ||
+    trimmed.includes("[Pre-flight Verdict:") ||
+    trimmed.includes("[Runner Boot Recovery Blocked]")
+  );
+}
+
+/**
+ * Filters a thread's comments down to authoritative Architect comments only.
+ * Excludes all runner-posted pre-flight verdicts, recovery alerts, and runner noise.
+ */
+export function filterArchitectComments(comments?: PromptComment[]): PromptComment[] {
+  if (!comments || comments.length === 0) return [];
+  return comments.filter((c) => !isRunnerComment(c.body));
+}
+
+/**
+ * Extracts the latest pre-flight verdict from a comments list if one exists.
+ */
+export function extractLatestVerdict(comments?: PromptComment[]): string | undefined {
+  if (!comments || comments.length === 0) return undefined;
+  const verdictComments = comments.filter((c) => {
+    const trimmed = (c.body || "").trim();
+    return (
+      trimmed.startsWith("**[Pre-flight Verdict:") ||
+      trimmed.startsWith("[Pre-flight Verdict:") ||
+      trimmed.includes("[Pre-flight Verdict:")
+    );
+  });
+  if (verdictComments.length === 0) return undefined;
+  return verdictComments[verdictComments.length - 1].body.trim();
 }
 
 function safeReadFile(filePath: string): string {
@@ -89,6 +141,8 @@ export function buildRunnerSystemPrompt(agentName: string, branchName: string): 
 
 /**
  * Builds the user message from issue body + thread context.
+ * Strictly includes only the issue body, authoritative Architect comments,
+ * and the single latest pre-flight verdict. Never includes prior runner comments.
  */
 export function buildRunnerUserMessage(context: PromptContext): string {
   const parts: string[] = [];
@@ -96,6 +150,22 @@ export function buildRunnerUserMessage(context: PromptContext): string {
   parts.push(`Task Issue #${context.issueNumber}: ${context.issueTitle}`);
   parts.push("──────────────────────────────────────────");
   parts.push(context.issueBody);
+
+  // Authoritative Architect Comments: strictly Architect comments only, never prior runner comments
+  const architectComments = filterArchitectComments(context.comments);
+  if (architectComments.length > 0) {
+    parts.push("\n--- Authoritative Architect Comments ---");
+    for (const c of architectComments) {
+      parts.push(`[${c.user}]:\n${c.body.trim()}`);
+    }
+  }
+
+  // Latest Pre-flight Verdict: strictly the latest verdict only, never prior runner comments
+  const latestVerdict = context.latestVerdict || extractLatestVerdict(context.comments);
+  if (latestVerdict) {
+    parts.push("\n--- Latest Pre-flight Verdict ---");
+    parts.push(latestVerdict);
+  }
 
   if (context.threadContext) {
     parts.push("\n--- Slack Thread Context ---");
