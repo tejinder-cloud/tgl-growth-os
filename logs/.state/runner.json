@@ -1,24 +1,25 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-04T13:00:07.444Z",
+  "updatedAt": "2026-11-04T13:01:28.046Z",
   "runs": {
     "72": {
       "agent": "web-builder",
-      "door": "aeo",
+      "door": "core",
       "title": "[PLAN-D10]: Outreach Sequencer SKILL.md + 5-touch worker",
-      "status": "in-progress",
+      "status": "needs-brief",
       "branch": "task/72-plan-d10-outreach-sequencer-sk",
-      "runStartedAt": "2026-11-04T13:00:06.605+00:00",
-      "runCompletedAt": "2026-11-04T12:48:44.924+00:00",
+      "runStartedAt": "2026-11-04T13:01:27.528+00:00",
+      "runCompletedAt": "2026-11-04T13:01:27.526+00:00",
+      "error": "run produced no files",
       "recoveryAttempts": 0,
       "lastRecoveryAt": "2026-11-04T11:45:17.718+00:00",
       "lastRecoveryAlertAt": "2026-11-04T12:47:04.115+00:00",
       "ownerInstance": null,
       "heartbeatAt": null,
-      "toolCallsCount": 0,
-      "preflightHash": "9b4e177425e790e1",
+      "toolCallsCount": 20,
+      "preflightHash": "72678c76a5b9d27c",
       "preflightVerdict": "proceed",
-      "preflightReason": "The original brief was broad. It covered a worker, GHL API automation, a reply webhook and Sales Desk routing. The Architect's latest instruction in the thread narrows #72 to documentation and templates only, with no code. That instruction resolves the ambiguity. Two earlier pre-flight verdicts also confirmed \"proceed\" for the same scope.\n\nDeliverables, at exact paths:\n- `agents/outreach-sequencer/SKILL.md`. It has 11 sections. The cadence is T1 email day 0, T2 WhatsApp day 2, T3 email with audit PDF day 4, T4 WhatsApp day 7, and T5 email day 12. It defaults to dry-run, caps sends at 20 touches per day, and ends the sequence on STOP.\n- `agents/outreach-sequencer/templates/touch-1.md` through `touch-5.md`. Each uses the listed placeholders: {{first_name}}, {{company}}, {{city}}, {{category}}, {{brand_mentions}}, {{competitor_mentions}}, {{top_competitor}}, {{weakest_query}}, {{audit_date}}, {{booking_link}} and {{work_email}}.\n\nA reviewer can verify the result by reading the files. They can check for 11 sections, five template files, the correct cadence and cap, and the placeholders.\n\nGuardrails:\n- All paths are under `agents/`, which is writable on a task branch.\n- Nothing touches `decisions/`, `logs/` or `logs/.state`.\n- No §8 Never guardrail applies. There is no live send, publishing, DNS change, plugin or script-tag install, pricing change or deletion.\n\nThe worker, live GHL send, reply webhook and Sales Desk routing belong in a follow-up issue. The builder should follow the narrowed scope, not the original DoD checkboxes. It should read only `agents/_TEMPLATE/SKILL.md` and `agents/prospect-researcher/SKILL.md`.\n\nThe last comment says the runner was blocked after boot recovery failed. That is an infrastructure problem and doesn't change the brief's validity.",
+      "preflightReason": "No reasoning provided",
       "lastModelMessage": "Now the audit engine worker, short-form, store, audit route, db and dedupe (GHL usage)."
     }
   }
