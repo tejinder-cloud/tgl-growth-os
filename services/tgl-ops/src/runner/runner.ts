@@ -113,6 +113,13 @@ export interface RunnerRunResult {
   error?: string;
   writtenFiles?: string[];
   toolResults?: Array<{ name: string; result: string }>;
+  nudgesSent?: number;
+  lastModelMessage?: string;
+}
+
+export interface MockTurn {
+  text?: string;
+  toolCalls?: Array<{ name: string; input: Record<string, any> }>;
 }
 
 /**
@@ -162,6 +169,7 @@ export async function runIssueTask(
     instanceId?: string;
     mockModelResponse?: string;
     mockToolCalls?: Array<{ name: string; input: Record<string, any> }>;
+    mockTurns?: MockTurn[];
   }
 ): Promise<RunnerRunResult> {
   const isTest = options?.testMode === true || isTestMode();
@@ -196,6 +204,7 @@ export async function runIssueTask(
   }
 
   let heartbeatInterval: NodeJS.Timeout | null = null;
+  let writeNudgesSent = 0;
 
   try {
     // 2. Identify agent
@@ -538,6 +547,7 @@ export async function runIssueTask(
       researchCallsCount: 0,
       totalToolCallsCount: existingRecord?.toolCallsCount || 0,
       toolResults,
+      successfulWritesCount: 0,
     };
 
     let totalInputTokens = 0;
@@ -561,7 +571,7 @@ export async function runIssueTask(
     });
 
     // 6. Execute Run Loop strictly via Anthropic and Tools
-    if (isTest && (options?.mockModelResponse !== undefined || options?.mockToolCalls !== undefined)) {
+    if (isTest && (options?.mockModelResponse !== undefined || options?.mockToolCalls !== undefined) && !options?.mockTurns) {
       if (options?.mockToolCalls) {
         for (const toolCall of options.mockToolCalls) {
           toolCallsCount++;
@@ -574,12 +584,14 @@ export async function runIssueTask(
         console.log(`[Runner Test Mode] Using mock model response for issue #${issueNum}: "${lastModelMessage.slice(0, 80)}"`);
       }
     } else {
-      const apiKey = config.anthropicApiKey || process.env.ANTHROPIC_API_KEY;
-      if (!apiKey) {
-        throw new Error("Missing required ANTHROPIC_API_KEY; cannot execute runner without LLM.");
+      let mockTurnIndex = 0;
+      if (!options?.mockTurns) {
+        const apiKey = config.anthropicApiKey || process.env.ANTHROPIC_API_KEY;
+        if (!apiKey) {
+          throw new Error("Missing required ANTHROPIC_API_KEY; cannot execute runner without LLM.");
+        }
       }
 
-      const anthropic = new Anthropic({ apiKey });
       const messages: Anthropic.MessageParam[] = [
         { role: "user", content: userMessage },
       ];
@@ -593,27 +605,62 @@ export async function runIssueTask(
           break;
         }
 
-        const response = await callAnthropicWithCostCap({
-          agent: agentName,
-          issueNumber: issueNum,
-          params: {
-            model: modelName,
-            max_tokens: 4096,
-            system: systemPrompt,
-            messages,
-            tools: RUNNER_TOOLS,
-            tool_choice: { type: "auto" },
-          },
-        });
+        let response: {
+          content: Anthropic.ContentBlock[];
+          usage?: { input_tokens: number; output_tokens: number };
+        };
+
+        if (options?.mockTurns) {
+          if (mockTurnIndex >= options.mockTurns.length) {
+            break;
+          }
+          const turn = options.mockTurns[mockTurnIndex++];
+          const content: Anthropic.ContentBlock[] = [];
+          if (turn.text !== undefined && turn.text !== null) {
+            content.push({ type: "text", text: turn.text } as any);
+          }
+          if (turn.toolCalls && turn.toolCalls.length > 0) {
+            for (let i = 0; i < turn.toolCalls.length; i++) {
+              const tc = turn.toolCalls[i];
+              content.push({
+                type: "tool_use",
+                id: `mock_call_${mockTurnIndex}_${i}_${Math.random().toString(36).slice(2, 7)}`,
+                name: tc.name,
+                input: tc.input,
+              } as any);
+            }
+          }
+          response = {
+            content,
+            usage: { input_tokens: 100, output_tokens: 50 },
+          };
+        } else {
+          response = await callAnthropicWithCostCap({
+            agent: agentName,
+            issueNumber: issueNum,
+            params: {
+              model: modelName,
+              max_tokens: 4096,
+              system: systemPrompt,
+              messages,
+              tools: RUNNER_TOOLS,
+              tool_choice: { type: "auto" },
+            },
+          });
+        }
 
         totalInputTokens += response.usage?.input_tokens || 0;
         totalOutputTokens += response.usage?.output_tokens || 0;
 
-        // Extract text content if present
+        // Extract text content if present - preserve last non-empty text
         const textBlocks = response.content.filter((b) => b.type === "text") as Anthropic.TextBlock[];
         if (textBlocks.length > 0) {
-          const text = textBlocks.map((b) => b.text).join("\n\n").trim();
-          if (text) {
+          const text = textBlocks
+            .map((b) => b.text)
+            .filter((t) => t && t.trim().length > 0)
+            .join("\n\n")
+            .trim();
+          if (text.length > 0) {
             lastModelMessage = text;
           }
         }
@@ -623,6 +670,24 @@ export async function runIssueTask(
         console.log(`[Runner Model Response] Turn returned ${response.content.length} blocks (text: ${textBlocks.length}, tool_use: ${toolUseBlocks.length})`);
 
         if (toolUseBlocks.length === 0) {
+          const hasSuccessfulWrite =
+            (toolContext.successfulWritesCount || 0) > 0 ||
+            (toolContext.virtualFiles && toolContext.virtualFiles.size > 0);
+
+          if (!hasSuccessfulWrite && writeNudgesSent < 2) {
+            writeNudgesSent++;
+            console.log(
+              `[Runner Nudge #${writeNudgesSent}] Model turn contained no tool_use and no write_file has succeeded. Sending nudge...`
+            );
+            const assistantContent = response.content.length > 0 ? response.content : ([{ type: "text", text: "" }] as any);
+            messages.push({ role: "assistant", content: assistantContent });
+            messages.push({
+              role: "user",
+              content: "Continue. Call write_file now for the first deliverable.",
+            });
+            continue;
+          }
+
           // Model finished with text response
           break;
         }
@@ -757,7 +822,7 @@ Work in progress — fixes #${issueNum}
           preflightHash: currentBriefHash,
           preflightVerdict: "proceed",
           preflightReason: preflight.reason,
-          lastModelMessage,
+          lastModelMessage: (lastModelMessage && lastModelMessage.trim()) || existingRecord?.lastModelMessage || undefined,
         },
         { testMode: isTest }
       ).catch((err) => console.warn("[Runner state save warning]", err));
@@ -777,6 +842,8 @@ Work in progress — fixes #${issueNum}
         },
         writtenFiles: toolContext.virtualFiles ? Array.from(toolContext.virtualFiles.keys()) : undefined,
         toolResults: toolContext.toolResults,
+        nudgesSent: writeNudgesSent,
+        lastModelMessage: (lastModelMessage && lastModelMessage.trim()) || existingRecord?.lastModelMessage || undefined,
       };
     }
 
@@ -883,6 +950,8 @@ Work in progress — fixes #${issueNum}
         error: noFilesReason,
         writtenFiles: toolContext.virtualFiles ? Array.from(toolContext.virtualFiles.keys()) : undefined,
         toolResults: toolContext.toolResults,
+        nudgesSent: writeNudgesSent,
+        lastModelMessage: explanation,
       };
     }
 
@@ -950,6 +1019,8 @@ Fixes #${issueNum}
         toolCallsCount,
         error: ciResult.error || "CI checks failed",
         toolResults: toolContext.toolResults,
+        nudgesSent: writeNudgesSent,
+        lastModelMessage: (lastModelMessage && lastModelMessage.trim()) || existingRecord?.lastModelMessage || undefined,
       };
     }
 
@@ -990,7 +1061,7 @@ Fixes #${issueNum}
         preflightHash: currentBriefHash,
         preflightVerdict: "proceed",
         preflightReason: preflight.reason,
-        lastModelMessage,
+        lastModelMessage: (lastModelMessage && lastModelMessage.trim()) || existingRecord?.lastModelMessage || undefined,
       },
       { testMode: isTest }
     ).catch((err) => console.warn("[Runner state save warning]", err));
@@ -1010,6 +1081,8 @@ Fixes #${issueNum}
       },
       writtenFiles: toolContext.virtualFiles ? Array.from(toolContext.virtualFiles.keys()) : undefined,
       toolResults: toolContext.toolResults,
+      nudgesSent: writeNudgesSent,
+      lastModelMessage: (lastModelMessage && lastModelMessage.trim()) || existingRecord?.lastModelMessage || undefined,
     };
   } catch (err: any) {
     console.error(`[Runner Run Error on Issue #${issueNum}]:`, err);
@@ -1055,6 +1128,7 @@ Fixes #${issueNum}
       issueNumber: issueNum,
       status: "blocked",
       toolCallsCount: 0,
+      nudgesSent: writeNudgesSent,
       error: errMsg,
     };
   } finally {
