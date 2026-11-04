@@ -135,7 +135,8 @@ await t("proposeChanges: calls the model with setup + both evidence blocks, pric
     usage: { input_tokens: 2000, output_tokens: 300 } }; } } } as any;
   const r = await proposeChanges(snap, ev, fake);
   assert.equal(seen.tools?.[0]?.name, "propose_setup_check");
-  assert.deepEqual(seen.tool_choice, { type: "tool", name: "propose_setup_check" });
+  assert.deepEqual(seen.tool_choice, { type: "auto" });
+  assert.ok(seen.system.includes("propose_setup_check"));
   assert.equal(seen.max_tokens, 4096);
   assert.match(seen.messages[0].content, /EVIDENCE 2 — live AI answer from perplexity/);
   assert.match(seen.messages[0].content, /9\. \[en · consideration\] question number 9/);
@@ -247,18 +248,13 @@ await t("competitor evidence: must be verbatim excerpt from live AI answer with 
   assert.ok(p.dropped.some((d) => d.includes("Beta Institute") && d.includes("prompt and engine must be named")));
 });
 
-await t("proposeChanges fallback retry on tool failure and logs raw reply to aeo-strategist.md on parse error", async () => {
+await t("proposeChanges handles tool failure and logs raw reply to aeo-strategist.md on parse error", async () => {
   let callCount = 0;
   const invalidRawText = "Raw invalid reply that fails to parse {broken: json [";
   const fake = {
     messages: {
       create: async () => {
         callCount++;
-        if (callCount === 1) {
-          // Tool call fails (e.g. no tool block)
-          return { content: [{ type: "text", text: "Something went wrong without tool" }], usage: { input_tokens: 100, output_tokens: 20 } };
-        }
-        // Fallback returns invalid text
         return { content: [{ type: "text", text: invalidRawText }], usage: { input_tokens: 100, output_tokens: 20 } };
       },
     },
@@ -268,7 +264,7 @@ await t("proposeChanges fallback retry on tool failure and logs raw reply to aeo
     await proposeChanges(snap, ev, fake);
   }, /model returned no JSON object/);
 
-  assert.equal(callCount, 2, "Expected fallback retry to be called after primary tool failure");
+  assert.equal(callCount, 1, "Expected single call with auto tool_choice and direct text fallback");
 
   // Verify that appendLog wrote the raw reply to logs/.test/<date>/aeo-strategist.md
   const today = new Date().toISOString().slice(0, 10);
@@ -277,6 +273,58 @@ await t("proposeChanges fallback retry on tool failure and logs raw reply to aeo
   const logContent = fs.readFileSync(logFile, "utf8");
   assert.ok(logContent.includes("proposal parse failure:"), "Log must mention proposal parse failure");
   assert.ok(logContent.includes("Raw invalid reply that fails to parse"), "Log must contain the raw reply text");
+});
+
+await t("proposeChanges: text-only mock reply strips outermost braces and yields a parsed object", async () => {
+  const textReply = `Here is my proposal based on your instructions:
+
+\`\`\`json
+{
+  "summary": "Retiring irrelevant prompt and adding high intent query.",
+  "market_change": null,
+  "competitors_add": [
+    {
+      "name": "Elite Nursing Institute",
+      "website": "elitenursing.example",
+      "prompt": "Who are the best coaching providers in Mohali for students?",
+      "engine": "perplexity",
+      "verbatim_excerpt": "Elite Nursing Institute"
+    }
+  ],
+  "competitors_remove": [],
+  "prompts_retire": [],
+  "prompts_add": [
+    {
+      "text": "Best nursing coaching in Mohali for BSc entrance",
+      "language": "en",
+      "journey_phase": "decision",
+      "reason": "Direct buyer intent"
+    }
+  ]
+}
+\`\`\`
+
+Let me know if you would like any changes!`;
+
+  const fake = {
+    messages: {
+      create: async (req: any) => {
+        assert.deepEqual(req.tool_choice, { type: "auto" });
+        assert.ok(req.system.includes("propose_setup_check"));
+        return {
+          content: [{ type: "text", text: textReply }],
+          usage: { input_tokens: 1500, output_tokens: 450 },
+        };
+      },
+    },
+  } as any;
+
+  const res = await proposeChanges(snap, ev, fake);
+  assert.ok(res.proposal, "Text-only reply must yield a parsed proposal");
+  assert.equal(res.proposal.competitorsAdd.length, 1);
+  assert.equal(res.proposal.competitorsAdd[0].name, "Elite Nursing Institute");
+  assert.equal(res.proposal.promptsAdd.length, 1);
+  assert.equal(res.proposal.promptsAdd[0].text, "Best nursing coaching in Mohali for BSc entrance");
 });
 
 await t("extractJson: parses XML <invoke> parameter tags and strips outer markdown text", () => {

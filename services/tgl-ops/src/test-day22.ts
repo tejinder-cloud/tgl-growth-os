@@ -88,10 +88,32 @@ await t("prompt: evidence ids, site text and the no-numbers rule reach the model
   let seen: any;
   const fake = { messages: { create: async (req: any) => { seen = req; return { usage: { input_tokens: 10000, output_tokens: 4000 }, content: [{ type: "tool_use", name: "propose_recommendations", input: good }] }; } } } as any;
   const out = await proposeRecommendations(ev, fake);
-  assert.equal(seen.tool_choice.name, "propose_recommendations");
+  assert.deepEqual(seen.tool_choice, { type: "auto" });
+  assert.ok(seen.system.includes("propose_recommendations"));
   assert.ok(seen.system.includes("Never write counts"));
   assert.equal(out.recs.length, 3);
   assert.equal(out.usd, (10000 * 3 + 4000 * 15) / 1e6);
+});
+
+await t("proposeRecommendations: text-only mock reply strips outermost braces and yields a parsed object", async () => {
+  const textReply = `Here are the recommendations:
+\`\`\`json
+${JSON.stringify(good)}
+\`\`\`
+Hope this helps!`;
+  const fake = {
+    messages: {
+      create: async (req: any) => {
+        assert.deepEqual(req.tool_choice, { type: "auto" });
+        return {
+          usage: { input_tokens: 5000, output_tokens: 2000 },
+          content: [{ type: "text", text: textReply }],
+        };
+      },
+    },
+  } as any;
+  const out = await proposeRecommendations(ev, fake);
+  assert.equal(out.recs.length, 3);
 });
 
 await t("schedule: first batch after the first run; then weekly, only if a newer run exists", () => {
