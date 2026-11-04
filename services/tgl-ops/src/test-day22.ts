@@ -7,7 +7,7 @@ process.env.ANTHROPIC_PRICE_OUT = "15";
 import assert from "node:assert/strict";
 import { promptEvidence, containsName } from "./agents/aeo-recommender/gather.js";
 import { validateRecommendations, buildUserMessage, proposeRecommendations } from "./agents/aeo-recommender/propose.js";
-import { isDue } from "./agents/aeo-recommender/worker.js";
+import { shouldGenerate } from "./agents/aeo-recommender/worker.js";
 import type { RecEvidence } from "./agents/aeo-recommender/types.js";
 import { summarise } from "./agents/aeo-audit-engine/experiment.js";
 
@@ -117,13 +117,15 @@ Hope this helps!`;
   assert.equal(out.recs.length, 3);
 });
 
-await t("schedule: first batch after the first run; then weekly, only if a newer run exists", () => {
+await t("trigger: after a completed run, skip if that run has a batch or the last batch is under a week old", () => {
   const now = Date.parse("2026-11-12T10:00:00Z");
-  assert.equal(isDue(null, null, now), false);
-  assert.equal(isDue(null, "2026-11-04", now), true);
-  assert.equal(isDue("2026-11-10T10:00:00Z", "2026-11-12", now), false);   // under a week
-  assert.equal(isDue("2026-11-04T10:00:00Z", "2026-11-12", now), true);
-  assert.equal(isDue("2026-11-04T10:00:00Z", "2026-11-03", now), false);   // no new run since
+  const base = { verified: true, latestRunId: "r9", batchForRun: false, lastBatchAt: null as string | null, now };
+  assert.deepEqual(shouldGenerate(base), { go: true, why: "due" });
+  assert.equal(shouldGenerate({ ...base, verified: false }).go, false);
+  assert.equal(shouldGenerate({ ...base, latestRunId: null }).go, false);
+  assert.equal(shouldGenerate({ ...base, batchForRun: true }).why, "latest run already has recommendations");
+  assert.equal(shouldGenerate({ ...base, lastBatchAt: "2026-11-10T10:00:00Z" }).why, "last batch under a week old");
+  assert.equal(shouldGenerate({ ...base, lastBatchAt: "2026-11-04T10:00:00Z" }).go, true);
 });
 
 await t("Gemini experiment summary: same-mention count, cited-site overlap, searches/tokens, errors excluded", () => {

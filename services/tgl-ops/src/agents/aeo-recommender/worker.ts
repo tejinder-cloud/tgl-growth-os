@@ -1,4 +1,4 @@
-// Recommendations (plan Day 22): weekly per verified brand, right after its first completed run.
+// Recommendations (plan Day 22): after a completed Citation Tracker run, at most one batch per brand per week.
 // Also relays "Start managed AEO" requests from the dashboard to #doors-aeo.
 import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -13,41 +13,42 @@ import { gatherRecEvidence } from "./gather.js";
 import { proposeRecommendations } from "./propose.js";
 import type { Recommendation } from "./types.js";
 
-export const AGENT = "aeo-strategist";   // recommendations are strategist work (SPEC §8)
+export const AGENT = "aeo-recommender";   // own daily cost cap in config/agents.yaml
 const WEEK_MS = 7 * 86_400_000;
 const inFlight = new Set<string>();
 
-/** Due: never generated, or last batch over a week old and a newer run exists. Pure; tested. */
-export function isDue(lastBatchAt: string | null, lastRunDate: string | null, now = Date.now()): boolean {
-  if (!lastRunDate) return false;
-  if (!lastBatchAt) return true;
-  return now - Date.parse(lastBatchAt) >= WEEK_MS && Date.parse(lastRunDate + "T23:59:59+05:30") > Date.parse(lastBatchAt);
+/** After a completed run: generate only if that run has no batch yet and the last batch is a week old. Pure; tested. */
+export function shouldGenerate(p: { verified: boolean; latestRunId: string | null; batchForRun: boolean; lastBatchAt: string | null; now?: number }): { go: boolean; why: string } {
+  if (!p.verified) return { go: false, why: "setup not verified" };
+  if (!p.latestRunId) return { go: false, why: "no completed run" };
+  if (p.batchForRun) return { go: false, why: "latest run already has recommendations" };
+  if (p.lastBatchAt && (p.now ?? Date.now()) - Date.parse(p.lastBatchAt) < WEEK_MS) return { go: false, why: "last batch under a week old" };
+  return { go: true, why: "due" };
 }
 
-export async function pollRecommendations(): Promise<void> {
-  if (isTestMode()) return;
-  const sb = getSupabase();
-  if (!sb) return;
-  const { data: brands } = await sb.from("brands").select("id, name").eq("onboarding_step", 4).eq("setup_status", "verified");
-  for (const b of brands ?? []) {
-    if (inFlight.has(b.id)) continue;
-    const [{ data: lastRec }, { data: lastRun }] = await Promise.all([
-      sb.from("recommendations").select("created_at").eq("brand_id", b.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
-      sb.from("v_visibility_daily").select("run_date").eq("brand_id", b.id).order("run_date", { ascending: false }).limit(1).maybeSingle(),
+/** Called by the Citation Tracker when a brand's run completes. Never throws. */
+export async function recommendAfterRun(sb: SupabaseClient, brandId: string): Promise<void> {
+  if (isTestMode() || inFlight.has(brandId)) return;
+  inFlight.add(brandId);
+  try {
+    const [{ data: brand }, { data: run }, { data: lastRec }] = await Promise.all([
+      sb.from("brands").select("name, onboarding_step, setup_status").eq("id", brandId).single(),
+      sb.from("runs").select("id").eq("brand_id", brandId).in("status", ["succeeded", "partial"]).order("finished_at", { ascending: false, nullsFirst: false }).limit(1).maybeSingle(),
+      sb.from("recommendations").select("created_at, run_id").eq("brand_id", brandId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     ]);
-    if (!isDue(lastRec?.created_at ?? null, lastRun?.run_date ?? null)) continue;
-    inFlight.add(b.id);
-    try { await generateRecommendations(sb, b.id); }
-    catch (err: any) {
-      console.error("[Recommendations] failed", b.name, err);
-      // Also kept in the database so a failure is visible without access to the service logs.
-      await sb.from("experiments").insert({ name: "recommender_log", run_date: getTodayDateString(), brand_id: b.id, summary: { error: String(err?.message ?? err).slice(0, 1000) } }).then(() => {}, () => {});
-      await postLine({ channel: getAlertsChannel(), text: `[Warning] *@${AGENT}* couldn't write recommendations for *${b.name}*: \`${String(err?.message ?? err).slice(0, 300)}\`` }).catch(() => {});
-    } finally { inFlight.delete(b.id); }
-  }
+    const latestRunId = (run?.id as string | undefined) ?? null;
+    const { data: forRun } = latestRunId ? await sb.from("recommendations").select("id").eq("brand_id", brandId).eq("run_id", latestRunId).limit(1) : { data: [] };
+    const d = shouldGenerate({ verified: brand?.onboarding_step === 4 && brand?.setup_status === "verified", latestRunId, batchForRun: !!forRun?.length, lastBatchAt: lastRec?.created_at ?? null });
+    if (!d.go) { console.log(`[Recommendations] ${brand?.name ?? brandId}: skipped — ${d.why}`); return; }
+    await generateRecommendations(sb, brandId, latestRunId!);
+  } catch (err: any) {
+    console.error("[Recommendations] failed", brandId, err);
+    await sb.from("experiments").insert({ name: "recommender_log", run_date: getTodayDateString(), brand_id: brandId, summary: { error: String(err?.message ?? err).slice(0, 1000) } }).then(() => {}, () => {});
+    await postLine({ channel: getAlertsChannel(), text: `[Warning] *@${AGENT}* couldn't write recommendations for brand \`${brandId}\`: \`${String(err?.message ?? err).slice(0, 300)}\`` }).catch(() => {});
+  } finally { inFlight.delete(brandId); }
 }
 
-export async function generateRecommendations(sb: SupabaseClient, brandId: string): Promise<number> {
+export async function generateRecommendations(sb: SupabaseClient, brandId: string, runId: string): Promise<number> {
   const cap = await checkAgentCostCap(AGENT);
   if (!cap.allowed) {
     await sb.from("experiments").insert({ name: "recommender_log", run_date: getTodayDateString(), brand_id: brandId, summary: { skipped: "daily cost cap", spend: cap.currentSpend, cap: cap.cap } }).then(() => {}, () => {});
@@ -65,7 +66,7 @@ export async function generateRecommendations(sb: SupabaseClient, brandId: strin
     });
   }
   if (!recs.length) throw new Error(`no usable recommendations (dropped: ${dropped.slice(0, 3).join("; ") || "none returned"})`);
-  await saveBatch(sb, ev.tenantId, brandId, recs);
+  await saveBatch(sb, ev.tenantId, brandId, recs, runId);
   const channel = (await resolveChannelId("#doors-aeo")) || config.approvalsChannelId;
   if (config.slackBotToken && channel) {
     await slackClient.chat.postMessage({ channel, text: `*${ev.name}* — ${recs.length} recommendations on the dashboard (${recs.map((r) => r.asset.kind).join(", ")}) · $${usd.toFixed(3)}${dropped.length ? ` · ${dropped.length} dropped by checks` : ""}` }).catch(() => {});
@@ -73,7 +74,7 @@ export async function generateRecommendations(sb: SupabaseClient, brandId: strin
   return recs.length;
 }
 
-async function saveBatch(sb: SupabaseClient, tenantId: string, brandId: string, recs: Recommendation[]) {
+async function saveBatch(sb: SupabaseClient, tenantId: string, brandId: string, recs: Recommendation[], runId: string) {
   const batch = randomUUID();
   const { data: assets, error: aErr } = await sb.from("assets").insert(recs.map((r) => ({
     tenant_id: tenantId, brand_id: brandId, kind: r.asset.kind, title: r.asset.title, content: { format: r.asset.format, body: r.asset.content },
@@ -83,7 +84,7 @@ async function saveBatch(sb: SupabaseClient, tenantId: string, brandId: string, 
   await sb.from("recommendations").update({ status: "superseded" }).eq("brand_id", brandId).eq("status", "open");
   const { error } = await sb.from("recommendations").insert(recs.map((r, i) => ({
     tenant_id: tenantId, brand_id: brandId, title: r.title, body: r.body, impact: r.impact, ease: r.ease, category: r.category,
-    asset_refs: [assets[i].id], evidence: r.evidence, batch_id: batch,
+    asset_refs: [assets[i].id], evidence: r.evidence, batch_id: batch, run_id: runId,
   })));
   if (error) throw new Error(`save recommendations: ${error.message}`);
 }
