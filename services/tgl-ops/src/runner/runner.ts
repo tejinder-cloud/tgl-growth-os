@@ -112,6 +112,7 @@ export interface RunnerRunResult {
   };
   error?: string;
   writtenFiles?: string[];
+  toolResults?: Array<{ name: string; result: string }>;
 }
 
 /**
@@ -225,7 +226,9 @@ export async function runIssueTask(
     const reviewer = agentRecord?.reviewer || "Creative Director";
     const runnerLimits = getAgentRunnerLimits(agentRecord);
 
-    console.log(`[Runner] Picked up issue #${issueNum} for @${agentName}: "${issue.title}" on instance ${instanceId} (budget: ${runnerLimits.maxToolCalls} calls / ${runnerLimits.timeoutMinutes} min)`);
+    console.log(
+      `[Runner] Picked up issue #${issueNum} for @${agentName}: "${issue.title}" on instance ${instanceId} (budget: ${runnerLimits.maxToolCalls} calls / ${runnerLimits.timeoutMinutes} min, research: ${runnerLimits.researchCalls} calls)`
+    );
 
     // Load existing runner state before claim to inspect preflight cache and branch/budget
     const state = await getRunnerState({ testMode: isTest });
@@ -523,6 +526,7 @@ export async function runIssueTask(
     console.log(`[Runner] Working branch established: ${branchName} (resumed: ${Boolean(existingRecord?.branch)})`);
 
     // 5. Setup LLM & Tools context
+    const toolResults: Array<{ name: string; result: string }> = [];
     const toolContext: RunnerToolContext = {
       branchName,
       issueNumber: issueNum,
@@ -530,6 +534,10 @@ export async function runIssueTask(
       slackThreadTs,
       testMode: isTest,
       virtualFiles: new Map(),
+      maxResearchCalls: runnerLimits.researchCalls,
+      researchCallsCount: 0,
+      totalToolCallsCount: existingRecord?.toolCallsCount || 0,
+      toolResults,
     };
 
     let totalInputTokens = 0;
@@ -768,6 +776,7 @@ Work in progress — fixes #${issueNum}
           costUsd: totalCostUsd,
         },
         writtenFiles: toolContext.virtualFiles ? Array.from(toolContext.virtualFiles.keys()) : undefined,
+        toolResults: toolContext.toolResults,
       };
     }
 
@@ -873,6 +882,7 @@ Work in progress — fixes #${issueNum}
         },
         error: noFilesReason,
         writtenFiles: toolContext.virtualFiles ? Array.from(toolContext.virtualFiles.keys()) : undefined,
+        toolResults: toolContext.toolResults,
       };
     }
 
@@ -939,6 +949,7 @@ Fixes #${issueNum}
         prUrl: prRes.html_url,
         toolCallsCount,
         error: ciResult.error || "CI checks failed",
+        toolResults: toolContext.toolResults,
       };
     }
 
@@ -998,6 +1009,7 @@ Fixes #${issueNum}
         costUsd: totalCostUsd,
       },
       writtenFiles: toolContext.virtualFiles ? Array.from(toolContext.virtualFiles.keys()) : undefined,
+      toolResults: toolContext.toolResults,
     };
   } catch (err: any) {
     console.error(`[Runner Run Error on Issue #${issueNum}]:`, err);

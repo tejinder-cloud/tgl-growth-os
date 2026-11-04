@@ -14,6 +14,10 @@ export interface RunnerToolContext {
   slackThreadTs?: string;
   testMode?: boolean;
   virtualFiles?: Map<string, string>; // In-memory file cache for testing or fast edits
+  maxResearchCalls?: number;
+  researchCallsCount?: number;
+  totalToolCallsCount?: number;
+  toolResults?: Array<{ name: string; result: string }>;
 }
 
 export const RUNNER_TOOLS: Anthropic.Tool[] = [
@@ -108,63 +112,85 @@ export async function executeRunnerTool(
 ): Promise<string> {
   const { branchName, issueNumber, slackChannel, slackThreadTs, testMode, virtualFiles } = context;
 
-  if (toolName === "read_file") {
-    const rawPath = String(input.path || "").trim();
-    if (!rawPath) return "ERROR: path is required";
+  context.totalToolCallsCount = (context.totalToolCallsCount || 0) + 1;
+  const totalCalls = context.totalToolCallsCount;
+  const maxResearch = context.maxResearchCalls !== undefined ? context.maxResearchCalls : 20;
 
-    if (virtualFiles && virtualFiles.has(rawPath)) {
-      return virtualFiles.get(rawPath)!;
-    }
+  if (toolName === "read_file" || toolName === "list_dir") {
+    context.researchCallsCount = (context.researchCallsCount || 0) + 1;
+    const researchCount = context.researchCallsCount;
+    console.log(
+      `[Runner Tool Call #${totalCalls} (research: ${researchCount}/${maxResearch})] ${toolName}(${JSON.stringify(input)})`
+    );
 
-    const content = await readFileFromBranch(rawPath, branchName);
-    if (content === null) {
-      return `ERROR: File not found: ${rawPath} on branch ${branchName}`;
+    if (researchCount > maxResearch) {
+      const refusalMsg = "Research budget spent. Write files now with write_file.";
+      console.warn(
+        `[Runner Research Limit] Call #${totalCalls} exceeded research limit (${researchCount} > ${maxResearch}). Returning refusal.`
+      );
+      if (context.toolResults) {
+        context.toolResults.push({ name: toolName, result: refusalMsg });
+      }
+      return refusalMsg;
     }
-    return content;
+  } else {
+    console.log(`[Runner Tool Call #${totalCalls}] ${toolName}(${JSON.stringify(input)})`);
   }
 
-  if (toolName === "list_dir") {
+  let result: string;
+
+  if (toolName === "read_file") {
+    const rawPath = String(input.path || "").trim();
+    if (!rawPath) {
+      result = "ERROR: path is required";
+    } else if (virtualFiles && virtualFiles.has(rawPath)) {
+      result = virtualFiles.get(rawPath)!;
+    } else {
+      const content = await readFileFromBranch(rawPath, branchName);
+      if (content === null) {
+        result = `ERROR: File not found: ${rawPath} on branch ${branchName}`;
+      } else {
+        result = content;
+      }
+    }
+  } else if (toolName === "list_dir") {
     const rawPath = String(input.path || "").trim();
     const cleanPath = rawPath === "." ? "" : rawPath;
     const items = await listDirectoryOnBranch(cleanPath, branchName);
     if (items.length === 0) {
-      return `Directory empty or not found: ${rawPath || "root"}`;
+      result = `Directory empty or not found: ${rawPath || "root"}`;
+    } else {
+      result = items.join("\n");
     }
-    return items.join("\n");
-  }
-
-  if (toolName === "write_file") {
+  } else if (toolName === "write_file") {
     const rawPath = String(input.path || "").trim();
     const content = String(input.content ?? "");
-    if (!rawPath) return "ERROR: path is required";
+    if (!rawPath) {
+      result = "ERROR: path is required";
+    } else if (isProtectedPath(rawPath)) {
+      result = `REFUSAL: Path '${rawPath}' is protected. decisions/, logs/ and logs/.state are written only by the service on main and must never be edited in a PR.`;
+    } else {
+      if (virtualFiles) {
+        virtualFiles.set(rawPath, content);
+      }
 
-    // Enforce protected path rule: decisions/ and logs/ written only by service on main
-    if (isProtectedPath(rawPath)) {
-      return `REFUSAL: Path '${rawPath}' is protected. decisions/, logs/ and logs/.state are written only by the service on main and must never be edited in a PR.`;
+      if (testMode) {
+        result = `SUCCESS: Wrote ${content.length} bytes to ${rawPath} (test mode branch: ${branchName})`;
+      } else {
+        const commitMsg = `feat(task-${issueNumber}): update ${rawPath}`;
+        const res = await createOrUpdateFileOnBranch(rawPath, content, commitMsg, branchName);
+        if (!res.success) {
+          result = `ERROR: Failed to write ${rawPath} on branch ${branchName}: ${res.error}`;
+        } else {
+          result = `SUCCESS: Wrote ${content.length} bytes to ${rawPath} on branch ${branchName} (commit SHA: ${res.sha})`;
+        }
+      }
     }
-
-    if (virtualFiles) {
-      virtualFiles.set(rawPath, content);
-    }
-
-    if (testMode) {
-      return `SUCCESS: Wrote ${content.length} bytes to ${rawPath} (test mode branch: ${branchName})`;
-    }
-
-    const commitMsg = `feat(task-${issueNumber}): update ${rawPath}`;
-    const res = await createOrUpdateFileOnBranch(rawPath, content, commitMsg, branchName);
-    if (!res.success) {
-      return `ERROR: Failed to write ${rawPath} on branch ${branchName}: ${res.error}`;
-    }
-
-    return `SUCCESS: Wrote ${content.length} bytes to ${rawPath} on branch ${branchName} (commit SHA: ${res.sha})`;
-  }
-
-  if (toolName === "post_thread") {
+  } else if (toolName === "post_thread") {
     const text = String(input.text || "").trim();
-    if (!text) return "ERROR: text is required";
-
-    if (slackChannel && slackThreadTs) {
+    if (!text) {
+      result = "ERROR: text is required";
+    } else if (slackChannel && slackThreadTs) {
       await postLine({
         channel: slackChannel,
         thread_ts: slackThreadTs,
@@ -172,11 +198,17 @@ export async function executeRunnerTool(
       }).catch((err) => {
         console.warn("[Runner post_thread warning]", err);
       });
-      return `SUCCESS: Posted message to thread ${slackThreadTs}`;
+      result = `SUCCESS: Posted message to thread ${slackThreadTs}`;
+    } else {
+      result = `SUCCESS: Message recorded (no active thread specified): "${text.slice(0, 80)}"`;
     }
-
-    return `SUCCESS: Message recorded (no active thread specified): "${text.slice(0, 80)}"`;
+  } else {
+    result = `ERROR: Unknown tool ${toolName}`;
   }
 
-  return `ERROR: Unknown tool ${toolName}`;
+  if (context.toolResults) {
+    context.toolResults.push({ name: toolName, result });
+  }
+
+  return result;
 }

@@ -10,6 +10,7 @@ import { getRunnerState, saveRunnerState, recordRunnerIssue, resetRunnerIssue, r
 import { catchUpRunnerIssues, recoverInterruptedRunnerIssues } from "./runner/catch-up.js";
 import { runPreflightCheck } from "./runner/preflight.js";
 import { handleRunnerShutdown, setActiveIssueNumberForTests, computeBriefHash, runIssueTask } from "./runner/runner.js";
+import { executeRunnerTool, type RunnerToolContext } from "./runner/tools.js";
 import { buildRunnerSystemPrompt, buildRunnerUserMessage, buildRepositoryMap, extractAndLoadBriefFiles } from "./runner/prompt.js";
 import { verifyPrDescriptionIssueLinking } from "./ci/check-pr-description.js";
 import { resetMockPostedLines, mockPostedLines } from "./lib/post.js";
@@ -1189,6 +1190,184 @@ async function runFixesVerificationSuite(): Promise<void> {
 
   console.log("  [Passed] resetRunnerIssue resets tool_calls_count to 0, recoveryAttempts to 0, and preserves branch and preflight cache");
   console.log("[Test 14 Passed] resetRunnerIssue zeroing verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 15: Research limits in runner tools (configurable per agent, refusal on call 21)
+  // -------------------------------------------------------------------------
+  console.log("[Test 15] Testing research limits in runner tools (configurable per agent, refusal on call 21)...");
+
+  // Part 1: Verify research_calls configured for web-builder and defaults
+  const test15Agent = await findAgentByName("web-builder");
+  if (!test15Agent) {
+    throw new Error("Test 15.1 Failed: web-builder agent not found");
+  }
+  if (test15Agent.runner_limits?.research_calls !== 20) {
+    throw new Error(`Test 15.2 Failed: Expected web-builder research_calls 20, got ${test15Agent.runner_limits?.research_calls}`);
+  }
+  const test15WbLimits = getAgentRunnerLimits(test15Agent);
+  if (test15WbLimits.researchCalls !== 20) {
+    throw new Error(`Test 15.3 Failed: Expected getAgentRunnerLimits researchCalls 20, got ${test15WbLimits.researchCalls}`);
+  }
+  const test15DefaultLimits = getAgentRunnerLimits(null);
+  if (test15DefaultLimits.researchCalls !== 20) {
+    throw new Error(`Test 15.4 Failed: Expected default researchCalls 20, got ${test15DefaultLimits.researchCalls}`);
+  }
+  const customConfigAgent: AgentRecord = {
+    name: "custom-agent",
+    department: "test",
+    channel: "#test",
+    trigger: "none",
+    reviewer: "none",
+    runner_limits: {
+      max_tool_calls: 50,
+      timeout_minutes: 20,
+      research_calls: 10,
+    },
+  };
+  const customLimits = getAgentRunnerLimits(customConfigAgent);
+  if (customLimits.researchCalls !== 10) {
+    throw new Error(`Test 15.5 Failed: Expected custom researchCalls 10, got ${customLimits.researchCalls}`);
+  }
+  console.log("  [Passed] research_calls configurable per agent in agents.yaml (defaults to 20)");
+
+  // Part 2: Direct execution of 21 combined research calls
+  const directContext: RunnerToolContext = {
+    branchName: "task/test-research-limits",
+    issueNumber: 9974,
+    testMode: true,
+    virtualFiles: new Map([
+      ["sample.txt", "sample file content for test"],
+    ]),
+    maxResearchCalls: 20,
+  };
+
+  // Execute 20 combined research calls (10 read_file + 10 list_dir)
+  for (let i = 1; i <= 20; i++) {
+    if (i % 2 === 1) {
+      const readRes = await executeRunnerTool("read_file", { path: "sample.txt" }, directContext);
+      if (readRes !== "sample file content for test") {
+        throw new Error(`Test 15.6 Failed: Expected sample content on call #${i}, got: ${readRes}`);
+      }
+    } else {
+      const listRes = await executeRunnerTool("list_dir", { path: "." }, directContext);
+      if (listRes.includes("Research budget spent")) {
+        throw new Error(`Test 15.7 Failed: Premature refusal on call #${i}: ${listRes}`);
+      }
+    }
+  }
+
+  if (directContext.researchCallsCount !== 20) {
+    throw new Error(`Test 15.8 Failed: Expected researchCallsCount 20 after 20 calls, got ${directContext.researchCallsCount}`);
+  }
+  console.log("  [Passed] First 20 research calls succeed and return file/dir content");
+
+  // Call 21: read_file must return refusal string with no content
+  const refusalCall21 = await executeRunnerTool("read_file", { path: "sample.txt" }, directContext);
+  const expectedRefusal = "Research budget spent. Write files now with write_file.";
+  if (refusalCall21 !== expectedRefusal) {
+    throw new Error(`Test 15.9 Failed: Expected refusal on call 21 '${expectedRefusal}', got: '${refusalCall21}'`);
+  }
+  console.log("  [Passed] Call 21 (read_file) gets refusal: 'Research budget spent. Write files now with write_file.'");
+
+  // Call 22: list_dir must also return refusal string with no content
+  const refusalCall22 = await executeRunnerTool("list_dir", { path: "." }, directContext);
+  if (refusalCall22 !== expectedRefusal) {
+    throw new Error(`Test 15.10 Failed: Expected refusal on call 22 '${expectedRefusal}', got: '${refusalCall22}'`);
+  }
+  console.log("  [Passed] Call 22 (list_dir) gets refusal: 'Research budget spent. Write files now with write_file.'");
+
+  // Call 23: write_file must succeed (not blocked by research budget)
+  const writeCall23 = await executeRunnerTool("write_file", { path: "output.txt", content: "ok" }, directContext);
+  if (!writeCall23.startsWith("SUCCESS: Wrote")) {
+    throw new Error(`Test 15.11 Failed: Expected write_file to succeed after research limit, got: ${writeCall23}`);
+  }
+  console.log("  [Passed] Subsequent write_file call succeeds unblocked");
+
+  // Part 3: Fixture session through runIssueTask receives refusal on call 21
+  clearMockRunnerStateDbForTests();
+  const fixture15IssueNum = 9975;
+  const fixture15Issue = {
+    number: fixture15IssueNum,
+    title: "Fixture session research limit test",
+    body: "Deliverable: test research limits in fixture session",
+    labels: ["for:web-builder", "status:in-progress"],
+  };
+  const fixture15BriefHash = computeBriefHash(fixture15Issue.body, []);
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        [String(fixture15IssueNum)]: {
+          agent: "web-builder",
+          door: "core",
+          title: fixture15Issue.title,
+          status: "in-progress",
+          branch: "task/9975-research-limit-session",
+          toolCallsCount: 0,
+          preflightHash: fixture15BriefHash,
+          preflightVerdict: "proceed",
+          preflightReason: "Cached proceed verdict for test",
+          runStartedAt: new Date().toISOString(),
+          ownerInstance: null,
+          heartbeatAt: null,
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  const mockCalls: Array<{ name: string; input: Record<string, any> }> = [];
+  // 20 research calls
+  for (let i = 1; i <= 20; i++) {
+    mockCalls.push({
+      name: i % 2 === 1 ? "read_file" : "list_dir",
+      input: i % 2 === 1 ? { path: "README.md" } : { path: "." },
+    });
+  }
+  // Call 21: 21st research call
+  mockCalls.push({
+    name: "read_file",
+    input: { path: "config/agents.yaml" },
+  });
+  // Call 22: write_file to produce a commit
+  mockCalls.push({
+    name: "write_file",
+    input: { path: "services/test-output.txt", content: "done" },
+  });
+
+  const fixture15RunRes = await runIssueTask(fixture15Issue, {
+    testMode: true,
+    mockToolCalls: mockCalls,
+    mockModelResponse: "Brief review: Delivered changes after research budget reached.",
+  });
+
+  if (!fixture15RunRes.toolResults || fixture15RunRes.toolResults.length !== 22) {
+    throw new Error(`Test 15.12 Failed: Expected 22 tool results, got ${fixture15RunRes.toolResults?.length}`);
+  }
+
+  // Verify call 20 succeeded without refusal
+  const resultCall20 = fixture15RunRes.toolResults[19];
+  if (resultCall20.result === expectedRefusal) {
+    throw new Error("Test 15.13 Failed: Call 20 received premature refusal in fixture session");
+  }
+
+  // Verify call 21 received refusal
+  const resultCall21 = fixture15RunRes.toolResults[20];
+  if (resultCall21.result !== expectedRefusal) {
+    throw new Error(`Test 15.14 Failed: Call 21 did not get refusal: got '${resultCall21.result}'`);
+  }
+
+  // Verify call 22 write_file succeeded
+  const resultCall22 = fixture15RunRes.toolResults[21];
+  if (!resultCall22.result.startsWith("SUCCESS: Wrote")) {
+    throw new Error(`Test 15.15 Failed: Call 22 write_file failed: got '${resultCall22.result}'`);
+  }
+
+  console.log("  [Passed] Fixture session receives refusal on call 21 and successfully writes with write_file on call 22");
+  console.log("[Test 15 Passed] Research limits in runner tools verified.\n");
   passed++;
 
   console.log("==========================================================================");
