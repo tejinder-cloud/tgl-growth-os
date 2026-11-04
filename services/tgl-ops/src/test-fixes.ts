@@ -1370,6 +1370,162 @@ async function runFixesVerificationSuite(): Promise<void> {
   console.log("[Test 15 Passed] Research limits in runner tools verified.\n");
   passed++;
 
+  // -------------------------------------------------------------------------
+  // Test 16: Runner nudge loop on text-only turns without writes
+  // -------------------------------------------------------------------------
+  console.log("[Test 16] Testing runner nudge loop: text-only turn triggers write_file nudge, completes with file, preserves last_model_message...");
+
+  // Part 1: Mock returning text-only plan turn then write_file turn completes with file
+  clearMockRunnerStateDbForTests();
+  const test16IssueNum = 9976;
+  const test16Issue = {
+    number: test16IssueNum,
+    title: "Fixture session text-only nudge test",
+    body: "Deliverable: verify nudge loop triggers on text turn without writes and succeeds after write_file",
+    labels: ["for:web-builder", "status:in-progress"],
+  };
+  const test16BriefHash = computeBriefHash(test16Issue.body, []);
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        [String(test16IssueNum)]: {
+          agent: "web-builder",
+          door: "core",
+          title: test16Issue.title,
+          status: "in-progress",
+          branch: "task/9976-nudge-write-file",
+          toolCallsCount: 0,
+          preflightHash: test16BriefHash,
+          preflightVerdict: "proceed",
+          preflightReason: "Cached proceed verdict for test",
+          runStartedAt: new Date().toISOString(),
+          ownerInstance: null,
+          heartbeatAt: null,
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  const initialPlanText = "I have reviewed the brief. Here is my plan: I will create dist/output.ts.";
+  const mockTurnsSuccess = [
+    // Turn 1: text-only plan turn, no tool calls
+    {
+      text: initialPlanText,
+      toolCalls: [],
+    },
+    // Turn 2: empty string text, write_file tool call
+    {
+      text: "",
+      toolCalls: [
+        {
+          name: "write_file",
+          input: { path: "dist/output.ts", content: "export const ok = true;\n" },
+        },
+      ],
+    },
+    // Turn 3: empty string text, no tool calls (session completion)
+    {
+      text: "",
+      toolCalls: [],
+    },
+  ];
+
+  const res16Success = await runIssueTask(test16Issue, {
+    testMode: true,
+    mockTurns: mockTurnsSuccess,
+  });
+
+  if (!res16Success.success || res16Success.status !== "completed") {
+    throw new Error(`Test 16.1 Failed: Expected status completed, got: success=${res16Success.success}, status=${res16Success.status}, error=${res16Success.error}`);
+  }
+  if (!res16Success.writtenFiles || !res16Success.writtenFiles.includes("dist/output.ts")) {
+    throw new Error(`Test 16.2 Failed: Expected dist/output.ts in writtenFiles, got: ${JSON.stringify(res16Success.writtenFiles)}`);
+  }
+  if (res16Success.nudgesSent !== 1) {
+    throw new Error(`Test 16.3 Failed: Expected exactly 1 nudge sent, got: ${res16Success.nudgesSent}`);
+  }
+  if (res16Success.lastModelMessage !== initialPlanText) {
+    throw new Error(`Test 16.4 Failed: Expected lastModelMessage to preserve initial plan text across empty turns, got: '${res16Success.lastModelMessage}'`);
+  }
+
+  // Verify DB/state preservation of last_model_message
+  const state16After = await getRunnerState({ testMode: true });
+  const run16Record = state16After.runs[String(test16IssueNum)];
+  if (run16Record.lastModelMessage !== initialPlanText) {
+    throw new Error(`Test 16.5 Failed: Expected runner_state.last_model_message to hold initial plan text, got: '${run16Record.lastModelMessage}'`);
+  }
+  if (run16Record.status !== "completed" || !run16Record.prNumber) {
+    throw new Error(`Test 16.6 Failed: Expected completed status with PR, got: status=${run16Record.status}, prNumber=${run16Record.prNumber}`);
+  }
+  console.log("  [Passed] Text-only plan turn gets nudged, then write_file executes and run completes with PR");
+  console.log("  [Passed] Initial plan text is preserved in last_model_message across subsequent empty-string turns");
+
+  // Part 2: Mock with text-only turns exceeding 2 nudges ends cleanly with needs-brief
+  clearMockRunnerStateDbForTests();
+  const test16BNum = 9977;
+  const test16BIssue = {
+    number: test16BNum,
+    title: "Fixture session text-only 2-nudge limit test",
+    body: "Deliverable: verify max 2 nudges before ending when no writes happen",
+    labels: ["for:web-builder", "status:in-progress"],
+  };
+  const test16BBriefHash = computeBriefHash(test16BIssue.body, []);
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        [String(test16BNum)]: {
+          agent: "web-builder",
+          door: "core",
+          title: test16BIssue.title,
+          status: "in-progress",
+          branch: "task/9977-nudge-limit",
+          toolCallsCount: 0,
+          preflightHash: test16BBriefHash,
+          preflightVerdict: "proceed",
+          preflightReason: "Cached proceed verdict for test",
+          runStartedAt: new Date().toISOString(),
+          ownerInstance: null,
+          heartbeatAt: null,
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  const mockTurnsExhaust = [
+    { text: "Plan turn 1 without writes", toolCalls: [] }, // triggers nudge 1
+    { text: "Plan turn 2 without writes", toolCalls: [] }, // triggers nudge 2
+    { text: "Plan turn 3 without writes", toolCalls: [] }, // nudges exhausted (2 >= 2), breaks
+  ];
+
+  const res16Exhaust = await runIssueTask(test16BIssue, {
+    testMode: true,
+    mockTurns: mockTurnsExhaust,
+  });
+
+  if (res16Exhaust.success !== false || res16Exhaust.status !== "needs-brief") {
+    throw new Error(`Test 16.7 Failed: Expected status needs-brief after nudges exhausted, got: ${res16Exhaust.status}`);
+  }
+  if (res16Exhaust.nudgesSent !== 2) {
+    throw new Error(`Test 16.8 Failed: Expected exactly 2 nudges sent, got: ${res16Exhaust.nudgesSent}`);
+  }
+  if (res16Exhaust.error !== "run produced no files") {
+    throw new Error(`Test 16.9 Failed: Expected 'run produced no files', got: ${res16Exhaust.error}`);
+  }
+  if (res16Exhaust.lastModelMessage !== "Plan turn 3 without writes") {
+    throw new Error(`Test 16.10 Failed: Expected lastModelMessage 'Plan turn 3 without writes', got: '${res16Exhaust.lastModelMessage}'`);
+  }
+  console.log("  [Passed] Session allows up to 2 nudges before ending with status:needs-brief and preserving last text block");
+  console.log("[Test 16 Passed] Runner nudge loop and last_model_message preservation verified.\n");
+  passed++;
+
   console.log("==========================================================================");
   console.log(`ALL ${passed} HOUSEKEEPING FIX TESTS PASSED CLEANLY!`);
   console.log("==========================================================================");

@@ -18,6 +18,7 @@ export interface RunnerToolContext {
   researchCallsCount?: number;
   totalToolCallsCount?: number;
   toolResults?: Array<{ name: string; result: string }>;
+  successfulWritesCount?: number;
 }
 
 export const RUNNER_TOOLS: Anthropic.Tool[] = [
@@ -175,6 +176,7 @@ export async function executeRunnerTool(
       }
 
       if (testMode) {
+        context.successfulWritesCount = (context.successfulWritesCount || 0) + 1;
         result = `SUCCESS: Wrote ${content.length} bytes to ${rawPath} (test mode branch: ${branchName})`;
       } else {
         const commitMsg = `feat(task-${issueNumber}): update ${rawPath}`;
@@ -182,6 +184,7 @@ export async function executeRunnerTool(
         if (!res.success) {
           result = `ERROR: Failed to write ${rawPath} on branch ${branchName}: ${res.error}`;
         } else {
+          context.successfulWritesCount = (context.successfulWritesCount || 0) + 1;
           result = `SUCCESS: Wrote ${content.length} bytes to ${rawPath} on branch ${branchName} (commit SHA: ${res.sha})`;
         }
       }
