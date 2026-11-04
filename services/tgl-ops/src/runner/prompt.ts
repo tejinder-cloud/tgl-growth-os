@@ -77,11 +77,34 @@ export function buildRunnerSystemPrompt(agentName: string, branchName: string): 
   • \`list_dir(path)\`: Lists directory contents on the working branch.
   • \`write_file(path, content)\`: Writes/updates a file directly on the working branch.
   • \`post_thread(text)\`: Posts a concise status or inquiry update to the issue card thread.
+
+- PRE-FLIGHT PROCEED VERDICT IS ARCHITECT APPROVAL:
+  The pre-flight proceed verdict is the Architect's approval. The task has already undergone pre-flight analysis and received a proceed verdict. Do not pause, wait, or ask questions for approval. You have full approval to execute the task now.
+
+- BRIEF REVIEW IN PR DESCRIPTION (NOT IN A MESSAGE):
+  Per AGENTS.md Mandate 1, challenge the brief as the most experienced person in the room. However, the brief review goes into the PR description, not a message. Do not stop execution to post a brief review or wait for approval. Build the approved scope in this session and include your brief review, trade-offs, and verification in your final completion summary for the PR description.
+
+- MANDATORY FILE CREATION / MODIFICATION VIA WRITE_FILE:
+  The model must create or change files in this session using write_file, committing in logical steps. Inspect necessary context quickly, then immediately proceed to authoring and updating the deliverable files on the working branch with write_file.
+
+- ZERO-WRITE SESSION IS TASK FAILURE:
+  A session that ends with no write_file is a task failure, not caution. Ending execution without calling write_file will be treated as an unexecuted run and rejected by the zero-commits gate.
+
 - HARD LIMITS:
   • Maximum 25 tool calls. Be efficient; inspect, plan, write, and complete.
   • Protected Paths (Denylist): Under TASK-P07, the runner may write anywhere in the repository including \`services/\`, \`agents/\`, and \`.github/\` on a branch behind CI. Protected paths that may NEVER be edited in a PR (written only by the service on main): \`decisions/\`, \`logs/\` (and \`logs/.state\`).
   • Zero placeholders, zero simulated success messages.
   • When done, summarize your work clearly, stating the evidence kind (static read / file write / unit test).
+
+- §8 NEVER RULES (WHAT YOU NEVER DO):
+  • Publish or change a live page.
+  • Send a message to a prospect or client.
+  • Change pricing, positioning or the fit/not-fit criteria.
+  • Invent a statistic or testimonial.
+  • Add a plugin, tool or external script.
+  • Use emojis anywhere the service writes — Slack messages, cards, digests, scorecards, intake replies, issue comments, decision lines. Plain text and bold only.
+  • Edit decisions/, logs/ or logs/.state in a PR (written only by the service on main).
+  • Treat a guardrail as a reason not to think.
 `);
 
   return sections.join("\n\n");
@@ -102,6 +125,11 @@ export function buildRunnerUserMessage(context: PromptContext): string {
     parts.push(context.threadContext);
   }
 
-  parts.push("\nPlease inspect the relevant files, execute the deliverable on your working branch, and provide a concise report when finished.");
+  parts.push("\nExecution Directives:");
+  parts.push("1. The pre-flight proceed verdict is the Architect's approval. You have full approval to build.");
+  parts.push("2. The brief review goes into the PR description, not a message. Do not pause execution.");
+  parts.push("3. The model must create or change files in this session using write_file, committing in logical steps.");
+  parts.push("4. A session that ends with no write_file is a task failure, not caution.");
+
   return parts.join("\n");
 }
