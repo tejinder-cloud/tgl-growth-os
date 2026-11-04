@@ -10,7 +10,7 @@ export interface PromptContext {
   issueBody: string;
   threadContext?: string;
   branchName: string;
-  runnerLimits?: { maxToolCalls: number; timeoutMinutes: number };
+  runnerLimits?: { maxToolCalls: number; timeoutMinutes: number; researchCalls?: number };
 }
 
 function safeReadFile(filePath: string): string {
@@ -132,13 +132,13 @@ export function extractAndLoadBriefFiles(briefText: string): Array<{ path: strin
 export function buildRunnerSystemPrompt(
   agentName: string,
   branchName: string,
-  limits?: { maxToolCalls: number; timeoutMinutes: number }
+  limits?: { maxToolCalls: number; timeoutMinutes: number; researchCalls?: number }
 ): string {
   const today = getTodayDateString();
 
   const maxCalls = limits?.maxToolCalls || 25;
   const timeoutMins = limits?.timeoutMinutes || 15;
-  const researchLimit = Math.floor(maxCalls / 3);
+  const researchLimit = limits?.researchCalls !== undefined ? limits.researchCalls : 20;
   const firstWriteTarget = Math.floor(maxCalls * 0.4);
 
   const skillContent = safeReadFile(`agents/${agentName}/SKILL.md`);
@@ -190,7 +190,7 @@ export function buildRunnerSystemPrompt(
   Per AGENTS.md Mandate 1, challenge the brief as the most experienced person in the room. However, the brief review goes into the PR description, not a message. Do not stop execution to post a brief review or wait for approval. Build the approved scope in this session and include your brief review, trade-offs, and verification in your final completion summary for the PR description.
 
 - BUDGET PACING & EXECUTION ORDER:
-  • Research may use at most a third of the budget (at most ${researchLimit} tool calls out of ${maxCalls}). The repository map and contents of referenced files are already provided in your user message — do not waste tool calls on list_dir or redundant reads.
+  • Research may use at most a third of the budget (at most ${researchLimit} tool calls out of ${maxCalls}). Tools will refuse further research after ${researchLimit} combined read_file and list_dir calls ("Research budget spent. Write files now with write_file."). The repository map and contents of referenced files are already provided in your user message — do not waste tool calls on list_dir or redundant reads.
   • The first write_file must happen before 40% of the budget (before tool call #${firstWriteTarget}).
   • After that, writes before reads: prioritize authoring, modifying, and committing files with write_file before performing any additional reads.
 
@@ -227,7 +227,9 @@ export function buildRunnerUserMessage(context: PromptContext): string {
   const parts: string[] = [];
 
   const maxCalls = context.runnerLimits?.maxToolCalls || 25;
-  const researchLimit = Math.floor(maxCalls / 3);
+  const researchLimit = context.runnerLimits?.researchCalls !== undefined
+    ? context.runnerLimits.researchCalls
+    : 20;
   const firstWriteTarget = Math.floor(maxCalls * 0.4);
 
   parts.push(`Task Issue #${context.issueNumber}: ${context.issueTitle}`);
@@ -260,7 +262,7 @@ export function buildRunnerUserMessage(context: PromptContext): string {
   parts.push("\nExecution Directives:");
   parts.push("1. The pre-flight proceed verdict is the Architect's approval. You have full approval to build.");
   parts.push("2. The brief review goes into the PR description, not a message. Do not pause execution.");
-  parts.push(`3. Budget pacing: research may use at most a third of the budget (${researchLimit} calls); the first write_file must happen before 40% of the budget (call #${firstWriteTarget}); after that, writes before reads.`);
+  parts.push(`3. Budget pacing: research may use at most a third of the budget (${researchLimit} calls) — after ${researchLimit} combined read_file and list_dir calls, tools return refusal; the first write_file must happen before 40% of the budget (call #${firstWriteTarget}); after that, writes before reads.`);
   parts.push("4. The model must create or change files in this session using write_file, committing in logical steps.");
   parts.push("5. A session that ends with no write_file is a task failure, not caution.");
 

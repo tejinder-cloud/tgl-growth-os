@@ -14,6 +14,7 @@ export interface AgentRoutine {
 export interface AgentRunnerLimits {
   max_tool_calls: number;
   timeout_minutes: number;
+  research_calls?: number;
 }
 
 export interface AgentRecord {
@@ -33,13 +34,19 @@ export function getAgentRunnerLimits(agent?: AgentRecord | null): {
   maxToolCalls: number;
   timeoutMinutes: number;
   timeoutMs: number;
+  researchCalls: number;
 } {
   const maxCalls = agent?.runner_limits?.max_tool_calls || 25;
   const timeoutMins = agent?.runner_limits?.timeout_minutes || 15;
+  const researchCalls =
+    agent?.runner_limits?.research_calls !== undefined
+      ? agent.runner_limits.research_calls
+      : 20;
   return {
     maxToolCalls: maxCalls,
     timeoutMinutes: timeoutMins,
     timeoutMs: timeoutMins * 60 * 1000,
+    researchCalls,
   };
 }
 
