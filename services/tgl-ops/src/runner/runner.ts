@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import Anthropic from "@anthropic-ai/sdk";
 import { config, isTestMode } from "../config.js";
 import { findAgentByName, getAgentRunnerLimits, type AgentRecord } from "../lib/agents.js";
@@ -12,6 +13,8 @@ import {
   deleteBranch,
   addCommentToIssue,
   getIssueComments,
+  getBranchCommitsAhead,
+  type IssueCommentItem,
 } from "../lib/github-client.js";
 import { postCard, postLine } from "../lib/post.js";
 import { getIssueMapping } from "../lib/issues-index.js";
@@ -124,11 +127,34 @@ export function generateBranchSlug(issueNumber: number, title: string, prefix = 
 }
 
 /**
+ * Computes a hash of the issue body and any authoritative Architect instructions.
+ * Used to deduplicate pre-flight checks: pre-flight runs once per issue,
+ * running again only if the issue body or Architect's thread instructions changed.
+ */
+export function computeBriefHash(
+  body: string,
+  comments?: { user: string; body: string }[],
+  instruction?: string
+): string {
+  const architectComments = (comments || [])
+    .filter((c) => {
+      const u = c.user.toLowerCase();
+      const isArch = u === "tejinder-cloud" || u === "falkanmedia" || u.includes("architect");
+      const isPreflight = c.body.includes("[Pre-flight Verdict:") || c.body.includes("[Runner Boot Recovery Blocked]");
+      return isArch && !isPreflight;
+    })
+    .map((c) => `${c.user}:${c.body.trim()}`)
+    .join("\n");
+  const payload = `body:${(body || "").trim()}---architect:${architectComments}---instruction:${(instruction || "").trim()}`;
+  return crypto.createHash("sha256").update(payload).digest("hex").slice(0, 16);
+}
+
+/**
  * Executes a full autonomous run for an issue.
  */
 export async function runIssueTask(
   issue: RunnerIssueInput,
-  options?: { testMode?: boolean; throwawayPrefix?: string; instanceId?: string }
+  options?: { testMode?: boolean; throwawayPrefix?: string; instanceId?: string; mockModelResponse?: string }
 ): Promise<RunnerRunResult> {
   const isTest = options?.testMode === true || isTestMode();
   const instanceId = options?.instanceId || CONTAINER_INSTANCE_ID;
@@ -193,6 +219,10 @@ export async function runIssueTask(
 
     console.log(`[Runner] Picked up issue #${issueNum} for @${agentName}: "${issue.title}" on instance ${instanceId}`);
 
+    // Load existing runner state before claim to inspect preflight cache and branch/budget
+    const state = await getRunnerState({ testMode: isTest });
+    const existingRecord = state.runs[String(issueNum)];
+
     // Atomic claim:
     // Claiming an issue (start, resume, recovery) is one atomic UPDATE ... WHERE owner_instance IS NULL OR heartbeat_at < now() - interval '3 minutes'
     // A claim that affects 0 rows means another instance owns it, and this instance does nothing and alerts nothing.
@@ -204,6 +234,11 @@ export async function runIssueTask(
         title: issue.title,
         status: "in-progress",
         runStartedAt: new Date().toISOString(),
+        branch: existingRecord?.branch,
+        toolCallsCount: existingRecord?.toolCallsCount || 0,
+        preflightHash: existingRecord?.preflightHash,
+        preflightVerdict: existingRecord?.preflightVerdict,
+        preflightReason: existingRecord?.preflightReason,
       },
       { instanceId, testMode: isTest }
     );
@@ -320,88 +355,109 @@ export async function runIssueTask(
       };
     }
 
-    // 3. Pre-flight check via live model call
+    // 3. Pre-flight check via live model call (cached if brief & Architect comments unchanged)
     const issueComments = !isTest ? await getIssueComments(issueNum) : [];
+    const currentBriefHash = computeBriefHash(issue.body, issueComments);
 
-    const preflight = await runPreflightCheck({
-      issueNumber: issueNum,
-      title: issue.title,
-      body: issue.body,
-      deliverable,
-      agentName,
-      comments: issueComments,
-    });
+    let preflight: { verdict: "proceed" | "needs-brief" | "refuse"; reason: string; questions?: string[]; tokens?: any };
 
-    console.log(`[Runner Pre-flight Verdict on Issue #${issueNum}]: ${preflight.verdict} — ${preflight.reason}`);
-
-    // Log pre-flight run to agent daily log
-    const pfInTok = preflight.tokens?.input || 0;
-    const pfOutTok = preflight.tokens?.output || 0;
-    let pfPriceIn = 3.0;
-    let pfPriceOut = 15.0;
-    try {
-      const p = getAnthropicPricing();
-      pfPriceIn = p.priceInPerMTok;
-      pfPriceOut = p.priceOutPerMTok;
-    } catch {}
-    const pfCostUsd = Number(((pfInTok * pfPriceIn + pfOutTok * pfPriceOut) / 1_000_000).toFixed(4));
-    const pfLogLine = `- ${timeStr} IST — Issue #${issueNum} pre-flight (${preflight.verdict}): ${pfInTok} input, ${pfOutTok} output · Cost: $${pfCostUsd.toFixed(4)}`;
-
-    if (isTest) {
-      const testLogPath = path.join(config.repoRoot, `logs/.test/${agentName}.md`);
-      fs.mkdirSync(path.dirname(testLogPath), { recursive: true });
-      fs.appendFileSync(testLogPath, pfLogLine + "\n", "utf8");
+    if (
+      existingRecord?.preflightVerdict === "proceed" &&
+      existingRecord?.preflightHash === currentBriefHash
+    ) {
+      console.log(`[Runner Pre-flight Cache Hit on Issue #${issueNum}]: Reusing verdict proceed (hash: ${currentBriefHash}).`);
+      preflight = {
+        verdict: "proceed",
+        reason: existingRecord.preflightReason || "Reused pre-flight proceed verdict (brief unchanged)",
+      };
     } else {
-      await appendFileInRepo(
-        `logs/${dateStr}/${agentName}.md`,
-        pfLogLine,
-        `chore(log): record ${agentName} preflight for #${issueNum}`
-      ).catch((err) => console.warn("[Runner log append warning]", err));
-    }
+      preflight = await runPreflightCheck({
+        issueNumber: issueNum,
+        title: issue.title,
+        body: issue.body,
+        deliverable,
+        agentName,
+        comments: issueComments,
+      });
 
-    // Format verdict message for threads
-    const verdictTitle =
-      preflight.verdict === "proceed"
-        ? "*[Pre-flight Verdict: Proceed]*"
-        : preflight.verdict === "needs-brief"
-        ? "*[Pre-flight Verdict: Needs Brief — Questions before build]*"
-        : "*[Pre-flight Verdict: Refuse — Guardrail Violation]*";
+      console.log(`[Runner Pre-flight Verdict on Issue #${issueNum}]: ${preflight.verdict} — ${preflight.reason}`);
 
-    const questionsBlock =
-      preflight.questions && preflight.questions.length > 0
-        ? `\n\n*Clarification Questions (AGENTS.md Mandate 2):*\n${preflight.questions.join("\n")}`
-        : "";
+      // Log pre-flight run to agent daily log
+      const pfInTok = preflight.tokens?.input || 0;
+      const pfOutTok = preflight.tokens?.output || 0;
+      let pfPriceIn = 3.0;
+      let pfPriceOut = 15.0;
+      try {
+        const p = getAnthropicPricing();
+        pfPriceIn = p.priceInPerMTok;
+        pfPriceOut = p.priceOutPerMTok;
+      } catch {}
+      const pfCostUsd = Number(((pfInTok * pfPriceIn + pfOutTok * pfPriceOut) / 1_000_000).toFixed(4));
+      const pfLogLine = `- ${timeStr} IST — Issue #${issueNum} pre-flight (${preflight.verdict}): ${pfInTok} input, ${pfOutTok} output · Cost: $${pfCostUsd.toFixed(4)}`;
 
-    const threadMessage = `${verdictTitle}\n${preflight.reason}${questionsBlock}`;
+      if (isTest) {
+        const testLogPath = path.join(config.repoRoot, `logs/.test/${agentName}.md`);
+        fs.mkdirSync(path.dirname(testLogPath), { recursive: true });
+        fs.appendFileSync(testLogPath, pfLogLine + "\n", "utf8");
+      } else {
+        await appendFileInRepo(
+          `logs/${dateStr}/${agentName}.md`,
+          pfLogLine,
+          `chore(log): record ${agentName} preflight for #${issueNum}`
+        ).catch((err) => console.warn("[Runner log append warning]", err));
+      }
 
-    // Log verdict & reasoning to Slack thread
-    if (slackChannel && slackThreadTs) {
-      await postLine({
-        channel: slackChannel,
-        thread_ts: slackThreadTs,
-        text: threadMessage,
-      }).catch((err) => console.warn("[Runner thread post error]", err));
-    }
+      // Format verdict message for threads
+      const verdictTitle =
+        preflight.verdict === "proceed"
+          ? "*[Pre-flight Verdict: Proceed]*"
+          : preflight.verdict === "needs-brief"
+          ? "*[Pre-flight Verdict: Needs Brief — Questions before build]*"
+          : "*[Pre-flight Verdict: Refuse — Guardrail Violation]*";
 
-    // Log verdict & reasoning to GitHub issue thread
-    if (!isTest) {
-      const ghComment = `${verdictTitle.replace(/\*/g, "**")}\n\n${preflight.reason}${questionsBlock.replace(/\*/g, "**")}`;
-      await addCommentToIssue(issueNum, ghComment).catch((err) =>
-        console.warn("[Runner GitHub comment error]", err)
-      );
+      const questionsBlock =
+        preflight.questions && preflight.questions.length > 0
+          ? `\n\n*Clarification Questions (AGENTS.md Mandate 2):*\n${preflight.questions.join("\n")}`
+          : "";
+
+      const threadMessage = `${verdictTitle}\n${preflight.reason}${questionsBlock}`;
+
+      // Log verdict & reasoning to Slack thread
+      if (slackChannel && slackThreadTs) {
+        await postLine({
+          channel: slackChannel,
+          thread_ts: slackThreadTs,
+          text: threadMessage,
+        }).catch((err) => console.warn("[Runner thread post error]", err));
+      }
+
+      // Log verdict & reasoning to GitHub issue thread
+      if (!isTest) {
+        const ghComment = `${verdictTitle.replace(/\*/g, "**")}\n\n${preflight.reason}${questionsBlock.replace(/\*/g, "**")}`;
+        await addCommentToIssue(issueNum, ghComment).catch((err) =>
+          console.warn("[Runner GitHub comment error]", err)
+        );
+      }
     }
 
     if (preflight.verdict === "needs-brief") {
       await removeLabelFromIssue(issueNum, "status:in-progress");
       await addLabelsToIssue(issueNum, ["status:needs-brief"]);
 
-      await recordRunnerIssue(
+      await releaseRunnerClaim(
         issueNum,
+        instanceId,
         {
+          agent: agentName,
+          door: issue.door || "core",
+          title: issue.title,
           status: "needs-brief",
           error: preflight.reason,
           runCompletedAt: new Date().toISOString(),
           recoveryAttempts: 0,
+          preflightHash: currentBriefHash,
+          preflightVerdict: "needs-brief",
+          preflightReason: preflight.reason,
         },
         { testMode: isTest }
       ).catch((err) => console.warn("[Runner state preflight warning]", err));
@@ -419,12 +475,19 @@ export async function runIssueTask(
       await removeLabelFromIssue(issueNum, "status:in-progress");
       await addLabelsToIssue(issueNum, ["status:rejected", "approved:no"]);
 
-      await recordRunnerIssue(
+      await releaseRunnerClaim(
         issueNum,
+        instanceId,
         {
+          agent: agentName,
+          door: issue.door || "core",
+          title: issue.title,
           status: "blocked",
           error: `Refusal: ${preflight.reason}`,
           runCompletedAt: new Date().toISOString(),
+          preflightHash: currentBriefHash,
+          preflightVerdict: "refuse",
+          preflightReason: preflight.reason,
         },
         { testMode: isTest }
       ).catch((err) => console.warn("[Runner state preflight warning]", err));
@@ -438,9 +501,9 @@ export async function runIssueTask(
       };
     }
 
-    // 4. Cut working branch: task/<issue>-<slug> from fresh main via GitHub API
+    // 4. Cut working branch or resume existing branch: task/<issue>-<slug>
     const branchPrefix = options?.throwawayPrefix || "task";
-    const branchName = generateBranchSlug(issueNum, issue.title, branchPrefix);
+    const branchName = existingRecord?.branch || generateBranchSlug(issueNum, issue.title, branchPrefix);
 
     if (!isTest) {
       const branchRes = await createBranch(branchName, "main");
@@ -448,7 +511,7 @@ export async function runIssueTask(
         throw new Error(`Failed to create branch ${branchName}: ${branchRes.error}`);
       }
     }
-    console.log(`[Runner] Working branch established: ${branchName}`);
+    console.log(`[Runner] Working branch established: ${branchName} (resumed: ${Boolean(existingRecord?.branch)})`);
 
     // 5. Setup LLM & Tools context
     const toolContext: RunnerToolContext = {
@@ -462,7 +525,8 @@ export async function runIssueTask(
 
     let totalInputTokens = 0;
     let totalOutputTokens = 0;
-    let toolCallsCount = 0;
+    let toolCallsCount = existingRecord?.toolCallsCount || 0;
+    let lastModelMessage = existingRecord?.lastModelMessage || "";
     const runnerLimits = getAgentRunnerLimits(agentRecord);
     const MAX_TOOL_CALLS = runnerLimits.maxToolCalls;
     const MAX_RUNTIME_MS = runnerLimits.timeoutMs;
@@ -480,73 +544,87 @@ export async function runIssueTask(
     });
 
     // 6. Execute Run Loop strictly via Anthropic and Tools
-    const apiKey = config.anthropicApiKey || process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      throw new Error("Missing required ANTHROPIC_API_KEY; cannot execute runner without LLM.");
-    }
-
-    const anthropic = new Anthropic({ apiKey });
-    const messages: Anthropic.MessageParam[] = [
-      { role: "user", content: userMessage },
-    ];
-
-    const startTime = Date.now();
-
-    while (toolCallsCount < MAX_TOOL_CALLS) {
-      if (Date.now() - startTime >= MAX_RUNTIME_MS) {
-        console.warn(`[Runner Limit Reached] Execution reached ${runnerLimits.timeoutMinutes}m timeout (${toolCallsCount} calls). Preserving progress.`);
-        hitLimit = true;
-        break;
+    if (isTest && options?.mockModelResponse !== undefined) {
+      lastModelMessage = options.mockModelResponse;
+      console.log(`[Runner Test Mode] Using mock model response for issue #${issueNum}: "${lastModelMessage.slice(0, 80)}"`);
+    } else {
+      const apiKey = config.anthropicApiKey || process.env.ANTHROPIC_API_KEY;
+      if (!apiKey) {
+        throw new Error("Missing required ANTHROPIC_API_KEY; cannot execute runner without LLM.");
       }
 
-      const response = await callAnthropicWithCostCap({
-        agent: agentName,
-        issueNumber: issueNum,
-        params: {
-          model: modelName,
-          max_tokens: 4096,
-          system: systemPrompt,
-          messages,
-          tools: RUNNER_TOOLS,
-          tool_choice: { type: "auto" },
-        },
-      });
+      const anthropic = new Anthropic({ apiKey });
+      const messages: Anthropic.MessageParam[] = [
+        { role: "user", content: userMessage },
+      ];
 
-      totalInputTokens += response.usage?.input_tokens || 0;
-      totalOutputTokens += response.usage?.output_tokens || 0;
+      const startTime = Date.now();
 
-      // Check for tool use
-      const toolUseBlocks = response.content.filter((b) => b.type === "tool_use") as Anthropic.ToolUseBlock[];
-      if (toolUseBlocks.length === 0) {
-        // Model finished with text response
-        break;
-      }
-
-      // Append assistant response to messages
-      messages.push({ role: "assistant", content: response.content });
-
-      // Process tool calls
-      const toolResultBlocks: Anthropic.ToolResultBlockParam[] = [];
-      for (const toolUse of toolUseBlocks) {
-        if (toolCallsCount >= MAX_TOOL_CALLS) {
-          console.warn(`[Runner Limit Reached] Reached ${MAX_TOOL_CALLS} tool calls limit. Preserving progress.`);
+      while (toolCallsCount < MAX_TOOL_CALLS) {
+        if (Date.now() - startTime >= MAX_RUNTIME_MS) {
+          console.warn(`[Runner Limit Reached] Execution reached ${runnerLimits.timeoutMinutes}m timeout (${toolCallsCount} calls). Preserving progress.`);
           hitLimit = true;
           break;
         }
 
-        toolCallsCount++;
-        console.log(`[Runner Tool Call #${toolCallsCount}/${MAX_TOOL_CALLS}] ${toolUse.name}(${JSON.stringify(toolUse.input)})`);
-        const resultStr = await executeRunnerTool(toolUse.name, toolUse.input, toolContext);
-
-        toolResultBlocks.push({
-          type: "tool_result",
-          tool_use_id: toolUse.id,
-          content: resultStr,
+        const response = await callAnthropicWithCostCap({
+          agent: agentName,
+          issueNumber: issueNum,
+          params: {
+            model: modelName,
+            max_tokens: 4096,
+            system: systemPrompt,
+            messages,
+            tools: RUNNER_TOOLS,
+            tool_choice: { type: "auto" },
+          },
         });
-      }
 
-      messages.push({ role: "user", content: toolResultBlocks });
-      if (hitLimit) break;
+        totalInputTokens += response.usage?.input_tokens || 0;
+        totalOutputTokens += response.usage?.output_tokens || 0;
+
+        // Extract text content if present
+        const textBlocks = response.content.filter((b) => b.type === "text") as Anthropic.TextBlock[];
+        if (textBlocks.length > 0) {
+          const text = textBlocks.map((b) => b.text).join("\n\n").trim();
+          if (text) {
+            lastModelMessage = text;
+          }
+        }
+
+        // Check for tool use
+        const toolUseBlocks = response.content.filter((b) => b.type === "tool_use") as Anthropic.ToolUseBlock[];
+        if (toolUseBlocks.length === 0) {
+          // Model finished with text response
+          break;
+        }
+
+        // Append assistant response to messages
+        messages.push({ role: "assistant", content: response.content });
+
+        // Process tool calls
+        const toolResultBlocks: Anthropic.ToolResultBlockParam[] = [];
+        for (const toolUse of toolUseBlocks) {
+          if (toolCallsCount >= MAX_TOOL_CALLS) {
+            console.warn(`[Runner Limit Reached] Reached ${MAX_TOOL_CALLS} tool calls limit. Preserving progress.`);
+            hitLimit = true;
+            break;
+          }
+
+          toolCallsCount++;
+          console.log(`[Runner Tool Call #${toolCallsCount}/${MAX_TOOL_CALLS}] ${toolUse.name}(${JSON.stringify(toolUse.input)})`);
+          const resultStr = await executeRunnerTool(toolUse.name, toolUse.input, toolContext);
+
+          toolResultBlocks.push({
+            type: "tool_result",
+            tool_use_id: toolUse.id,
+            content: resultStr,
+          });
+        }
+
+        messages.push({ role: "user", content: toolResultBlocks });
+        if (hitLimit) break;
+      }
     }
 
     if (hitLimit) {
@@ -577,9 +655,24 @@ export async function runIssueTask(
         ).catch((err) => console.warn("[Runner log append warning]", err));
       }
 
-      // Open or update draft PR
-      const draftPrTitle = `[DRAFT] feat(${agentName}): ${issue.title.replace(/^\[TASK\]:\s*/i, "")} (#${issueNum})`;
-      const draftPrBody = `## Summary
+      // Check commits ahead before draft PR
+      let partialCommitsAhead = 1;
+      if (!isTest) {
+        const compareRes = await getBranchCommitsAhead(branchName, "main");
+        if (compareRes.success) {
+          partialCommitsAhead = compareRes.aheadBy;
+        }
+      } else if (toolContext.virtualFiles && toolContext.virtualFiles.size === 0) {
+        partialCommitsAhead = 0;
+      }
+
+      let draftPrNumber: number | undefined;
+      let draftPrUrl: string | undefined;
+
+      if (partialCommitsAhead > 0) {
+        // Open or update draft PR
+        const draftPrTitle = `[DRAFT] feat(${agentName}): ${issue.title.replace(/^\[TASK\]:\s*/i, "")} (#${issueNum})`;
+        const draftPrBody = `## Summary
 Partial progress for issue #${issueNum} autonomously committed by issue runner.
 
 Work in progress — fixes #${issueNum}
@@ -589,42 +682,65 @@ Work in progress — fixes #${issueNum}
 • Branch: \`${branchName}\`
 • Status: partial — continuing on next run
 `;
-      const draftPr = await createPullRequest({
-        title: draftPrTitle,
-        body: draftPrBody,
-        head: branchName,
-        base: "main",
-        draft: true,
-        labels: [`for:${agentName}`, "type:build"],
-      });
+        const draftPr = await createPullRequest({
+          title: draftPrTitle,
+          body: draftPrBody,
+          head: branchName,
+          base: "main",
+          draft: true,
+          labels: [`for:${agentName}`, "type:build"],
+        });
+        draftPrNumber = draftPr.number;
+        draftPrUrl = draftPr.html_url;
 
-      // Post "partial — continuing"
-      const targetChannel = slackChannel || (isTest ? (config.opsChannelId || "#ops") : config.approvalsChannelId);
-      if (slackThreadTs) {
-        await postLine({
-          channel: targetChannel,
-          thread_ts: slackThreadTs,
-          text: `*[partial — continuing]* Runner reached agent limit (${toolCallsCount}/${MAX_TOOL_CALLS} tool calls, ${runnerLimits.timeoutMinutes} min). Progress saved to draft PR <${draftPr.html_url}|#${draftPr.number}> on branch \`${branchName}\`. Next run will resume on this branch.`,
-        }).catch((err) => console.warn("[Runner thread post error]", err));
-      }
+        // Post "partial — continuing"
+        const targetChannel = slackChannel || (isTest ? (config.opsChannelId || "#ops") : config.approvalsChannelId);
+        if (slackThreadTs) {
+          await postLine({
+            channel: targetChannel,
+            thread_ts: slackThreadTs,
+            text: `*[partial — continuing]* Runner reached agent limit (${toolCallsCount}/${MAX_TOOL_CALLS} tool calls, ${runnerLimits.timeoutMinutes} min). Progress saved to draft PR <${draftPr.html_url}|#${draftPr.number}> on branch \`${branchName}\`. Next run will resume on this branch.`,
+          }).catch((err) => console.warn("[Runner thread post error]", err));
+        }
 
-      if (!isTest) {
-        await addCommentToIssue(
-          issueNum,
-          `**[partial — continuing]** Runner reached agent limit (${toolCallsCount}/${MAX_TOOL_CALLS} calls). Progress saved to draft PR #${draftPr.number} on branch \`${branchName}\`. Next run will resume on this branch.`
-        ).catch((err) => console.warn("[Runner comment error]", err));
+        if (!isTest) {
+          await addCommentToIssue(
+            issueNum,
+            `**[partial — continuing]** Runner reached agent limit (${toolCallsCount}/${MAX_TOOL_CALLS} calls). Progress saved to draft PR #${draftPr.number} on branch \`${branchName}\`. Next run will resume on this branch.`
+          ).catch((err) => console.warn("[Runner comment error]", err));
+        }
       }
 
       // Keep issue status in-progress so next catch-up run resumes on branch
       await addLabelsToIssue(issueNum, ["status:in-progress"]).catch(() => {});
+
+      await releaseRunnerClaim(
+        issueNum,
+        instanceId,
+        {
+          agent: agentName,
+          door: issue.door || "core",
+          title: issue.title,
+          status: "in-progress",
+          branch: branchName,
+          prNumber: draftPrNumber,
+          prUrl: draftPrUrl,
+          toolCallsCount,
+          preflightHash: currentBriefHash,
+          preflightVerdict: "proceed",
+          preflightReason: preflight.reason,
+          lastModelMessage,
+        },
+        { testMode: isTest }
+      ).catch((err) => console.warn("[Runner state save warning]", err));
 
       return {
         success: true,
         issueNumber: issueNum,
         status: "completed",
         branchName,
-        prNumber: draftPr.number,
-        prUrl: draftPr.html_url,
+        prNumber: draftPrNumber,
+        prUrl: draftPrUrl,
         toolCallsCount,
         tokens: {
           input: totalInputTokens,
@@ -658,6 +774,84 @@ Work in progress — fixes #${issueNum}
         logLine,
         `chore(log): record ${agentName} run for #${issueNum}`
       ).catch((err) => console.warn("[Runner log append warning]", err));
+    }
+
+    // 7.5 HARD GATE: Verify branch has commits beyond main before calling PR API
+    let commitsAhead = 1;
+    if (!isTest) {
+      const compareRes = await getBranchCommitsAhead(branchName, "main");
+      if (compareRes.success) {
+        commitsAhead = compareRes.aheadBy;
+      } else {
+        console.warn(`[Runner Commit Check] Could not compare ${branchName} with main: ${compareRes.error}`);
+      }
+    } else {
+      if (toolContext.virtualFiles && toolContext.virtualFiles.size === 0) {
+        commitsAhead = 0;
+      }
+    }
+
+    if (commitsAhead === 0) {
+      console.warn(`[Runner Zero Commits Gate] Branch ${branchName} has 0 commits beyond main. Run produced no files.`);
+      const noFilesReason = "run produced no files";
+      const explanation = lastModelMessage || "The model finished execution without writing any files to the working branch.";
+
+      // Post model's final message to issue thread
+      if (!isTest) {
+        const ghComment = `**[Run Completed: Needs Brief — Run produced no files]**\n\n${explanation}`;
+        await addCommentToIssue(issueNum, ghComment).catch((err) =>
+          console.warn("[Runner GitHub comment error]", err)
+        );
+      }
+
+      // Post to Slack thread
+      if (slackChannel && slackThreadTs) {
+        await postLine({
+          channel: slackChannel,
+          thread_ts: slackThreadTs,
+          text: `*[Needs Brief — Run produced no files]*\n${explanation}`,
+        }).catch((err) => console.warn("[Runner Slack thread post error]", err));
+      }
+
+      // Label status:needs-brief
+      await removeLabelFromIssue(issueNum, "status:in-progress").catch(() => {});
+      await addLabelsToIssue(issueNum, ["status:needs-brief"]).catch(() => {});
+
+      // Does not count as a failure: recoveryAttempts: 0, status: needs-brief
+      await releaseRunnerClaim(
+        issueNum,
+        instanceId,
+        {
+          agent: agentName,
+          door: issue.door || "core",
+          title: issue.title,
+          status: "needs-brief",
+          branch: branchName,
+          error: noFilesReason,
+          runCompletedAt: new Date().toISOString(),
+          recoveryAttempts: 0,
+          toolCallsCount,
+          preflightHash: currentBriefHash,
+          preflightVerdict: "proceed",
+          preflightReason: preflight.reason,
+          lastModelMessage: explanation,
+        },
+        { testMode: isTest }
+      ).catch((err) => console.warn("[Runner state save warning]", err));
+
+      return {
+        success: false,
+        issueNumber: issueNum,
+        status: "needs-brief",
+        branchName,
+        toolCallsCount,
+        tokens: {
+          input: totalInputTokens,
+          output: totalOutputTokens,
+          costUsd: totalCostUsd,
+        },
+        error: noFilesReason,
+      };
     }
 
     // 8. Open PR with filled PR template
@@ -759,6 +953,11 @@ Fixes #${issueNum}
         prUrl: prRes.html_url,
         runCompletedAt: new Date().toISOString(),
         recoveryAttempts: 0,
+        toolCallsCount,
+        preflightHash: currentBriefHash,
+        preflightVerdict: "proceed",
+        preflightReason: preflight.reason,
+        lastModelMessage,
       },
       { testMode: isTest }
     ).catch((err) => console.warn("[Runner state save warning]", err));
