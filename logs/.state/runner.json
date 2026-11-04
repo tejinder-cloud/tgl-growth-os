@@ -1,20 +1,20 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-04T09:05:57.551Z",
+  "updatedAt": "2026-11-04T09:05:59.956Z",
   "runs": {
     "72": {
       "agent": "web-builder",
       "door": "core",
       "title": "[PLAN-D10]: Outreach Sequencer SKILL.md + 5-touch worker",
-      "status": "interrupted",
-      "runStartedAt": "2026-11-04T09:05:57.222438+00:00",
+      "status": "in-progress",
+      "runStartedAt": "2026-11-04T09:05:59.628735+00:00",
       "runCompletedAt": "2026-11-04T09:05:13.624+00:00",
       "error": "Run interrupted by process termination (SIGTERM).",
       "recoveryAttempts": 0,
-      "lastRecoveryAt": "2026-11-04T09:05:06.168+00:00",
+      "lastRecoveryAt": "2026-11-04T09:05:58.317+00:00",
       "lastRecoveryAlertAt": "2026-11-04T09:00:42.114+00:00",
-      "ownerInstance": "inst_1793783156631_8cd0cf91",
-      "heartbeatAt": "2026-11-04T09:05:57.222438+00:00",
+      "ownerInstance": "inst_1793783156762_af809672",
+      "heartbeatAt": "2026-11-04T09:05:59.628735+00:00",
       "toolCallsCount": 0
     }
   }
