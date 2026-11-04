@@ -98,6 +98,18 @@ await t("validation: market change only for fields that actually differ", () => 
   assert.deepEqual(p.market, { product: "BSc nursing entrance coaching", reason: "site says nursing" });
   assert.equal(validateProposal({ market_change: { location: "Mohali", reason: "same" } }, snap, ev).market, null);
 });
+await t("competitor without a quote: quote taken verbatim from the stored answer; retire accepts bare numbers/text; summary mismatch flagged", () => {
+  const tableEv: Evidence = { ...ev, aiAnswer: "Intro line.\n\n| Business | Best fit | Website |\n|---|---|---|\n| **Sukhmani Nursing Academy** | Mohali nursing entrance coaching | sukhmani.example |\n| **Elite Nursing Institute** | Kharar | elite.example |" };
+  const p = validateProposal({ summary: "Retired 2 vague prompts and added 2 competitors.",
+    competitors_add: [{ name: "Sukhmani Nursing Academy", domain: "sukhmani.example" }, { name: "Elite Nursing Institute" }, { name: "Made Up Coaching" }],
+    prompts_retire: [3, { text: "question number 5" }], prompts_add: [] }, snap, tableEv);
+  assert.deepEqual(p.competitorsAdd.map((c) => c.name), ["Sukhmani Nursing Academy", "Elite Nursing Institute"]);
+  assert.ok(tableEv.aiAnswer!.includes(p.competitorsAdd[0].evidence) && p.competitorsAdd[0].evidence.includes("Sukhmani"));
+  assert.ok(p.dropped.some((d) => d.includes("Made Up Coaching")));
+  assert.deepEqual(p.promptsRetire.map((r) => r.id), ["p3", "p5"]);
+  const q = validateProposal({ summary: "I retired the 8 generic ones.", prompts_retire: [], competitors_add: [], prompts_add: [] }, snap, tableEv);
+  assert.ok(q.dropped.some((d) => d.includes("nothing will be retired")));
+});
 await t("proposeChanges: calls the model with setup + both evidence blocks, prices the call, validates the reply", async () => {
   let seen: any;
   const fake = { messages: { create: async (req: any) => { seen = req; return {
@@ -630,7 +642,7 @@ await t("rule split: competitors require verbatim excerpt from stored AI answer;
         engine: "perplexity",
         verbatim_excerpt: "We build nice web apps.",
       },
-      // Invalid: missing excerpt
+      // Missing excerpt, but named in the stored answer → quote taken from the answer itself
       {
         name: "EmergentAI",
         domain: "emergent.example",
@@ -649,12 +661,11 @@ await t("rule split: competitors require verbatim excerpt from stored AI answer;
 
   const p = validateProposal(raw, testSnap, testEv);
 
-  // Competitor assertions: exactly 1 valid competitor added; 2 invalid competitors dropped
-  assert.equal(p.competitorsAdd.length, 1);
-  assert.equal(p.competitorsAdd[0].name, "MarketLeader");
+  // Competitor assertions: site-copy competitor dropped; the quote-less one gets its quote from the stored answer
+  assert.deepEqual(p.competitorsAdd.map((c) => c.name), ["MarketLeader", "EmergentAI"]);
   assert.equal(p.competitorsAdd[0].evidence, "pioneers in generative engine optimization");
+  assert.ok(testEv.aiAnswer!.includes(p.competitorsAdd[1].evidence));
   assert.ok(p.dropped.some((d) => d.includes("Unrelated Agency") && d.includes("site tagline is not evidence")));
-  assert.ok(p.dropped.some((d) => d.includes("EmergentAI")));
 
   // Prompt assertions: both prompts accepted without requiring any citation or excerpt
   assert.equal(p.promptsAdd.length, 2);

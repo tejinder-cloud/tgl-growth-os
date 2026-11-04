@@ -202,6 +202,20 @@ export function normalizeStage(stage: unknown): AllowedStage | null {
   return null;
 }
 
+/** The line of the AI answer that names `name`, verbatim (≤300 chars), or null. */
+export function quoteNaming(answer: string, name: string): string | null {
+  const n = name.toLowerCase();
+  for (const line of answer.split(/\n+/)) {
+    const i = line.toLowerCase().indexOf(n);
+    if (i < 0) continue;
+    const t = line.trim();
+    if (t.length <= 300) return t;
+    const start = Math.max(0, line.indexOf(line.trim()) + 0, i - 100);
+    return line.slice(start, start + 300).trim();
+  }
+  return null;
+}
+
 /** Turns the model's JSON into a proposal that can only contain supported, applicable changes. */
 export function validateProposal(raw: any, s: SetupSnapshot, ev: Evidence): Proposal {
   const dropped: string[] = [];
@@ -222,9 +236,9 @@ export function validateProposal(raw: any, s: SetupSnapshot, ev: Evidence): Prop
 
     const nameNorm = normalizeAnswerText(name);
     const nameClean = nameNorm.replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
-    const excerpt = str(c?.verbatim_excerpt || c?.evidence_excerpt || c?.evidence_quote || c?.evidence || c?.quote, 300);
-    const excerptNorm = normalizeAnswerText(excerpt);
-    const excerptClean = excerptNorm.replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+    let excerpt = str(c?.verbatim_excerpt || c?.evidence_excerpt || c?.evidence_quote || c?.evidence || c?.quote, 300);
+    let excerptNorm = normalizeAnswerText(excerpt);
+    let excerptClean = excerptNorm.replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
 
     const prompt = str(c?.prompt, 300) || str(ev.aiQuestion, 300);
     const engine = str(c?.engine, 100) || str(ev.aiEngine, 100);
@@ -245,9 +259,12 @@ export function validateProposal(raw: any, s: SetupSnapshot, ev: Evidence): Prop
       continue;
     }
 
+    // The model often names a competitor but omits the quote. The name is verifiably in the stored answer, so
+    // take the quote straight from it (the line that names them) rather than dropping a real competitor.
     if (!excerpt || excerptNorm.length === 0) {
-      dropped.push(`competitor “${name}” — excerpt missing for answer ${engine}/${prompt}`);
-      continue;
+      const auto = quoteNaming(ev.aiAnswer ?? "", name);
+      if (!auto) { dropped.push(`competitor “${name}” — excerpt missing for answer ${engine}/${prompt}`); continue; }
+      excerpt = auto; excerptNorm = normalizeAnswerText(auto); excerptClean = excerptNorm.replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
     }
 
     const excerptInAiAnswer = excerptNorm.length > 0 && (
@@ -288,7 +305,10 @@ export function validateProposal(raw: any, s: SetupSnapshot, ev: Evidence): Prop
 
   const promptsRetire: Proposal["promptsRetire"] = [];
   for (const r of Array.isArray(raw?.prompts_retire) ? raw.prompts_retire : []) {
-    const p = s.prompts[Number(r?.number) - 1];
+    // Accept a bare number, {number|index|n}, or the prompt's text — models vary in shape.
+    const num = typeof r === "number" || typeof r === "string" ? Number(r) : Number(r?.number ?? r?.index ?? r?.n);
+    const byText = typeof r === "object" && r ? s.prompts.find((x) => norm(x.text) === norm(str(r?.text || r?.prompt, 300))) : undefined;
+    const p = (Number.isInteger(num) && num > 0 ? s.prompts[num - 1] : undefined) ?? byText;
     if (p && !promptsRetire.some((x) => x.id === p.id)) promptsRetire.push({ id: p.id, text: p.text, reason: str(r?.reason, 200) });
   }
 
@@ -342,7 +362,10 @@ export function validateProposal(raw: any, s: SetupSnapshot, ev: Evidence): Prop
     }
   }
 
-  return { summary: str(raw?.summary, 400) || "No summary.", market, competitorsAdd, competitorsRemove, promptsRetire, promptsAdd, dropped };
+  const summary = str(raw?.summary, 400) || "No summary.";
+  if (/retir/i.test(summary) && !promptsRetire.length) dropped.push("summary mentions retiring prompts, but no valid prompt numbers were given — nothing will be retired");
+  if (/competitor/i.test(summary) && /add/i.test(summary) && !competitorsAdd.length && Array.isArray(raw?.competitors_add) && raw.competitors_add.length) dropped.push("summary mentions adding competitors, but none passed the evidence check");
+  return { summary, market, competitorsAdd, competitorsRemove, promptsRetire, promptsAdd, dropped };
 }
 
 export async function proposeChanges(
