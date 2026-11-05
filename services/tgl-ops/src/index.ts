@@ -139,6 +139,26 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
+import { runDailyDigests, runWeeklyReports } from "./agents/aeo-reports/worker.js";
+
+// Hourly 08:00–23:00 IST: daily digest for brands whose daily run finished (idempotent; late runs still get one) (plan Day 23)
+cron.schedule(
+  "0 8-23 * * *",
+  wrapCronJob("TrueVisible daily digest", async () => {
+    await runDailyDigests();
+  }),
+  { timezone: config.timezone }
+);
+
+// Monday 08:30 IST: weekly trend for the previous Monday–Sunday (plan Day 23)
+cron.schedule(
+  "30 8 * * 1",
+  wrapCronJob("TrueVisible weekly report", async () => {
+    await runWeeklyReports();
+  }),
+  { timezone: config.timezone }
+);
+
 import { runCitationTracking, runFirstAudits, runGeminiExperimentJob } from "./agents/aeo-audit-engine/worker.js";
 
 // Every 30 min: Gemini cost experiment — runs once a day after today's Gemini answers exist, only while
