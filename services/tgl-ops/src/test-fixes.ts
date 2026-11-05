@@ -22,6 +22,16 @@ import {
   simulateProcessRebootForTests,
   loadIntakeState,
 } from "./agents/chief-of-staff/intake.js";
+import {
+  getAgentCostCap,
+  getAgentTodaySpend,
+  checkAgentCostCap,
+  recordCostEntry,
+  resetCostLedgerForTests,
+  isEntryInISTDate,
+  getCostLedgerSummary,
+  getAgentsCostStatusForStandup,
+} from "./lib/cost-cap.js";
 
 async function runFixesVerificationSuite(): Promise<void> {
   console.log("==========================================================================");
@@ -1632,6 +1642,109 @@ async function runFixesVerificationSuite(): Promise<void> {
   }
   console.log("  [Passed] Repeat poll correctly ignored all previously processed messages");
   console.log("[Test 17 Passed] Intake boot resumption from persisted timestamp verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 18: Daily Cost Caps count IST calendar day (not rolling 24 hours);
+  // reset strictly at 00:00 IST.
+  // -------------------------------------------------------------------------
+  console.log("[Test 18] Testing daily cost cap IST calendar day reset at 00:00 IST...");
+
+  resetCostLedgerForTests();
+
+  // Sub-test 1: isEntryInISTDate boundary accuracy
+  // 2026-11-04 23:59:59.999 IST = 2026-11-04T18:29:59.999Z UTC
+  // 2026-11-05 00:00:00.000 IST = 2026-11-04T18:30:00.000Z UTC
+  // 2026-11-05 23:59:59.999 IST = 2026-11-05T18:29:59.999Z UTC
+  // 2026-11-06 00:00:00.000 IST = 2026-11-05T18:30:00.000Z UTC
+  if (!isEntryInISTDate("2026-11-04T18:29:59.999Z", "2026-11-04")) {
+    throw new Error("Test 18.1 Failed: 18:29:59.999Z UTC should belong to 2026-11-04 IST");
+  }
+  if (isEntryInISTDate("2026-11-04T18:29:59.999Z", "2026-11-05")) {
+    throw new Error("Test 18.2 Failed: 18:29:59.999Z UTC should NOT belong to 2026-11-05 IST");
+  }
+  if (!isEntryInISTDate("2026-11-04T18:30:00.000Z", "2026-11-05")) {
+    throw new Error("Test 18.3 Failed: 18:30:00.000Z UTC (00:00:00 IST) should belong to 2026-11-05 IST");
+  }
+  if (!isEntryInISTDate("2026-11-05T18:29:59.999Z", "2026-11-05")) {
+    throw new Error("Test 18.4 Failed: 18:29:59.999Z UTC (23:59:59 IST) should belong to 2026-11-05 IST");
+  }
+  if (isEntryInISTDate("2026-11-05T18:30:00.000Z", "2026-11-05")) {
+    throw new Error("Test 18.5 Failed: 18:30:00.000Z UTC (00:00:00 IST) should NOT belong to 2026-11-05 IST");
+  }
+  if (!isEntryInISTDate("2026-11-05T18:30:00.000Z", "2026-11-06")) {
+    throw new Error("Test 18.6 Failed: 18:30:00.000Z UTC should belong to 2026-11-06 IST");
+  }
+  console.log("  [Passed] Millisecond-level boundary transitions at 00:00:00 IST verified");
+
+  // Sub-test 2: Prior-day spend does not roll into next calendar day (no rolling 24h)
+  // Web-builder daily cap is $6.00.
+  // Yesterday (2026-11-04) at 23:50 IST (18:20 UTC), web-builder spent $5.80 (near $6 cap).
+  recordCostEntry({
+    timestamp: "2026-11-04T18:20:00.000Z", // 23:50 IST on 2026-11-04
+    issueNumber: 72,
+    agent: "web-builder",
+    model: "claude-3-5-sonnet",
+    inputTokens: 100000,
+    outputTokens: 5000,
+    totalCostUsd: 5.80,
+  }, { testMode: true });
+
+  // Today (2026-11-05) at 00:15 IST (18:45 UTC on Nov 4, just 25 minutes after previous run!),
+  // web-builder spends $1.50.
+  recordCostEntry({
+    timestamp: "2026-11-04T18:45:00.000Z", // 00:15 IST on 2026-11-05
+    issueNumber: 72,
+    agent: "web-builder",
+    model: "claude-3-5-sonnet",
+    inputTokens: 30000,
+    outputTokens: 1500,
+    totalCostUsd: 1.50,
+  }, { testMode: true });
+
+  // Later today (2026-11-05) at 12:00 IST (06:30 UTC), web-builder spends $2.00.
+  recordCostEntry({
+    timestamp: "2026-11-05T06:30:00.000Z", // 12:00 IST on 2026-11-05
+    issueNumber: 72,
+    agent: "web-builder",
+    model: "claude-3-5-sonnet",
+    inputTokens: 40000,
+    outputTokens: 2000,
+    totalCostUsd: 2.00,
+  }, { testMode: true });
+
+  // Check spend on 2026-11-04 (yesterday): must only be $5.80
+  const spendNov4 = await getAgentTodaySpend("web-builder", "2026-11-04", { testMode: true });
+  if (spendNov4 !== 5.80) {
+    throw new Error(`Test 18.7 Failed: Expected Nov 4 spend to be 5.80, got ${spendNov4}`);
+  }
+
+  // Check spend on 2026-11-05 (today):
+  // Under rolling 24h, total would be $5.80 + $1.50 + $2.00 = $9.30 (exceeding $6 cap).
+  // Under IST calendar day, yesterday's $5.80 reset at 00:00 IST, so today's spend is $1.50 + $2.00 = $3.50.
+  const spendNov5 = await getAgentTodaySpend("web-builder", "2026-11-05", { testMode: true });
+  if (spendNov5 !== 3.50) {
+    throw new Error(`Test 18.8 Failed: Expected Nov 5 spend to be 3.50 (not rolling $9.30), got ${spendNov5}`);
+  }
+  console.log("  [Passed] Spend resets at 00:00 IST; yesterday's $5.80 does not roll into today");
+
+  // Sub-test 3: checkAgentCostCap under IST calendar day
+  const capCheckNov5 = await checkAgentCostCap("web-builder", 0.50, { testMode: true, dateStr: "2026-11-05" });
+  if (!capCheckNov5.allowed) {
+    throw new Error("Test 18.9 Failed: web-builder should be allowed under cap ($3.50 + $0.50 = $4.00 <= $6.00)");
+  }
+  if (capCheckNov5.currentSpend !== 3.50) {
+    throw new Error(`Test 18.10 Failed: Expected currentSpend 3.50, got ${capCheckNov5.currentSpend}`);
+  }
+  console.log("  [Passed] checkAgentCostCap allows run based on IST calendar day spend ($3.50 / $6.00)");
+
+  // Sub-test 4: Check next day reset (2026-11-06)
+  const spendNov6 = await getAgentTodaySpend("web-builder", "2026-11-06", { testMode: true });
+  if (spendNov6 !== 0.00) {
+    throw new Error(`Test 18.11 Failed: Expected Nov 6 spend to reset to 0.00, got ${spendNov6}`);
+  }
+  console.log("  [Passed] Future calendar day spend resets cleanly to $0.00 at 00:00 IST");
+  console.log("[Test 18 Passed] Daily cost caps IST calendar day reset verified.\n");
   passed++;
 
   console.log("==========================================================================");
