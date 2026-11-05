@@ -9,3 +9,4 @@
 - 12:52 IST — Issue #72 run: 106846 input, 4738 output (claude-sonnet-5-5) · Cost: $0.3916
 - 12:53 IST — Issue #72 pre-flight (proceed): 4314 input, 602 output · Cost: $0.0220
 - 12:53 IST — Issue #72 run: 164354 input, 7256 output (claude-sonnet-5-5) · Cost: $0.6019
+- 17:11 IST — Issue #107 pre-flight (needs-brief): 2093 input, 1024 output · Cost: $0.0216
