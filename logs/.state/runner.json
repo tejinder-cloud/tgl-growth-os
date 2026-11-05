@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-05T11:43:25.136Z",
+  "updatedAt": "2026-11-05T11:50:08.112Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -44,11 +44,13 @@
       "agent": "web-builder",
       "door": "aeo",
       "title": "[TASK]: [PLAN-D10b] Outreach Sequencer live wiring: composition root that registers the ",
-      "status": "in-progress",
+      "status": "blocked",
       "runStartedAt": "2026-11-05T11:43:24.799477+00:00",
+      "runCompletedAt": "2026-11-05T11:50:07.283+00:00",
+      "error": "Blocked by Architect command (#N: block).",
       "recoveryAttempts": 0,
-      "ownerInstance": "inst_1793878870629_3b2b611e",
-      "heartbeatAt": "2026-11-05T11:43:24.799477+00:00",
+      "ownerInstance": null,
+      "heartbeatAt": null,
       "toolCallsCount": 0
     }
   }
