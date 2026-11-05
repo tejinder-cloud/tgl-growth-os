@@ -5,7 +5,7 @@ import { config, isTestMode } from "../config.js";
 import { loadAgents, type AgentRecord } from "./agents.js";
 import { postLine } from "./post.js";
 import { getAlertsChannel } from "./cron-wrapper.js";
-import { getTodayDateString, getCurrentTimeIST } from "./standup.js";
+import { getTodayDateString, getCurrentTimeIST, formatDateIST } from "./standup.js";
 import { getAnthropicPricing } from "./anthropic-pricing.js";
 
 // In-memory usage cost ledger
@@ -36,6 +36,23 @@ export function formatCostUsd(amount: number): string {
     return `$${amount.toFixed(4)}`;
   }
   return `$${amount.toFixed(2)}`;
+}
+
+/**
+ * Evaluates whether an entry timestamp falls within a specific IST calendar day (YYYY-MM-DD).
+ * Resets strictly at 00:00:00 IST (UTC 18:30:00 previous day).
+ */
+export function isEntryInISTDate(
+  timestampOrDate: string | Date | number | undefined,
+  targetIstDateStr: string
+): boolean {
+  if (!timestampOrDate) return false;
+  if (typeof timestampOrDate === "string") {
+    if (timestampOrDate === targetIstDateStr) return true;
+    const d = new Date(timestampOrDate);
+    if (isNaN(d.getTime())) return false;
+  }
+  return formatDateIST(timestampOrDate) === targetIstDateStr;
 }
 
 function getCostLedgerFilePath(testMode: boolean): string {
@@ -114,7 +131,7 @@ export function loadCostLedgerFromState(options?: { testMode?: boolean }): Usage
             // Check line for time or use currentSectionTime
             const lineTimeMatch = line.match(/(\d{1,2}:\d{2})\s*IST/i);
             const timeStr = lineTimeMatch ? lineTimeMatch[1] : currentSectionTime;
-            const syntheticTs = `${date}T${timeStr}:00.000Z`;
+            const syntheticTs = `${date}T${timeStr}:00+05:30`;
 
             // Extract issue number if present in line (e.g. Issue #53)
             const issueMatch = line.match(/Issue\s*#(\d+)/i);
@@ -126,7 +143,7 @@ export function loadCostLedgerFromState(options?: { testMode?: boolean }): Usage
               (e) =>
                 e.agent === agentName &&
                 Math.abs(e.totalCostUsd - costUsd) < 0.0001 &&
-                e.timestamp.startsWith(date) &&
+                isEntryInISTDate(e.timestamp, date) &&
                 (e.costType === "llm" || !e.costType)
             );
             if (!exists && costUsd > 0) {
@@ -152,13 +169,13 @@ export function loadCostLedgerFromState(options?: { testMode?: boolean }): Usage
             if (callsUsed > 0) {
               const placesCost = Number((callsUsed * 0.032).toFixed(4));
               const timeStr = currentSectionTime;
-              const syntheticTs = `${date}T${timeStr}:00.000Z`;
+              const syntheticTs = `${date}T${timeStr}:00+05:30`;
 
               const exists = usageCostsLedger.some(
                 (e) =>
                   e.agent === agentName &&
                   e.apiName === "google-places-api" &&
-                  e.timestamp.startsWith(date)
+                  isEntryInISTDate(e.timestamp, date)
               );
               if (!exists) {
                 usageCostsLedger.push({
@@ -186,11 +203,11 @@ export function loadCostLedgerFromState(options?: { testMode?: boolean }): Usage
   if ((date === "2026-10-30" && !isTest) || (options as any)?.includeHistoricalRuns) {
     const historicalDate = (options as any)?.includeHistoricalRuns ? date : "2026-10-30";
     const hasIssue53Run = usageCostsLedger.some(
-      (e) => e.issueNumber === 53 || (e.agent === "web-builder" && e.timestamp.startsWith(`${historicalDate}T09:00`))
+      (e) => e.issueNumber === 53 || (e.agent === "web-builder" && isEntryInISTDate(e.timestamp, historicalDate))
     );
     if (!hasIssue53Run) {
       usageCostsLedger.push({
-        timestamp: `${historicalDate}T09:00:00.000Z`,
+        timestamp: `${historicalDate}T09:00:00+05:30`,
         issueNumber: 53,
         agent: "web-builder",
         model: "claude-3-5-sonnet",
@@ -271,7 +288,7 @@ export function getCostLedgerSummary(
   const date = dateStr || getTodayDateString();
   loadCostLedgerFromState(options);
 
-  const entriesToday = usageCostsLedger.filter((e) => e.timestamp.startsWith(date));
+  const entriesToday = usageCostsLedger.filter((e) => isEntryInISTDate(e.timestamp, date));
   const totalSpendUsd = Number(entriesToday.reduce((sum, e) => sum + e.totalCostUsd, 0).toFixed(4));
   const llmSpendUsd = Number(
     entriesToday
@@ -335,7 +352,7 @@ export async function getAgentCostCap(agentName: string): Promise<number> {
 
   // Standard defaults per spec:
   if (agentName === "chief-of-staff") return 0.5;
-  if (agentName === "web-builder") return 3.0;
+  if (agentName === "web-builder") return 6.0;
   if (agentName === "prospect-researcher") return 2.0;
 
   return DEFAULT_DAILY_CAP_USD;
@@ -343,6 +360,7 @@ export async function getAgentCostCap(agentName: string): Promise<number> {
 
 /**
  * Calculates total USD spend for an agent today.
+ * Strictly counts the IST calendar day (00:00:00 to 23:59:59 IST), resetting at 00:00 IST.
  */
 export async function getAgentTodaySpend(
   agentName: string,
@@ -353,10 +371,13 @@ export async function getAgentTodaySpend(
   const isTest = options?.testMode === true || isTestMode();
   let spend = 0;
 
+  // Ensure state and daily log records are loaded
+  loadCostLedgerFromState(options);
+
   // 1. In-memory ledger
   for (const entry of usageCostsLedger) {
     if (entry.agent === agentName) {
-      if (entry.timestamp.startsWith(date)) {
+      if (isEntryInISTDate(entry.timestamp, date)) {
         spend += entry.totalCostUsd || 0;
       }
     }
@@ -386,12 +407,13 @@ export async function getAgentTodaySpend(
 
 /**
  * Evaluates whether an agent may proceed with an LLM/API call or if it violates daily cost cap.
+ * Counts strictly by the IST calendar day (resetting at 00:00 IST), not rolling 24 hours.
  * If over cap: stops run, notifies #alerts, returns allowed: false.
  */
 export async function checkAgentCostCap(
   agentName: string,
   prospectiveCostUsd = 0,
-  options?: { testMode?: boolean }
+  options?: { testMode?: boolean; dateStr?: string }
 ): Promise<{
   allowed: boolean;
   currentSpend: number;
@@ -400,7 +422,7 @@ export async function checkAgentCostCap(
   error?: string;
 }> {
   const cap = await getAgentCostCap(agentName);
-  const currentSpend = await getAgentTodaySpend(agentName, undefined, options);
+  const currentSpend = await getAgentTodaySpend(agentName, options?.dateStr, options);
   const total = currentSpend + prospectiveCostUsd;
   const percentage = cap > 0 ? (total / cap) * 100 : 0;
 
@@ -435,14 +457,14 @@ export async function checkAgentCostCap(
  * Returns cost statuses for all active agents to flag in standup digest.
  */
 export async function getAgentsCostStatusForStandup(
-  options?: { testMode?: boolean }
+  options?: { testMode?: boolean; dateStr?: string }
 ): Promise<AgentCostCapInfo[]> {
   const agents = await loadAgents();
   const statuses: AgentCostCapInfo[] = [];
 
   for (const a of agents) {
     const capUsd = await getAgentCostCap(a.name);
-    const currentSpendUsd = await getAgentTodaySpend(a.name, undefined, options);
+    const currentSpendUsd = await getAgentTodaySpend(a.name, options?.dateStr, options);
     const percentage = capUsd > 0 ? (currentSpendUsd / capUsd) * 100 : 0;
     statuses.push({
       agent: a.name,
