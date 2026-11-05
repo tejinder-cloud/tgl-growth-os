@@ -51,7 +51,10 @@ export interface OutreachState {
   onepager_url?: string;
   onepager_path?: string;
   audit?: AuditSummary;
+  /** Consecutive failed audit / one-pager builds for the current touch. */
   audit_attempts?: number;
+  /** Consecutive failed GHL sends for the current touch. */
+  send_failures?: number;
   pause_reason?: string;
   last_reply_message_id?: string;
   last_reply_intent?: ReplyIntent;
