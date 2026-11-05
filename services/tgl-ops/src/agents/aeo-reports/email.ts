@@ -1,6 +1,6 @@
 // Email rendering for reports — one person writing to another (SPEC §6): short, specific, one next step.
 // Every number comes from the report content (counts of stored answers).
-import { ENGINE_LABEL, type DailyContent, type Ratio, type WeeklyContent } from "./build.js";
+import { ENGINE_LABEL, type DailyContent, type MonthlyContent, type Ratio, type WeeklyContent } from "./build.js";
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 const day = (d: string) => new Date(d + "T00:00:00Z").toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "UTC" });
@@ -63,4 +63,17 @@ export function weeklyEmail(w: WeeklyContent, appUrl: string): Email {
   if (recLine.length) blocks.push({ title: "What to do next", lines: recLine });
   const subject = `${w.brand} · your AI visibility this week: ${r(w.overall)} answers name you`;
   return { subject, ...render(blocks, { label: "Open your dashboard", url: `${appUrl}/dashboard` }, `${appUrl}/dashboard/settings`) };
+}
+
+export function monthlyEmail(m: MonthlyContent, appUrl: string, reportId: string): Email {
+  const month = new Date(m.month + "-01T00:00:00Z").toLocaleDateString("en-IN", { month: "long", year: "numeric", timeZone: "UTC" });
+  const blocks: Block[] = [{ lines: [
+    "Hi,",
+    `Your AI visibility review for ${month} is attached as a one-page PDF.`,
+    `${m.brand} was named in ${r(m.overall)} AI answers${delta(m.overall, m.prevOverall)}${m.unbranded.of ? `, and in ${r(m.unbranded)} answers to questions that don't mention you by name` : ""}.`,
+  ] }];
+  if (m.won.length) blocks.push({ title: "Won this month", lines: m.won.slice(0, 3).map((q) => `• “${q}”`) });
+  if (m.lost.length) blocks.push({ title: "Lost this month", lines: m.lost.slice(0, 3).map((q) => `• “${q}”`) });
+  if (m.plan.length) blocks.push({ title: "Next month", lines: m.plan.map((t, i) => `${i + 1}. ${t}`) });
+  return { subject: `${m.brand} · AI visibility review · ${month}`, ...render(blocks, { label: "Open the review", url: `${appUrl}/dashboard/reports/${reportId}` }, `${appUrl}/dashboard/settings`) };
 }

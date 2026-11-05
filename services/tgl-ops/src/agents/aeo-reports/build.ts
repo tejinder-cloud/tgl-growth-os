@@ -87,3 +87,44 @@ export function buildWeekly(p: { brand: string; start: string; end: string; week
 }
 
 export const pct = (r: Ratio | null) => (r && r.of ? Math.round((r.n / r.of) * 100) : null);
+
+export type MonthlyContent = Omit<WeeklyContent, "kind"> & {
+  kind: "monthly"; month: string;                                   // "2026-11"
+  weeks: { start: string; engines: Record<string, number | null> }[];   // % of answers naming you per engine per week
+  won: string[]; lost: string[];                                    // unbranded questions: named this month but not last / the reverse
+  plan: string[];                                                   // top open recommendations for next month
+};
+
+/** Monthly review = the weekly shape over a calendar month, plus a weekly trend line and won/lost questions. */
+export function buildMonthly(p: { brand: string; month: string; start: string; end: string; rows: AnswerRow[]; prevRows: AnswerRow[]; isBranded: (text: string) => boolean;
+  competitorNames: string[]; sites: { domain: string; answers: number }[]; recsDone: number; openRecs: number; plan: string[] }): MonthlyContent {
+  const base = buildWeekly({ ...p, week: p.rows, prevWeek: p.prevRows, topRec: p.plan[0] ?? null });
+  const rows = dedupe(p.rows), prev = dedupe(p.prevRows);
+  const weekStart = (d: string) => { const dow = new Date(d + "T00:00:00Z").getUTCDay(); return new Date(Date.parse(d + "T00:00:00Z") - ((dow + 6) % 7) * 86_400_000).toISOString().slice(0, 10); };
+  const starts = [...new Set(rows.map((r) => weekStart(r.date)))].sort();
+  const weeks = starts.map((s) => {
+    const inWeek = rows.filter((r) => weekStart(r.date) === s);
+    return { start: s, engines: Object.fromEntries(base.engines.map((e) => {
+      const x = inWeek.filter((r) => r.engine === e.engine);
+      return [e.engine, x.length ? Math.round((x.filter((r) => r.mentioned).length / x.length) * 100) : null];
+    })) };
+  });
+  const namedSet = (xs: AnswerRow[]) => new Set(xs.filter((r) => r.mentioned && !p.isBranded(r.prompt_text)).map((r) => r.prompt_text));
+  const askedPrev = new Set(prev.map((r) => r.prompt_text));
+  const now = namedSet(rows), before = namedSet(prev);
+  return {
+    ...base, kind: "monthly", month: p.month, weeks,
+    won: [...now].filter((q) => askedPrev.has(q) && !before.has(q)).sort(),
+    lost: [...before].filter((q) => rows.some((r) => r.prompt_text === q) && !now.has(q)).sort(),
+    plan: p.plan.slice(0, 3),
+  };
+}
+
+/** First and last day of the month before `today`, plus the month before that (pure). */
+export function previousMonth(today: string): { month: string; start: string; end: string; prevStart: string; prevEnd: string } {
+  const [y, m] = today.split("-").map(Number);
+  const first = new Date(Date.UTC(y, m - 2, 1)), last = new Date(Date.UTC(y, m - 1, 0));
+  const pFirst = new Date(Date.UTC(y, m - 3, 1)), pLast = new Date(Date.UTC(y, m - 2, 0));
+  const iso = (d: Date) => d.toISOString().slice(0, 10);
+  return { month: iso(first).slice(0, 7), start: iso(first), end: iso(last), prevStart: iso(pFirst), prevEnd: iso(pLast) };
+}

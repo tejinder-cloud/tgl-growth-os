@@ -139,7 +139,16 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
-import { runDailyDigests, runWeeklyReports } from "./agents/aeo-reports/worker.js";
+import { runDailyDigests, runMonthlyReports, runWeeklyReports } from "./agents/aeo-reports/worker.js";
+
+// 1st of the month, 09:00 IST: monthly review (one-page PDF) for the previous month (plan Day 24)
+cron.schedule(
+  "0 9 1 * *",
+  wrapCronJob("TrueVisible monthly review", async () => {
+    await runMonthlyReports();
+  }),
+  { timezone: config.timezone }
+);
 
 // Hourly 08:00–23:00 IST: daily digest for brands whose daily run finished (idempotent; late runs still get one) (plan Day 23)
 cron.schedule(
