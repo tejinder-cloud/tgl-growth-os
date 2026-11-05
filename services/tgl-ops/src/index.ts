@@ -239,6 +239,18 @@ cron.schedule(
   }
 })();
 
+// Startup intake: resume from persisted timestamp and catch up any messages posted during deploy downtime
+(async () => {
+  try {
+    const intakeRes = await pollChiefOfStaffIntake();
+    if (intakeRes.processedCount > 0) {
+      console.log(`[Startup Intake] Processed ${intakeRes.processedCount} message(s) posted during deployment.`);
+    }
+  } catch (err: any) {
+    console.warn("[Startup Intake Warning]", err?.message || err);
+  }
+})();
+
 // Sync labels on startup
 import("./lib/labels.js").then(({ syncLabels }) => {
   syncLabels().catch((err) => {

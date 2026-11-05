@@ -15,6 +15,13 @@ import { buildRunnerSystemPrompt, buildRunnerUserMessage, buildRepositoryMap, ex
 import { verifyPrDescriptionIssueLinking } from "./ci/check-pr-description.js";
 import { resetMockPostedLines, mockPostedLines } from "./lib/post.js";
 import { mockIssuesStore } from "./lib/github-client.js";
+import {
+  pollChiefOfStaffIntake,
+  resetIntakeStateForTests,
+  setBootTimestampForTests,
+  simulateProcessRebootForTests,
+  loadIntakeState,
+} from "./agents/chief-of-staff/intake.js";
 
 async function runFixesVerificationSuite(): Promise<void> {
   console.log("==========================================================================");
@@ -1524,6 +1531,107 @@ async function runFixesVerificationSuite(): Promise<void> {
   }
   console.log("  [Passed] Session allows up to 2 nudges before ending with status:needs-brief and preserving last text block");
   console.log("[Test 16 Passed] Runner nudge loop and last_model_message preservation verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 17: Intake boot resumes from persisted last-seen Slack timestamp,
+  // processing messages posted during deploy downtime while honoring
+  // own-message and duplicate guards.
+  // -------------------------------------------------------------------------
+  console.log("[Test 17] Testing intake boot resumption from persisted last-seen timestamp...");
+
+  const test17Channel = "C_FIX_DEPLOY";
+  resetIntakeStateForTests();
+  setBootTimestampForTests("1730300050.000000");
+
+  // Step 1: Pre-deploy intake poll
+  resetMockPostedLines();
+  const preDeployPoll = await pollChiefOfStaffIntake({
+    channelId: test17Channel,
+    testMode: true,
+    mockMessages: [
+      {
+        ts: "1730300100.000000",
+        text: "report",
+        user: "U_TEJINDER",
+      },
+    ],
+  });
+
+  if (preDeployPoll.processedCount !== 1) {
+    throw new Error(`Test 17.1 Failed: Expected 1 processed message pre-deploy, got ${preDeployPoll.processedCount}`);
+  }
+
+  const preDeployState = loadIntakeState(true);
+  if (preDeployState.lastProcessedTsByChannel[test17Channel] !== "1730300100.000000") {
+    throw new Error(
+      `Test 17.2 Failed: Expected persisted ts 1730300100.000000, got ${preDeployState.lastProcessedTsByChannel[test17Channel]}`
+    );
+  }
+  console.log("  [Passed] Pre-deploy message processed and persisted to state");
+
+  // Step 2: Simulate deploy restart at ts 1730300300.000000
+  simulateProcessRebootForTests("1730300300.000000");
+
+  // Step 3: Deploy downtime messages (between ts 100 and boot ts 300)
+  resetMockPostedLines();
+  const downtimeBatch = [
+    {
+      ts: "1730300100.000000",
+      text: "report",
+      user: "U_TEJINDER",
+    },
+    {
+      ts: "1730300120.000000",
+      text: "Bot notification message",
+      bot_id: "B_BOT",
+      user: "U_BOT",
+    },
+    {
+      ts: "1730300200.000000",
+      text: "counts by city",
+      user: "U_TEJINDER",
+    },
+    {
+      ts: "1730300260.000000",
+      text: "what is our spend today?",
+      user: "U_TEJINDER",
+    },
+  ];
+
+  const postDeployPoll = await pollChiefOfStaffIntake({
+    channelId: test17Channel,
+    testMode: true,
+    mockMessages: downtimeBatch,
+  });
+
+  if (postDeployPoll.processedCount !== 2) {
+    throw new Error(
+      `Test 17.3 Failed: Expected exactly 2 processed messages for deploy catch-up, got ${postDeployPoll.processedCount}`
+    );
+  }
+
+  const postDeployState = loadIntakeState(true);
+  if (postDeployState.lastProcessedTsByChannel[test17Channel] !== "1730300260.000000") {
+    throw new Error(
+      `Test 17.4 Failed: Expected lastProcessedTs to advance to 1730300260.000000, got ${postDeployState.lastProcessedTsByChannel[test17Channel]}`
+    );
+  }
+  console.log("  [Passed] Downtime messages processed; duplicate and bot messages ignored");
+  console.log("  [Passed] State resumed from persisted timestamp instead of boot time");
+
+  // Step 4: Repeat poll produces 0 duplicates
+  const repeatPoll = await pollChiefOfStaffIntake({
+    channelId: test17Channel,
+    testMode: true,
+    mockMessages: downtimeBatch,
+  });
+
+  if (repeatPoll.processedCount !== 0) {
+    throw new Error(`Test 17.5 Failed: Expected 0 processed messages on repeat poll, got ${repeatPoll.processedCount}`);
+  }
+  console.log("  [Passed] Repeat poll correctly ignored all previously processed messages");
+  console.log("[Test 17 Passed] Intake boot resumption from persisted timestamp verified.\n");
   passed++;
 
   console.log("==========================================================================");

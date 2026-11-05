@@ -11,6 +11,8 @@ import {
   addCommentToIssue,
   removeLabelFromIssue,
   addLabelsToIssue,
+  readFileFromRepo,
+  putFileInRepo,
 } from "../../lib/github-client.js";
 import { loadAgents, findAgentByName } from "../../lib/agents.js";
 import { loadPlanEntries, getCurrentPlanDay, getPlanStatusAnswer } from "../../lib/plan.js";
@@ -81,6 +83,13 @@ export function setBootTimestampForTests(ts: string): void {
   isBootInitialized = false;
 }
 
+export function simulateProcessRebootForTests(ts: string): void {
+  inMemoryLastProcessedTsByChannel = {};
+  inMemoryFailedAttemptsByMessageKey = {};
+  processBootTs = ts;
+  isBootInitialized = false;
+}
+
 export function resetIntakeStateForTests(): void {
   inMemoryLastProcessedTsByChannel = {};
   inMemoryFailedAttemptsByMessageKey = {};
@@ -137,6 +146,42 @@ export function saveIntakeState(state: IntakeState, testMode = isTestMode()): vo
     fs.writeFileSync(filePath, JSON.stringify(state, null, 2) + "\n", "utf8");
   } catch (err) {
     console.warn("[Intake State Save Warning]", err);
+  }
+}
+
+export async function restoreIntakeStateFromRepoIfNeeded(options?: { testMode?: boolean }): Promise<void> {
+  const isTest = options?.testMode === true || isTestMode();
+  if (isTest || !config.githubToken) return;
+  const localPath = getIntakeStateFilePath(false);
+  if (!fs.existsSync(localPath)) {
+    try {
+      const content = await readFileFromRepo("logs/.state/intake.json");
+      if (content) {
+        const parsed = JSON.parse(content);
+        if (parsed && typeof parsed.lastProcessedTsByChannel === "object") {
+          fs.mkdirSync(path.dirname(localPath), { recursive: true });
+          fs.writeFileSync(localPath, JSON.stringify(parsed, null, 2) + "\n", "utf8");
+          console.log("[Chief of Staff Intake] Restored intake.json state from GitHub repository on boot.");
+        }
+      }
+    } catch (err: any) {
+      console.warn("[Chief of Staff Intake] Remote state restore warning:", err?.message || err);
+    }
+  }
+}
+
+export async function syncIntakeStateToRepo(state: IntakeState, options?: { testMode?: boolean }): Promise<void> {
+  const isTest = options?.testMode === true || isTestMode();
+  if (isTest || !config.githubToken) return;
+  try {
+    const jsonContent = JSON.stringify(state, null, 2) + "\n";
+    await putFileInRepo(
+      "logs/.state/intake.json",
+      jsonContent,
+      "chore(state): update intake state"
+    );
+  } catch (err: any) {
+    console.warn("[Chief of Staff Intake] Remote state sync warning:", err?.message || err);
   }
 }
 
@@ -611,18 +656,25 @@ export async function pollChiefOfStaffIntake(options?: {
   }
 
   // 2. Read intake state before poll
+  if (!isTest) {
+    await restoreIntakeStateFromRepoIfNeeded({ testMode: isTest });
+  }
   const state = loadIntakeState(isTest);
   const channelsToPoll: string[] = [];
 
-  // Read channel strictly from ARCHITECT_CHANNEL_ID, never by channel name (e.g. #architect)
-  if (config.architectChannelId && !config.architectChannelId.startsWith("#")) {
-    channelsToPoll.push(config.architectChannelId);
-  } else if (isTest && config.architectChannelId) {
-    channelsToPoll.push(config.architectChannelId);
+  if (options?.channelId) {
+    channelsToPoll.push(options.channelId);
+  } else {
+    // Read channel strictly from ARCHITECT_CHANNEL_ID, never by channel name (e.g. #architect)
+    if (config.architectChannelId && !config.architectChannelId.startsWith("#")) {
+      channelsToPoll.push(config.architectChannelId);
+    } else if (isTest && config.architectChannelId) {
+      channelsToPoll.push(config.architectChannelId);
+    }
   }
 
   // Also query direct IM channels if Slack token available
-  if (config.slackBotToken && !isTest) {
+  if (config.slackBotToken && !isTest && !options?.channelId) {
     try {
       const convos = await slackClient.conversations.list({ types: "im", limit: 10 });
       if (convos.channels) {
@@ -644,14 +696,18 @@ export async function pollChiefOfStaffIntake(options?: {
     return { polledCount: 0, processedCount: 0 };
   }
 
-  // 3. On boot, start from "now", not from channel history
+  // 3. On boot, only initialize channels that have no persisted history
   if (!isBootInitialized) {
+    let stateChanged = false;
     for (const channel of channelsToPoll) {
-      if (!state.lastProcessedTsByChannel[channel] || Number(state.lastProcessedTsByChannel[channel]) < Number(processBootTs)) {
+      if (!state.lastProcessedTsByChannel[channel]) {
         state.lastProcessedTsByChannel[channel] = processBootTs;
+        stateChanged = true;
       }
     }
-    saveIntakeState(state, isTest);
+    if (stateChanged) {
+      saveIntakeState(state, isTest);
+    }
     isBootInitialized = true;
   }
 
@@ -1148,6 +1204,11 @@ export async function pollChiefOfStaffIntake(options?: {
   // 4. Write after poll
   state.lastPolledAt = new Date().toISOString();
   saveIntakeState(state, isTest);
+  if (!isTest && processedCount > 0) {
+    syncIntakeStateToRepo(state).catch((err) => {
+      console.warn("[Chief of Staff Intake] Remote state sync error:", err?.message || err);
+    });
+  }
 
   return { polledCount, processedCount };
 }
