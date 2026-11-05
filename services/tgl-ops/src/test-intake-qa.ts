@@ -14,6 +14,8 @@ import {
   pollChiefOfStaffIntake,
   resetIntakeStateForTests,
   setBootTimestampForTests,
+  simulateProcessRebootForTests,
+  loadIntakeState,
   lastTriggeredRunnerIssue,
   resetLastTriggeredRunnerIssueForTests,
 } from "./agents/chief-of-staff/intake.js";
@@ -859,6 +861,114 @@ async function runIntakeQaTests() {
   }
   console.log("  ✓ In-thread Slack reply sent confirming update and needs_changes status");
   console.log("  [Test 9 Passed] Architect setup command verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 10: Boot resumes from persisted last-seen Slack timestamp,
+  // processing messages posted during deploy downtime while honoring
+  // own-message and duplicate guards.
+  // -------------------------------------------------------------------------
+  console.log("[Test 10] Testing intake boot resumption from persisted last-seen timestamp...");
+
+  const deployChannel = "C_TEST_DEPLOY";
+  resetIntakeStateForTests();
+  setBootTimestampForTests("1730300050.000000");
+
+  // Step 1: Initial poll before deploy: message at ts = 1730300100.000000
+  resetMockPostedLines();
+  const preDeployRes = await pollChiefOfStaffIntake({
+    channelId: deployChannel,
+    testMode: true,
+    mockMessages: [
+      {
+        ts: "1730300100.000000",
+        text: "report",
+        user: "U_TEJINDER",
+      },
+    ],
+  });
+
+  if (preDeployRes.processedCount !== 1) {
+    throw new Error(`Test 10.1 Failed: Expected 1 processed message pre-deploy, got ${preDeployRes.processedCount}`);
+  }
+
+  const preState = loadIntakeState(true);
+  if (preState.lastProcessedTsByChannel[deployChannel] !== "1730300100.000000") {
+    throw new Error(
+      `Test 10.2 Failed: Expected persisted ts to be 1730300100.000000, got ${preState.lastProcessedTsByChannel[deployChannel]}`
+    );
+  }
+  console.log("  [Passed] Pre-deploy message processed and persisted to state");
+
+  // Step 2: Simulate container restart/reboot at a later time (1730300300.000000)
+  // Boot timestamp is after messages posted during deploy (e.g. 150, 200, 250)
+  simulateProcessRebootForTests("1730300300.000000");
+
+  // Step 3: Incoming messages during deploy:
+  // - msg1: duplicate pre-deploy message (ts: 1730300100.000000) -> should be skipped by duplicate guard
+  // - msg2: bot-authored message (ts: 1730300150.000000, bot_id: B_BOT) -> should be skipped by own-message guard
+  // - msg3: Architect message 1 posted during deploy (ts: 1730300200.000000, "counts by city") -> should be processed
+  // - msg4: Architect message 2 posted during deploy (ts: 1730300250.000000, "what is our spend today?") -> should be processed
+  resetMockPostedLines();
+  const deployMessages = [
+    {
+      ts: "1730300100.000000",
+      text: "report",
+      user: "U_TEJINDER",
+    },
+    {
+      ts: "1730300150.000000",
+      text: "Bot notification message",
+      bot_id: "B_BOT",
+      user: "U_BOT",
+    },
+    {
+      ts: "1730300200.000000",
+      text: "counts by city",
+      user: "U_TEJINDER",
+    },
+    {
+      ts: "1730300250.000000",
+      text: "what is our spend today?",
+      user: "U_TEJINDER",
+    },
+  ];
+
+  const postDeployRes = await pollChiefOfStaffIntake({
+    channelId: deployChannel,
+    testMode: true,
+    mockMessages: deployMessages,
+  });
+
+  if (postDeployRes.processedCount !== 2) {
+    throw new Error(
+      `Test 10.3 Failed: Expected exactly 2 processed messages for deploy catch-up, got ${postDeployRes.processedCount}`
+    );
+  }
+
+  const postState = loadIntakeState(true);
+  if (postState.lastProcessedTsByChannel[deployChannel] !== "1730300250.000000") {
+    throw new Error(
+      `Test 10.4 Failed: Expected lastProcessedTs to advance to 1730300250.000000, got ${postState.lastProcessedTsByChannel[deployChannel]}`
+    );
+  }
+  console.log("  [Passed] Both deploy messages processed cleanly; duplicate and bot messages ignored");
+  console.log("  [Passed] State resumed from persisted timestamp instead of being overwritten with boot time");
+
+  // Step 4: Verify subsequent poll with identical messages produces 0 processed messages
+  const repeatPollRes = await pollChiefOfStaffIntake({
+    channelId: deployChannel,
+    testMode: true,
+    mockMessages: deployMessages,
+  });
+
+  if (repeatPollRes.processedCount !== 0) {
+    throw new Error(
+      `Test 10.5 Failed: Expected 0 processed messages on repeat poll, got ${repeatPollRes.processedCount}`
+    );
+  }
+  console.log("  [Passed] Repeat poll correctly ignored all previously processed messages");
+  console.log("[Test 10 Passed] Boot resumption from persisted timestamp verified.\n");
   passed++;
 
   // Clean up
