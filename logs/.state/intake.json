@@ -1,8 +1,8 @@
 {
   "version": 1,
   "lastProcessedTsByChannel": {
-    "C073SJJ22P9": "1793878834.787279"
+    "C073SJJ22P9": "1793879357.326829"
   },
-  "lastPolledAt": "2026-11-05T11:41:19.322Z",
+  "lastPolledAt": "2026-11-05T11:50:08.258Z",
   "failedAttemptsByMessageKey": {}
 }
