@@ -24,7 +24,7 @@ const prev = [
   a({ prompt_id: "p4", prompt_text: "AEO cost India", engine: "perplexity", date: "2026-11-04", mentioned: true }),
 ];
 const d = buildDaily({ brand: "The Growth Lab", date: "2026-11-05", today, prev, prevDate: "2026-11-04", competitorNames: ["Wevia", "Dovetail Solutions"],
-  sitesToday: ["justdial.com", "new.example", "new.example"], sitesBefore: ["justdial.com"], openRecs: 8, topRec: "Add schema markup" });
+  sitesToday: ["justdial.com", "new.example", "aa.example", "new.example"], sitesBefore: ["justdial.com"], openRecs: 8, topRec: "Add schema markup" });
 
 await t("daily: one answer per question × engine × day; gained/lost only for questions asked both days", () => {
   assert.equal(dedupe(today).length, 4);
@@ -34,7 +34,7 @@ await t("daily: one answer per question × engine × day; gained/lost only for q
   assert.deepEqual(d.lost, [{ prompt: "AEO cost India", engine: "perplexity" }]);
   assert.equal(d.comparedPairs, 3);
   assert.deepEqual(d.competitors, [{ name: "Wevia", today: 2, prev: 0 }]);
-  assert.deepEqual(d.newSites, ["new.example"]);
+  assert.deepEqual(d.newSites, ["new.example", "aa.example"]);   // most-cited first, not alphabetical
   assert.equal(dailyHasNews(d), true);
   const quiet = buildDaily({ brand: "X", date: "2026-11-05", today: prev.map((r) => ({ ...r, date: "2026-11-05" })), prev, prevDate: "2026-11-04", competitorNames: [], sitesToday: [], sitesBefore: [], openRecs: 0, topRec: null });
   assert.equal(dailyHasNews(quiet), false);   // nothing changed → stored, not emailed
@@ -46,6 +46,9 @@ await t("daily email: counts from the report, escaped, one next step, signed by 
   assert.ok(e.text.includes("named The Growth Lab in 2 of 4 answers (same as before)"));
   assert.ok(e.text.includes("• “Best AEO agency in India” — ChatGPT"));
   assert.ok(e.text.includes("Add schema markup — one of 8 recommendations"));
+  assert.ok(e.text.includes("• Wevia: named in 2 answers (was 0)"));
+  const one = dailyEmail({ ...d, competitors: [{ name: "Dovetail Solutions", today: 1, prev: 0 }] }, "https://x");
+  assert.ok(one.text.includes("named in 1 answer (was 0)"));
   assert.ok(e.text.includes("— your TrueVisible team") && e.text.includes("/dashboard/settings"));
   assert.ok(e.html.includes("New &lt;question&gt; &amp; co") === false);   // p3 wasn't asked yesterday, so it isn't listed
   assert.ok(!e.html.includes("<question>"));

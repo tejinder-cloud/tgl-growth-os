@@ -39,7 +39,9 @@ export function buildDaily(p: { brand: string; date: string; today: AnswerRow[];
     gained, lost, comparedPairs: pairs.length,
     competitors: p.competitorNames.map((name) => ({ name, today: t.filter((r) => r.competitors.includes(name)).length, prev: y.length ? y.filter((r) => r.competitors.includes(name)).length : null }))
       .filter((c) => c.today || c.prev).sort((a, b) => b.today - a.today || a.name.localeCompare(b.name)),
-    newSites: [...new Set(p.sitesToday)].filter((d) => !before.has(d)).sort().slice(0, 8),
+    // New today, most-cited first (alphabetical order put arbitrary sites on top).
+    newSites: [...p.sitesToday.reduce((m, d) => m.set(d, (m.get(d) ?? 0) + 1), new Map<string, number>())]
+      .filter(([d]) => !before.has(d)).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 5).map(([d]) => d),
     openRecs: p.openRecs, topRec: p.topRec,
   };
 }
