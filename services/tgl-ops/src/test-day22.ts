@@ -6,7 +6,7 @@ process.env.ANTHROPIC_PRICE_IN = "3";
 process.env.ANTHROPIC_PRICE_OUT = "15";
 import assert from "node:assert/strict";
 import { promptEvidence, containsName } from "./agents/aeo-recommender/gather.js";
-import { validateRecommendations, buildUserMessage, proposeRecommendations } from "./agents/aeo-recommender/propose.js";
+import { validateRecommendations, buildUserMessage, proposeRecommendations, isListingSite } from "./agents/aeo-recommender/propose.js";
 import { shouldGenerate } from "./agents/aeo-recommender/worker.js";
 import type { RecEvidence } from "./agents/aeo-recommender/types.js";
 import { summarise } from "./agents/aeo-audit-engine/experiment.js";
@@ -79,6 +79,17 @@ await t("assets: directory list built from the cited sites (not the model); JSON
   const ld = recs[2];
   assert.equal(ld.asset.format, "json");
   assert.equal(JSON.parse(ld.asset.content).name, "The Growth Lab");
+});
+
+await t("directory lists keep only real directories / list pages, never a competitor's own site", () => {
+  assert.equal(isListingSite({ domain: "agencies.semrush.com", channelType: null, urls: [] }, "directory_list"), true);
+  assert.equal(isListingSite({ domain: "unveilrai.com", channelType: null, urls: ["https://unveilrai.com/feeds/best-aeo-agencies-in-india"] }, "directory_list"), true);
+  assert.equal(isListingSite({ domain: "thatware.co", channelType: null, urls: [] }, "directory_list"), false);
+  assert.equal(isListingSite({ domain: "digitalpatron.in", channelType: null, urls: ["https://digitalpatron.in/services/digital-marketing/chandigarh"] }, "directory_list"), false);
+  const ev2 = { ...ev, sites: [...ev.sites, { ref: "S3", domain: "thatware.co", channelType: null, answers: 4, withoutYou: 4, namedYou: 0, competitorNotYou: 0, competitors: [], urls: [] }] };
+  const { recs } = validateRecommendations({ recommendations: [{ ...good.recommendations[0], site_refs: ["S1", "S3"] }] }, ev2);
+  assert.ok(!recs[0].asset.content.includes("thatware.co"));
+  assert.deepEqual((recs[0].evidence as any).sites.map((x: any) => x.domain), ["agencies.semrush.com"]);
 });
 
 await t("prompt: evidence ids, site text and the no-numbers rule reach the model", async () => {

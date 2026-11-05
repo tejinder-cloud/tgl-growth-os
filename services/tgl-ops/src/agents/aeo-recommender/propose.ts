@@ -81,6 +81,16 @@ export function buildUserMessage(ev: RecEvidence): string {
 const NUMBERY = /\d+\s*(%|percent|per ?cent|answers?|times|citations?|out of|of \d)/i;
 const strip = (s: unknown, n: number) => (typeof s === "string" ? s.trim().slice(0, n) : "");
 
+// A site you can get listed on: a known directory/marketplace, or a page that is itself a list ("best …", "/list/").
+// A competitor agency's own website is not a place to get listed (Architect review, 4 Nov).
+const LISTING_DOMAINS = /(^|\.)(semrush\.com|sortlist\.(com|in)|clutch\.co|goodfirms\.co|designrush\.com|justdial\.com|sulekha\.com|indiamart\.com|trustpilot\.com|g2\.com|pickanagency\.com|upcity\.com|themanifest\.com|yelp\.com|tripadvisor\.[a-z.]+|practo\.com|99acres\.com|magicbricks\.com|shiksha\.com|collegedunia\.com|google\.com)$/;
+export function isListingSite(s: { domain: string; channelType: string | null; urls: string[] }, kind: AssetKind): boolean {
+  if (kind === "thread_list") return s.channelType === "forum" || s.channelType === "social" || /(^|\.)(reddit\.com|quora\.com|linkedin\.com)$/.test(s.domain);
+  if (s.channelType === "directory" || s.channelType === "marketplace") return true;
+  if (LISTING_DOMAINS.test(s.domain)) return true;
+  return s.urls.some((u) => /\/(list|lists|directory|top|best)[-/]|best-[a-z-]*agenc|top-\d+/i.test(u));
+}
+
 function siteList(ev: RecEvidence, refs: string[], kind: AssetKind): string {
   const rows = refs.map((r) => ev.sites.find((s) => s.ref === r)!).filter(Boolean);
   const head = kind === "thread_list" ? "## Threads and communities AI cites" : "## Sites to get listed on";
@@ -110,7 +120,9 @@ export function validateRecommendations(raw: any, ev: RecEvidence): { recs: Reco
       try { content = JSON.stringify(JSON.parse(j), null, 2); format = "json"; } catch { dropped.push(`“${title}” — JSON-LD is not valid JSON`); continue; }
     }
     if ((kind === "directory_list" || kind === "thread_list")) {
-      if (!siteRefs.length) { dropped.push(`“${title}” — site list without site ids`); continue; }
+      const listable = siteRefs.filter((ref) => isListingSite(ev.sites.find((x) => x.ref === ref)!, kind));
+      if (!listable.length) { dropped.push(`“${title}” — none of its sites is a directory, list or forum`); continue; }
+      siteRefs.splice(0, siteRefs.length, ...listable);
       content = `${siteList(ev, siteRefs, kind)}\n\n## How to do it\n${content}`;
     }
     const impact = Math.min(5, Math.max(1, Math.round(Number(r?.impact) || 3)));
