@@ -1,18 +1,20 @@
 // services/tgl-ops/src/agents/outreach-sequencer/worker.ts
 // Tick orchestration for the 5-touch sequence. This module owns the SAFETY rules from SKILL.md Playbook B
-// and the touch 2 hold rule from Playbook A. It does not talk to GHL, Supabase or Slack itself: those are
+// and the one-pager hold rule from Playbook A (touch 3 carries the PDF). It does not talk to GHL, Supabase or Slack itself: those are
 // injected as ports so the rules can be exercised without network access or credentials.
 //
 // Rules enforced here, in order:
 //   1. Send window: Mon-Fri, 09:30-17:30 IST. Outside it the tick does nothing.
 //   2. Daily cap: OUTREACH_DAILY_SEND_CAP (default 40) across all touches, oldest due first.
 //   3. Live switch: sends go out only when OUTREACH_LIVE=1, otherwise every touch runs dry.
-//   4. Touch 2 is never sent bare: a result without a one-pager attachment is treated as held.
-//   5. Three failed touch 2 attempts post to #alerts and the sequence stays paused.
+//   4. The one-pager touch is never sent bare: a result without a one-pager attachment is treated as held.
+//   5. Three failed one-pager attempts post to #alerts and the sequence stays paused.
 
 export const TOUCH_COUNT = 5;
+/** Touch that carries the prospect's one-pager PDF (Architect cadence: T3, email, day 4). Mirrors sequence.ts. */
+export const ONE_PAGER_TOUCH = 3;
 export const MAX_HOLD_ATTEMPTS = 3;
-export const DEFAULT_DAILY_CAP = 40;
+export const DEFAULT_DAILY_CAP = 20;
 
 const IST_OFFSET_MINUTES = 330;
 const WINDOW_START_MINUTES = 9 * 60 + 30;
@@ -34,7 +36,7 @@ export interface DueTouch {
 export interface ExecuteResult {
   status: "sent" | "dry_run" | "held" | "skipped";
   reason?: string;
-  /** Signed URL of the prospect's one-pager. Mandatory for touch 2 when status is sent or dry_run. */
+  /** Signed URL of the prospect's one-pager. Mandatory for the one-pager touch when status is sent or dry_run. */
   attachmentUrl?: string;
   /** Consecutive failed attempts for this touch, including this one. Reported by the port when held. */
   attempts?: number;
@@ -47,7 +49,7 @@ export interface TickPorts {
   listDue: (now: Date) => Promise<DueTouch[]>;
   /** Touches already sent (or dry-run) since IST midnight. */
   countToday: (now: Date) => Promise<number>;
-  /** Build the message, attach the one-pager on touch 2, send through GHL when mode is live, persist state. */
+  /** Build the message, attach the one-pager on the one-pager touch, send through GHL when mode is live, persist state. */
   execute: (item: DueTouch, mode: SendMode) => Promise<ExecuteResult>;
   /** Post a plain-text line to #alerts. */
   alert: (text: string) => Promise<unknown>;
@@ -117,11 +119,11 @@ export async function runTick(ports: TickPorts): Promise<TickSummary> {
       result = { status: "held", reason: err?.message || String(err), attempts: 1 };
     }
 
-    // Playbook A rule 1: touch 2 never goes out without the prospect's own one-pager.
-    if (item.touch === 2 && (result.status === "sent" || result.status === "dry_run") && !result.attachmentUrl) {
-      result = { status: "held", reason: "touch 2 result carried no one-pager attachment", attempts: result.attempts };
+    // Playbook A rule 1: the one-pager touch never goes out without the prospect's own one-pager.
+    if (item.touch === ONE_PAGER_TOUCH && (result.status === "sent" || result.status === "dry_run") && !result.attachmentUrl) {
+      result = { status: "held", reason: `touch ${ONE_PAGER_TOUCH} result carried no one-pager attachment`, attempts: result.attempts };
       await ports.alert(
-        `*Outreach guard: ${item.company}* touch 2 completed without a one-pager attachment. Check the sequencer immediately; touch 2 must never go out bare.`
+        `*Outreach guard: ${item.company}* touch ${ONE_PAGER_TOUCH} completed without a one-pager attachment. Check the sequencer immediately; touch ${ONE_PAGER_TOUCH} must never go out bare.`
       );
     }
 

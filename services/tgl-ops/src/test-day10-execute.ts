@@ -95,7 +95,7 @@ async function main() {
     assert.equal(st.next_touch, 2);
     assert.equal(st.touches.length, 1);
     assert.equal(st.touches[0].dry_run, false);
-    assert.equal(st.next_due_at, "2026-03-12T04:30:00.000Z", "3 business days after Monday is Thursday");
+    assert.equal(st.next_due_at, "2026-03-11T04:30:00.000Z", "2 business days after Monday is Wednesday");
     assert.equal(h.log.builds, 0, "touch 1 needs no audit");
   }
 
@@ -113,52 +113,57 @@ async function main() {
     assert.equal(st.touches[0].dry_run, true);
   }
 
-  // Touch 2 live: builds the audit once, attaches the signed one-pager URL, message quotes the audit
+  // Touch 3 live: builds the audit once, attaches the signed one-pager URL, message quotes the audit
   {
-    const h = harness({ state: baseState({ next_touch: 2 }) });
-    const res = await makeExecute(h.ports)(item(2), "live");
+    const h = harness({ state: baseState({ next_touch: 3 }) });
+    const res = await makeExecute(h.ports)(item(3), "live");
     assert.equal(res.status, "sent");
     assert.equal(res.attachmentUrl, "https://example.test/p1/onepager.pdf?sig=1");
     assert.equal(h.sent[0].attachmentUrl, res.attachmentUrl);
     assert.ok(h.sent[0].message.text.includes("3 of 15"), "figures come from the audit summary");
     assert.equal(h.getState().audit?.mentions, 3);
-    assert.equal(h.getState().next_touch, 3);
+    assert.equal(h.getState().next_touch, 4);
   }
 
   // Cached audit is reused: no second build
   {
-    const h = harness({ state: baseState({ next_touch: 2, audit: AUDIT, onepager_path: "p1/onepager.pdf" }) });
-    await makeExecute(h.ports)(item(2), "live");
+    const h = harness({ state: baseState({ next_touch: 3, audit: AUDIT, onepager_path: "p1/onepager.pdf" }) });
+    await makeExecute(h.ports)(item(3), "live");
     assert.equal(h.log.builds, 0);
     assert.equal(h.sent.length, 1);
   }
 
-  // Touch 2 audit failure: held, nothing sent; third failure pauses the sequence
+  // Touch 3 audit failure: held, nothing sent; third failure pauses the sequence
   {
-    const h = harness({ state: baseState({ next_touch: 2 }), buildFails: true });
+    const h = harness({ state: baseState({ next_touch: 3 }), buildFails: true });
     const ex = makeExecute(h.ports);
-    const r1 = await ex(item(2), "live");
+    const r1 = await ex(item(3), "live");
     assert.equal(r1.status, "held");
     assert.equal(r1.attempts, 1);
-    const r2 = await ex(item(2), "live");
+    const r2 = await ex(item(3), "live");
     assert.equal(r2.attempts, 2);
     assert.equal(h.getState().state, "active");
-    const r3 = await ex(item(2), "live");
+    const r3 = await ex(item(3), "live");
     assert.equal(r3.attempts, 3);
     assert.equal(h.getState().state, "paused");
     assert.ok(h.getState().pause_reason?.includes("pdf upload failed"));
-    assert.equal(h.sent.length, 0, "touch 2 is never sent bare");
-    assert.equal((await ex(item(2), "live")).status, "skipped", "paused sequences are skipped");
+    assert.equal(h.sent.length, 0, "touch 3 is never sent bare");
+    assert.equal((await ex(item(3), "live")).status, "skipped", "paused sequences are skipped");
   }
 
-  // Touch 3: WhatsApp only with a phone and WhatsApp enabled, otherwise email
+  // Touch 2 (and 4): WhatsApp only with a phone and WhatsApp enabled, otherwise email; touch 2 needs no audit
   {
-    const withWa = harness({ state: baseState({ next_touch: 3, audit: AUDIT, onepager_path: "p1/onepager.pdf" }), phone: "+919800000000", whatsapp: true });
-    await makeExecute(withWa.ports)(item(3), "live");
+    const withWa = harness({ state: baseState({ next_touch: 2 }), phone: "+919800000000", whatsapp: true });
+    await makeExecute(withWa.ports)(item(2), "live");
     assert.equal(withWa.sent[0].channel, "WhatsApp");
-    const noWa = harness({ state: baseState({ next_touch: 3, audit: AUDIT, onepager_path: "p1/onepager.pdf" }), phone: "+919800000000", whatsapp: false });
-    await makeExecute(noWa.ports)(item(3), "live");
+    assert.equal(withWa.log.builds, 0, "touch 2 does not trigger the paid audit");
+    const noWa = harness({ state: baseState({ next_touch: 2 }), phone: "+919800000000", whatsapp: false });
+    await makeExecute(noWa.ports)(item(2), "live");
     assert.equal(noWa.sent[0].channel, "Email");
+    const t4 = harness({ state: baseState({ next_touch: 4, audit: AUDIT, onepager_path: "p1/onepager.pdf" }), phone: "+919800000000", whatsapp: true });
+    await makeExecute(t4.ports)(item(4), "live");
+    assert.equal(t4.sent[0].channel, "WhatsApp");
+    assert.ok(t4.sent[0].message.text.includes("3 of 15"), "touch 4 quotes the audit");
   }
 
   // GHL send failure: held with attempt count, contact id not lost, sequence not advanced

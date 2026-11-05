@@ -8,13 +8,19 @@ import type {
   TouchChannel,
 } from "./types.js";
 
+// Cadence decided by the Architect (issue #72 thread, 3-5 Nov 2026):
+// T1 email day 0 · T2 WhatsApp day 2 · T3 email with the audit PDF day 4 · T4 WhatsApp day 7 · T5 email day 12.
+// WhatsApp touches fall back to email when the prospect has no business phone or WhatsApp is off in GHL.
 export const SEQUENCE: SequenceTouchDef[] = [
   { n: 1, offsetBusinessDays: 0, channel: "Email", attachOnePager: false },
-  { n: 2, offsetBusinessDays: 3, channel: "Email", attachOnePager: true },
-  { n: 3, offsetBusinessDays: 6, channel: "WhatsApp", attachOnePager: false },
-  { n: 4, offsetBusinessDays: 10, channel: "Email", attachOnePager: false },
-  { n: 5, offsetBusinessDays: 15, channel: "Email", attachOnePager: false },
+  { n: 2, offsetBusinessDays: 2, channel: "WhatsApp", attachOnePager: false },
+  { n: 3, offsetBusinessDays: 4, channel: "Email", attachOnePager: true },
+  { n: 4, offsetBusinessDays: 7, channel: "WhatsApp", attachOnePager: false },
+  { n: 5, offsetBusinessDays: 12, channel: "Email", attachOnePager: false },
 ];
+
+/** The touch that carries the prospect's one-pager PDF. Never sent bare. */
+export const ONE_PAGER_TOUCH = SEQUENCE.find((t) => t.attachOnePager)!.n;
 
 export const TOTAL_TOUCHES = SEQUENCE.length;
 
@@ -127,7 +133,9 @@ function auditFinding(ctx: MessageContext): string {
 
 /**
  * Renders the message for touch n on the given (already resolved) channel.
- * Touches 2-3 require ctx.audit; the caller must hold the touch if it is missing.
+ * Touches 3-4 require ctx.audit; the caller must hold the touch if it is missing. Touch 2 uses it when present.
+ * The editable copy for each touch lives in agents/outreach-sequencer/templates/touch-N.md; this function is the
+ * code rendering of those templates and must be kept in step with them.
  */
 export function renderTouch(n: number, channel: TouchChannel, ctx: MessageContext): RenderedMessage {
   const label = categoryLabel(ctx.category);
@@ -145,7 +153,20 @@ export function renderTouch(n: number, channel: TouchChannel, ctx: MessageContex
       ]);
     case 2: {
       const a = ctx.audit;
-      if (!a) throw new Error("Touch 2 requires the audit summary");
+      const finding = a ? `${auditFinding(ctx)}.` : `the one-page result for ${ctx.company} reaches your inbox in two days.`;
+      const body = `${hello} ${sign} from The Growth Lab. I emailed you about how ChatGPT, Gemini and Perplexity answer when someone in ${ctx.city} asks for a ${label}: ${finding} Reply YES if you would like the PDF here as well. Reply STOP to hear no more.`;
+      if (channel === "WhatsApp") return { text: body };
+      return build(`Re: how AI assistants answer about ${label}s in ${ctx.city}`, [
+        hello,
+        `A short follow-up to my note on how ChatGPT, Gemini and Perplexity answer when someone in ${ctx.city} asks for a ${label}: ${finding}`,
+        "The full one-page result follows by email.",
+        sign,
+        OPT_OUT_LINE,
+      ]);
+    }
+    case 3: {
+      const a = ctx.audit;
+      if (!a) throw new Error(`Touch ${ONE_PAGER_TOUCH} requires the audit summary`);
       const paras = [
         hello,
         `Attached is the one-page result for ${ctx.company}. We asked ChatGPT, Gemini and Perplexity ${a.total_queries / Math.max(1, Object.keys(a.mentions_by_engine).length)} buyer questions each about ${label}s in ${ctx.city}. ${auditFinding(ctx)}.`,
@@ -160,27 +181,19 @@ export function renderTouch(n: number, channel: TouchChannel, ctx: MessageContex
       );
       return build(`${ctx.company}: how AI assistants answer for ${label}s in ${ctx.city}`, paras);
     }
-    case 3: {
+    case 4: {
       const finding = auditFinding(ctx);
       const cited = ctx.audit?.top_cited_domains?.[0];
-      const body = `${hello} ${sign} from The Growth Lab. Following up on the one-pager I emailed: ${finding}.${cited ? ` The source the assistants cited most was ${cited}.` : ""} Happy to go through it on a short call. ${OPT_OUT_LINE}`;
+      const body = `${hello} one line from the report: ${finding}.${cited ? ` The source the assistants cited most was ${cited}.` : ""} That is usually a two-week fix, not a campaign. Want the 20-minute walkthrough? Reply with a day. ${OPT_OUT_LINE}`;
       if (channel === "WhatsApp") return { text: body };
-      return build(`Re: ${ctx.company} and AI assistant answers`, [
+      return build(`One fix from the report, ${ctx.company}`, [
         hello,
-        `Following up on the one-pager I sent: ${finding}.${cited ? ` The source the assistants cited most was ${cited}.` : ""}`,
-        "Happy to go through it on a short call if that is useful.",
+        `One line from the report: ${finding}.${cited ? ` The source the assistants cited most was ${cited}.` : ""} That is usually a two-week fix, not a campaign.`,
+        "Want the 20-minute walkthrough? Reply with a day that suits you. You keep the audit whether or not we work together.",
         sign,
         OPT_OUT_LINE,
       ]);
     }
-    case 4:
-      return build(`20-minute diagnostic for ${ctx.company}`, [
-        hello,
-        `A concrete next step if you want one: a 20-minute diagnostic. We go through the one-pager for ${ctx.company}, which buyer questions you are missing from, and what closing that gap would involve.`,
-        "You keep the audit whether or not we work together.",
-        sign,
-        OPT_OUT_LINE,
-      ]);
     case 5:
       return build(`Closing the file on ${ctx.company}`, [
         hello,

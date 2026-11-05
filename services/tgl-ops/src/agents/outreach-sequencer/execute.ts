@@ -9,11 +9,11 @@
 //
 // Rules enforced here:
 //   1. Stale or non-active sequences are skipped, never sent (reply, opt-out, pause, completed).
-//   2. Touch 2 is held, never sent bare: if the audit, the PDF or its signed URL is missing, the touch is held.
+//   2. The one-pager touch (ONE_PAGER_TOUCH, touch 3) is held, never sent bare: if the audit, the PDF or its signed URL is missing, the touch is held.
 //   3. The audit and PDF are cached in the sequence state, so a retry never pays for a second audit.
 //   4. Dry run builds and renders everything but does not contact GHL and does not advance the sequence.
 //   5. Three consecutive failures on a touch pause the sequence (worker.ts posts the single #alerts line).
-import { SEQUENCE, TOTAL_TOUCHES, dueAtForTouch, renderTouch, resolveChannel } from "./sequence.js";
+import { ONE_PAGER_TOUCH, SEQUENCE, TOTAL_TOUCHES, dueAtForTouch, renderTouch, resolveChannel } from "./sequence.js";
 import type { AuditSummary, OutreachState, RenderedMessage, TouchChannel, TouchRecord } from "./types.js";
 import { MAX_HOLD_ATTEMPTS, type DueTouch, type ExecuteResult, type SendMode } from "./worker.js";
 
@@ -33,7 +33,7 @@ export interface OutboundMessage {
   contactId: string;
   channel: TouchChannel;
   message: RenderedMessage;
-  /** Signed URL of the prospect's one-pager. Present on touch 2 only. */
+  /** Signed URL of the prospect's one-pager. Present on the one-pager touch only. */
   attachmentUrl?: string;
 }
 
@@ -84,8 +84,8 @@ export function makeExecute(ports: ExecutorPorts): (item: DueTouch, mode: SendMo
     const def = SEQUENCE.find((t) => t.n === item.touch);
     if (!def) return { status: "skipped", reason: `unknown touch ${item.touch}` };
 
-    // Touches 2 and 3 quote the prospect's own audit; touch 2 also attaches the PDF.
-    const needsAudit = item.touch === 2 || item.touch === 3;
+    // Touch 3 attaches the PDF and touch 4 quotes it; both need the prospect's own audit. Touch 2 uses it only if already built.
+    const needsAudit = item.touch === ONE_PAGER_TOUCH || item.touch === ONE_PAGER_TOUCH + 1;
     let attachmentUrl: string | undefined;
 
     if (needsAudit) {
@@ -137,9 +137,9 @@ export function makeExecute(ports: ExecutorPorts): (item: DueTouch, mode: SendMo
       return { status: "dry_run", attachmentUrl };
     }
 
-    // Live send. Touch 2 never goes out without the attachment.
+    // Live send. The one-pager touch never goes out without the attachment.
     if (def.attachOnePager && !attachmentUrl) {
-      return { status: "held", reason: "touch 2 has no one-pager attachment", attempts: state.audit_attempts };
+      return { status: "held", reason: `touch ${ONE_PAGER_TOUCH} has no one-pager attachment`, attempts: state.audit_attempts };
     }
 
     try {

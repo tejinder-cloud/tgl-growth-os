@@ -8,6 +8,7 @@ import {
   isLive,
   type DueTouch,
   type ExecuteResult,
+  type SendMode,
   type TickPorts,
 } from "./agents/outreach-sequencer/worker.js";
 import { secretsMatch } from "./routes/outreach.js";
@@ -31,12 +32,12 @@ function ports(over: Partial<TickPorts> & { items?: DueTouch[]; results?: Record
     env: {},
     listDue: async () => over.items || [],
     countToday: async () => 0,
-    execute: async (item, mode) => {
+    execute: async (item: DueTouch, mode: SendMode) => {
       executed.push(`${item.prospectId}:${item.touch}`);
       modes.push(mode);
-      return over.results?.[`${item.prospectId}:${item.touch}`] || { status: mode === "live" ? "sent" : "dry_run", attachmentUrl: item.touch === 2 ? "https://example.test/one-pager.pdf" : undefined };
+      return over.results?.[`${item.prospectId}:${item.touch}`] || { status: mode === "live" ? "sent" : "dry_run", attachmentUrl: item.touch === 3 ? "https://example.test/one-pager.pdf" : undefined };
     },
-    alert: async (t) => {
+    alert: async (t: string) => {
       alerts.push(t);
     },
     ...over,
@@ -57,10 +58,10 @@ async function main() {
   assert.equal(isLive({}), false);
   assert.equal(isLive({ OUTREACH_LIVE: "1" }), true);
   assert.equal(isLive({ OUTREACH_LIVE: "true" }), false);
-  assert.equal(dailyCap({}), 40);
+  assert.equal(dailyCap({}), 20);
   assert.equal(dailyCap({ OUTREACH_DAILY_SEND_CAP: "5" }), 5);
   assert.equal(dailyCap({ OUTREACH_DAILY_SEND_CAP: "0" }), 0);
-  assert.equal(dailyCap({ OUTREACH_DAILY_SEND_CAP: "abc" }), 40);
+  assert.equal(dailyCap({ OUTREACH_DAILY_SEND_CAP: "abc" }), 20);
 
   // Outside the window nothing is listed or executed
   {
@@ -107,20 +108,20 @@ async function main() {
     assert.equal(p.executed.length, 0);
   }
 
-  // Touch 2 without an attachment is held and alerted, never reported as sent
+  // The one-pager touch (3) without an attachment is held and alerted, never reported as sent
   {
     const p = ports({
-      items: [due(1, 2, "2026-03-09T00:00:00Z")],
-      results: { "p1:2": { status: "sent" } },
+      items: [due(1, 3, "2026-03-09T00:00:00Z")],
+      results: { "p1:3": { status: "sent" } },
     });
     const s = await runTick(p);
     assert.equal(s.outcomes[0].result.status, "held");
     assert.equal(p.alerts.length, 1);
   }
 
-  // Touch 2 with an attachment passes
+  // The one-pager touch with an attachment passes
   {
-    const p = ports({ items: [due(1, 2, "2026-03-09T00:00:00Z")], results: { "p1:2": { status: "sent", attachmentUrl: "https://example.test/a.pdf" } } });
+    const p = ports({ items: [due(1, 3, "2026-03-09T00:00:00Z")], results: { "p1:3": { status: "sent", attachmentUrl: "https://example.test/a.pdf" } } });
     const s = await runTick(p);
     assert.equal(s.outcomes[0].result.status, "sent");
     assert.equal(p.alerts.length, 0);
