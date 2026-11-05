@@ -14,8 +14,12 @@ export interface EngineCitation {
 export interface EngineUsage {
   inputTokens: number;
   outputTokens: number;
-  /** Web searches the provider ran (billed per call / per 1k). */
+  /** Billable web searches the provider ran (billed per call / per 1k). */
   searches: number;
+  /** Non-billable search-tool actions (ChatGPT open_page / find_in_page). */
+  pageActions?: number;
+  /** Searches covered by the provider's free allowance (Gemini grounding), already excluded from costUsd. */
+  freeSearches?: number;
 }
 
 export interface EngineAnswer {

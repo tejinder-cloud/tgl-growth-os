@@ -139,13 +139,52 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
-import { runCitationTracking } from "./agents/aeo-audit-engine/worker.js";
+import { runDailyDigests, runWeeklyReports } from "./agents/aeo-reports/worker.js";
+
+// Hourly 08:00–23:00 IST: daily digest for brands whose daily run finished (idempotent; late runs still get one) (plan Day 23)
+cron.schedule(
+  "0 8-23 * * *",
+  wrapCronJob("TrueVisible daily digest", async () => {
+    await runDailyDigests();
+  }),
+  { timezone: config.timezone }
+);
+
+// Monday 08:30 IST: weekly trend for the previous Monday–Sunday (plan Day 23)
+cron.schedule(
+  "30 8 * * 1",
+  wrapCronJob("TrueVisible weekly report", async () => {
+    await runWeeklyReports();
+  }),
+  { timezone: config.timezone }
+);
+
+import { runCitationTracking, runFirstAudits, runGeminiExperimentJob } from "./agents/aeo-audit-engine/worker.js";
+
+// Every 30 min: Gemini cost experiment — runs once a day after today's Gemini answers exist, only while
+// AEO_GEMINI_EXPERIMENT_MODELS is set (Architect decision 4 Nov 2026). Writes public.experiments only.
+cron.schedule(
+  "15,45 * * * *",
+  wrapCronJob("Gemini cost experiment", async () => {
+    await runGeminiExperimentJob();
+  }),
+  { timezone: config.timezone }
+);
 
 // 06:00 IST daily: Citation Tracker — every eligible brand × prompt × engine (config/agents.yaml routine daily_citation_tracking)
 cron.schedule(
   "0 6 * * *",
   wrapCronJob("06:00 IST Citation Tracker", async () => {
     await runCitationTracking();
+  }),
+  { timezone: config.timezone }
+);
+
+// Every minute: first audit for any setup submitted since the brand's last run (numbers within minutes of finishing setup)
+cron.schedule(
+  "* * * * *",
+  wrapCronJob("1-min First Audit Queue", async () => {
+    await runFirstAudits();
   }),
   { timezone: config.timezone }
 );
@@ -157,6 +196,18 @@ cron.schedule(
   "*/10 * * * *",
   wrapCronJob("10-min Setup Verification Queue", async () => {
     await pollSetupQueue();
+  }),
+  { timezone: config.timezone }
+);
+
+import { relayManagedAeoRequests } from "./agents/aeo-recommender/worker.js";
+// Recommendations are triggered by the Citation Tracker when a brand's run completes (no polling).
+
+// Every minute: "Start managed AEO" requests from the dashboard → #doors-aeo
+cron.schedule(
+  "* * * * *",
+  wrapCronJob("1-min Managed AEO Requests", async () => {
+    await relayManagedAeoRequests();
   }),
   { timezone: config.timezone }
 );
@@ -205,6 +256,18 @@ cron.schedule(
     }).catch((postErr) => {
       console.error("[Failed to post startup runner catch-up error to Slack alerts]", postErr);
     });
+  }
+})();
+
+// Startup intake: resume from persisted timestamp and catch up any messages posted during deploy downtime
+(async () => {
+  try {
+    const intakeRes = await pollChiefOfStaffIntake();
+    if (intakeRes.processedCount > 0) {
+      console.log(`[Startup Intake] Processed ${intakeRes.processedCount} message(s) posted during deployment.`);
+    }
+  } catch (err: any) {
+    console.warn("[Startup Intake Warning]", err?.message || err);
   }
 })();
 

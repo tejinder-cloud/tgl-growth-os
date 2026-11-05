@@ -4,6 +4,8 @@ process.env.ANTHROPIC_PRICE_IN = process.env.ANTHROPIC_PRICE_IN || "3.00";
 process.env.ANTHROPIC_PRICE_OUT = process.env.ANTHROPIC_PRICE_OUT || "15.00";
 process.env.TGL_TEST_MODE = "1";
 
+import fs from "node:fs";
+import path from "node:path";
 import { config } from "./config.js";
 import {
   classifyArchitectMessage,
@@ -12,6 +14,8 @@ import {
   pollChiefOfStaffIntake,
   resetIntakeStateForTests,
   setBootTimestampForTests,
+  simulateProcessRebootForTests,
+  loadIntakeState,
   lastTriggeredRunnerIssue,
   resetLastTriggeredRunnerIssueForTests,
 } from "./agents/chief-of-staff/intake.js";
@@ -635,6 +639,336 @@ async function runIntakeQaTests() {
   console.log("  ✓ Fallback general question replied with clarifying question, zero file summaries");
   console.log("  ✓ File summary 'I've verified our current records' completely eradicated from the system");
   console.log("✅ [Test 7 Passed] Issue resumption, clarification on ambiguity, and zero file summaries verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 8: Architect Operational Commands ("#N: resume" and "#N: block")
+  // -------------------------------------------------------------------------
+  console.log("[Test 8] Testing Architect commands (#N: resume and #N: block)...");
+
+  const { getRunnerState, saveRunnerState } = await import("./runner/state.js");
+
+  // Setup Issue #72 in mock store as status:blocked with 2 recoveryAttempts
+  mockIssuesStore.set(72, {
+    number: 72,
+    title: "[PLAN-D9]: TrueVisible Engine Core",
+    body: "### deliverable\nImplement TrueVisible core engine",
+    state: "open",
+    labels: ["for:web-builder", "status:blocked", "door:aeo"],
+    html_url: "https://github.com/tejinder-cloud/tgl-growth-os/issues/72",
+  });
+
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        "72": {
+          agent: "web-builder",
+          door: "aeo",
+          title: "[PLAN-D9]: TrueVisible Engine Core",
+          status: "blocked" as const,
+          runStartedAt: "2026-11-03T13:00:00.000Z",
+          recoveryAttempts: 2,
+          error: "Boot recovery limit exceeded",
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  // 1. Test classification of "#72: resume" and variations
+  const classResume1 = await classifyArchitectMessage("#72: resume", { testMode: true });
+  if (classResume1.category !== "command_resume" || classResume1.issueNumber !== 72) {
+    throw new Error(`Test 8.1 Failed: Expected category="command_resume" and issueNumber=72, got ${JSON.stringify(classResume1)}`);
+  }
+  const classResume2 = await classifyArchitectMessage("issue #72: resume", { testMode: true });
+  if (classResume2.category !== "command_resume" || classResume2.issueNumber !== 72) {
+    throw new Error(`Test 8.2 Failed: Expected category="command_resume" for 'issue #72: resume'`);
+  }
+
+  // 2. Execute "#72: resume" via intake polling
+  resetLastTriggeredRunnerIssueForTests();
+  resetMockPostedLines();
+  resetIntakeStateForTests();
+  setBootTimestampForTests("1730300490.000000");
+
+  const pollResumeRes = await pollChiefOfStaffIntake({
+    testMode: true,
+    mockMessages: [
+      {
+        ts: "1730300500.000000",
+        text: "#72: resume",
+        user: "U_TEJINDER",
+      },
+    ],
+  });
+
+  if (pollResumeRes.processedCount !== 1) {
+    throw new Error(`Test 8.3 Failed: Expected 1 processed message for resume command, got ${pollResumeRes.processedCount}`);
+  }
+
+  // Verify Issue #72 state on GitHub
+  const issue72AfterResume = mockIssuesStore.get(72)!;
+  if (!issue72AfterResume.labels.includes("status:in-progress")) {
+    throw new Error(`Test 8.4 Failed: Issue #72 missing 'status:in-progress'. Labels: ${JSON.stringify(issue72AfterResume.labels)}`);
+  }
+  if (issue72AfterResume.labels.includes("status:blocked")) {
+    throw new Error(`Test 8.5 Failed: Issue #72 still has 'status:blocked'. Labels: ${JSON.stringify(issue72AfterResume.labels)}`);
+  }
+
+  // Verify Runner State: recoveryAttempts cleared to 0, status in-progress
+  const runnerStateAfterResume = await getRunnerState({ testMode: true });
+  if (runnerStateAfterResume.runs["72"]?.recoveryAttempts !== 0) {
+    throw new Error(`Test 8.6 Failed: Expected recoveryAttempts=0 after resume, got: ${runnerStateAfterResume.runs["72"]?.recoveryAttempts}`);
+  }
+  if (runnerStateAfterResume.runs["72"]?.status !== "in-progress") {
+    throw new Error(`Test 8.7 Failed: Expected runner status='in-progress' after resume, got: ${runnerStateAfterResume.runs["72"]?.status}`);
+  }
+
+  // Verify runner triggered once
+  if ((lastTriggeredRunnerIssue as number | null) !== 72) {
+    throw new Error(`Test 8.8 Failed: Expected runner re-queued for Issue #72, got: ${lastTriggeredRunnerIssue}`);
+  }
+
+  // Verify reply in-thread
+  const replyResume = mockPostedLines[mockPostedLines.length - 1];
+  const expectedResumeReply = "→ @web-builder, #72 resumed, re-queued.";
+  if (!replyResume || replyResume.text !== expectedResumeReply) {
+    throw new Error(`Test 8.9 Failed: Expected reply "${expectedResumeReply}", got: "${replyResume?.text}"`);
+  }
+  console.log("  ✓ '#72: resume' cleared recoveryAttempts to 0, removed status:blocked, set status:in-progress, and re-queued");
+
+  // 3. Test classification of "#72: block"
+  const classBlock = await classifyArchitectMessage("#72: block", { testMode: true });
+  if (classBlock.category !== "command_block" || classBlock.issueNumber !== 72) {
+    throw new Error(`Test 8.10 Failed: Expected category="command_block" and issueNumber=72, got: ${JSON.stringify(classBlock)}`);
+  }
+
+  // 4. Execute "#72: block" via intake polling
+  resetMockPostedLines();
+  resetLastTriggeredRunnerIssueForTests();
+
+  const pollBlockRes = await pollChiefOfStaffIntake({
+    testMode: true,
+    mockMessages: [
+      {
+        ts: "1730300510.000000",
+        text: "#72: block",
+        user: "U_TEJINDER",
+      },
+    ],
+  });
+
+  if (pollBlockRes.processedCount !== 1) {
+    throw new Error(`Test 8.11 Failed: Expected 1 processed message for block command, got ${pollBlockRes.processedCount}`);
+  }
+
+  // Verify Issue #72 state on GitHub
+  const issue72AfterBlock = mockIssuesStore.get(72)!;
+  if (!issue72AfterBlock.labels.includes("status:blocked")) {
+    throw new Error(`Test 8.12 Failed: Issue #72 missing 'status:blocked'. Labels: ${JSON.stringify(issue72AfterBlock.labels)}`);
+  }
+  if (issue72AfterBlock.labels.includes("status:in-progress")) {
+    throw new Error(`Test 8.13 Failed: Issue #72 still has 'status:in-progress'. Labels: ${JSON.stringify(issue72AfterBlock.labels)}`);
+  }
+
+  // Verify runner state set to blocked
+  const runnerStateAfterBlock = await getRunnerState({ testMode: true });
+  if (runnerStateAfterBlock.runs["72"]?.status !== "blocked") {
+    throw new Error(`Test 8.14 Failed: Expected runner status='blocked' after block, got: ${runnerStateAfterBlock.runs["72"]?.status}`);
+  }
+
+  // Verify reply in-thread
+  const replyBlock = mockPostedLines[mockPostedLines.length - 1];
+  const expectedBlockReply = "→ #72 blocked.";
+  if (!replyBlock || replyBlock.text !== expectedBlockReply) {
+    throw new Error(`Test 8.15 Failed: Expected reply "${expectedBlockReply}", got: "${replyBlock?.text}"`);
+  }
+  console.log("  ✓ '#72: block' set status:blocked, removed status:in-progress, and replied '→ #72 blocked.'");
+  console.log("✅ [Test 8 Passed] Architect commands '#N: resume' and '#N: block' verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 9: Architect command "setup <brand>: product = ...; buyers = ...; location = ..."
+  // -------------------------------------------------------------------------
+  console.log("[Test 9] Testing Architect command 'setup <brand>: product = ...; buyers = ...; location = ...'...");
+
+  const setupCmdText = "setup The Growth Lab: product = AI visibility (AEO/GEO) + AI automation; buyers = hospitals, clinics, coaching institutes, hotels, real-estate developers, D2C brands; location = India-wide, Chandigarh home";
+  const setupClassRes = await classifyArchitectMessage(setupCmdText, { testMode: true });
+
+  if (setupClassRes.category !== "command_setup") {
+    throw new Error(`Test 9.1 Failed: Expected category="command_setup", got "${setupClassRes.category}"`);
+  }
+  if (setupClassRes.setupBrand !== "The Growth Lab") {
+    throw new Error(`Test 9.2 Failed: Expected setupBrand="The Growth Lab", got "${setupClassRes.setupBrand}"`);
+  }
+  if (setupClassRes.setupMarket?.product !== "AI visibility (AEO/GEO) + AI automation") {
+    throw new Error(`Test 9.3 Failed: Expected product="AI visibility (AEO/GEO) + AI automation", got "${setupClassRes.setupMarket?.product}"`);
+  }
+  if (setupClassRes.setupMarket?.buyers !== "hospitals, clinics, coaching institutes, hotels, real-estate developers, D2C brands") {
+    throw new Error(`Test 9.4 Failed: Expected buyers="hospitals, clinics, coaching institutes, hotels, real-estate developers, D2C brands", got "${setupClassRes.setupMarket?.buyers}"`);
+  }
+  if (setupClassRes.setupMarket?.location !== "India-wide, Chandigarh home") {
+    throw new Error(`Test 9.5 Failed: Expected location="India-wide, Chandigarh home", got "${setupClassRes.setupMarket?.location}"`);
+  }
+  console.log("  ✓ setup command classified deterministically with exact parsed market fields");
+
+  // Test intake poll execution of setup command
+  resetMockPostedLines();
+  const todayStr = getTodayDateString();
+  const testDecisionsFile = path.join(config.repoRoot, `logs/.test/decisions/${todayStr}.md`);
+  if (fs.existsSync(testDecisionsFile)) {
+    fs.unlinkSync(testDecisionsFile);
+  }
+
+  const pollSetupRes = await pollChiefOfStaffIntake({
+    channelId: "C_TEST_ARCH",
+    testMode: true,
+    mockMessages: [
+      {
+        ts: "1730300610.000000",
+        text: setupCmdText,
+        user: "U_TEJINDER",
+      },
+    ],
+  });
+
+  if (pollSetupRes.processedCount !== 1) {
+    throw new Error(`Test 9.6 Failed: Expected 1 processed message for setup command, got ${pollSetupRes.processedCount}`);
+  }
+
+  // Verify decision line was logged
+  if (!fs.existsSync(testDecisionsFile)) {
+    throw new Error(`Test 9.7 Failed: Decision file ${testDecisionsFile} was not written`);
+  }
+  const decisionContent = fs.readFileSync(testDecisionsFile, "utf8");
+  if (!decisionContent.includes("DECISION · chief-of-staff · Market wording updated for The Growth Lab")) {
+    throw new Error(`Test 9.8 Failed: Expected decision line in ${testDecisionsFile}, got: ${decisionContent}`);
+  }
+  if (!decisionContent.includes("product = AI visibility (AEO/GEO) + AI automation")) {
+    throw new Error(`Test 9.9 Failed: Expected product in decision line, got: ${decisionContent}`);
+  }
+  console.log("  ✓ Decision line written to decisions/<date>.md with actor and parsed market wording");
+
+  // Verify Slack reply in thread
+  const setupReply = mockPostedLines[mockPostedLines.length - 1];
+  if (!setupReply || !setupReply.text.includes("Market wording updated for *The Growth Lab*")) {
+    throw new Error(`Test 9.10 Failed: Expected Slack reply mentioning brand update, got: "${setupReply?.text}"`);
+  }
+  if (!setupReply.text.includes("Status set to `needs_changes`")) {
+    throw new Error(`Test 9.11 Failed: Expected Slack reply mentioning needs_changes, got: "${setupReply?.text}"`);
+  }
+  console.log("  ✓ In-thread Slack reply sent confirming update and needs_changes status");
+  console.log("  [Test 9 Passed] Architect setup command verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 10: Boot resumes from persisted last-seen Slack timestamp,
+  // processing messages posted during deploy downtime while honoring
+  // own-message and duplicate guards.
+  // -------------------------------------------------------------------------
+  console.log("[Test 10] Testing intake boot resumption from persisted last-seen timestamp...");
+
+  const deployChannel = "C_TEST_DEPLOY";
+  resetIntakeStateForTests();
+  setBootTimestampForTests("1730300050.000000");
+
+  // Step 1: Initial poll before deploy: message at ts = 1730300100.000000
+  resetMockPostedLines();
+  const preDeployRes = await pollChiefOfStaffIntake({
+    channelId: deployChannel,
+    testMode: true,
+    mockMessages: [
+      {
+        ts: "1730300100.000000",
+        text: "report",
+        user: "U_TEJINDER",
+      },
+    ],
+  });
+
+  if (preDeployRes.processedCount !== 1) {
+    throw new Error(`Test 10.1 Failed: Expected 1 processed message pre-deploy, got ${preDeployRes.processedCount}`);
+  }
+
+  const preState = loadIntakeState(true);
+  if (preState.lastProcessedTsByChannel[deployChannel] !== "1730300100.000000") {
+    throw new Error(
+      `Test 10.2 Failed: Expected persisted ts to be 1730300100.000000, got ${preState.lastProcessedTsByChannel[deployChannel]}`
+    );
+  }
+  console.log("  [Passed] Pre-deploy message processed and persisted to state");
+
+  // Step 2: Simulate container restart/reboot at a later time (1730300300.000000)
+  // Boot timestamp is after messages posted during deploy (e.g. 150, 200, 250)
+  simulateProcessRebootForTests("1730300300.000000");
+
+  // Step 3: Incoming messages during deploy:
+  // - msg1: duplicate pre-deploy message (ts: 1730300100.000000) -> should be skipped by duplicate guard
+  // - msg2: bot-authored message (ts: 1730300150.000000, bot_id: B_BOT) -> should be skipped by own-message guard
+  // - msg3: Architect message 1 posted during deploy (ts: 1730300200.000000, "counts by city") -> should be processed
+  // - msg4: Architect message 2 posted during deploy (ts: 1730300250.000000, "what is our spend today?") -> should be processed
+  resetMockPostedLines();
+  const deployMessages = [
+    {
+      ts: "1730300100.000000",
+      text: "report",
+      user: "U_TEJINDER",
+    },
+    {
+      ts: "1730300150.000000",
+      text: "Bot notification message",
+      bot_id: "B_BOT",
+      user: "U_BOT",
+    },
+    {
+      ts: "1730300200.000000",
+      text: "counts by city",
+      user: "U_TEJINDER",
+    },
+    {
+      ts: "1730300250.000000",
+      text: "what is our spend today?",
+      user: "U_TEJINDER",
+    },
+  ];
+
+  const postDeployRes = await pollChiefOfStaffIntake({
+    channelId: deployChannel,
+    testMode: true,
+    mockMessages: deployMessages,
+  });
+
+  if (postDeployRes.processedCount !== 2) {
+    throw new Error(
+      `Test 10.3 Failed: Expected exactly 2 processed messages for deploy catch-up, got ${postDeployRes.processedCount}`
+    );
+  }
+
+  const postState = loadIntakeState(true);
+  if (postState.lastProcessedTsByChannel[deployChannel] !== "1730300250.000000") {
+    throw new Error(
+      `Test 10.4 Failed: Expected lastProcessedTs to advance to 1730300250.000000, got ${postState.lastProcessedTsByChannel[deployChannel]}`
+    );
+  }
+  console.log("  [Passed] Both deploy messages processed cleanly; duplicate and bot messages ignored");
+  console.log("  [Passed] State resumed from persisted timestamp instead of being overwritten with boot time");
+
+  // Step 4: Verify subsequent poll with identical messages produces 0 processed messages
+  const repeatPollRes = await pollChiefOfStaffIntake({
+    channelId: deployChannel,
+    testMode: true,
+    mockMessages: deployMessages,
+  });
+
+  if (repeatPollRes.processedCount !== 0) {
+    throw new Error(
+      `Test 10.5 Failed: Expected 0 processed messages on repeat poll, got ${repeatPollRes.processedCount}`
+    );
+  }
+  console.log("  [Passed] Repeat poll correctly ignored all previously processed messages");
+  console.log("[Test 10 Passed] Boot resumption from persisted timestamp verified.\n");
   passed++;
 
   // Clean up

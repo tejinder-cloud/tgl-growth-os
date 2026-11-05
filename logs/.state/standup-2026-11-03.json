@@ -1,6 +1,8 @@
 {
   "date": "2026-11-03",
-  "posted": false,
-  "standupTs": "1793622600.903859",
-  "channel": "C0ASF13879Q"
+  "posted": true,
+  "standupTs": "1793709000.633049",
+  "channel": "C0ASF13879Q",
+  "postedAt": "2026-11-03T12:30:00.633Z",
+  "source": "cron"
 }

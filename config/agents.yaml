@@ -95,6 +95,19 @@
       schedule: "0 6 * * *"
       description: "Daily automated citation tracking runs per active brand"
 
+- name: aeo-recommender
+  department: aeo-delivery
+  channel: "#doors-aeo"
+  trigger: "A completed Citation Tracker run for a verified brand (at most one batch per brand per week)"
+  reviewer: "Creative Director"
+  status: planned
+  daily_cost_cap_usd: 0.50
+  routines:
+    - name: recommendations_after_run
+      frequency: after each completed Citation Tracker run
+      schedule: "event: citation tracker run completed"
+      description: "Prioritised recommendations + assets from stored answers; skipped if the brand's latest run already has a batch or the last batch is under 7 days old (plan Day 22)"
+
 - name: aeo-strategist
   department: aeo-delivery
   channel: "#doors-aeo"
@@ -145,10 +158,11 @@
   reviewer: "Creative Director"
   status: active
   autorun: true
-  daily_cost_cap_usd: 3.00
+  daily_cost_cap_usd: 6.00
   runner_limits:
     max_tool_calls: 150
     timeout_minutes: 60
+    research_calls: 20
   routines:
     - name: daily_plan_issue
       frequency: daily

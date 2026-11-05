@@ -1,0 +1,153 @@
+// Day 22 — recommendations: evidence from stored rows, validated model output, numbers only from code.
+process.env.TGL_TEST_MODE = "1";
+process.env.NODE_ENV = "test";
+process.env.ANTHROPIC_MODEL = "claude-test";
+process.env.ANTHROPIC_PRICE_IN = "3";
+process.env.ANTHROPIC_PRICE_OUT = "15";
+import assert from "node:assert/strict";
+import { promptEvidence, containsName } from "./agents/aeo-recommender/gather.js";
+import { validateRecommendations, buildUserMessage, proposeRecommendations, isListingSite } from "./agents/aeo-recommender/propose.js";
+import { shouldGenerate } from "./agents/aeo-recommender/worker.js";
+import type { RecEvidence } from "./agents/aeo-recommender/types.js";
+import { summarise } from "./agents/aeo-audit-engine/experiment.js";
+
+let passed = 0;
+async function t(name: string, fn: () => void | Promise<void>) {
+  try { await fn(); passed++; console.log(`✓ ${name}`); } catch (e) { console.error(`✗ ${name}`); throw e; }
+}
+
+async function main() {
+const prompts = [
+  { id: "p1", text: "Best AEO agencies in India", language: "en", journey_phase: "consideration" },
+  { id: "p2", text: "Is The Growth Lab a good choice for AEO?", language: "en", journey_phase: "decision" },
+];
+const answers = [
+  { prompt_id: "p1", engine: "chatgpt", mentioned: false, competitors_mentioned: ["Wevia"], text: "Top picks: Wevia, Automize Media Labs…", created_at: "2026-11-04T01:00:00Z" },
+  { prompt_id: "p1", engine: "chatgpt", mentioned: true, competitors_mentioned: [], text: "old", created_at: "2026-11-03T01:00:00Z" },
+  { prompt_id: "p1", engine: "perplexity", mentioned: false, competitors_mentioned: [], text: "Dovetail…", created_at: "2026-11-04T01:00:00Z" },
+  { prompt_id: "p2", engine: "chatgpt", mentioned: true, competitors_mentioned: [], text: "Yes…", created_at: "2026-11-04T01:00:00Z" },
+];
+const pe = promptEvidence(prompts, answers, ["The Growth Lab"]);
+
+await t("prompt evidence: latest answer per engine, branded flag, excerpt only from an answer that didn't name them", () => {
+  assert.deepEqual(pe[0], { ref: "P1", id: "p1", text: prompts[0].text, language: "en", stage: "consideration", branded: false,
+    enginesAsked: ["chatgpt", "perplexity"], enginesNamed: [], competitorsNamed: ["Wevia"], excerpt: "Top picks: Wevia, Automize Media Labs…" });
+  assert.equal(pe[1].branded, true); assert.deepEqual(pe[1].enginesNamed, ["chatgpt"]); assert.equal(pe[1].excerpt, null);
+  assert.equal(containsName("TGL Labs", ["GL"]), false);
+});
+
+const ev: RecEvidence = {
+  brandId: "b1", tenantId: "tgl", name: "The Growth Lab", domain: "thegrowthlab.co.in", platform: "wordpress", languages: ["en", "hinglish"],
+  market: { product: "AEO", icp: "clinics", location: "India" }, competitors: ["Wevia"], from: "2026-10-29", to: "2026-11-04", totalAnswers: 78, namedAnswers: 12,
+  prompts: pe,
+  sites: [
+    { ref: "S1", domain: "agencies.semrush.com", channelType: "directory", answers: 9, withoutYou: 8, namedYou: 1, competitorNotYou: 2, competitors: ["Wevia"], urls: ["https://agencies.semrush.com/list/chandigarh/"] },
+    { ref: "S2", domain: "reddit.com", channelType: "forum", answers: 4, withoutYou: 3, namedYou: 1, competitorNotYou: 0, competitors: [], urls: [] },
+  ],
+  ownCited: 0, site: { url: "https://thegrowthlab.co.in/", ok: true, title: "Home - The Growth Lab", description: "Growth partners", headings: ["We generate clients"], text: "Lead generation, AI automation, SEO + GEO." },
+};
+const good = {
+  recommendations: [
+    { title: "Get listed on the agency directories AI cites", body: "AI leans on agency directories when it lists AEO firms; a complete profile there puts you in the pool it reads.", category: "offsite", impact: 4, ease: 5, prompt_refs: ["P1"], site_refs: ["S1"],
+      asset: { kind: "directory_list", title: "Directory checklist", content: "Create a profile, add AEO as a service, add Chandigarh and India-wide coverage, link your site." } },
+    { title: "Publish an AEO services page that answers buyers' questions", body: "No page on your site answers 'best AEO agency in India' directly, so AI has nothing of yours to cite.", category: "content", impact: 5, ease: 3, prompt_refs: ["P1"], site_refs: [],
+      asset: { kind: "page_draft", title: "AEO services page", content: "# AEO services in India\n\n## What AEO is\n…\n## Who we help\nClinics, coaching institutes … [add a client result]" } },
+    { title: "Add Organization schema", body: "Structured data tells AI engines who you are and what you offer.", category: "technical", impact: 3, ease: 5, prompt_refs: ["P2"], site_refs: [],
+      asset: { kind: "json_ld", title: "Organization JSON-LD", content: "```json\n{\"@context\":\"https://schema.org\",\"@type\":\"Organization\",\"name\":\"The Growth Lab\",\"url\":\"https://thegrowthlab.co.in\"}\n```" } },
+    { title: "Boost visibility by 40%", body: "Do this to get 40% more answers.", category: "content", impact: 5, ease: 5, prompt_refs: ["P1"], site_refs: [], asset: { kind: "faq_block", title: "x", content: "Q: … A: … long enough content here for the check." } },
+    { title: "Join forum threads", body: "Be helpful where buyers ask.", category: "offsite", impact: 3, ease: 4, prompt_refs: ["P9"], site_refs: ["S7"], asset: { kind: "thread_list", title: "x", content: "Answer questions honestly, link only when useful." } },
+    { title: "Broken schema", body: "Add schema.", category: "technical", impact: 3, ease: 5, prompt_refs: ["P1"], site_refs: [], asset: { kind: "json_ld", title: "x", content: "{not json at all, sorry about that friend}" } },
+  ],
+};
+
+await t("validation: keeps evidenced recs, drops invented numbers / unknown ids / invalid JSON-LD; sorted by impact × ease", () => {
+  const { recs, dropped } = validateRecommendations(good, ev);
+  assert.deepEqual(recs.map((r) => r.title), ["Get listed on the agency directories AI cites", "Publish an AEO services page that answers buyers' questions", "Add Organization schema"]);
+  assert.equal(dropped.length, 3);
+  assert.ok(dropped.some((d) => d.includes("states a number")));
+  assert.ok(dropped.some((d) => d.includes("no valid evidence")));
+  assert.ok(dropped.some((d) => d.includes("not valid JSON")));
+});
+
+await t("assets: directory list built from the cited sites (not the model); JSON-LD normalised; evidence counts come from stored data", () => {
+  const { recs } = validateRecommendations(good, ev);
+  const dir = recs[0];
+  assert.ok(dir.asset.content.startsWith("## Sites to get listed on\n- **agencies.semrush.com**\n  - https://agencies.semrush.com/list/chandigarh/"));
+  assert.ok(dir.asset.content.includes("## How to do it"));
+  assert.deepEqual((dir.evidence as any).sites, [{ domain: "agencies.semrush.com", answers_without_you: 8, competitor_named: 2, competitors: ["Wevia"] }]);
+  assert.equal((dir.evidence as any).answers_without_you, 66);
+  const ld = recs[2];
+  assert.equal(ld.asset.format, "json");
+  assert.equal(JSON.parse(ld.asset.content).name, "The Growth Lab");
+});
+
+await t("directory lists keep only real directories / list pages, never a competitor's own site", () => {
+  assert.equal(isListingSite({ domain: "agencies.semrush.com", channelType: null, urls: [] }, "directory_list"), true);
+  assert.equal(isListingSite({ domain: "unveilrai.com", channelType: null, urls: ["https://unveilrai.com/feeds/best-aeo-agencies-in-india"] }, "directory_list"), true);
+  assert.equal(isListingSite({ domain: "thatware.co", channelType: null, urls: [] }, "directory_list"), false);
+  assert.equal(isListingSite({ domain: "digitalpatron.in", channelType: null, urls: ["https://digitalpatron.in/services/digital-marketing/chandigarh"] }, "directory_list"), false);
+  const ev2 = { ...ev, sites: [...ev.sites, { ref: "S3", domain: "thatware.co", channelType: null, answers: 4, withoutYou: 4, namedYou: 0, competitorNotYou: 0, competitors: [], urls: [] }] };
+  const { recs } = validateRecommendations({ recommendations: [{ ...good.recommendations[0], site_refs: ["S1", "S3"] }] }, ev2);
+  assert.ok(!recs[0].asset.content.includes("thatware.co"));
+  assert.deepEqual((recs[0].evidence as any).sites.map((x: any) => x.domain), ["agencies.semrush.com"]);
+});
+
+await t("prompt: evidence ids, site text and the no-numbers rule reach the model", async () => {
+  const msg = buildUserMessage(ev);
+  assert.ok(msg.includes('P1. "Best AEO agencies in India"') && msg.includes("S1. agencies.semrush.com [directory] · names instead: Wevia"));
+  assert.ok(msg.includes("excerpt of an answer that did not name them: Top picks"));
+  assert.ok(!msg.includes("78") && !msg.includes("66"));   // totals are not shown to the model, so it can't echo them
+  let seen: any;
+  const fake = { messages: { create: async (req: any) => { seen = req; return { usage: { input_tokens: 10000, output_tokens: 4000 }, content: [{ type: "tool_use", name: "propose_recommendations", input: good }] }; } } } as any;
+  const out = await proposeRecommendations(ev, fake);
+  assert.deepEqual(seen.tool_choice, { type: "auto" });
+  assert.ok(seen.system.includes("propose_recommendations"));
+  assert.ok(seen.system.includes("Never write counts"));
+  assert.equal(out.recs.length, 3);
+  assert.equal(out.usd, (10000 * 3 + 4000 * 15) / 1e6);
+});
+
+await t("proposeRecommendations: text-only mock reply strips outermost braces and yields a parsed object", async () => {
+  const textReply = `Here are the recommendations:
+\`\`\`json
+${JSON.stringify(good)}
+\`\`\`
+Hope this helps!`;
+  const fake = {
+    messages: {
+      create: async (req: any) => {
+        assert.deepEqual(req.tool_choice, { type: "auto" });
+        return {
+          usage: { input_tokens: 5000, output_tokens: 2000 },
+          content: [{ type: "text", text: textReply }],
+        };
+      },
+    },
+  } as any;
+  const out = await proposeRecommendations(ev, fake);
+  assert.equal(out.recs.length, 3);
+});
+
+await t("trigger: after a completed run, skip if that run has a batch or the last batch is under a week old", () => {
+  const now = Date.parse("2026-11-12T10:00:00Z");
+  const base = { verified: true, latestRunId: "r9", batchForRun: false, lastBatchAt: null as string | null, now };
+  assert.deepEqual(shouldGenerate(base), { go: true, why: "due" });
+  assert.equal(shouldGenerate({ ...base, verified: false }).go, false);
+  assert.equal(shouldGenerate({ ...base, latestRunId: null }).go, false);
+  assert.equal(shouldGenerate({ ...base, batchForRun: true }).why, "latest run already has recommendations");
+  assert.equal(shouldGenerate({ ...base, lastBatchAt: "2026-11-10T10:00:00Z" }).why, "last batch under a week old");
+  assert.equal(shouldGenerate({ ...base, lastBatchAt: "2026-11-04T10:00:00Z" }).go, true);
+});
+
+await t("Gemini experiment summary: same-mention count, cited-site overlap, searches/tokens, errors excluded", () => {
+  const rows = [
+    { prompt: "a", baseline: { mentioned: false, competitors: [], domains: ["a.com", "b.com"] }, candidates: { lite: { mentioned: false, competitors: [], domains: ["a.com"], searches: 1, inTok: 10, outTok: 100 } } },
+    { prompt: "b", baseline: { mentioned: true, competitors: [], domains: [] }, candidates: { lite: { mentioned: false, competitors: [], domains: [], searches: 2, inTok: 10, outTok: 50 } } },
+    { prompt: "c", baseline: null, candidates: { lite: { mentioned: false, competitors: [], domains: [], searches: 0, inTok: 0, outTok: 0, error: "HTTP 404" } } },
+  ];
+  assert.deepEqual(summarise(rows as any, ["lite"]).lite, { compared: 2, sameBrandMention: 1, avgSiteOverlap: 0.75, searches: 3, inputTokens: 20, outputTokens: 150, errors: 1 });
+});
+
+console.log(`\nDay 22: ${passed} checks passed`);
+}
+main().catch((e) => { console.error(e); process.exit(1); });

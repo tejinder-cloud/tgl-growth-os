@@ -29,6 +29,8 @@ export interface PostLineOptions {
   channel: string;
   text: string;
   thread_ts?: string;
+  unfurl_links?: boolean;
+  unfurl_media?: boolean;
 }
 
 export const mockPostedLines: PostLineOptions[] = [];
@@ -309,6 +311,8 @@ export async function postLine(options: PostLineOptions): Promise<{ ok: boolean;
         text: chunks[0].slice(0, 150),
         blocks,
         thread_ts,
+        unfurl_links: options.unfurl_links,
+        unfurl_media: options.unfurl_media,
       });
       if (!res.ok || !res.ts) {
         throw new Error(`Slack postLine failed: ${res.error || "no ts returned"}`);
@@ -331,6 +335,8 @@ export async function postLine(options: PostLineOptions): Promise<{ ok: boolean;
           text: batch[0].slice(0, 150),
           blocks,
           thread_ts: thread_ts || mainTs,
+          unfurl_links: options.unfurl_links,
+          unfurl_media: options.unfurl_media,
         });
         if (!res.ok || !res.ts) {
           throw new Error(`Slack postLine batch failed: ${res.error || "no ts returned"}`);
@@ -408,7 +414,7 @@ export async function resolveChannelId(channel: string): Promise<string> {
 export async function postFile(options: PostFileOptions): Promise<{ ok: boolean; fileId?: string; error?: string; channelId?: string }> {
   const { channel, filePath, fileBuffer, filename, title, thread_ts } = options;
 
-  if (!config.slackBotToken) {
+  if (!config.slackBotToken || isTestMode()) {
     console.log(`[postFile Dry Run] Channel: ${channel} | File: ${filename || filePath}`);
     return { ok: true, fileId: "mock-file-id" };
   }

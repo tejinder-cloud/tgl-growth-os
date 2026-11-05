@@ -1,6 +1,12 @@
 // services/tgl-ops/src/agents/aeo-strategist/types.ts — Setup-verification queue (plan Day 19)
 
-export type Journey = "awareness" | "consideration" | "decision";
+export const ALLOWED_LANGUAGES = ["en", "hi", "hinglish"] as const;
+export type AllowedLanguage = (typeof ALLOWED_LANGUAGES)[number];
+
+export const ALLOWED_STAGES = ["awareness", "consideration", "decision"] as const;
+export type AllowedStage = (typeof ALLOWED_STAGES)[number];
+
+export type Journey = AllowedStage;
 
 /** Everything a reviewer needs to judge one brand's setup, as the customer entered it. */
 export interface SetupSnapshot {
@@ -18,6 +24,9 @@ export interface SetupSnapshot {
   plan: string;           // trial | internal | truevisible | …
   promptLimit: number;
   submittedAt: string;    // brands.updated_at
+  setupStatus?: string;
+  /** Reviewer instructions for the next proposal (setup_reviews.instructions of the latest sent-back review). Never the customer-facing note. */
+  setupNote?: string | null;
 }
 
 export interface SiteSnapshot {
@@ -30,6 +39,13 @@ export interface SiteSnapshot {
   error?: string;
 }
 
+export interface PriorPrompt {
+  text: string;
+  language?: string;
+  journey_phase?: Journey;
+  reason?: string;
+}
+
 export interface Evidence {
   site: SiteSnapshot | null;
   /** One AI answer to "who leads this market here?" — the same kind of answer the tracker will record. */
@@ -37,12 +53,14 @@ export interface Evidence {
   aiAnswer: string | null;
   aiEngine: string | null;
   aiError?: string;
+  /** Prior reviews' proposed prompts for this brand (including rejected ones) to build upon. */
+  priorProposedPrompts?: PriorPrompt[];
 }
 
 export interface Proposal {
   summary: string;
   market: { product?: string; icp?: string; location?: string; reason: string } | null;
-  competitorsAdd: { name: string; domain: string | null; evidence: string }[];
+  competitorsAdd: { name: string; domain: string | null; prompt?: string; engine?: string; evidence: string }[];
   competitorsRemove: { id: string; name: string; reason: string }[];
   promptsRetire: { id: string; text: string; reason: string }[];
   promptsAdd: { text: string; language: string; journey_phase: Journey; reason: string }[];

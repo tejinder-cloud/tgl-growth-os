@@ -5,13 +5,21 @@ import {
   findLinkedPR,
   hasArchitectComment,
   getIssue,
+  reopenIssue,
   addLabelsToIssue,
   removeLabelFromIssue,
   addCommentToIssue,
   type GitHubIssueSummary,
 } from "../lib/github-client.js";
-import { getRunnerState, recordRunnerIssue } from "./state.js";
-import { runIssueTask, isIssueRunningLocally, type RunnerRunResult } from "./runner.js";
+import {
+  getRunnerState,
+  recordRunnerIssue,
+  CONTAINER_INSTANCE_ID,
+  claimRunnerIssue,
+  releaseRunnerClaim,
+  claimAlertSlot,
+} from "./state.js";
+import { runIssueTask, isIssueRunningLocally, type RunnerRunResult, type RunnerIssueInput } from "./runner.js";
 import { postLine } from "../lib/post.js";
 import { getAlertsChannel } from "../lib/cron-wrapper.js";
 import { getCurrentTimeIST } from "../lib/standup.js";
@@ -134,9 +142,21 @@ export async function catchUpRunnerIssues(options?: {
       }
 
       // 2. Check runner state
-      // Mandate: catch-up must pick up any for:web-builder issue in status:in-progress with no open PR
-      // regardless of stale state (e.g. stale completed or running in runner.json).
+      // Rule 1: Catch-up must not re-run on an issue that is claimed or actively in-progress in runner_state
       const existingRecord = state.runs[String(issueNum)];
+      if (existingRecord?.status === "in-progress" && (existingRecord.ownerInstance || isIssueRunningLocally(issueNum))) {
+        console.log(`[Catch-Up] Issue #${issueNum} is currently claimed/in-progress in runner state; skipping.`);
+        skippedCount++;
+        results.push({
+          issueNumber: issueNum,
+          status: "skipped",
+          reason: "Claimed or in-progress in runner state",
+        });
+        continue;
+      }
+
+      // Mandate: catch-up must pick up any for:web-builder issue in status:in-progress with no open PR
+      // regardless of stale state (e.g. stale completed in runner.json).
       if (existingRecord?.status === "completed") {
         if (agent.name === "web-builder") {
           console.log(
@@ -213,9 +233,14 @@ export async function catchUpRunnerIssues(options?: {
  *    updates runner state without resurrecting it into in-progress.
  */
 export async function recoverInterruptedRunnerIssues(options?: {
+  instanceId?: string;
   testMode?: boolean;
+  triggerRunnerInTestMode?: boolean;
+  mockModelResponse?: string;
+  mockToolCalls?: Array<{ name: string; input: Record<string, any> }>;
 }): Promise<number[]> {
   const isTest = options?.testMode === true || isTestMode();
+  const instanceId = options?.instanceId || CONTAINER_INSTANCE_ID;
   const state = await getRunnerState({ testMode: isTest });
   const recovered: number[] = [];
 
@@ -223,36 +248,44 @@ export async function recoverInterruptedRunnerIssues(options?: {
     const issueNum = Number(key);
     if (isNaN(issueNum)) continue;
 
-    if (run.status === "in-progress") {
+    if (run.status === "in-progress" || run.status === "interrupted") {
       // If currently executing locally in this process, it's not interrupted
       if (isIssueRunningLocally(issueNum)) {
         continue;
       }
 
+      // ATOMIC CLAIM:
+      // Claiming an issue (start, resume, recovery) is one atomic UPDATE ... WHERE owner_instance IS NULL OR heartbeat_at < now() - interval '3 minutes';
+      // A claim that affects 0 rows means another instance owns it, and this instance does nothing and alerts nothing.
+      const claimed = await claimRunnerIssue(
+        issueNum,
+        {
+          agent: run.agent,
+          door: run.door,
+          title: run.title,
+          status: run.status,
+        },
+        { instanceId, testMode: isTest }
+      );
+
+      if (!claimed) {
+        console.log(`[Runner Boot Recovery] Issue #${issueNum} claimed by another instance (0 rows affected). Doing nothing and alerting nothing.`);
+        continue;
+      }
+
       console.log(
-        `[Runner Boot Recovery] Interrupted run detected for Issue #${issueNum} ("${run.title}"): status was 'in-progress' but no active process.`
+        `[Runner Boot Recovery] Interrupted run claimed for Issue #${issueNum} ("${run.title}") on instance ${instanceId}.`
       );
 
       // ERROR ISOLATION: wrap each issue in its own try/catch
       try {
-        const attempts = (run.recoveryAttempts || 0) + 1;
+        const attempts = run.recoveryAttempts || 0;
 
         // Requirement: a recovery that fails twice for the same issue stops re-queueing,
         // labels status:blocked and alerts once.
         if (attempts >= 2) {
           console.warn(
             `[Runner Boot Recovery] Issue #${issueNum} reached recovery limit (${attempts} attempts); stopping re-queue and marking status:blocked.`
-          );
-
-          await recordRunnerIssue(
-            issueNum,
-            {
-              status: "blocked",
-              recoveryAttempts: attempts,
-              error: `Boot recovery limit exceeded (${attempts} attempts). Execution stopped to prevent restart loops.`,
-              runCompletedAt: new Date().toISOString(),
-            },
-            { testMode: isTest }
           );
 
           if (!isTest) {
@@ -265,64 +298,67 @@ export async function recoverInterruptedRunnerIssues(options?: {
             ).catch(() => {});
           }
 
-          // Alert once on blocking
-          const alertsChannel = getAlertsChannel();
-          await postLine({
-            channel: alertsChannel,
-            text: `*[Runner Boot Recovery Blocked]* Issue #${issueNum} ("${run.title}") failed recovery twice. Stopped re-queueing and marked status:blocked.`,
-          }).catch(() => {});
+          // Alert deduplication: at most 1 recovery alert per issue per hour
+          const canAlert = await claimAlertSlot(issueNum, { testMode: isTest });
+          if (canAlert) {
+            const alertsChannel = getAlertsChannel();
+            await postLine({
+              channel: alertsChannel,
+              text: `*[Runner Boot Recovery Blocked]* Issue #${issueNum} ("${run.title}") failed recovery twice. Stopped re-queueing and marked status:blocked.`,
+            }).catch(() => {});
+          } else {
+            console.log(
+              `[Runner Boot Recovery] Suppressed blocked alert for Issue #${issueNum} (within 1h dedupe window).`
+            );
+          }
+
+          await releaseRunnerClaim(
+            issueNum,
+            instanceId,
+            {
+              status: "blocked",
+              recoveryAttempts: attempts,
+              error: `Boot recovery limit exceeded (${attempts} attempts). Execution stopped to prevent restart loops.`,
+              runCompletedAt: new Date().toISOString(),
+            },
+            { testMode: isTest }
+          );
 
           continue;
         }
 
-        if (!isTest) {
-          // 1. Check if an open PR exists
-          const openPr = await findLinkedPR(issueNum, { state: "open" });
-          if (openPr && openPr.state === "open") {
-            console.log(
-              `[Runner Boot Recovery] Issue #${issueNum} already has open PR #${openPr.number}; updating runner state to completed.`
-            );
-            await recordRunnerIssue(
-              issueNum,
-              {
-                status: "completed",
-                prNumber: openPr.number,
-                prUrl: openPr.html_url,
-                runCompletedAt: new Date().toISOString(),
-                recoveryAttempts: 0,
-              },
-              { testMode: isTest }
-            );
-            continue;
-          }
+        // 1. Check if an open PR exists
+        const openPr = !isTest ? await findLinkedPR(issueNum, { state: "open" }) : null;
+        if (openPr && openPr.state === "open") {
+          console.log(
+            `[Runner Boot Recovery] Issue #${issueNum} already has open PR #${openPr.number}; updating runner state to completed.`
+          );
+          await releaseRunnerClaim(
+            issueNum,
+            instanceId,
+            {
+              status: "completed",
+              prNumber: openPr.number,
+              prUrl: openPr.html_url,
+              runCompletedAt: new Date().toISOString(),
+              recoveryAttempts: 0,
+            },
+            { testMode: isTest }
+          );
+          continue;
+        }
 
-          // 2. Check if issue is closed on GitHub
-          const issue = await getIssue(issueNum);
-          if (!issue || issue.state === "closed") {
-            console.log(
-              `[Runner Boot Recovery] Issue #${issueNum} is closed on GitHub; updating runner state to completed.`
-            );
-            await recordRunnerIssue(
-              issueNum,
-              {
-                status: "completed",
-                runCompletedAt: new Date().toISOString(),
-                recoveryAttempts: 0,
-              },
-              { testMode: isTest }
-            );
-            continue;
-          }
-
-          // 3. Reconcile with GitHub labels: if issue already labeled status:needs-brief or status:blocked,
-          // do NOT resurrect it into status:in-progress!
+        // 2. Fetch issue metadata from GitHub (or mock store in test mode)
+        let issue: any = await getIssue(issueNum);
+        if (issue) {
           const labels = issue.labels?.map((l: any) => (typeof l === "string" ? l : l.name)) || [];
           if (labels.includes("status:needs-brief")) {
             console.log(
               `[Runner Boot Recovery] Issue #${issueNum} is already marked status:needs-brief on GitHub; updating runner state.`
             );
-            await recordRunnerIssue(
+            await releaseRunnerClaim(
               issueNum,
+              instanceId,
               {
                 status: "needs-brief",
                 runCompletedAt: new Date().toISOString(),
@@ -337,8 +373,9 @@ export async function recoverInterruptedRunnerIssues(options?: {
             console.log(
               `[Runner Boot Recovery] Issue #${issueNum} is already ${labels.includes("status:blocked") ? "blocked" : "rejected"} on GitHub; updating runner state.`
             );
-            await recordRunnerIssue(
+            await releaseRunnerClaim(
               issueNum,
+              instanceId,
               {
                 status: "blocked",
                 runCompletedAt: new Date().toISOString(),
@@ -349,72 +386,83 @@ export async function recoverInterruptedRunnerIssues(options?: {
             continue;
           }
 
-          // 4. Alert deduplication: at most one boot-recovery alert per issue per hour
-          const ONE_HOUR_MS = 60 * 60 * 1000;
-          const now = Date.now();
-          const lastAlertTs = run.lastRecoveryAlertAt ? new Date(run.lastRecoveryAlertAt).getTime() : 0;
-          const shouldAlert = now - lastAlertTs >= ONE_HOUR_MS;
-
-          let updatedAlertAt = run.lastRecoveryAlertAt;
-          if (shouldAlert) {
-            const alertsChannel = getAlertsChannel();
-            await postLine({
-              channel: alertsChannel,
-              text: `*[Runner Boot Recovery]* Interrupted run detected for Issue #${issueNum} ("${run.title}") after restart. Re-queueing.`,
-            }).catch(() => {});
-            updatedAlertAt = new Date(now).toISOString();
-          } else {
+          // If issue was closed on GitHub without an open PR, reopen it so it stays active
+          if (issue.state === "closed") {
             console.log(
-              `[Runner Boot Recovery] Suppressed alert for Issue #${issueNum} (last alert sent ${Math.round((now - lastAlertTs) / 60000)}m ago; max 1 per hour).`
+              `[Runner Boot Recovery] Issue #${issueNum} was closed on GitHub without an open PR; reopening issue for resumed run.`
             );
+            await reopenIssue(
+              issueNum,
+              "**[Runner Boot Recovery]** Reopening issue: run was interrupted without a PR."
+            ).catch(() => {});
           }
+        }
 
-          // 5. Update recovery counter in state
-          await recordRunnerIssue(
-            issueNum,
-            {
-              recoveryAttempts: attempts,
-              lastRecoveryAt: new Date(now).toISOString(),
-              lastRecoveryAlertAt: updatedAlertAt,
-            },
-            { testMode: isTest }
-          );
-
-          // 6. Ensure label is status:in-progress
-          await addLabelsToIssue(issueNum, ["status:in-progress"]).catch(() => {});
+        // Alert deduplication: at most one boot-recovery alert per issue per hour
+        const canAlert = await claimAlertSlot(issueNum, { testMode: isTest });
+        if (canAlert) {
+          const alertsChannel = getAlertsChannel();
+          await postLine({
+            channel: alertsChannel,
+            text: `*[Runner Boot Recovery]* Interrupted run detected for Issue #${issueNum} ("${run.title}") after restart. Re-queueing.`,
+          }).catch(() => {});
         } else {
-          // In test mode: track attempts and deduplication timestamp
-          const ONE_HOUR_MS = 60 * 60 * 1000;
-          const now = Date.now();
-          const lastAlertTs = run.lastRecoveryAlertAt ? new Date(run.lastRecoveryAlertAt).getTime() : 0;
-          const shouldAlert = now - lastAlertTs >= ONE_HOUR_MS;
-
-          let updatedAlertAt = run.lastRecoveryAlertAt;
-          if (shouldAlert) {
-            const alertsChannel = getAlertsChannel();
-            await postLine({
-              channel: alertsChannel,
-              text: `*[Runner Boot Recovery]* Interrupted run detected for Issue #${issueNum} ("${run.title}") after restart. Re-queueing.`,
-            }).catch(() => {});
-            updatedAlertAt = new Date(now).toISOString();
-          } else {
-            console.log(
-              `[Runner Boot Recovery] Suppressed alert for Issue #${issueNum} (last alert sent ${Math.round((now - lastAlertTs) / 60000)}m ago; max 1 per hour).`
-            );
-          }
-
-          await recordRunnerIssue(
-            issueNum,
-            {
-              recoveryAttempts: attempts,
-              lastRecoveryAt: new Date(now).toISOString(),
-              lastRecoveryAlertAt: updatedAlertAt,
-            },
-            { testMode: isTest }
+          console.log(
+            `[Runner Boot Recovery] Suppressed alert for Issue #${issueNum} (within 1h dedupe window).`
           );
         }
 
+        // Resumed without counting attempts, with fresh session budget!
+        await releaseRunnerClaim(
+          issueNum,
+          instanceId,
+          {
+            status: "in-progress",
+            recoveryAttempts: attempts,
+            lastRecoveryAt: new Date().toISOString(),
+            toolCallsCount: 0,
+          },
+          { testMode: isTest }
+        );
+
+        if (!isTest) {
+          await addLabelsToIssue(issueNum, ["status:in-progress"]).catch(() => {});
+        }
+
         recovered.push(issueNum);
+
+        // Requirement (3): Boot recovery of an interrupted run with a proceed verdict and no PR
+        // must start a model session on the existing branch with a fresh session budget, never mark it completed.
+        if (run.preflightVerdict === "proceed") {
+          console.log(
+            `[Runner Boot Recovery] Starting model session on branch ${run.branch || "task/" + issueNum} with fresh session budget for Issue #${issueNum}...`
+          );
+          if (!isTest || options?.triggerRunnerInTestMode) {
+            const issueInput: RunnerIssueInput = {
+              number: issueNum,
+              title: issue?.title || run.title || `Issue #${issueNum}`,
+              body: issue?.body || "",
+              labels: issue?.labels?.map((l: any) => (typeof l === "string" ? l : l.name)) || [
+                "status:in-progress",
+                `for:${run.agent || "web-builder"}`,
+                `door:${run.door || "core"}`,
+              ],
+              html_url: issue?.html_url,
+              agentName: run.agent || "web-builder",
+              door: run.door || "core",
+            };
+            const runPromise = runIssueTask(issueInput, {
+              testMode: isTest,
+              mockModelResponse: options?.mockModelResponse,
+              mockToolCalls: options?.mockToolCalls,
+            }).catch((err) => {
+              console.warn(`[Runner Boot Recovery] Error running issue #${issueNum}:`, err);
+            });
+            if (options?.triggerRunnerInTestMode) {
+              await runPromise;
+            }
+          }
+        }
       } catch (issueErr: any) {
         // Individual issue recovery failure is captured and reported without crashing boot
         const errMsg = issueErr?.stack || issueErr?.message || String(issueErr);
@@ -424,6 +472,15 @@ export async function recoverInterruptedRunnerIssues(options?: {
           channel: alertsChannel,
           text: `*[Runner Boot Recovery Error]* on Issue #${issueNum} at ${getCurrentTimeIST()} IST\n• Error: \`${errMsg.slice(0, 300)}\`\n_Process kept running._`,
         }).catch(() => {});
+        await releaseRunnerClaim(
+          issueNum,
+          instanceId,
+          {
+            status: "failed",
+            error: errMsg,
+          },
+          { testMode: isTest }
+        ).catch(() => {});
       }
     }
   }

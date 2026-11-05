@@ -1,9 +1,9 @@
 // services/tgl-ops/src/agents/aeo-audit-engine/tracker.ts
 // Citation Tracker (plan Day 17): every day, ask each configured engine every active prompt for each eligible
 // brand; store runs → answers → citations, and the day's engine spend per brand in usage_costs (SPEC §11, §14).
-import { askEngine, loadEngineConfig } from "./engines.js";
+import { askEngine, computeCostUsd, loadEngineConfig } from "./engines.js";
 import { analyzeAnswer, analyzeCitation } from "./analyze.js";
-import type { TrackerStore } from "./store.js";
+import type { RunKind, TrackerStore } from "./store.js";
 import { API_ENGINES, type EngineConfig, type EngineId } from "./types.js";
 
 export const AGENT = "aeo-audit-engine";
@@ -20,9 +20,13 @@ export interface TrackerDeps {
   /** Return false to stop before the next engine batch (daily cost cap). */
   canSpend?: () => Promise<boolean>;
   onSpend?: (engine: EngineId, model: string, usd: number, detail: string) => void;
+  /** "audit" = first audit after a setup submission: unverified brands allowed, not limited to one per day. Default "daily". */
+  kind?: RunKind;
+  /** Free searches per calendar month by engine (Gemini grounding: AEO_GEMINI_FREE_SEARCHES_PER_MONTH). Omitted = none. */
+  freeSearchesPerMonth?: Partial<Record<EngineId, number>>;
 }
 
-export interface EngineOutcome { brand: string; engine: EngineId; status: "succeeded" | "partial" | "failed" | "skipped"; ok: number; total: number; mentioned: number; usd: number; note?: string }
+export interface EngineOutcome { brand: string; brandId?: string; engine: EngineId; status: "succeeded" | "partial" | "failed" | "skipped"; ok: number; total: number; mentioned: number; usd: number; note?: string }
 export interface TrackerSummary { brands: number; outcomes: EngineOutcome[]; notConfigured: { engine: EngineId; missing: string[] }[]; stoppedByCap: boolean; usd: number }
 
 export async function runTracker(d: TrackerDeps): Promise<TrackerSummary> {
@@ -33,7 +37,14 @@ export async function runTracker(d: TrackerDeps): Promise<TrackerSummary> {
     if (config) configs.push(config); else notConfigured.push({ engine: e, missing });
   }
 
-  const brands = await d.store.loadEligibleBrands(d.brandId);
+  const kind: RunKind = d.kind ?? "daily";
+  const brands = await d.store.loadEligibleBrands(d.brandId, { includeUnverified: kind === "audit" });
+  // Remaining free allowance this month, shared by every brand in this run (the allowance is per provider account).
+  const freeLeft: Partial<Record<EngineId, number>> = {};
+  for (const cfg of configs) {
+    const allowance = d.freeSearchesPerMonth?.[cfg.engine] ?? 0;
+    if (allowance > 0) freeLeft[cfg.engine] = Math.max(0, allowance - (await d.store.monthSearches(cfg.engine, d.runDate)));
+  }
   const outcomes: EngineOutcome[] = [];
   let stoppedByCap = false;
 
@@ -41,28 +52,40 @@ export async function runTracker(d: TrackerDeps): Promise<TrackerSummary> {
     if (!b.prompts.length) continue;
     // Engines run in parallel; prompts run one after another within an engine (gentle on rate limits).
     const results = await Promise.all(configs.map(async (cfg): Promise<EngineOutcome> => {
-      const base = { brand: b.name, engine: cfg.engine, ok: 0, total: b.prompts.length, mentioned: 0, usd: 0 };
-      if (await d.store.hasCompletedRun(b.id, d.runDate, cfg.engine)) return { ...base, status: "skipped", note: "already ran today" };
+      // Audits ask only what this engine hasn't answered today (new prompts after a setup change, or a retry) — never pay twice.
+      const answered = kind === "audit" ? await d.store.answeredPromptIds(b.id, d.runDate, cfg.engine) : new Set<string>();
+      const todo = b.prompts.filter((p) => !answered.has(p.id));
+      const base = { brand: b.name, brandId: b.id, engine: cfg.engine, ok: 0, total: todo.length, mentioned: 0, usd: 0 };
+      if (!todo.length) return { ...base, status: "skipped", note: "all prompts already answered today" };
+      if (kind === "daily" && await d.store.hasCompletedRun(b.id, d.runDate, cfg.engine)) return { ...base, status: "skipped", note: "already ran today" };
       if (d.canSpend && !(await d.canSpend())) { stoppedByCap = true; return { ...base, status: "skipped", note: "daily cost cap" }; }
 
       let runId: string;
       try {
-        runId = await d.store.startRun(b, d.runDate, cfg.engine);
+        runId = await d.store.startRun(b, d.runDate, cfg.engine, kind);
       } catch (err: any) {
         // A unique index stops two processes (cron + a redeploy's catch-up) running the same brand × engine × day.
         if (/duplicate key|unique/i.test(String(err?.message))) return { ...base, status: "skipped", note: "already running" };
         return { ...base, status: "failed", ok: 0, note: String(err?.message ?? err).slice(0, 300) };
       }
       let firstError: string | null = null;
-      let tokensIn = 0, tokensOut = 0, searches = 0, costSource = "computed";
-      for (const p of b.prompts) {
+      let tokensIn = 0, tokensOut = 0, searches = 0, freeSearches = 0, pageActions = 0, costSource = "computed";
+      for (const p of todo) {
         try {
           const ans = await askEngine(cfg, p.text, { country: b.country, city: b.city ?? undefined, fetchImpl: d.fetchImpl });
+          const left = freeLeft[cfg.engine] ?? 0;
+          if (left > 0 && ans.usage.searches > 0 && ans.costSource === "computed") {
+            const free = Math.min(left, ans.usage.searches);
+            freeLeft[cfg.engine] = left - free;
+            ans.usage = { ...ans.usage, searches: ans.usage.searches - free, freeSearches: free };
+            ans.costUsd = computeCostUsd(cfg, ans.usage);
+          }
           const a = analyzeAnswer(ans.text, b.lens);
           const cites = ans.citations.map((c) => analyzeCitation(c, b.lens)).filter((c): c is NonNullable<typeof c> => !!c);
           await d.store.saveAnswer(b, runId, p.id, ans, a, cites);
           base.ok++; if (a.mentioned) base.mentioned++;
           base.usd += ans.costUsd; tokensIn += ans.usage.inputTokens; tokensOut += ans.usage.outputTokens; searches += ans.usage.searches;
+          freeSearches += ans.usage.freeSearches ?? 0; pageActions += ans.usage.pageActions ?? 0;
           if (ans.costSource === "provider") costSource = "provider";
           d.onSpend?.(cfg.engine, cfg.model, ans.costUsd, `${b.name} · prompt ${p.id}`);
         } catch (err: any) {
@@ -74,7 +97,7 @@ export async function runTracker(d: TrackerDeps): Promise<TrackerSummary> {
       if (base.ok > 0) {
         await d.store.recordUsageCost(b, d.runDate, cfg.engine, {
           calls: base.ok, usd: base.usd, inr: base.usd * d.usdInr,
-          detail: { model: cfg.model, input_tokens: tokensIn, output_tokens: tokensOut, searches, cost_source: costSource, usd_inr_rate: d.usdInr, run_id: runId },
+          detail: { model: cfg.model, input_tokens: tokensIn, output_tokens: tokensOut, searches, ...(freeSearches ? { free_searches: freeSearches } : {}), ...(pageActions ? { page_actions: pageActions } : {}), cost_source: costSource, usd_inr_rate: d.usdInr, run_id: runId },
         });
       }
       return { ...base, status, note: firstError ?? undefined };

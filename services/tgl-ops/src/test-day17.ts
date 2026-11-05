@@ -108,14 +108,19 @@ await t("citation: owned, directory, competitor domain, Gemini redirect resolved
 
 // ── tracker end-to-end with an in-memory store and fake providers ──
 function memoryStore(brand: TrackedBrand) {
-  const db = { runs: [] as any[], answers: [] as any[], citations: [] as any[], usage: [] as any[] };
+  const db = { runs: [] as any[], answers: [] as any[], citations: [] as any[], usage: [] as any[], priorSearches: {} as Record<string, number>, eligibleOpts: [] as any[] };
   const store: TrackerStore = {
-    async loadEligibleBrands() { return [brand]; },
+    async loadEligibleBrands(_id?: string, opts?: { includeUnverified?: boolean }) { db.eligibleOpts.push(opts ?? {}); return [brand]; },
     async hasCompletedRun(id, date, engine) { return db.runs.some((r) => r.brand === id && r.date === date && r.engine === engine && ["succeeded", "partial"].includes(r.status)); },
-    async startRun(b, date, engine) { const id = `run${db.runs.length + 1}`; db.runs.push({ id, brand: b.id, date, engine, status: "running" }); return id; },
+    async startRun(b, date, engine, kind = "daily") { const id = `run${db.runs.length + 1}`; db.runs.push({ id, brand: b.id, date, engine, kind, status: "running" }); return id; },
     async saveAnswer(_b, runId, promptId, ans, a, cites) { db.answers.push({ runId, promptId, engine: ans.engine, ...a }); db.citations.push(...cites); },
     async finishRun(runId, status, error) { Object.assign(db.runs.find((r) => r.id === runId), { status, error }); },
     async recordUsageCost(_b, date, engine, row) { db.usage.push({ date, engine, ...row }); },
+    async answeredPromptIds(id, date, engine) {
+      const ok = new Set(db.runs.filter((r) => r.brand === id && r.date === date && r.engine === engine && ["succeeded", "partial"].includes(r.status)).map((r) => r.id));
+      return new Set(db.answers.filter((x) => ok.has(x.runId)).map((x) => x.promptId as string));
+    },
+    async monthSearches(engine) { return db.usage.filter((u) => u.engine === engine).reduce((n, u) => n + (u.detail.searches ?? 0) + (u.detail.free_searches ?? 0), 0) + (db.priorSearches[engine] ?? 0); },
   };
   return { db, store };
 }
@@ -162,6 +167,55 @@ await t("tracker: daily cost cap stops before any call", async () => {
   const { db, store } = memoryStore(brand);
   const s = await runTracker({ store, runDate: "2026-11-01", usdInr: 88, env, fetchImpl: fakeFetch, canSpend: async () => false });
   assert.equal(s.stoppedByCap, true); assert.equal(db.runs.length, 0);
+});
+
+await t("OpenAI: only `search` actions are billable; open_page / find_in_page counted separately", () => {
+  const p = parseOpenAI({ ...openaiFx, output: [
+    { type: "web_search_call", action: { type: "search", query: "x" } },
+    { type: "web_search_call", action: { type: "open_page", url: "https://a" } },
+    { type: "web_search_call", action: { type: "find_in_page", url: "https://a", pattern: "b" } },
+    openaiFx.output[1],
+  ] });
+  assert.equal(p.usage.searches, 1);
+  assert.equal(p.usage.pageActions, 2);
+});
+await t("Gemini free grounding allowance: searches inside the monthly allowance cost nothing; the rest are billed", async () => {
+  const geminiEnv = { GEMINI_API_KEY: "k", AEO_GEMINI_MODEL: "g", AEO_GEMINI_PRICE_IN: "1", AEO_GEMINI_PRICE_OUT: "1", AEO_GEMINI_SEARCH_PRICE_PER_1K: "14" };
+  const gfetch: typeof fetch = async () => new Response(JSON.stringify(geminiFx), { status: 200 }); // 2 searches, 50 in + 300 out tokens per call
+  const tokenUsd = (50 + 300) / 1e6;
+  // allowance 5,000, 4,997 already used this month → 3 free left: prompt 1 gets 2 free, prompt 2 gets 1 free + 1 billed
+  const { db, store } = memoryStore(brand); db.priorSearches.gemini = 4997;
+  const s = await runTracker({ store, runDate: "2026-11-03", usdInr: 88, env: geminiEnv, engines: ["gemini"], fetchImpl: gfetch, freeSearchesPerMonth: { gemini: 5000 } });
+  const u = db.usage.find((x) => x.engine === "gemini");
+  assert.equal(u.detail.free_searches, 3);
+  assert.equal(u.detail.searches, 1);
+  assert.equal(Number(u.usd.toFixed(6)), Number((2 * tokenUsd + 14 / 1000).toFixed(6)));
+  assert.equal(s.outcomes[0].status, "succeeded");
+  // no allowance configured → every search billed (upper bound, as before)
+  const m2 = memoryStore(brand);
+  await runTracker({ store: m2.store, runDate: "2026-11-03", usdInr: 88, env: geminiEnv, engines: ["gemini"], fetchImpl: gfetch });
+  assert.equal(Number(m2.db.usage[0].usd.toFixed(6)), Number((2 * tokenUsd + 4 * 14 / 1000).toFixed(6)));
+});
+
+await t("first audit (kind audit): after a daily run, asks only prompts not yet answered today; includes unverified brands", async () => {
+  const b2: TrackedBrand = { ...brand, prompts: [...brand.prompts] };
+  const { db, store } = memoryStore(b2);
+  await runTracker({ store, runDate: "2026-11-03", usdInr: 88, env, fetchImpl: fakeFetch });
+  const again = await runTracker({ store, runDate: "2026-11-03", usdInr: 88, env, fetchImpl: fakeFetch });
+  assert.ok(again.outcomes.every((o) => o.status === "skipped")); // daily: once a day
+  const nothingNew = await runTracker({ store, runDate: "2026-11-03", usdInr: 88, env, fetchImpl: fakeFetch, kind: "audit" });
+  const gpt = nothingNew.outcomes.find((o) => o.engine === "chatgpt");
+  assert.equal(gpt?.status, "skipped"); // every prompt already answered by ChatGPT today → no paid calls
+  assert.equal(db.runs.filter((r) => r.kind === "audit" && r.engine === "chatgpt").length, 0);
+  b2.prompts.push({ id: "p3", text: "aeo agency india", language: "en" }); // approval added a prompt
+  const before = db.answers.length;
+  const audit = await runTracker({ store, runDate: "2026-11-03", usdInr: 88, env, fetchImpl: fakeFetch, kind: "audit" });
+  const gpt2 = audit.outcomes.find((o) => o.engine === "chatgpt");
+  assert.equal(gpt2?.total, 1); assert.equal(gpt2?.status, "succeeded");
+  assert.ok(db.answers.slice(before).every((x) => x.promptId !== "p1" && x.promptId !== "p2" || x.engine === "perplexity"));
+  assert.ok(db.answers.slice(before).some((x) => x.promptId === "p3" && x.engine === "chatgpt"));
+  assert.ok(db.runs.some((r) => r.kind === "audit" && r.engine === "chatgpt"));
+  assert.ok(db.eligibleOpts.slice(2).every((o) => !!o.includeUnverified));
 });
 
 console.log(`\nDay 17: ${passed} checks passed`);

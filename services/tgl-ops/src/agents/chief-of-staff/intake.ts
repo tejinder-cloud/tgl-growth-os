@@ -11,6 +11,8 @@ import {
   addCommentToIssue,
   removeLabelFromIssue,
   addLabelsToIssue,
+  readFileFromRepo,
+  putFileInRepo,
 } from "../../lib/github-client.js";
 import { loadAgents, findAgentByName } from "../../lib/agents.js";
 import { loadPlanEntries, getCurrentPlanDay, getPlanStatusAnswer } from "../../lib/plan.js";
@@ -28,7 +30,16 @@ import {
 import { getAnthropicModel, getAnthropicPricing } from "./anthropic.js";
 import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
 
-export type IntakeClassification = "task" | "report" | "question" | "decision" | "dispatch" | "ambiguous";
+export type IntakeClassification =
+  | "task"
+  | "report"
+  | "question"
+  | "decision"
+  | "dispatch"
+  | "ambiguous"
+  | "command_resume"
+  | "command_block"
+  | "command_setup";
 
 export interface IntakeClassificationResult {
   category: IntakeClassification;
@@ -39,6 +50,12 @@ export interface IntakeClassificationResult {
   door?: string;
   targetDay?: number;
   issueNumber?: number;
+  setupBrand?: string;
+  setupMarket?: {
+    product: string;
+    buyers: string;
+    location: string;
+  };
   confidence: number;
 }
 
@@ -62,6 +79,13 @@ let processBootTs: string = (Date.now() / 1000).toFixed(6);
 let isBootInitialized = false;
 
 export function setBootTimestampForTests(ts: string): void {
+  processBootTs = ts;
+  isBootInitialized = false;
+}
+
+export function simulateProcessRebootForTests(ts: string): void {
+  inMemoryLastProcessedTsByChannel = {};
+  inMemoryFailedAttemptsByMessageKey = {};
   processBootTs = ts;
   isBootInitialized = false;
 }
@@ -125,6 +149,42 @@ export function saveIntakeState(state: IntakeState, testMode = isTestMode()): vo
   }
 }
 
+export async function restoreIntakeStateFromRepoIfNeeded(options?: { testMode?: boolean }): Promise<void> {
+  const isTest = options?.testMode === true || isTestMode();
+  if (isTest || !config.githubToken) return;
+  const localPath = getIntakeStateFilePath(false);
+  if (!fs.existsSync(localPath)) {
+    try {
+      const content = await readFileFromRepo("logs/.state/intake.json");
+      if (content) {
+        const parsed = JSON.parse(content);
+        if (parsed && typeof parsed.lastProcessedTsByChannel === "object") {
+          fs.mkdirSync(path.dirname(localPath), { recursive: true });
+          fs.writeFileSync(localPath, JSON.stringify(parsed, null, 2) + "\n", "utf8");
+          console.log("[Chief of Staff Intake] Restored intake.json state from GitHub repository on boot.");
+        }
+      }
+    } catch (err: any) {
+      console.warn("[Chief of Staff Intake] Remote state restore warning:", err?.message || err);
+    }
+  }
+}
+
+export async function syncIntakeStateToRepo(state: IntakeState, options?: { testMode?: boolean }): Promise<void> {
+  const isTest = options?.testMode === true || isTestMode();
+  if (isTest || !config.githubToken) return;
+  try {
+    const jsonContent = JSON.stringify(state, null, 2) + "\n";
+    await putFileInRepo(
+      "logs/.state/intake.json",
+      jsonContent,
+      "chore(state): update intake state"
+    );
+  } catch (err: any) {
+    console.warn("[Chief of Staff Intake] Remote state sync warning:", err?.message || err);
+  }
+}
+
 /**
  * Classifies an incoming message from the Architect via Anthropic.
  */
@@ -135,6 +195,56 @@ export async function classifyArchitectMessage(
   const isTest = options?.testMode === true || isTestMode();
   const modelName = getAnthropicModel();
   const { priceInPerMTok, priceOutPerMTok } = getAnthropicPricing();
+
+  // Architect Operational Commands: "#N: resume" and "#N: block"
+  const cleanCmdText = messageText.replace(/^[*_~`]+|[*_~`]+$/g, "").trim();
+  const resumeCmdMatch = cleanCmdText.match(/^(?:issue\s*)?#?(\d+)\s*:\s*resume\b/i);
+  if (resumeCmdMatch) {
+    const issueNum = parseInt(resumeCmdMatch[1], 10);
+    return {
+      category: "command_resume",
+      issueNumber: issueNum,
+      confidence: 1.0,
+      brief: messageText,
+      tokens: { input: 0, output: 0, costUsd: 0 },
+    };
+  }
+
+  const blockCmdMatch = cleanCmdText.match(/^(?:issue\s*)?#?(\d+)\s*:\s*block\b/i);
+  if (blockCmdMatch) {
+    const issueNum = parseInt(blockCmdMatch[1], 10);
+    return {
+      category: "command_block",
+      issueNumber: issueNum,
+      confidence: 1.0,
+      brief: messageText,
+      tokens: { input: 0, output: 0, costUsd: 0 },
+    };
+  }
+
+  // Architect Operational Command: "setup <brand>: product = ...; buyers = ...; location = ..."
+  const setupCmdMatch = cleanCmdText.match(/^setup\s+([^:]+):\s*(.+)$/i);
+  if (setupCmdMatch) {
+    const brandTarget = setupCmdMatch[1].trim();
+    const paramsStr = setupCmdMatch[2].trim();
+    const productM = /(?:product|category)\s*=\s*([^;\n]+)/i.exec(paramsStr);
+    const buyersM = /(?:buyers?|icp|audience)\s*=\s*([^;\n]+)/i.exec(paramsStr);
+    const locationM = /(?:location|city|region)\s*=\s*([^;\n]+)/i.exec(paramsStr);
+    if (productM && buyersM && locationM) {
+      return {
+        category: "command_setup",
+        setupBrand: brandTarget,
+        setupMarket: {
+          product: productM[1].trim(),
+          buyers: buyersM[1].trim(),
+          location: locationM[1].trim(),
+        },
+        confidence: 1.0,
+        brief: messageText,
+        tokens: { input: 0, output: 0, costUsd: 0 },
+      };
+    }
+  }
 
   // Test mode deterministic classifier if no API key
   if (isTest && !config.anthropicApiKey) {
@@ -529,6 +639,7 @@ export async function pollChiefOfStaffIntake(options?: {
   testMode?: boolean;
   mockMessages?: any[];
   triggerRunnerInTestMode?: boolean;
+  channelId?: string;
 }): Promise<{
   polledCount: number;
   processedCount: number;
@@ -545,18 +656,25 @@ export async function pollChiefOfStaffIntake(options?: {
   }
 
   // 2. Read intake state before poll
+  if (!isTest) {
+    await restoreIntakeStateFromRepoIfNeeded({ testMode: isTest });
+  }
   const state = loadIntakeState(isTest);
   const channelsToPoll: string[] = [];
 
-  // Read channel strictly from ARCHITECT_CHANNEL_ID, never by channel name (e.g. #architect)
-  if (config.architectChannelId && !config.architectChannelId.startsWith("#")) {
-    channelsToPoll.push(config.architectChannelId);
-  } else if (isTest && config.architectChannelId) {
-    channelsToPoll.push(config.architectChannelId);
+  if (options?.channelId) {
+    channelsToPoll.push(options.channelId);
+  } else {
+    // Read channel strictly from ARCHITECT_CHANNEL_ID, never by channel name (e.g. #architect)
+    if (config.architectChannelId && !config.architectChannelId.startsWith("#")) {
+      channelsToPoll.push(config.architectChannelId);
+    } else if (isTest && config.architectChannelId) {
+      channelsToPoll.push(config.architectChannelId);
+    }
   }
 
   // Also query direct IM channels if Slack token available
-  if (config.slackBotToken && !isTest) {
+  if (config.slackBotToken && !isTest && !options?.channelId) {
     try {
       const convos = await slackClient.conversations.list({ types: "im", limit: 10 });
       if (convos.channels) {
@@ -578,14 +696,18 @@ export async function pollChiefOfStaffIntake(options?: {
     return { polledCount: 0, processedCount: 0 };
   }
 
-  // 3. On boot, start from "now", not from channel history
+  // 3. On boot, only initialize channels that have no persisted history
   if (!isBootInitialized) {
+    let stateChanged = false;
     for (const channel of channelsToPoll) {
-      if (!state.lastProcessedTsByChannel[channel] || Number(state.lastProcessedTsByChannel[channel]) < Number(processBootTs)) {
+      if (!state.lastProcessedTsByChannel[channel]) {
         state.lastProcessedTsByChannel[channel] = processBootTs;
+        stateChanged = true;
       }
     }
-    saveIntakeState(state, isTest);
+    if (stateChanged) {
+      saveIntakeState(state, isTest);
+    }
     isBootInitialized = true;
   }
 
@@ -683,7 +805,195 @@ export async function pollChiefOfStaffIntake(options?: {
       let postResult: { ok: boolean; error?: string } = { ok: true };
 
       try {
-        if (classification.category === "task") {
+        if (classification.category === "command_resume" && classification.issueNumber) {
+          const issueNum = classification.issueNumber;
+          const existingIssue = await getIssue(issueNum);
+
+          // 1. Add Architect command comment
+          await addCommentToIssue(
+            issueNum,
+            `**Architect Command (via Slack intake):** Resumed via \`#${issueNum}: resume\`. Cleared recovery attempts, removed status:blocked, set status:in-progress, and re-queued.`
+          );
+
+          // 2. Identify assigned agent
+          let assignedAgent = "web-builder";
+          if (existingIssue) {
+            const forLabel = existingIssue.labels.find((l) => l.startsWith("for:"));
+            if (forLabel) {
+              assignedAgent = forLabel.replace(/^for:/, "");
+            }
+          }
+
+          // 3. GitHub labels: remove status:blocked and status:needs-brief, add status:in-progress
+          await removeLabelFromIssue(issueNum, "status:blocked").catch(() => {});
+          await removeLabelFromIssue(issueNum, "status:needs-brief").catch(() => {});
+          await addLabelsToIssue(issueNum, ["status:in-progress", `for:${assignedAgent}`]).catch(() => {});
+
+          // 4. Door and channel
+          let door = "core";
+          if (existingIssue) {
+            const doorLabel = existingIssue.labels.find((l) => l.startsWith("door:"));
+            if (doorLabel) {
+              door = doorLabel.replace(/^door:/, "");
+            }
+          }
+          const doorChannel = `#doors-${door}`;
+
+          // 5. Clear recoveryAttempts in runner state, release any active claim, and set status:in-progress
+          const { resetRunnerIssue } = await import("../../runner/state.js");
+          await resetRunnerIssue(
+            issueNum,
+            {
+              agent: assignedAgent,
+              door,
+              title: existingIssue?.title || `Issue #${issueNum}`,
+            },
+            { testMode: isTest }
+          );
+
+          // 6. Re-queue once: trigger runner
+          lastTriggeredRunnerIssue = issueNum;
+          try {
+            if (!isTest || options?.triggerRunnerInTestMode) {
+              const { runIssueTask } = await import("../../runner/runner.js");
+              const issueInput = {
+                number: issueNum,
+                title: existingIssue?.title || `Issue #${issueNum}`,
+                body: existingIssue?.body || "",
+                labels: existingIssue?.labels || ["status:in-progress", `for:${assignedAgent}`, `door:${door}`],
+                html_url: existingIssue?.html_url,
+                agentName: assignedAgent,
+                door,
+                slackChannel: channel,
+                slackThreadTs: threadTs,
+              };
+              runIssueTask(issueInput, { testMode: isTest }).catch((err) => {
+                console.warn(`[Intake] Error executing runner for issue #${issueNum}:`, err);
+              });
+            } else {
+              console.log(`[Intake Test Mode] Runner re-queued for issue #${issueNum} (@${assignedAgent})`);
+            }
+          } catch (err: any) {
+            console.warn(`[Intake] Could not trigger runner for issue #${issueNum}:`, err?.message || String(err));
+          }
+
+          // 7. Reply in-thread
+          const replyText = `→ @${assignedAgent}, #${issueNum} resumed, re-queued.`;
+          postResult = await postLine({ channel, text: replyText, thread_ts: threadTs });
+        } else if (classification.category === "command_block" && classification.issueNumber) {
+          const issueNum = classification.issueNumber;
+
+          // 1. Add Architect command comment
+          await addCommentToIssue(
+            issueNum,
+            `**Architect Command (via Slack intake):** Halted via \`#${issueNum}: block\`. Status set to **status:blocked**.`
+          );
+
+          // 2. GitHub labels: remove status:in-progress, add status:blocked
+          await removeLabelFromIssue(issueNum, "status:in-progress").catch(() => {});
+          await addLabelsToIssue(issueNum, ["status:blocked"]).catch(() => {});
+
+          // 3. Update runner state and release claim
+          const { releaseRunnerClaim } = await import("../../runner/state.js");
+          await releaseRunnerClaim(
+            issueNum,
+            undefined,
+            {
+              status: "blocked",
+              error: "Blocked by Architect command (#N: block).",
+              runCompletedAt: new Date().toISOString(),
+            },
+            { testMode: isTest }
+          );
+
+          // 4. Reply in-thread
+          const replyText = `→ #${issueNum} blocked.`;
+          postResult = await postLine({ channel, text: replyText, thread_ts: threadTs });
+        } else if (classification.category === "command_setup" && classification.setupBrand && classification.setupMarket) {
+          const brandTarget = classification.setupBrand;
+          const market = classification.setupMarket;
+          const actor = await getActorDisplayName(msg.user);
+          const time = getCurrentTimeIST();
+          const today = getTodayDateString();
+
+          const { getSupabase } = await import("../prospect-researcher/db.js");
+          const sb = getSupabase();
+
+          let brandName = brandTarget;
+          let brandId: string | null = null;
+          let tenantId = "tgl";
+
+          if (sb) {
+            const { data: b } = await sb
+              .from("brands")
+              .select("id, tenant_id, name, setup_status, setup_note")
+              .or(`name.ilike.%${brandTarget}%,primary_domain.ilike.%${brandTarget}%`)
+              .limit(1)
+              .maybeSingle();
+
+            if (b) {
+              brandName = b.name;
+              brandId = b.id;
+              tenantId = b.tenant_id;
+
+              // 1. Write products_icps directly
+              const { data: existingMarket } = await sb
+                .from("products_icps")
+                .select("id")
+                .eq("brand_id", brandId)
+                .limit(1);
+
+              if (existingMarket && existingMarket.length > 0) {
+                await sb
+                  .from("products_icps")
+                  .update({
+                    product: market.product,
+                    icp: market.buyers,
+                    location: market.location,
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq("id", existingMarket[0].id);
+              } else {
+                await sb.from("products_icps").insert({
+                  tenant_id: tenantId,
+                  brand_id: brandId,
+                  product: market.product,
+                  icp: market.buyers,
+                  location: market.location,
+                });
+              }
+
+              // 2. Set brand to needs_changes with persistent setup_note
+              const noteText = `Architect market wording: product = ${market.product}; buyers = ${market.buyers}; location = ${market.location}`;
+              await sb
+                .from("brands")
+                .update({
+                  setup_status: "needs_changes",
+                  setup_note: noteText,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("id", brandId);
+            }
+          }
+
+          // 3. Log decision line to decisions/<date>.md
+          const decisionLine = `- ${time} IST · ${actor} · DECISION · chief-of-staff · Market wording updated for ${brandName}: product = ${market.product}; buyers = ${market.buyers}; location = ${market.location}`;
+          if (isTest) {
+            const decisionsPath = path.join(config.repoRoot, `logs/.test/decisions/${today}.md`);
+            fs.mkdirSync(path.dirname(decisionsPath), { recursive: true });
+            fs.appendFileSync(decisionsPath, decisionLine + "\n", "utf8");
+          } else {
+            await appendFileInRepo(
+              `decisions/${today}.md`,
+              decisionLine,
+              `chore(decision): update market wording for ${brandName} per ${actor}`
+            ).catch((e) => console.warn("[Intake] Decision log failed:", e));
+          }
+
+          // 4. Reply in-thread
+          const replyText = `Market wording updated for *${brandName}*:\n• *Product:* ${market.product}\n• *Buyers:* ${market.buyers}\n• *Location:* ${market.location}\n\nStatus set to \`needs_changes\`. Strategist will propose prompts and competitors for this market.`;
+          postResult = await postLine({ channel, text: replyText, thread_ts: threadTs });
+        } else if (classification.category === "task") {
           if (classification.issueNumber) {
             const issueNum = classification.issueNumber;
             const existingIssue = await getIssue(issueNum);
@@ -894,6 +1204,11 @@ export async function pollChiefOfStaffIntake(options?: {
   // 4. Write after poll
   state.lastPolledAt = new Date().toISOString();
   saveIntakeState(state, isTest);
+  if (!isTest && processedCount > 0) {
+    syncIntakeStateToRepo(state).catch((err) => {
+      console.warn("[Chief of Staff Intake] Remote state sync error:", err?.message || err);
+    });
+  }
 
   return { polledCount, processedCount };
 }

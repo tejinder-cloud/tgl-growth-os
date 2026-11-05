@@ -1,23 +1,99 @@
 // services/tgl-ops/src/agents/aeo-strategist/evidence.ts
 // What the reviewer's suggestions may rest on: the brand's own homepage and one live AI answer about the market.
 import { askEngine, loadEngineConfig } from "../aeo-audit-engine/engines.js";
-import type { Evidence, SetupSnapshot, SiteSnapshot } from "./types.js";
+import type { Evidence, PriorPrompt, SetupSnapshot, SiteSnapshot } from "./types.js";
 
 const decode = (s: string) =>
-  s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&nbsp;/g, " ");
+  s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&nbsp;/g, " ")
+   .replace(/&#038;/g, "&").replace(/&#8217;/g, "'").replace(/&#8220;/g, "“").replace(/&#8221;/g, "”");
+
+/** Extracts schema.org Organization or LocalBusiness fields from application/ld+json blocks. */
+export function extractSchemaOrg(html: string): string[] {
+  const fields: string[] = [];
+  const scriptMatches = html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
+  for (const sm of scriptMatches) {
+    try {
+      const data = JSON.parse(sm[1]);
+      const items = Array.isArray(data) ? data : Array.isArray(data?.["@graph"]) ? data["@graph"] : [data];
+      for (const item of items) {
+        if (!item) continue;
+        const types = Array.isArray(item["@type"]) ? item["@type"] : [item["@type"]];
+        if (types.some((t: any) => typeof t === "string" && /organization|localbusiness/i.test(t))) {
+          if (item.name) fields.push(`Organization: ${item.name}`);
+          if (item.description) fields.push(`Description: ${item.description}`);
+          if (item.url) fields.push(`URL: ${item.url}`);
+          if (item.telephone) fields.push(`Phone: ${item.telephone}`);
+          if (item.address) {
+            const addr = typeof item.address === "object" ? Object.values(item.address).join(", ") : String(item.address);
+            fields.push(`Address: ${addr}`);
+          }
+          if (item.areaServed) fields.push(`Area Served: ${typeof item.areaServed === "object" ? JSON.stringify(item.areaServed) : item.areaServed}`);
+          if (item.knowsAbout) fields.push(`Knows About: ${typeof item.knowsAbout === "object" ? JSON.stringify(item.knowsAbout) : item.knowsAbout}`);
+        }
+      }
+    } catch {
+      // Ignore malformed ld+json
+    }
+  }
+  return fields;
+}
+
+/** Attributes of one tag, in any order and either quote style. */
+function tagAttrs(tag: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const m of tag.matchAll(/([a-zA-Z:-]+)\s*=\s*("([^"]*)"|'([^']*)')/g)) out[m[1].toLowerCase()] = decode(m[3] ?? m[4] ?? "");
+  return out;
+}
 
 export function extractSite(html: string, url: string): SiteSnapshot {
   const pick = (re: RegExp) => { const m = re.exec(html); return m ? decode(m[1].replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim() : undefined; };
   const title = pick(/<title[^>]*>([\s\S]*?)<\/title>/i);
-  const description = pick(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i) ?? pick(/<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["']/i);
+  // Meta tags parsed one tag at a time by attribute (3 Nov: a regex across the head picked up inline CSS as the description).
+  const metas = [...html.matchAll(/<meta\b[^>]*>/gi)].map((m) => tagAttrs(m[0]));
+  const meta = (key: string) => metas.find((a) => (a.name ?? a.property ?? "").toLowerCase() === key)?.content?.trim() || undefined;
+  let description = meta("description") ?? meta("og:description");
+  if (description && (/\{[\s\S]*\}/.test(description) || /font-family|var\(--/i.test(description))) description = undefined;
+
+  // Headings a visitor sees: read after code, styles, comments, nav and footer are removed.
+  const visible = html
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<(script|style|noscript|svg|template|iframe)\b[\s\S]*?<\/\1>/gi, " ")
+    .replace(/<(nav|footer)\b[\s\S]*?<\/\1>/gi, " ");
   const headings: string[] = [];
-  for (const m of html.matchAll(/<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/gi)) {
-    const h = decode(m[1].replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
+  for (const m of visible.matchAll(/<h([1-3])\b[^>]*>([\s\S]*?)<\/h\1>/gi)) {
+    const h = decode(m[2].replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
     if (h && h.length < 160 && !headings.includes(h)) headings.push(h);
     if (headings.length >= 20) break;
   }
-  const text = decode(html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<noscript[\s\S]*?<\/noscript>/gi, " ").replace(/<[^>]+>/g, " "))
-    .replace(/\s+/g, " ").trim().slice(0, 3000);
+
+  // 1. Extract schema.org Organization or LocalBusiness fields
+  const schemaOrgFields = extractSchemaOrg(html);
+
+  // 2. Strip style, script, noscript, and svg elements
+  const cleanHtml = html
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
+    .replace(/<svg[\s\S]*?<\/svg>/gi, " ")
+    .replace(/<style[\s\S]*$/gi, " ")
+    .replace(/<script[\s\S]*$/gi, " ")
+    .replace(/<noscript[\s\S]*$/gi, " ")
+    .replace(/<svg[\s\S]*$/gi, " ");
+
+  // 3. Extract visible text by removing all remaining tags
+  const visibleText = decode(cleanHtml.replace(/<[^>]+>/g, " "))
+    .replace(/\s+/g, " ")
+    .trim();
+
+  // Combine visible text plus meta description, title, and schema.org Organization or LocalBusiness fields; cap at 4,000 characters
+  const parts: string[] = [];
+  if (title) parts.push(`Title: ${title}`);
+  if (description) parts.push(`Description: ${description}`);
+  if (schemaOrgFields.length > 0) parts.push(schemaOrgFields.join(" | "));
+  if (visibleText) parts.push(visibleText);
+
+  const text = parts.join("\n\n").slice(0, 4000);
+
   return { url, ok: true, title, description, headings, text };
 }
 
@@ -29,7 +105,7 @@ export async function fetchSite(domain: string | null, fetchImpl: typeof fetch =
   try {
     const res = await fetchImpl(url, { redirect: "follow", signal: ctrl.signal, headers: { "user-agent": "Mozilla/5.0 (compatible; TrueVisibleSetupCheck/1.0; +https://thegrowthlab.co.in)" } });
     if (!res.ok) return { url, ok: false, headings: [], text: "", error: `HTTP ${res.status}` };
-    return extractSite((await res.text()).slice(0, 600_000), res.url || url);
+    return extractSite(await res.text(), res.url || url);
   } catch (err: any) {
     return { url, ok: false, headings: [], text: "", error: String(err?.message ?? err).slice(0, 200) };
   } finally {
@@ -37,16 +113,137 @@ export async function fetchSite(domain: string | null, fetchImpl: typeof fetch =
   }
 }
 
-/** The discovery question. Deliberately neutral: no brand name, so the answer shows who AI names unprompted. */
+/** The neutral market question for changed / newly reworded markets. */
+export function newMarketQuestion(product: string, buyer: string, location: string): string {
+  return `Who leads ${product} for ${buyer} in ${location}? Name specific businesses and their websites.`;
+}
+
+/** The default discovery question. Deliberately neutral: no brand name, so the answer shows who AI names unprompted. */
 export function marketQuestion(s: SetupSnapshot): string | null {
   if (!s.market) return null;
   return `Who are the best ${s.market.product} providers in ${s.market.location} for ${s.market.icp}? Name specific businesses and their websites.`;
 }
 
-export async function gatherEvidence(s: SetupSnapshot, opts: { fetchImpl?: typeof fetch; env?: NodeJS.ProcessEnv } = {}): Promise<{ evidence: Evidence; aiCostUsd: number }> {
+/** Parses replacement market wording from reviewer notes (e.g. "Replace: product = ...; buyers = ...; location = ..."). */
+export function parseMarketOverride(note: string | null | undefined): { product?: string; icp?: string; location?: string } | null {
+  if (!note) return null;
+  const productM = /(?:product|category)\s*=\s*([^;\n]+)/i.exec(note);
+  const icpM = /(?:buyers?|icp|audience)\s*=\s*([^;\n]+)/i.exec(note);
+  const locM = /(?:location|city|region)\s*=\s*([^;\n]+)/i.exec(note);
+  if (!productM && !icpM && !locM) return null;
+  return {
+    product: productM ? productM[1].trim() : undefined,
+    icp: icpM ? icpM[1].trim() : undefined,
+    location: locM ? locM[1].trim() : undefined,
+  };
+}
+
+/** Extracts all proposed prompts from prior reviews, including those rejected by the validator. */
+export function extractPriorPrompts(reviews: any[]): PriorPrompt[] {
+  const result: PriorPrompt[] = [];
+  const seen = new Set<string>();
+
+  for (const r of reviews ?? []) {
+    const p = r?.proposal;
+    if (!p) continue;
+    // 1. Prompts from promptsAdd or prompts_add
+    const adds = Array.isArray(p.promptsAdd) ? p.promptsAdd : Array.isArray(p.prompts_add) ? p.prompts_add : [];
+    for (const item of adds) {
+      const text = typeof item === "string" ? item : item?.text;
+      if (text) {
+        const normText = text.toLowerCase().trim();
+        if (!seen.has(normText)) {
+          seen.add(normText);
+          result.push({
+            text: text.trim(),
+            language: item?.language,
+            journey_phase: item?.journey_phase || item?.intent,
+            reason: item?.reason,
+          });
+        }
+      }
+    }
+    // 2. Prompts from raw.prompts_add
+    if (p.raw && Array.isArray(p.raw.prompts_add)) {
+      for (const item of p.raw.prompts_add) {
+        const text = typeof item === "string" ? item : item?.text;
+        if (text) {
+          const normText = text.toLowerCase().trim();
+          if (!seen.has(normText)) {
+            seen.add(normText);
+            result.push({
+              text: text.trim(),
+              language: item?.language,
+              journey_phase: item?.journey_phase || item?.intent,
+              reason: item?.reason,
+            });
+          }
+        }
+      }
+    }
+    // 3. Prompts from dropped list
+    if (Array.isArray(p.dropped)) {
+      for (const d of p.dropped) {
+        const m = /prompt\s*[“"']([^”"']+)[”"']/i.exec(String(d));
+        if (m && m[1]) {
+          const text = m[1].trim();
+          const normText = text.toLowerCase();
+          if (!seen.has(normText)) {
+            seen.add(normText);
+            const langM = /language\s*['"]?([a-z]+)['"]?/i.exec(String(d));
+            const stageM = /stage\s*['"]?([a-z]+)['"]?/i.exec(String(d));
+            result.push({
+              text,
+              language: langM ? langM[1].toLowerCase() : "en",
+              journey_phase: (stageM ? stageM[1].toLowerCase() : "consideration") as any,
+            });
+          }
+        }
+      }
+    }
+  }
+  return result;
+}
+
+export interface GatherEvidenceOptions {
+  fetchImpl?: typeof fetch;
+  env?: NodeJS.ProcessEnv;
+  isMarketChange?: boolean;
+  marketOverride?: { product?: string; icp?: string; location?: string } | null;
+  priorProposedPrompts?: PriorPrompt[];
+}
+
+export async function gatherEvidence(
+  s: SetupSnapshot,
+  opts: GatherEvidenceOptions = {}
+): Promise<{ evidence: Evidence; aiCostUsd: number }> {
   const site = await fetchSite(s.domain, opts.fetchImpl);
-  const q = marketQuestion(s);
-  const ev: Evidence = { site, aiQuestion: q, aiAnswer: null, aiEngine: null };
+
+  const noteOverride = parseMarketOverride(s.setupNote);
+  const override = opts.marketOverride || noteOverride;
+  const isChange = opts.isMarketChange || !!override;
+
+  const effectiveProduct = override?.product || s.market?.product;
+  const effectiveIcp = override?.icp || s.market?.icp;
+  const effectiveLocation = override?.location || s.market?.location;
+
+  let q: string | null = null;
+  if (effectiveProduct && effectiveIcp && effectiveLocation) {
+    if (isChange) {
+      q = newMarketQuestion(effectiveProduct, effectiveIcp, effectiveLocation);
+    } else {
+      q = marketQuestion(s);
+    }
+  }
+
+  const ev: Evidence = {
+    site,
+    aiQuestion: q,
+    aiAnswer: null,
+    aiEngine: null,
+    priorProposedPrompts: opts.priorProposedPrompts ?? [],
+  };
+
   let aiCostUsd = 0;
   if (q) {
     // Perplexity is cheapest per answer (~$0.002 on 31 Oct) and reports its own cost.
@@ -70,4 +267,21 @@ export async function gatherEvidence(s: SetupSnapshot, opts: { fetchImpl?: typeo
 /** All text a suggested competitor must be found in. */
 export function evidenceCorpus(ev: Evidence): string {
   return [ev.site?.title, ev.site?.description, ...(ev.site?.headings ?? []), ev.site?.text, ev.aiAnswer].filter(Boolean).join("\n");
+}
+
+/**
+ * Normalizes text for verbatim comparison by:
+ * 1. Stripping markdown links [text](url) -> text
+ * 2. Stripping markdown formatting characters: **, *, _, `, ~
+ * 3. Collapsing whitespace
+ * 4. Case-folding (lowercase)
+ */
+export function normalizeAnswerText(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // strip markdown links [text](url) -> text
+    .replace(/[*_`~]/g, " ")                  // strip bold, italic, code, strikethrough
+    .replace(/\s+/g, " ")                     // collapse whitespace
+    .toLowerCase()
+    .trim();
 }

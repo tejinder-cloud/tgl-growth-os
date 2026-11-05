@@ -2,15 +2,21 @@
 // Poll → snapshot → evidence → proposal → #approvals card → human decision → apply + verify → first run.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { config, isTestMode } from "../../config.js";
+import { isArchitectUser } from "../../lib/org.js";
 import { slackClient, openModal, getActorDisplayName } from "../../lib/slack-client.js";
-import { postLine } from "../../lib/post.js";
+import { postLine, resolveChannelId } from "../../lib/post.js";
 import { getAlertsChannel } from "../../lib/cron-wrapper.js";
 import { appendFileInRepo } from "../../lib/github-client.js";
 import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
 import { checkAgentCostCap, recordApiSpend } from "../../lib/cost-cap.js";
 import { getSupabase } from "../prospect-researcher/db.js";
 import { runCitationTracking } from "../aeo-audit-engine/worker.js";
-import { gatherEvidence } from "./evidence.js";
+import {
+  gatherEvidence,
+  extractPriorPrompts,
+  parseMarketOverride,
+  marketQuestion,
+} from "./evidence.js";
 import { proposeChanges, changeCount } from "./propose.js";
 import { buildReviewBlocks, decidedBlocks, readSelection } from "./card.js";
 import { applyAndVerify, describePlan, EMPTY_PLAN, planApply, planSize } from "./apply.js";
@@ -19,23 +25,27 @@ import type { Proposal, SetupSnapshot } from "./types.js";
 export const AGENT = "aeo-strategist";
 const REMIND_AFTER_H = 20; // SLA is 24h (SPEC §3)
 
-function limitFor(plan: string, status: string, trialEndsAt: string | null): number {
+// Mirrors private.tv_prompt_limit: paid plans 25 + extra packs (decision 4 Nov 2026), trial 10, internal 50.
+function limitFor(plan: string, status: string, trialEndsAt: string | null, extra = 0): number {
   if (plan === "internal") return 50;
   if (plan === "trial") return status === "trialing" && trialEndsAt && Date.parse(trialEndsAt) > Date.now() ? 10 : 0;
-  return ["active", "past_due"].includes(status) ? 50 : 0;
+  return ["active", "past_due"].includes(status) ? 25 + extra : 0;
 }
 
 export async function loadSnapshot(sb: SupabaseClient, brandId: string): Promise<SetupSnapshot> {
-  const { data: b, error } = await sb.from("brands").select("id, tenant_id, name, primary_domain, site_platform, languages, updated_at").eq("id", brandId).single();
+  const { data: b, error } = await sb.from("brands").select("id, tenant_id, name, primary_domain, site_platform, languages, updated_at, setup_status, setup_note").eq("id", brandId).single();
   if (error || !b) throw new Error(`brand ${brandId}: ${error?.message ?? "not found"}`);
   const [t, subs, v, m, c, p] = await Promise.all([
     sb.from("tenants").select("name, parent_tenant_id").eq("id", b.tenant_id).single(),
-    sb.from("subscriptions").select("tenant_id, plan, status, trial_ends_at, created_at").eq("product", "truevisible").is("brand_id", null).order("created_at", { ascending: false }),
+    sb.from("subscriptions").select("tenant_id, plan, status, trial_ends_at, extra_prompts, created_at").eq("product", "truevisible").is("brand_id", null).order("created_at", { ascending: false }),
     sb.from("brand_variants").select("name").eq("brand_id", brandId),
     sb.from("products_icps").select("id, product, icp, location").eq("brand_id", brandId).order("created_at").limit(1),
     sb.from("competitors").select("id, name, domain").eq("brand_id", brandId).eq("status", "active").order("created_at"),
     sb.from("prompts").select("id, text, language, journey_phase").eq("brand_id", brandId).eq("status", "active").order("created_at"),
   ]);
+  // Reviewer instructions for the strategist come from the latest sent-back review — never from the customer-facing note.
+  const { data: lastBack } = await sb.from("setup_reviews").select("instructions, note")
+    .eq("brand_id", brandId).eq("status", "changes_requested").order("decided_at", { ascending: false }).limit(1).maybeSingle();
   const payers = [b.tenant_id, t.data?.parent_tenant_id].filter(Boolean);
   const sub = (subs.data ?? []).find((s: any) => payers.includes(s.tenant_id));
   return {
@@ -44,8 +54,10 @@ export async function loadSnapshot(sb: SupabaseClient, brandId: string): Promise
     variants: (v.data ?? []).map((x: any) => x.name),
     market: (m.data ?? [])[0] ?? null,
     competitors: c.data ?? [], prompts: (p.data ?? []) as SetupSnapshot["prompts"],
-    plan: sub?.plan ?? "none", promptLimit: sub ? limitFor(sub.plan, sub.status, sub.trial_ends_at) : 0,
+    plan: sub?.plan ?? "none", promptLimit: sub ? limitFor(sub.plan, sub.status, sub.trial_ends_at, sub.extra_prompts ?? 0) : 0,
     submittedAt: b.updated_at,
+    setupStatus: b.setup_status,
+    setupNote: lastBack?.instructions ?? null,
   };
 }
 
@@ -55,12 +67,12 @@ export async function pollSetupQueue(): Promise<void> {
   const sb = getSupabase();
   if (!sb) return;
 
-  const [{ data: pending }, { data: open }] = await Promise.all([
-    sb.from("brands").select("id, tenant_id, name, updated_at").eq("setup_status", "pending_verification"),
+  const [{ data: pendingOrNeedsChanges }, { data: open }] = await Promise.all([
+    sb.from("brands").select("id, tenant_id, name, updated_at, setup_status, setup_note").in("setup_status", ["pending_verification", "needs_changes"]),
     sb.from("setup_reviews").select("id, brand_id, created_at, slack_channel, slack_ts, reminded_at").eq("status", "proposed"),
   ]);
 
-  for (const b of pending ?? []) {
+  for (const b of pendingOrNeedsChanges ?? []) {
     const review = (open ?? []).find((r: any) => r.brand_id === b.id);
     if (review) {
       // Customer re-submitted after the card went out → the card is stale.
@@ -101,7 +113,26 @@ export async function openReview(sb: SupabaseClient, brandId: string): Promise<s
   if (!cap.allowed) return null; // checkAgentCostCap already alerted; retried on the next poll
   const s = await loadSnapshot(sb, brandId);
 
-  const { evidence, aiCostUsd } = await gatherEvidence(s);
+  // Load prior reviews to extract prior proposed prompts and detect market changes
+  const { data: priorReviews } = await sb
+    .from("setup_reviews")
+    .select("id, status, proposal, evidence, created_at")
+    .eq("brand_id", brandId)
+    .order("created_at", { ascending: false });
+
+  const priorPrompts = extractPriorPrompts(priorReviews ?? []);
+
+  const override = parseMarketOverride(s.setupNote);
+  const lastReview = (priorReviews ?? [])[0];
+  const lastQ = lastReview?.evidence?.aiQuestion;
+  const currentQ = marketQuestion(s);
+  const isMarketChange = !!override || (!!lastQ && !!currentQ && lastQ !== currentQ);
+
+  const { evidence, aiCostUsd } = await gatherEvidence(s, {
+    isMarketChange,
+    marketOverride: override,
+    priorProposedPrompts: priorPrompts,
+  });
   const { proposal, usd, model, tokens } = await proposeChanges(s, evidence);
 
   recordApiSpend({ agent: AGENT, apiName: "perplexity:setup-evidence", totalCostUsd: aiCostUsd, details: `setup check ${s.name}` });
@@ -127,6 +158,9 @@ export async function openReview(sb: SupabaseClient, brandId: string): Promise<s
     throw new Error(`save review: ${error.message}`);
   }
 
+  // Brand status advances to pending_verification while under active review
+  await sb.from("brands").update({ setup_status: "pending_verification" }).eq("id", brandId);
+
   const evLine = [
     evidence.site ? (evidence.site.ok ? "site ok" : `site failed (${evidence.site.error})`) : "no site",
     evidence.aiAnswer ? `AI answer ok (${evidence.aiEngine})` : `AI answer failed (${evidence.aiError ?? "—"})`,
@@ -134,8 +168,10 @@ export async function openReview(sb: SupabaseClient, brandId: string): Promise<s
   ].join(" · ");
   const blocks = buildReviewBlocks(s, proposal, review.id, evLine);
   if (!config.slackBotToken) return review.id;
+  const targetChannel = "#doors-aeo";
+  const channelId = await resolveChannelId(targetChannel);
   const msg = await slackClient.chat.postMessage({
-    channel: config.approvalsChannelId, blocks,
+    channel: channelId || config.approvalsChannelId, blocks,
     text: `Setup check · ${s.name} — ${changeCount(proposal)} suggested change(s)`,
   });
   await sb.from("setup_reviews").update({ slack_channel: msg.channel, slack_ts: msg.ts }).eq("id", review.id);
@@ -169,13 +205,22 @@ export async function handleSetupAction(payload: any, action: any): Promise<void
       type: "modal", callback_id: "setup_changes_modal",
       private_metadata: JSON.stringify({ reviewId, channel: payload.channel?.id, ts: payload.container?.message_ts }),
       title: { type: "plain_text", text: "Needs changes" },
-      submit: { type: "plain_text", text: "Send to customer" },
-      blocks: [{
-        type: "input", block_id: "note",
-        label: { type: "plain_text", text: "Message to the customer (shown on their dashboard)" },
-        element: { type: "plain_text_input", action_id: "text", multiline: true, max_length: 500,
-          placeholder: { type: "plain_text", text: "e.g. Please add your main competitors in Mohali — we'll check again as soon as you save." } },
-      }],
+      submit: { type: "plain_text", text: "Send back" },
+      blocks: [
+        {
+          type: "input", block_id: "instructions", optional: true,
+          label: { type: "plain_text", text: "Instructions for the strategist (never shown to the customer)" },
+          element: { type: "plain_text_input", action_id: "text", multiline: true, max_length: 1500,
+            placeholder: { type: "plain_text", text: "e.g. Market is AI visibility (AEO/GEO) for hospitals, coaching and real estate, India-wide. Redo the prompts for that." } },
+        },
+        {
+          type: "input", block_id: "note", optional: true,
+          label: { type: "plain_text", text: "Message to the customer (shown on their dashboard)" },
+          hint: { type: "plain_text", text: "Leave empty if the customer doesn't need to do anything — they'll see “We're refining your setup”." },
+          element: { type: "plain_text_input", action_id: "text", multiline: true, max_length: 500,
+            placeholder: { type: "plain_text", text: "e.g. Please add your main competitors in Mohali — we'll check again as soon as you save." } },
+        },
+      ],
     });
     return;
   }
@@ -185,6 +230,21 @@ export async function handleSetupAction(payload: any, action: any): Promise<void
   const proposal = review.proposal as Proposal;
   const plan = action.action_id === "setup_approve" ? planApply(s, proposal, readSelection(payload.state?.values)) : EMPTY_PLAN;
 
+  if (action.action_id === "setup_approve" || action.action_id === "setup_approve_asis") {
+    const isArch = (await isArchitectUser(payload.user)) || (await isArchitectUser(actor));
+    if (!isArch) {
+      await ephemeral(payload, "Only the Architect may verify a brand setup profile.");
+      return;
+    }
+    const resultingCount = action.action_id === "setup_approve"
+      ? s.prompts.length - plan.promptsRetire.length + plan.promptsAdd.length
+      : s.prompts.length;
+    if (resultingCount < 5) {
+      await ephemeral(payload, `Cannot approve: resulting setup has only ${resultingCount} prompts. Minimum 5 prompts required for verification.`);
+      return;
+    }
+  }
+
   // Claim the review first so a double click can't apply twice.
   const { data: claimed } = await sb.from("setup_reviews")
     .update({ status: "approved", decided_by: actor, decided_at: new Date().toISOString(), applied: plan })
@@ -192,7 +252,7 @@ export async function handleSetupAction(payload: any, action: any): Promise<void
   if (!claimed?.length) return;
 
   try {
-    await applyAndVerify(sb, s, plan, actor);
+    await applyAndVerify(sb, s, plan, actor, reviewId);
   } catch (err: any) {
     await sb.from("setup_reviews").update({ status: "failed", error: String(err?.message ?? err).slice(0, 500) }).eq("id", reviewId);
     await ephemeral(payload, `Couldn't apply: ${String(err?.message ?? err).slice(0, 300)}. Nothing was marked verified.`);
@@ -207,6 +267,8 @@ export async function handleSetupAction(payload: any, action: any): Promise<void
     `chore(decision): setup verified for ${s.name} per ${actor}`).catch((e) => console.warn("[Setup Queue] decision log failed", e?.message ?? e));
 
   // First audit for this brand right away (Citation Tracker; idempotent per engine × day).
+  // New prompts are asked by the first-audit queue within a minute (apply set setup_submitted_at); this daily call only
+  // matters for a brand verified before its first daily run, and is skipped for engines that already ran today.
   runCitationTracking({ brandId: s.brandId }).catch((e) => console.error("[Setup Queue] first run failed", e));
 }
 
@@ -215,21 +277,44 @@ export async function handleSetupChangesSubmission(payload: any): Promise<void> 
   if (!sb) return;
   const meta = JSON.parse(payload.view?.private_metadata || "{}");
   const note = String(payload.view?.state?.values?.note?.text?.value ?? "").trim().slice(0, 500);
+  const instructions = String(payload.view?.state?.values?.instructions?.text?.value ?? "").trim().slice(0, 1500);
   const actor = await getActorDisplayName(payload.user);
   const { data: claimed } = await sb.from("setup_reviews")
-    .update({ status: "changes_requested", decided_by: actor, decided_at: new Date().toISOString(), note })
+    .update({ status: "changes_requested", decided_by: actor, decided_at: new Date().toISOString(), note: note || null, instructions: instructions || null })
     .eq("id", meta.reviewId).eq("status", "proposed").select("brand_id");
   if (!claimed?.length) return;
   const brandId = claimed[0].brand_id;
-  await sb.from("brands").update({ setup_status: "needs_changes", setup_note: note || null }).eq("id", brandId);
+  // The customer sees only this send-back's message; no message → clear any older one ("We're refining your setup").
+  const brandPatch: Record<string, any> = { setup_status: "needs_changes", setup_note: note || null };
+  await sb.from("brands").update(brandPatch).eq("id", brandId);
   const { data: b } = await sb.from("brands").select("name").eq("id", brandId).single();
   const time = getCurrentTimeIST();
-  const outcome = `*Sent back* by ${actor} at ${time} IST — “${note}”`;
+  const outcome = `*Sent back* by ${actor} at ${time} IST${instructions ? ` — to strategist: “${instructions}”` : ""}${note ? ` — to customer: “${note}”` : " — customer sees “We're refining your setup”"}`;
   if (meta.channel && meta.ts) {
     const hist: any = await slackClient.conversations.history({ channel: meta.channel, latest: meta.ts, inclusive: true, limit: 1 }).catch(() => null);
     const blocks = hist?.messages?.[0]?.blocks ?? [];
     await slackClient.chat.update({ channel: meta.channel, ts: meta.ts, blocks: decidedBlocks(blocks, outcome), text: outcome }).catch(() => {});
   }
-  appendFileInRepo(`decisions/${getTodayDateString()}.md`, `- ${time} IST · ${actor} · REJECT · ${AGENT} · Setup needs changes: ${b?.name ?? brandId} — ${note} · review ${meta.reviewId}`,
+  appendFileInRepo(`decisions/${getTodayDateString()}.md`, `- ${time} IST · ${actor} · REJECT · ${AGENT} · Setup needs changes: ${b?.name ?? brandId} — ${instructions || note || "(no note)"} · review ${meta.reviewId}`,
     `chore(decision): setup sent back for ${b?.name ?? brandId} per ${actor}`).catch(() => {});
+}
+
+/** Re-opens the setup review for a brand, superseding any pending ones and posting a fresh card. */
+export async function reopenReviewForBrand(sb: SupabaseClient, brandIdOrName: string): Promise<string | null> {
+  let brandId = brandIdOrName;
+  if (!/^[0-9a-f-]{36}$/i.test(brandIdOrName)) {
+    const { data: b } = await sb
+      .from("brands")
+      .select("id")
+      .or(`name.ilike.%${brandIdOrName}%,primary_domain.ilike.%${brandIdOrName}%`)
+      .limit(1)
+      .single();
+    if (!b) throw new Error(`brand "${brandIdOrName}" not found`);
+    brandId = b.id;
+  }
+
+  // Mark open proposed reviews as superseded
+  await sb.from("setup_reviews").update({ status: "superseded" }).eq("brand_id", brandId).eq("status", "proposed");
+  await sb.from("brands").update({ setup_status: "pending_verification", updated_at: new Date().toISOString() }).eq("id", brandId);
+  return openReview(sb, brandId);
 }

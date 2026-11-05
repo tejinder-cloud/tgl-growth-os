@@ -311,7 +311,7 @@ async function runTaskP07VerificationSuite(): Promise<void> {
   const prCap = await getAgentCostCap("prospect-researcher");
   const defaultCap = await getAgentCostCap("other-agent");
 
-  if (cosCap !== 0.5 || wbCap !== 3.0 || prCap !== 2.0 || defaultCap !== 1.0) {
+  if (cosCap !== 0.5 || wbCap !== 6.0 || prCap !== 2.0 || defaultCap !== 1.0) {
     throw new Error(`Test 6 Failed: Cost caps do not match spec: cos=${cosCap}, wb=${wbCap}, pr=${prCap}, def=${defaultCap}`);
   }
 

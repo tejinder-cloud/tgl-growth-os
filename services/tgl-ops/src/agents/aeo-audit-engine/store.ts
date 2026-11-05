@@ -14,13 +14,20 @@ export interface TrackedBrand {
   prompts: { id: string; text: string; language: string }[];
 }
 
+export type RunKind = "daily" | "audit";
+
 export interface TrackerStore {
-  loadEligibleBrands(brandId?: string): Promise<TrackedBrand[]>;
+  /** includeUnverified: also brands whose setup is submitted but not yet verified (first audit on submit). */
+  loadEligibleBrands(brandId?: string, opts?: { includeUnverified?: boolean }): Promise<TrackedBrand[]>;
   hasCompletedRun(brandId: string, runDate: string, engine: EngineId): Promise<boolean>;
-  startRun(b: TrackedBrand, runDate: string, engine: EngineId): Promise<string>;
+  startRun(b: TrackedBrand, runDate: string, engine: EngineId, kind?: RunKind): Promise<string>;
   saveAnswer(b: TrackedBrand, runId: string, promptId: string, ans: EngineAnswer, a: AnswerAnalysis, cites: CitationAnalysis[]): Promise<void>;
   finishRun(runId: string, status: "succeeded" | "partial" | "failed", error: string | null): Promise<void>;
   recordUsageCost(b: TrackedBrand, runDate: string, engine: EngineId, row: { calls: number; usd: number; inr: number; detail: Record<string, unknown> }): Promise<void>;
+  /** Prompts this engine already answered on runDate in a completed run (audits ask only the rest). */
+  answeredPromptIds(brandId: string, runDate: string, engine: EngineId): Promise<Set<string>>;
+  /** Billable searches already recorded this calendar month for an engine, across all tenants (free allowances are per provider account). */
+  monthSearches(engine: EngineId, runDate: string): Promise<number>;
 }
 
 function must<T>(res: { data: T; error: { message: string } | null }, what: string): T {
@@ -32,9 +39,13 @@ const ACTIVE_PAID = ["active", "past_due"];
 
 export function supabaseStore(sb: SupabaseClient): TrackerStore {
   return {
-    async loadEligibleBrands(brandId) {
-      // Tenant zero ('tgl') always runs; other brands run once TGL has verified their setup (SPEC §3).
-      let q = sb.from("brands").select("id, tenant_id, name, primary_domain, setup_status").or("setup_status.eq.verified,tenant_id.eq.tgl");
+    async loadEligibleBrands(brandId, opts) {
+      // Daily: tenant zero ('tgl') always; other brands once TGL has verified their setup (SPEC §3).
+      // First audit (opts.includeUnverified): any brand that has finished the wizard, so numbers appear within minutes.
+      let q = sb.from("brands").select("id, tenant_id, name, primary_domain, setup_status");
+      q = opts?.includeUnverified
+        ? q.in("setup_status", ["pending_verification", "needs_changes", "verified"]).eq("onboarding_step", 4)
+        : q.or("setup_status.eq.verified,tenant_id.eq.tgl");
       if (brandId) q = q.eq("id", brandId);
       const brands = must(await q, "load brands") as any[];
       if (!brands.length) return [];
@@ -89,12 +100,12 @@ export function supabaseStore(sb: SupabaseClient): TrackerStore {
       return rows.length > 0;
     },
 
-    async startRun(b, runDate, engine) {
+    async startRun(b, runDate, engine, kind = "daily") {
       // A run left 'running' for 2h+ (process died mid-run) is marked failed so today's run can be retried.
       await sb.from("runs").update({ status: "failed", error: "abandoned (process stopped mid-run)", finished_at: new Date().toISOString() })
         .eq("brand_id", b.id).eq("run_date", runDate).eq("engine", engine).eq("status", "running")
         .lt("started_at", new Date(Date.now() - 2 * 3600_000).toISOString());
-      const row = must(await sb.from("runs").insert({ tenant_id: b.tenantId, brand_id: b.id, run_date: runDate, engine, kind: "daily", status: "running", started_at: new Date().toISOString() })
+      const row = must(await sb.from("runs").insert({ tenant_id: b.tenantId, brand_id: b.id, run_date: runDate, engine, kind, status: "running", started_at: new Date().toISOString() })
         .select("id").single(), "start run") as any;
       return row.id as string;
     },
@@ -115,6 +126,19 @@ export function supabaseStore(sb: SupabaseClient): TrackerStore {
 
     async finishRun(runId, status, error) {
       must(await sb.from("runs").update({ status, error, finished_at: new Date().toISOString() }).eq("id", runId), "finish run");
+    },
+
+    async answeredPromptIds(brandId, runDate, engine) {
+      const rows = must(await sb.from("answers").select("prompt_id, runs!inner(run_date, engine, status)")
+        .eq("brand_id", brandId).eq("runs.run_date", runDate).eq("runs.engine", engine).in("runs.status", ["succeeded", "partial"]).limit(1000), "answered prompts") as any[];
+      return new Set(rows.map((r) => r.prompt_id as string));
+    },
+
+    async monthSearches(engine, runDate) {
+      const rows = must(await sb.from("usage_costs").select("detail").eq("category", "engine_api").eq("engine", engine)
+        .gte("cost_date", runDate.slice(0, 8) + "01").lte("cost_date", runDate).limit(5000), "month searches") as any[];
+      // Count every search the provider saw (free + billed) — the allowance is consumed by both.
+      return rows.reduce((n, r) => n + (Number(r.detail?.searches) || 0) + (Number(r.detail?.free_searches) || 0), 0);
     },
 
     async recordUsageCost(b, runDate, engine, row) {

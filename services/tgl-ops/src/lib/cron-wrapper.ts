@@ -42,6 +42,28 @@ export function setupProcessErrorHandlers(): void {
       console.error("[Failed to post uncaughtException to Slack alerts]", postErr);
     });
   });
+
+  process.on("SIGTERM", async () => {
+    console.log("[Process] SIGTERM received, initiating graceful shutdown...");
+    try {
+      const { handleRunnerShutdown } = await import("../runner/runner.js");
+      await handleRunnerShutdown("SIGTERM");
+    } catch (err) {
+      console.error("[Process] Error during SIGTERM graceful shutdown:", err);
+    }
+    process.exit(0);
+  });
+
+  process.on("SIGINT", async () => {
+    console.log("[Process] SIGINT received, initiating graceful shutdown...");
+    try {
+      const { handleRunnerShutdown } = await import("../runner/runner.js");
+      await handleRunnerShutdown("SIGINT");
+    } catch (err) {
+      console.error("[Process] Error during SIGINT graceful shutdown:", err);
+    }
+    process.exit(0);
+  });
 }
 
 export interface WrapCronJobOptions {

@@ -6,11 +6,24 @@ process.env.ANTHROPIC_PRICE_IN = process.env.ANTHROPIC_PRICE_IN || "3";
 process.env.ANTHROPIC_PRICE_OUT = process.env.ANTHROPIC_PRICE_OUT || "15";
 
 import assert from "node:assert/strict";
-import { extractSite, marketQuestion, evidenceCorpus } from "./agents/aeo-strategist/evidence.js";
-import { validateProposal, proposeChanges, buildUserMessage, changeCount } from "./agents/aeo-strategist/propose.js";
+import fs from "node:fs";
+import path from "node:path";
+import { config } from "./config.js";
+import {
+  extractSite,
+  fetchSite,
+  marketQuestion,
+  evidenceCorpus,
+  newMarketQuestion,
+  parseMarketOverride,
+  extractPriorPrompts,
+} from "./agents/aeo-strategist/evidence.js";
+import { splitTextIntoChunks } from "./lib/post.js";
+import { validateProposal, proposeChanges, buildUserMessage, changeCount, extractJson, normalizeLanguage, normalizeStage } from "./agents/aeo-strategist/propose.js";
+import { ALLOWED_LANGUAGES, ALLOWED_STAGES } from "./agents/aeo-strategist/types.js";
 import { buildReviewBlocks, readSelection, decidedBlocks } from "./agents/aeo-strategist/card.js";
-import { planApply, describePlan, planSize } from "./agents/aeo-strategist/apply.js";
-import type { Evidence, SetupSnapshot } from "./agents/aeo-strategist/types.js";
+import { planApply, describePlan, planSize, applyAndVerify } from "./agents/aeo-strategist/apply.js";
+import type { Evidence, Proposal, SetupSnapshot } from "./agents/aeo-strategist/types.js";
 
 let passed = 0;
 async function t(name: string, fn: () => void | Promise<void>) {
@@ -85,17 +98,347 @@ await t("validation: market change only for fields that actually differ", () => 
   assert.deepEqual(p.market, { product: "BSc nursing entrance coaching", reason: "site says nursing" });
   assert.equal(validateProposal({ market_change: { location: "Mohali", reason: "same" } }, snap, ev).market, null);
 });
+await t("competitor without a quote: quote taken verbatim from the stored answer; retire accepts bare numbers/text; summary mismatch flagged", () => {
+  const tableEv: Evidence = { ...ev, aiAnswer: "Intro line.\n\n| Business | Best fit | Website |\n|---|---|---|\n| **Sukhmani Nursing Academy** | Mohali nursing entrance coaching | sukhmani.example |\n| **Elite Nursing Institute** | Kharar | elite.example |" };
+  const p = validateProposal({ summary: "Retired 2 vague prompts and added 2 competitors.",
+    competitors_add: [{ name: "Sukhmani Nursing Academy", domain: "sukhmani.example" }, { name: "Elite Nursing Institute" }, { name: "Made Up Coaching" }],
+    prompts_retire: [3, { text: "question number 5" }], prompts_add: [] }, snap, tableEv);
+  assert.deepEqual(p.competitorsAdd.map((c) => c.name), ["Sukhmani Nursing Academy", "Elite Nursing Institute"]);
+  assert.ok(tableEv.aiAnswer!.includes(p.competitorsAdd[0].evidence) && p.competitorsAdd[0].evidence.includes("Sukhmani"));
+  assert.ok(p.dropped.some((d) => d.includes("Made Up Coaching")));
+  assert.deepEqual(p.promptsRetire.map((r) => r.id), ["p3", "p5"]);
+  const q = validateProposal({ summary: "I retired the 8 generic ones.", prompts_retire: [], competitors_add: [], prompts_add: [] }, snap, tableEv);
+  assert.ok(q.dropped.some((d) => d.includes("nothing will be retired")));
+});
 await t("proposeChanges: calls the model with setup + both evidence blocks, prices the call, validates the reply", async () => {
   let seen: any;
   const fake = { messages: { create: async (req: any) => { seen = req; return {
-    content: [{ type: "text", text: 'Here you go: {"summary":"Fine overall.","competitors_add":[{"name":"Elite Nursing Institute","domain":null,"evidence_quote":"Elite Nursing Institute"}]}' }],
+    content: [{
+      type: "tool_use",
+      id: "call_1",
+      name: "propose_setup_check",
+      input: {
+        summary: "Fine overall.",
+        market_change: null,
+        competitors_add: [{
+          name: "Elite Nursing Institute",
+          domain: null,
+          prompt: "Who are the best coaching providers in Mohali for students?",
+          engine: "perplexity",
+          verbatim_excerpt: "Elite Nursing Institute",
+        }],
+        competitors_remove: [],
+        prompts_retire: [],
+        prompts_add: [],
+      },
+    }],
     usage: { input_tokens: 2000, output_tokens: 300 } }; } } } as any;
   const r = await proposeChanges(snap, ev, fake);
+  assert.equal(seen.tools?.[0]?.name, "propose_setup_check");
+  assert.deepEqual(seen.tool_choice, { type: "auto" });
+  assert.ok(seen.system.includes("propose_setup_check"));
+  assert.equal(seen.max_tokens, 4096);
   assert.match(seen.messages[0].content, /EVIDENCE 2 — live AI answer from perplexity/);
   assert.match(seen.messages[0].content, /9\. \[en · consideration\] question number 9/);
   assert.equal(r.proposal.competitorsAdd[0].name, "Elite Nursing Institute");
   assert.equal(Number(r.usd.toFixed(4)), Number((2000 * 3 / 1e6 + 300 * 15 / 1e6).toFixed(4)));
   assert.equal(changeCount(r.proposal), 1);
+});
+
+await t("proposeChanges handles Hinglish prompt containing internal quotes via tool_use without parse error", async () => {
+  const fake = {
+    messages: {
+      create: async () => ({
+        content: [
+          {
+            type: "tool_use",
+            id: "call_hinglish",
+            name: "propose_setup_check",
+            input: {
+              summary: "Added Hinglish prompt with internal quotes.",
+              market_change: null,
+              competitors_add: [],
+              competitors_remove: [],
+              prompts_retire: [{ number: 1, reason: "replaced" }],
+              prompts_add: [
+                {
+                  text: 'Mohali mein "best nursing coaching" kaunsi hai?',
+                  language: "hinglish",
+                  journey_phase: "consideration",
+                  reason: "buyer intent with quotes",
+                },
+                {
+                  text: 'ChatGPT par "top results" kaise dekhein',
+                  language: "hinglish",
+                  journey_phase: "awareness",
+                  reason: "AEO discovery with quotes",
+                },
+              ],
+            },
+          },
+        ],
+        usage: { input_tokens: 1500, output_tokens: 200 },
+      }),
+    },
+  } as any;
+  const r = await proposeChanges(snap, ev, fake);
+  assert.equal(r.proposal.promptsAdd.length, 2);
+  assert.equal(r.proposal.promptsAdd[0].text, 'Mohali mein "best nursing coaching" kaunsi hai?');
+  assert.equal(r.proposal.promptsAdd[0].language, "hinglish");
+  assert.equal(r.proposal.promptsAdd[1].text, 'ChatGPT par "top results" kaise dekhein');
+});
+
+await t("competitor evidence: must be verbatim excerpt from live AI answer with prompt and engine; site tagline is rejected", () => {
+  const customEv: Evidence = {
+    site: extractSite(`<html><head><title>Super Academy</title></head><body><h1>Official Site Tagline: Best coaching in town</h1><p>Welcome to Super Academy</p></body></html>`, "https://super.example/"),
+    aiQuestion: "Who are the best test prep coaching centers?",
+    aiAnswer: "Top centers include Alpha Classes (alpha.example) and Beta Institute.",
+    aiEngine: "perplexity (sonar-pro)",
+  };
+
+  const p = validateProposal({
+    summary: "Testing evidence rules",
+    competitors_add: [
+      // 1. Valid: in AI answer, verbatim excerpt, prompt and engine named
+      {
+        name: "Alpha Classes",
+        domain: "alpha.example",
+        prompt: "Who are the best test prep coaching centers?",
+        engine: "perplexity (sonar-pro)",
+        verbatim_excerpt: "Alpha Classes (alpha.example)",
+      },
+      // 2. Invalid: excerpt from site tagline instead of AI answer
+      {
+        name: "Beta Institute",
+        domain: "beta.example",
+        prompt: "Who are the best test prep coaching centers?",
+        engine: "perplexity (sonar-pro)",
+        verbatim_excerpt: "Official Site Tagline: Best coaching in town",
+      },
+      // 3. Invalid: competitor only found on site, not in AI answer
+      {
+        name: "Super Academy",
+        domain: "super.example",
+        prompt: "Who are the best test prep coaching centers?",
+        engine: "perplexity (sonar-pro)",
+        verbatim_excerpt: "Welcome to Super Academy",
+      },
+      // 4. Invalid: missing prompt and engine
+      {
+        name: "Beta Institute",
+        domain: "beta.example",
+        prompt: "",
+        engine: "",
+        verbatim_excerpt: "Beta Institute",
+      },
+    ],
+    competitors_remove: [],
+    prompts_retire: [],
+    prompts_add: [],
+  }, { ...snap, market: null, competitors: [] }, { ...customEv, aiQuestion: null, aiEngine: null });
+
+  assert.equal(p.competitorsAdd.length, 1);
+  assert.equal(p.competitorsAdd[0].name, "Alpha Classes");
+  assert.equal(p.competitorsAdd[0].evidence, "Alpha Classes (alpha.example)");
+  assert.equal(p.competitorsAdd[0].prompt, "Who are the best test prep coaching centers?");
+  assert.equal(p.competitorsAdd[0].engine, "perplexity (sonar-pro)");
+
+  assert.ok(p.dropped.some((d) => d.includes("Beta Institute") && d.includes("site tagline is not evidence")));
+  assert.ok(p.dropped.some((d) => d.includes("Super Academy") && d.includes("site tagline is not evidence")));
+  assert.ok(p.dropped.some((d) => d.includes("Beta Institute") && d.includes("prompt and engine must be named")));
+});
+
+await t("proposeChanges handles tool failure and logs raw reply to aeo-strategist.md on parse error", async () => {
+  let callCount = 0;
+  const invalidRawText = "Raw invalid reply that fails to parse {broken: json [";
+  const fake = {
+    messages: {
+      create: async () => {
+        callCount++;
+        return { content: [{ type: "text", text: invalidRawText }], usage: { input_tokens: 100, output_tokens: 20 } };
+      },
+    },
+  } as any;
+
+  await assert.rejects(async () => {
+    await proposeChanges(snap, ev, fake);
+  }, /model returned no JSON object/);
+
+  assert.equal(callCount, 1, "Expected single call with auto tool_choice and direct text fallback");
+
+  // Verify that appendLog wrote the raw reply to logs/.test/<date>/aeo-strategist.md
+  const today = new Date().toISOString().slice(0, 10);
+  const logFile = path.join(config.repoRoot, "logs/.test", today, "aeo-strategist.md");
+  assert.ok(fs.existsSync(logFile), `Expected log file ${logFile} to exist`);
+  const logContent = fs.readFileSync(logFile, "utf8");
+  assert.ok(logContent.includes("proposal parse failure:"), "Log must mention proposal parse failure");
+  assert.ok(logContent.includes("Raw invalid reply that fails to parse"), "Log must contain the raw reply text");
+});
+
+await t("proposeChanges: text-only mock reply strips outermost braces and yields a parsed object", async () => {
+  const textReply = `Here is my proposal based on your instructions:
+
+\`\`\`json
+{
+  "summary": "Retiring irrelevant prompt and adding high intent query.",
+  "market_change": null,
+  "competitors_add": [
+    {
+      "name": "Elite Nursing Institute",
+      "website": "elitenursing.example",
+      "prompt": "Who are the best coaching providers in Mohali for students?",
+      "engine": "perplexity",
+      "verbatim_excerpt": "Elite Nursing Institute"
+    }
+  ],
+  "competitors_remove": [],
+  "prompts_retire": [],
+  "prompts_add": [
+    {
+      "text": "Best nursing coaching in Mohali for BSc entrance",
+      "language": "en",
+      "journey_phase": "decision",
+      "reason": "Direct buyer intent"
+    }
+  ]
+}
+\`\`\`
+
+Let me know if you would like any changes!`;
+
+  const fake = {
+    messages: {
+      create: async (req: any) => {
+        assert.deepEqual(req.tool_choice, { type: "auto" });
+        assert.ok(req.system.includes("propose_setup_check"));
+        return {
+          content: [{ type: "text", text: textReply }],
+          usage: { input_tokens: 1500, output_tokens: 450 },
+        };
+      },
+    },
+  } as any;
+
+  const res = await proposeChanges(snap, ev, fake);
+  assert.ok(res.proposal, "Text-only reply must yield a parsed proposal");
+  assert.equal(res.proposal.competitorsAdd.length, 1);
+  assert.equal(res.proposal.competitorsAdd[0].name, "Elite Nursing Institute");
+  assert.equal(res.proposal.promptsAdd.length, 1);
+  assert.equal(res.proposal.promptsAdd[0].text, "Best nursing coaching in Mohali for BSc entrance");
+});
+
+await t("extractJson: parses XML <invoke> parameter tags and strips outer markdown text", () => {
+  // Test 1: Exactly the 16:40 XML payload shape
+  const xmlPayload = `<invoke name="propose_setup_check">
+<parameter name="market">null</parameter>
+<parameter name="competitors_add">[{"name":"Digital Patron","website":"digitalpatron.in","engine":"perplexity","prompt":"Who are the best performance marketing providers in chandigarh for coaching institutes? Name specific businesses and their websites.","evidence_excerpt":"**Digital Patron** — Strongest stated fit for education admissions funnels and lead tracking. Website: **digitalpatron.in**."}]</parameter>
+<parameter name="competitors_remove">[]</parameter>
+<parameter name="prompts_retire">[]</parameter>
+<parameter name="prompts_add">[]</parameter>
+<parameter name="summary">"Added Digital Patron from Perplexity."</parameter>
+</invoke>`;
+
+  const parsed = extractJson(xmlPayload);
+  assert.equal(parsed.market, null);
+  assert.equal(parsed.competitors_add.length, 1);
+  assert.equal(parsed.competitors_add[0].name, "Digital Patron");
+  assert.equal(parsed.competitors_add[0].website, "digitalpatron.in");
+  assert.equal(parsed.summary, "Added Digital Patron from Perplexity.");
+
+  // Test 2: Standard JSON surrounded by markdown commentary
+  const markdownWrapped = "Here is the proposal based on the evidence:\n```json\n{\"summary\": \"Clean proposal.\", \"competitors_add\": []}\n```\nHope this helps!";
+  const parsedMd = extractJson(markdownWrapped);
+  assert.equal(parsedMd.summary, "Clean proposal.");
+  assert.deepEqual(parsedMd.competitors_add, []);
+});
+
+await t("review b13c2187 validation: 10 multi-vertical prompts pass even with languages: ['en'] and setupNote: null", () => {
+  const b13cSnap: SetupSnapshot = {
+    brandId: "brand_tgl_zero",
+    tenantId: "tgl",
+    tenantName: "The Growth Lab",
+    name: "The Growth Lab",
+    domain: "thegrowthlab.co.in",
+    platform: "custom",
+    languages: ["en"], // Only 'en' in DB snapshot
+    variants: ["TGL", "Growth Lab"],
+    market: {
+      id: "m_tgl",
+      product: "AI visibility (AEO/GEO) and AI automation",
+      icp: "hospitals and clinics, coaching institutes, hotels, real-estate developers and D2C brands across India",
+      location: "India-wide, Chandigarh home",
+    },
+    competitors: [
+      { id: "c_ls", name: "LeadSquared", domain: "leadsquared.com" },
+      { id: "c_cp", name: "Classplus", domain: "classplusapp.com" },
+    ],
+    prompts: [
+      { id: "p1", text: "How to scale student admissions from Meta ads without hiring more counsellors", language: "en", journey_phase: "consideration" },
+      { id: "p2", text: "Best agencies to improve lead quality and counselling conversion for test prep institutes", language: "en", journey_phase: "consideration" },
+    ],
+    plan: "internal",
+    promptLimit: 50,
+    submittedAt: "2026-11-03T16:35:00Z",
+    setupStatus: "needs_changes",
+    setupNote: null, // No note present in snapshot
+  };
+
+  const b13cEv: Evidence = {
+    site: extractSite("<html><head><title>The Growth Lab | AI Visibility & Automation</title></head><body><h1>AEO & GEO Operators</h1><p>Scalify Labs: We help scale brands with ads.</p></body></html>", "https://thegrowthlab.co.in/"),
+    aiQuestion: "Who are the best AI visibility and generative search optimization agencies in India for hospitals, coaching institutes and hotels?",
+    aiAnswer: "Top providers in India include SingleInterface (powers multi-location AI search visibility and local brand discoverability across digital agents), Performics India (leads generative search engine optimization for enterprise healthcare and consumer brands), Schbang (delivers AI-first search discoverability for consumer brands and hospitality), and Digital Pundit (provides emerging search visibility solutions).",
+    aiEngine: "perplexity (sonar-pro)",
+  };
+
+  // The 10 prompts from review b13c2187
+  const rawProposal = {
+    summary: "Re-proposed 10 multi-vertical buyer prompts and competitors from live search answers.",
+    market_change: null,
+    competitors_add: [
+      {
+        name: "SingleInterface",
+        website: "singleinterface.com", // 'website' key alias
+        prompt: "Who are the best AI visibility agencies in India?",
+        engine: "perplexity",
+        evidence_excerpt: "powers multi-location AI search visibility and local brand discoverability", // 'evidence_excerpt' alias
+      },
+      // Scalify Labs is on the site, but NOT in aiAnswer
+      {
+        name: "Scalify Labs",
+        website: "scalifylabs.com",
+        prompt: "Who are the best AI visibility agencies in India?",
+        engine: "perplexity",
+        evidence_excerpt: "Scalify Labs: We help scale brands with ads.",
+      },
+    ],
+    competitors_remove: [],
+    prompts_retire: [],
+    prompts_add: [
+      { text: "Best AI visibility and generative engine optimization (GEO) agencies in India", language: "en", journey_phase: "decision", reason: "GEO/AEO agency intent" },
+      { text: "Top AI search marketing agencies for hospitals and healthcare clinics", language: "English", journey_phase: "consideration", reason: "Healthcare AI search intent" },
+      { text: "Leading AI automation and visibility consultants for real estate and luxury hotels", language: "en", journey_phase: "consideration", reason: "Real estate / hospitality AI visibility intent" },
+      { text: "ChatGPT par brand recommendation kaise badhaye for D2C brands", language: "hinglish", journey_phase: "awareness", reason: "D2C ChatGPT visibility intent" },
+      { text: "Hospital ya clinic ke liye AEO agency choose karte waqt kya dekhna chahiye", language: "Hinglish", journey_phase: "consideration", reason: "Healthcare AEO evaluation intent" },
+      { text: "The Growth Lab reviews and case studies for generative search visibility", language: "en", journey_phase: "decision", reason: "TGL branded AEO evaluation intent" },
+      { text: "Best generative AI growth operators in Chandigarh and Delhi NCR", language: "en", journey_phase: "decision", reason: "Regional AI operator intent" },
+      { text: "How to get recommended by ChatGPT and Perplexity for coaching institutes", language: "en", journey_phase: "awareness", reason: "Coaching AEO discovery intent" },
+      { text: "Coaching institute ke admissions increase karne ke liye best AI WhatsApp automation operator", language: "hinglish", journey_phase: "decision", reason: "Coaching WhatsApp automation intent" },
+      { text: "Top AI growth partner for multi-branch test prep institutes in India", language: "en", journey_phase: "consideration", reason: "Coaching multi-branch test prep intent" },
+    ],
+  };
+
+  const prop = validateProposal(rawProposal, b13cSnap, b13cEv);
+
+  // Assert all 10 prompts pass validation
+  assert.equal(prop.promptsAdd.length, 10, "All 10 prompts from review b13c2187 must pass validation");
+  const rejectedPrompts = prop.dropped.filter((d) => d.startsWith("prompt "));
+  assert.equal(rejectedPrompts.length, 0, "No prompts should be rejected for language/stage");
+
+  // Assert Scalify Labs is rejected because its evidence is a site tagline, not in AI answer
+  assert.equal(prop.competitorsAdd.length, 1);
+  assert.equal(prop.competitorsAdd[0].name, "SingleInterface");
+  assert.equal(prop.competitorsAdd[0].domain, "singleinterface.com");
+  assert.ok(prop.dropped.some((d) => d.includes("Scalify Labs") && d.includes("site tagline is not evidence")));
 });
 
 const proposal = validateProposal({
@@ -136,13 +479,701 @@ await t("selection: unticked items are not applied; prompt adds trimmed to the p
 });
 await t("decided card keeps the setup summary, drops boxes and buttons", () => {
   const blocks = buildReviewBlocks(snap, proposal, "r", "x");
-  const done = decidedBlocks(blocks, "✅ Verified");
+  const done = decidedBlocks(blocks, "Verified");
   assert.ok(!done.some((b) => b.type === "actions"));
   assert.ok(!done.some((b) => String(b.block_id ?? "").endsWith("_label")));
-  assert.equal(done[done.length - 1].text.text, "✅ Verified");
+  assert.equal(done[done.length - 1].text.text, "Verified");
   assert.match(evidenceCorpus(ev), /Elite Nursing Institute/);
   assert.match(buildUserMessage(snap, ev), /EVIDENCE 1 — customer's homepage/);
 });
+
+await t("needs_changes note propagates into user message and respects reviewer instructions", () => {
+  const tglSnap: SetupSnapshot = {
+    brandId: "brand_tgl_zero",
+    tenantId: "tgl",
+    tenantName: "The Growth Lab",
+    name: "The Growth Lab",
+    domain: "thegrowthlab.co.in",
+    platform: "custom",
+    languages: ["en"],
+    variants: ["TGL", "Growth Lab"],
+    market: {
+      id: "m_tgl",
+      product: "AI visibility (AEO/GEO) and AI automation",
+      icp: "hospitals and clinics, coaching institutes, hotels, real-estate developers and D2C brands across India",
+      location: "India-wide, Chandigarh home",
+    },
+    competitors: [
+      { id: "c_ls", name: "LeadSquared", domain: "leadsquared.com" },
+      { id: "c_cp", name: "Classplus", domain: "classplusapp.com" },
+    ],
+    prompts: [
+      { id: "p1", text: "How to scale student admissions from Meta ads without hiring more counsellors", language: "en", journey_phase: "consideration" },
+      { id: "p2", text: "Best agencies to improve lead quality and counselling conversion for test prep institutes", language: "en", journey_phase: "consideration" },
+    ],
+    plan: "internal",
+    promptLimit: 50,
+    submittedAt: "2026-11-02T12:33:05Z",
+    setupStatus: "needs_changes",
+    setupNote:
+      "Market wording is outdated. TGL = AI visibility (AEO/GEO) + growth, for any business whose customers ask AI before buying: hospitals, clinics, coaching, hotels, real estate; India-wide, Chandigarh home. Redo the 10 prompts for that market (>=6 AEO/AI-visibility intents, <=3 coaching, en + hinglish) and re-propose competitors from the live answers for those prompts. Keep your two prompt retirements. · review 9779874b-141f-4db7-a541-c6227e4106f7",
+  };
+
+  const userMsg = buildUserMessage(tglSnap, ev);
+  assert.match(userMsg, /REVIEWER FEEDBACK \/ INSTRUCTIONS/);
+  assert.match(userMsg, /review 9779874b-141f-4db7-a541-c6227e4106f7/);
+  assert.match(userMsg, /Redo the 10 prompts for that market/);
+});
+
+await t("TGL setup re-proposal: 10 prompts (>=6 AEO, <=3 coaching, en + hinglish), live competitors with quotes, 2 retirements, unverified", () => {
+  const tglSnap: SetupSnapshot = {
+    brandId: "brand_tgl_zero",
+    tenantId: "tgl",
+    tenantName: "The Growth Lab",
+    name: "The Growth Lab",
+    domain: "thegrowthlab.co.in",
+    platform: "custom",
+    languages: ["en"],
+    variants: ["TGL", "Growth Lab"],
+    market: {
+      id: "m_tgl",
+      product: "AI visibility (AEO/GEO) and AI automation",
+      icp: "hospitals and clinics, coaching institutes, hotels, real-estate developers and D2C brands across India",
+      location: "India-wide, Chandigarh home",
+    },
+    competitors: [
+      { id: "c_ls", name: "LeadSquared", domain: "leadsquared.com" },
+      { id: "c_cp", name: "Classplus", domain: "classplusapp.com" },
+    ],
+    prompts: [
+      { id: "p1", text: "How to scale student admissions from Meta ads without hiring more counsellors", language: "en", journey_phase: "consideration" },
+      { id: "p2", text: "Best agencies to improve lead quality and counselling conversion for test prep institutes", language: "en", journey_phase: "consideration" },
+    ],
+    plan: "internal",
+    promptLimit: 50,
+    submittedAt: "2026-11-02T12:33:05Z",
+    setupStatus: "needs_changes",
+    setupNote:
+      "Market wording is outdated. TGL = AI visibility (AEO/GEO) + growth, for any business whose customers ask AI before buying: hospitals, clinics, coaching, hotels, real estate; India-wide, Chandigarh home. Redo the 10 prompts for that market (>=6 AEO/AI-visibility intents, <=3 coaching, en + hinglish) and re-propose competitors from the live answers for those prompts. Keep your two prompt retirements. · review 9779874b-141f-4db7-a541-c6227e4106f7",
+  };
+
+  const tglEvidence: Evidence = {
+    site: extractSite("<html><head><title>The Growth Lab | AI Visibility & Automation</title></head><body><h1>AEO & GEO Operators</h1><p>We help businesses be recommended by ChatGPT, Perplexity and Gemini.</p></body></html>", "https://thegrowthlab.co.in/"),
+    aiQuestion: "Who are the best AI visibility and generative search optimization agencies in India for hospitals, coaching institutes and hotels?",
+    aiAnswer: "Top providers in India include SingleInterface (powers multi-location AI search visibility and local brand discoverability across digital agents), Performics India (leads generative search engine optimization for enterprise healthcare and consumer brands), Schbang (delivers AI-first search discoverability for consumer brands and hospitality), and Digital Pundit (provides emerging search visibility solutions).",
+    aiEngine: "perplexity (sonar-pro)",
+  };
+
+  const rawProposal = {
+    summary: "Re-proposed 10 multi-vertical buyer prompts across healthcare, coaching, hospitality, real estate and D2C (7 AI-visibility intents, 3 coaching intents, English + Hinglish) and competitors from live search answers. Kept two prompt retirements.",
+    market_change: {
+      product: "AI visibility (AEO/GEO) and AI automation",
+      icp: "hospitals and clinics, coaching institutes, hotels, real-estate developers and D2C brands across India",
+      location: "India-wide, Chandigarh home",
+      reason: "Multi-vertical positioning requested by Architect.",
+    },
+    competitors_add: [
+      { name: "SingleInterface", domain: "singleinterface.com", evidence_quote: "SingleInterface powers multi-location AI search visibility and local brand discoverability across digital agents" },
+      { name: "Performics", domain: "performics.com", evidence_quote: "Performics India leads generative search engine optimization for enterprise healthcare and consumer brands" },
+      { name: "Schbang", domain: "schbang.com", evidence_quote: "Schbang delivers AI-first search discoverability for consumer brands and hospitality" },
+      { name: "Digital Pundit", domain: "digitalpundit.in", evidence_quote: "Digital Pundit provides emerging search visibility solutions" },
+    ],
+    competitors_remove: [
+      { name: "LeadSquared", reason: "Coaching CRM, not an AI visibility agency" },
+      { name: "Classplus", reason: "Coaching app, not an AI visibility agency" },
+    ],
+    prompts_retire: [
+      { number: 1, reason: "Ad-spend specific coaching intent, replaced by multi-vertical generative AI visibility" },
+      { number: 2, reason: "General agency coaching intent, replaced by multi-vertical generative AI visibility" },
+    ],
+    prompts_add: [
+      { text: "Best AI visibility and generative engine optimization (GEO) agencies in India", language: "en", journey_phase: "decision", reason: "GEO/AEO agency intent" },
+      { text: "Top AI search marketing agencies for hospitals and healthcare clinics", language: "en", journey_phase: "consideration", reason: "Healthcare AI search intent" },
+      { text: "Leading AI automation and visibility consultants for real estate and luxury hotels", language: "en", journey_phase: "consideration", reason: "Real estate / hospitality AI visibility intent" },
+      { text: "ChatGPT par brand recommendation kaise badhaye for D2C brands", language: "hinglish", journey_phase: "awareness", reason: "D2C ChatGPT visibility intent" },
+      { text: "Hospital ya clinic ke liye AEO agency choose karte waqt kya dekhna chahiye", language: "hinglish", journey_phase: "consideration", reason: "Healthcare AEO evaluation intent" },
+      { text: "The Growth Lab reviews and case studies for generative search visibility", language: "en", journey_phase: "decision", reason: "TGL branded AEO evaluation intent" },
+      { text: "Best generative AI growth operators in Chandigarh and Delhi NCR", language: "en", journey_phase: "decision", reason: "Regional AI operator intent" },
+      { text: "How to get recommended by ChatGPT and Perplexity for coaching institutes", language: "en", journey_phase: "awareness", reason: "Coaching AEO discovery intent" },
+      { text: "Coaching institute ke admissions increase karne ke liye best AI WhatsApp automation operator", language: "hinglish", journey_phase: "decision", reason: "Coaching WhatsApp automation intent" },
+      { text: "Top AI growth partner for multi-branch test prep institutes in India", language: "en", journey_phase: "consideration", reason: "Coaching multi-branch test prep intent" },
+    ],
+  };
+
+  const prop = validateProposal(rawProposal, tglSnap, tglEvidence);
+
+  // Assertions on the validated proposal
+  assert.equal(prop.promptsAdd.length, 10);
+  const aeoIntents = prop.promptsAdd.filter((p) => !p.text.toLowerCase().includes("coaching"));
+  const coachingIntents = prop.promptsAdd.filter((p) => p.text.toLowerCase().includes("coaching"));
+  assert.ok(aeoIntents.length >= 6, `Expected >=6 AEO intents, got ${aeoIntents.length}`);
+  assert.ok(coachingIntents.length <= 3, `Expected <=3 coaching intents, got ${coachingIntents.length}`);
+
+  const hasEn = prop.promptsAdd.some((p) => p.language === "en");
+  const hasHinglish = prop.promptsAdd.some((p) => p.language === "hinglish");
+  assert.ok(hasEn && hasHinglish, "Expected both English and Hinglish prompts");
+
+  assert.equal(prop.competitorsAdd.length, 4);
+  for (const c of prop.competitorsAdd) {
+    assert.ok(c.evidence, `Expected evidence quote for competitor ${c.name}`);
+  }
+
+  assert.equal(prop.promptsRetire.length, 2);
+  assert.deepEqual(prop.promptsRetire.map((p) => p.id), ["p1", "p2"]);
+
+  // Card generation
+  const cardBlocks = buildReviewBlocks(tglSnap, prop, "9779874b-new-review", "site ok · AI answer ok · $0.0210");
+  const paBox = cardBlocks.find((b) => b.block_id === "setup_pa");
+  assert.equal(paBox.elements[0].options.length, 10, "Card must show all 10 proposed prompts");
+
+  const prBox = cardBlocks.find((b) => b.block_id === "setup_pr");
+  assert.equal(prBox.elements[0].options.length, 2, "Card must show the two prompt retirements");
+
+  const caBox = cardBlocks.find((b) => b.block_id === "setup_ca");
+  assert.equal(caBox.elements[0].options.length, 4, "Card must show 4 competitors");
+  for (const o of caBox.elements[0].options) {
+    assert.ok(o.description && o.description.text.length > 5, "Competitor card option must show answer evidence quote");
+  }
+
+  // Ensure setup is unverified
+  assert.equal(tglSnap.setupStatus, "needs_changes");
+});
+
+await t("rule split: competitors require verbatim excerpt from stored AI answer; prompts require no evidence", () => {
+  const testSnap: SetupSnapshot = {
+    brandId: "b_split",
+    tenantId: "t_split",
+    tenantName: "Split Test Brand",
+    name: "Split Test Brand",
+    domain: "split.example",
+    platform: "custom",
+    languages: ["en", "hi", "hinglish"],
+    variants: [],
+    market: { id: "m_split", product: "AI visibility", icp: "enterprises", location: "India" },
+    competitors: [{ id: "c_old", name: "OldCo", domain: "old.example" }],
+    prompts: [
+      { id: "p1", text: "Existing prompt 1", language: "en", journey_phase: "awareness" },
+      { id: "p2", text: "Existing prompt 2", language: "en", journey_phase: "consideration" },
+      { id: "p3", text: "Existing prompt 3", language: "en", journey_phase: "decision" },
+      { id: "p4", text: "Existing prompt 4", language: "en", journey_phase: "awareness" },
+      { id: "p5", text: "Existing prompt 5", language: "en", journey_phase: "decision" },
+    ],
+    plan: "internal",
+    promptLimit: 50,
+    submittedAt: new Date().toISOString(),
+  };
+
+  const testEv: Evidence = {
+    site: extractSite("<html><body><p>Unrelated Agency: We build nice web apps.</p></body></html>", "https://split.example/"),
+    aiQuestion: "Who leads AI visibility in India?",
+    aiAnswer: "Top providers in India include MarketLeader (pioneers in generative engine optimization) and EmergentAI (emerging provider).",
+    aiEngine: "perplexity (sonar-pro)",
+  };
+
+  const raw = {
+    summary: "Checking rule split.",
+    market_change: null,
+    competitors_add: [
+      // Valid: verbatim excerpt in AI answer, prompt and engine named
+      {
+        name: "MarketLeader",
+        domain: "marketleader.example",
+        prompt: "Who leads AI visibility in India?",
+        engine: "perplexity",
+        verbatim_excerpt: "pioneers in generative engine optimization",
+      },
+      // Invalid: from site copy, not AI answer
+      {
+        name: "Unrelated Agency",
+        domain: "unrelated.example",
+        prompt: "Who leads AI visibility in India?",
+        engine: "perplexity",
+        verbatim_excerpt: "We build nice web apps.",
+      },
+      // Missing excerpt, but named in the stored answer → quote taken from the answer itself
+      {
+        name: "EmergentAI",
+        domain: "emergent.example",
+        prompt: "Who leads AI visibility in India?",
+        engine: "perplexity",
+      },
+    ],
+    competitors_remove: [],
+    prompts_retire: [],
+    // Prompts need NO evidence or excerpts
+    prompts_add: [
+      { text: "Best AI visibility and generative engine optimization in India", language: "en", journey_phase: "decision", reason: "Direct buyer evaluation" },
+      { text: "Kaise choose kare best AI marketing operator for business", language: "hinglish", journey_phase: "consideration", reason: "Hinglish buyer comparison" },
+    ],
+  };
+
+  const p = validateProposal(raw, testSnap, testEv);
+
+  // Competitor assertions: site-copy competitor dropped; the quote-less one gets its quote from the stored answer
+  assert.deepEqual(p.competitorsAdd.map((c) => c.name), ["MarketLeader", "EmergentAI"]);
+  assert.equal(p.competitorsAdd[0].evidence, "pioneers in generative engine optimization");
+  assert.ok(testEv.aiAnswer!.includes(p.competitorsAdd[1].evidence));
+  assert.ok(p.dropped.some((d) => d.includes("Unrelated Agency") && d.includes("site tagline is not evidence")));
+
+  // Prompt assertions: both prompts accepted without requiring any citation or excerpt
+  assert.equal(p.promptsAdd.length, 2);
+  assert.equal(p.promptsAdd[0].text, "Best AI visibility and generative engine optimization in India");
+  assert.equal(p.promptsAdd[1].text, "Kaise choose kare best AI marketing operator for business");
+});
+
+await t("market change: neutral 'who leads' question, override parsing, and prior prompts evidence", async () => {
+  // Test newMarketQuestion formatting
+  const q = newMarketQuestion("AI visibility (AEO/GEO) + AI automation", "hospitals and clinics", "India");
+  assert.equal(q, "Who leads AI visibility (AEO/GEO) + AI automation for hospitals and clinics in India? Name specific businesses and their websites.");
+
+  // Test parseMarketOverride
+  const note = "Wrong market. Replace: product = AI visibility (AEO/GEO) + AI automation; buyers = hospitals, clinics, coaching institutes; location = India-wide, Chandigarh home";
+  const override = parseMarketOverride(note);
+  assert.ok(override);
+  assert.equal(override.product, "AI visibility (AEO/GEO) + AI automation");
+  assert.equal(override.icp, "hospitals, clinics, coaching institutes");
+  assert.equal(override.location, "India-wide, Chandigarh home");
+
+  // Test extractPriorPrompts from prior reviews including dropped prompts
+  const mockReviews = [
+    {
+      proposal: {
+        promptsAdd: [
+          { text: "Prompt from review 1", language: "en", journey_phase: "awareness" },
+        ],
+        dropped: [
+          "prompt “Dropped prompt from review 1” — language/stage not allowed",
+        ],
+      },
+    },
+  ];
+  const prior = extractPriorPrompts(mockReviews);
+  assert.ok(prior.some((p) => p.text === "Prompt from review 1"));
+  assert.ok(prior.some((p) => p.text === "Dropped prompt from review 1"));
+
+  // Test buildUserMessage renders EVIDENCE 3 when priorProposedPrompts are present
+  const dummySnap: SetupSnapshot = {
+    brandId: "b_test", tenantId: "t_test", tenantName: "Test", name: "Test Brand", domain: "test.example",
+    platform: null, languages: ["en"], variants: [], market: { id: "m", product: "AI", icp: "buyers", location: "India" },
+    competitors: [], prompts: [], plan: "internal", promptLimit: 10, submittedAt: new Date().toISOString(),
+  };
+  const testPriorPrompts = [
+    { text: "Best AI visibility and generative engine optimization in India", language: "en", journey_phase: "decision" as const },
+    { text: "Top AI growth partner for multi-branch test prep institutes in India", language: "en", journey_phase: "consideration" as const },
+  ];
+  const dummyEv: Evidence = {
+    site: null,
+    aiQuestion: "Who leads AI in India?",
+    aiAnswer: "Top companies...",
+    aiEngine: "perplexity",
+    priorProposedPrompts: testPriorPrompts,
+  };
+  const msg = buildUserMessage(dummySnap, dummyEv);
+  assert.match(msg, /EVIDENCE 3 — prior reviews' proposed prompts/);
+  assert.match(msg, /Best AI visibility and generative engine optimization/);
+
+  // When model returns 0 prompts, no fallback injects prompts; promptsAdd stays empty and < 5 guardrail will handle it
+  const mockAnthropic = {
+    messages: {
+      create: async () => ({
+        usage: { input_tokens: 100, output_tokens: 50 },
+        content: [
+          {
+            type: "tool_use",
+            name: "propose_setup_check",
+            input: {
+              summary: "Model returned 0 prompts.",
+              market_change: null,
+              competitors_add: [],
+              competitors_remove: [],
+              prompts_retire: [],
+              prompts_add: [], // 0 prompts returned
+            },
+          },
+        ],
+      }),
+    },
+  };
+  const res = await proposeChanges(dummySnap, dummyEv, mockAnthropic as any);
+  assert.equal(res.proposal.promptsAdd.length, 0, "No prompt injection fallback should exist; promptsAdd stays empty");
+});
+
+await t("no brand-specific constant exists in the aeo-strategist module", () => {
+  const dir = fs.existsSync(path.resolve("src/agents/aeo-strategist"))
+    ? path.resolve("src/agents/aeo-strategist")
+    : path.resolve("services/tgl-ops/src/agents/aeo-strategist");
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith(".ts"));
+  for (const file of files) {
+    const content = fs.readFileSync(path.join(dir, file), "utf8");
+    assert.ok(
+      !content.includes("B13C2187_AEO_PROMPTS"),
+      `File ${file} must not contain B13C2187_AEO_PROMPTS`
+    );
+    assert.ok(
+      !/export\s+const\s+[A-Z0-9_]*TGL[A-Z0-9_]*\s*=/i.test(content),
+      `File ${file} must not export any brand-specific constant`
+    );
+    assert.ok(
+      !/export\s+const\s+[A-Z0-9_]*GROWTH_LAB[A-Z0-9_]*\s*=/i.test(content),
+      `File ${file} must not export any brand-specific constant`
+    );
+  }
+});
+
+await t("site snapshot: meta read by attribute (content before name, single quotes, og fallback); headings skip nav/footer/comments/svg", () => {
+  const html = `<html><head><title>Home - The Growth Lab</title>
+    <style>.case-name { font-family: var(--font-display); content: "x"; }</style>
+    <meta content='AI visibility for businesses whose customers ask AI first' name='description'></head>
+    <body><nav><h2>Menu</h2></nav><!-- <h1>old</h1> --><h1 class="hero">Be the answer <em>AI gives</em></h1><svg><text>icon</text></svg>
+    <h2>How it works</h2><footer><h3>Contact</h3></footer></body></html>`;
+  const site = extractSite(html, "https://thegrowthlab.co.in/");
+  assert.equal(site.description, "AI visibility for businesses whose customers ask AI first");
+  assert.deepEqual(site.headings, ["Be the answer AI gives", "How it works"]);
+  assert.equal(extractSite(`<html><head><meta property="og:description" content="OG only"></head><body></body></html>`, "u").description, "OG only");
+});
+await t("site evidence scraper strips style/script/noscript/svg, extracts schema.org & meta, caps at 4,000 chars, and contains 'Growth Lab' with no 'font-family'", async () => {
+  const site = await fetchSite("thegrowthlab.co.in");
+  assert.ok(site && site.ok, "fetchSite for thegrowthlab.co.in must succeed");
+  assert.ok(site.text.includes("Growth Lab"), "Site text must contain 'Growth Lab'");
+  assert.ok(!site.text.includes("font-family"), "Site text must not contain 'font-family'");
+  assert.ok(site.text.length <= 4000, `Site text must be capped at 4000 characters, got ${site.text.length}`);
+});
+
+await t("card: summary chunking across section blocks and approve guardrail (< 5 prompts)", () => {
+  const brandSnap: SetupSnapshot = {
+    brandId: "b_guard", tenantId: "t_guard", tenantName: "Guard Brand", name: "Guard Brand", domain: "guard.example",
+    platform: null, languages: ["en"], variants: [], market: { id: "m", product: "SaaS", icp: "startups", location: "India" },
+    competitors: [{ id: "c1", name: "Old Rival", domain: "rival.example" }],
+    prompts: [
+      { id: "p1", text: "Prompt 1", language: "en", journey_phase: "awareness" },
+      { id: "p2", text: "Prompt 2", language: "en", journey_phase: "awareness" },
+      { id: "p3", text: "Prompt 3", language: "en", journey_phase: "awareness" },
+    ], // Only 3 prompts!
+    plan: "internal", promptLimit: 10, submittedAt: new Date().toISOString(),
+  };
+
+  // Case 1: Resulting prompts < 5 -> Actions block must show Needs changes ONLY (zero approve buttons)
+  const propUnder5: Proposal = {
+    summary: "Setup has only 3 prompts, fewer than the 5 required.",
+    market: null,
+    competitorsAdd: [],
+    competitorsRemove: [],
+    promptsRetire: [],
+    promptsAdd: [], // 3 - 0 + 0 = 3 < 5
+    dropped: [],
+  };
+  const blocksUnder5 = buildReviewBlocks(brandSnap, propUnder5, "review-under-5", "evidence ok");
+  const actionBlock = blocksUnder5.find((b) => b.block_id === "setup_decision");
+  assert.ok(actionBlock, "Card must have setup_decision block");
+  assert.equal(actionBlock.elements.length, 1, "Card must show Needs changes only when resulting prompts < 5");
+  assert.equal(actionBlock.elements[0].action_id, "setup_changes");
+  assert.equal(actionBlock.elements[0].text.text, "Needs changes");
+  assert.ok(blocksUnder5.some((b) => b.type === "context" && b.elements?.[0]?.text?.includes("Approval disabled")));
+
+  // Case 2: Resulting prompts < 5 because all 10 old prompts retired and 0 added (card 24ce2a01 scenario)
+  const retiredAllSnap: SetupSnapshot = {
+    ...brandSnap,
+    prompts: Array.from({ length: 10 }, (_, i) => ({
+      id: `p${i + 1}`,
+      text: `Old prompt ${i + 1}`,
+      language: "en",
+      journey_phase: "awareness",
+    })),
+  };
+  const propRetiredAll: Proposal = {
+    summary: "Retired all 10 old prompts.",
+    market: null,
+    competitorsAdd: [],
+    competitorsRemove: [],
+    promptsRetire: Array.from({ length: 10 }, (_, i) => ({ id: `p${i + 1}`, text: `Old prompt ${i + 1}`, reason: "Wrong market" })),
+    promptsAdd: [], // 10 - 10 + 0 = 0 < 5
+    dropped: [],
+  };
+  const blocksRetiredAll = buildReviewBlocks(retiredAllSnap, propRetiredAll, "review-retired-all", "evidence ok");
+  const actionRetiredAll = blocksRetiredAll.find((b) => b.block_id === "setup_decision");
+  assert.equal(actionRetiredAll.elements.length, 1, "Must show Needs changes only when all prompts retired with 0 added");
+  assert.equal(actionRetiredAll.elements[0].action_id, "setup_changes");
+
+  // Case 3: Resulting prompts >= 5 -> Actions block offers approval buttons
+  const propValid: Proposal = {
+    ...propRetiredAll,
+    promptsAdd: Array.from({ length: 10 }, (_, i) => ({
+      text: `New prompt ${i + 1}`,
+      language: "en",
+      journey_phase: "decision",
+      reason: "High intent",
+    })), // 10 - 10 + 10 = 10 >= 5
+  };
+  const blocksValid = buildReviewBlocks(retiredAllSnap, propValid, "review-valid", "evidence ok");
+  const actionValid = blocksValid.find((b) => b.block_id === "setup_decision");
+  assert.ok(actionValid.elements.some((e: any) => e.action_id === "setup_approve"));
+
+  // Case 4: Long summary (> 3000 chars) is split across multiple section blocks
+  const longSummary = "A".repeat(3500);
+  const propLongSummary: Proposal = { ...propValid, summary: longSummary };
+  const blocksLongSummary = buildReviewBlocks(retiredAllSnap, propLongSummary, "review-long", "evidence ok");
+  const sectionBlocks = blocksLongSummary.filter((b) => b.type === "section");
+  // Check that no section block exceeds 2900 chars
+  for (const s of sectionBlocks) {
+    assert.ok(s.text.text.length <= 2900, `Section text must not exceed 2900 chars, got ${s.text.text.length}`);
+  }
+});
+
+await t("validator errors: explicitly name rejected field and value", () => {
+  const dummySnap: SetupSnapshot = {
+    brandId: "b_err", tenantId: "t_err", tenantName: "Err Brand", name: "Err Brand", domain: "err.example",
+    platform: null, languages: ["en"], variants: [], market: { id: "m", product: "SaaS", icp: "startups", location: "India" },
+    competitors: [], prompts: [], plan: "internal", promptLimit: 10, submittedAt: new Date().toISOString(),
+  };
+
+  const dummyEv: Evidence = {
+    site: null,
+    aiQuestion: "Who leads SaaS in India?",
+    aiAnswer: "Top providers include Freshworks (freshworks.com) and Zoho.",
+    aiEngine: "perplexity",
+  };
+
+  const p = validateProposal({
+    summary: "Testing detailed validator error messages",
+    competitors_add: [
+      {
+        name: "Freshworks",
+        prompt: "Who leads SaaS in India?",
+        engine: "perplexity",
+        verbatim_excerpt: "Unrelated excerpt not in the answer",
+      },
+    ],
+    competitors_remove: [],
+    prompts_retire: [],
+    prompts_add: [
+      { text: "Invalid language prompt testing error format", language: "pa", journey_phase: "decision", reason: "test" },
+      { text: "Invalid stage prompt testing error format", language: "en", journey_phase: "unsupported_stage", reason: "test" },
+    ],
+  }, dummySnap, dummyEv);
+
+  assert.equal(p.competitorsAdd.length, 0);
+  assert.equal(p.promptsAdd.length, 0);
+
+  // Assert exact error format naming rejected field and value
+  assert.ok(
+    p.dropped.some((d) => d.includes("language 'pa' not in [en, hi, hinglish]")),
+    `Expected language error with rejected value, got: ${JSON.stringify(p.dropped)}`
+  );
+  assert.ok(
+    p.dropped.some((d) => d.includes("stage 'unsupported_stage' not in [awareness, consideration, decision]")),
+    `Expected stage error with rejected value, got: ${JSON.stringify(p.dropped)}`
+  );
+  assert.ok(
+    p.dropped.some((d) => d.includes("excerpt not found in answer perplexity/Who leads SaaS in India?")),
+    `Expected excerpt not found error naming engine and prompt, got: ${JSON.stringify(p.dropped)}`
+  );
+});
+
+await t("competitor verbatim check: normalizes markdown links, bold, code, whitespace and case", () => {
+  const customSnap: SetupSnapshot = {
+    brandId: "b_norm", tenantId: "t_norm", tenantName: "Norm Brand", name: "Norm Brand", domain: "norm.example",
+    platform: null, languages: ["en"], variants: [], market: { id: "m", product: "AEO", icp: "agencies", location: "India" },
+    competitors: [], prompts: [], plan: "internal", promptLimit: 10, submittedAt: new Date().toISOString(),
+  };
+
+  // AI answer containing markdown links and markdown formatting
+  const customEv: Evidence = {
+    site: null,
+    aiQuestion: "Who are the best performance marketing providers in chandigarh for coaching institutes?",
+    aiAnswer: "Top providers include:\n1. [Digital Patron](https://digitalpatron.in) — Strongest stated fit for education admissions funnels and lead tracking.\n2. **Baclinc** [1] (baclinc.com) — Serves IELTS/PTE institutes.",
+    aiEngine: "perplexity (sonar-pro)",
+  };
+
+  const rawProposal = {
+    summary: "Testing markdown-stripped verbatim check",
+    competitors_add: [
+      {
+        name: "Digital Patron",
+        website: "digitalpatron.in",
+        prompt: customEv.aiQuestion,
+        engine: customEv.aiEngine,
+        verbatim_excerpt: "**Digital Patron** — Strongest stated fit for education admissions funnels and lead tracking.",
+      },
+      {
+        name: "Baclinc",
+        website: "baclinc.com",
+        prompt: customEv.aiQuestion,
+        engine: customEv.aiEngine,
+        verbatim_excerpt: "Baclinc [1] (baclinc.com) — Serves IELTS/PTE institutes.",
+      },
+    ],
+    competitors_remove: [],
+    prompts_retire: [],
+    prompts_add: [],
+  };
+
+  const p = validateProposal(rawProposal, customSnap, customEv);
+
+  // Both competitors must pass verbatim check despite markdown links and bold formatting differences
+  assert.equal(p.competitorsAdd.length, 2, `Expected 2 competitors added, got ${p.competitorsAdd.length}: ${JSON.stringify(p.dropped)}`);
+  assert.equal(p.competitorsAdd[0].name, "Digital Patron");
+  assert.equal(p.competitorsAdd[1].name, "Baclinc");
+  assert.equal(p.dropped.length, 0);
+});
+
+await t("market wording protection: Strategist proposal cannot revert Architect-written market", () => {
+  const archSnap: SetupSnapshot = {
+    brandId: "b_tgl", tenantId: "tgl", tenantName: "The Growth Lab", name: "The Growth Lab", domain: "thegrowthlab.co.in",
+    platform: "custom", languages: ["en"], variants: ["TGL"],
+    market: {
+      id: "m_tgl",
+      product: "AI visibility (AEO/GEO) and AI automation",
+      icp: "hospitals and clinics, coaching institutes, hotels, real-estate developers and D2C brands across India",
+      location: "India-wide, Chandigarh home",
+    },
+    competitors: [], prompts: [], plan: "internal", promptLimit: 50, submittedAt: new Date().toISOString(),
+    setupNote: "Architect market wording: product = AI visibility (AEO/GEO) and AI automation; buyers = hospitals, clinics, coaching institutes, hotels, real-estate developers, D2C brands; location = India-wide, Chandigarh home",
+  };
+
+  const dummyEv: Evidence = {
+    site: null,
+    aiQuestion: "Who leads AEO in India?",
+    aiAnswer: "Top providers include SingleInterface.",
+    aiEngine: "perplexity",
+  };
+
+  // 1. Proposing a reversion back to performance marketing is dropped
+  const propRevert = validateProposal({
+    summary: "Attempting to revert market wording",
+    market_change: {
+      product: "performance marketing",
+      icp: "coaching institutes only",
+      reason: "old category",
+    },
+    competitors_add: [],
+    competitors_remove: [],
+    prompts_retire: [],
+    prompts_add: [],
+  }, archSnap, dummyEv);
+
+  assert.equal(propRevert.market, null, "Reverting Architect-written market must be blocked");
+  assert.ok(
+    propRevert.dropped.some((d) => d.includes("cannot revert Architect-written market")),
+    `Expected cannot revert error, got: ${JSON.stringify(propRevert.dropped)}`
+  );
+
+  // 2. Proposing a benign wording refinement is allowed
+  const propRefine = validateProposal({
+    summary: "Minor wording refinement",
+    market_change: {
+      location: "Pan-India and Chandigarh",
+      reason: "clearer scope",
+    },
+    competitors_add: [],
+    competitors_remove: [],
+    prompts_retire: [],
+    prompts_add: [],
+  }, archSnap, dummyEv);
+
+  assert.ok(propRefine.market, "Benign wording refinement should be accepted");
+  assert.equal(propRefine.market?.location, "Pan-India and Chandigarh");
+});
+
+await t("applyAndVerify: review_id on every written row, and verified status allowed only by Architect action", async () => {
+  const writtenRows: Array<{ table: string; op: string; payload: any }> = [];
+
+  const mockSb: any = {
+    from: (table: string) => {
+      let currentQuery: any = {
+        table,
+        update: (payload: any) => {
+          writtenRows.push({ table, op: "update", payload });
+          return currentQuery;
+        },
+        insert: (payload: any) => {
+          writtenRows.push({ table, op: "insert", payload });
+          return currentQuery;
+        },
+        upsert: (payload: any) => {
+          writtenRows.push({ table, op: "upsert", payload });
+          return currentQuery;
+        },
+        eq: () => currentQuery,
+        in: () => currentQuery,
+        is: () => currentQuery,
+        then: (resolve: any) => resolve({ data: null, error: null }),
+      };
+      return currentQuery;
+    },
+  };
+
+  const testReviewId = "11111111-2222-3333-4444-555555555555";
+  const testSnap: SetupSnapshot = {
+    brandId: "brand_audit_test",
+    tenantId: "tenant_tgl",
+    tenantName: "The Growth Lab",
+    name: "The Growth Lab",
+    domain: "thegrowthlab.co.in",
+    platform: "custom",
+    languages: ["en"],
+    variants: ["TGL"],
+    market: { id: "market_1", product: "AI visibility", icp: "coaching", location: "India" },
+    competitors: [{ id: "c1", name: "Comp 1", domain: "comp1.com" }],
+    prompts: [{ id: "p1", text: "Prompt 1", language: "en", journey_phase: "decision" }],
+    plan: "internal",
+    promptLimit: 50,
+    submittedAt: new Date().toISOString(),
+  };
+
+  const testPlan = {
+    market: { product: "AI visibility & automation", icp: "all verticals", location: "Pan-India", reason: "updated category" },
+    competitorsAdd: [{ name: "Comp New", domain: "compnew.com", evidence: "AI cited" }],
+    competitorsRemove: [{ id: "c1", name: "Comp 1", reason: "wrong market" }],
+    promptsRetire: [{ id: "p1", text: "Prompt 1", reason: "old category" }],
+    promptsAdd: [{ text: "Prompt New", language: "en", journey_phase: "decision" as const, reason: "high intent" }],
+  };
+
+  // 1. Non-architect actor must be refused
+  let nonArchError: Error | null = null;
+  try {
+    await applyAndVerify(mockSb, testSnap, testPlan, "unauthorized_user", testReviewId);
+  } catch (err: any) {
+    nonArchError = err;
+  }
+  assert.ok(nonArchError, "Non-architect actor must be rejected from applyAndVerify");
+  assert.ok(
+    nonArchError.message.includes("Only the Architect may verify a brand setup profile"),
+    `Expected Architect refusal message, got: ${nonArchError.message}`
+  );
+
+  // 2. Architect actor ("Tejinder Singh" / "architect") succeeds and writes review_id to every row
+  writtenRows.length = 0;
+  await applyAndVerify(mockSb, testSnap, testPlan, "Tejinder Singh", testReviewId);
+
+  // Assert every single written row carried review_id
+  assert.ok(writtenRows.length >= 5, `Expected multiple DB writes, got ${writtenRows.length}`);
+  for (const w of writtenRows) {
+    if (Array.isArray(w.payload)) {
+      for (const item of w.payload) {
+        assert.equal(
+          item.review_id,
+          testReviewId,
+          `Every inserted/upserted row in table '${w.table}' must carry review_id: ${JSON.stringify(item)}`
+        );
+      }
+    } else {
+      assert.equal(
+        w.payload.review_id,
+        testReviewId,
+        `Update payload in table '${w.table}' must carry review_id: ${JSON.stringify(w.payload)}`
+      );
+    }
+  }
+
+  // Specifically check brand verification
+  const brandWrite = writtenRows.find((w) => w.table === "brands");
+  assert.ok(brandWrite, "Must update brands table");
+  assert.equal(brandWrite.payload.setup_status, "verified");
+  assert.equal(brandWrite.payload.setup_verified_by, "Tejinder Singh");
+  assert.equal(brandWrite.payload.review_id, testReviewId);
+  assert.equal(brandWrite.payload.setup_review_id, testReviewId);
+});
+
 console.log(`\nDay 19: ${passed} checks passed`);
 }
 main().catch((e) => { console.error(e); process.exit(1); });

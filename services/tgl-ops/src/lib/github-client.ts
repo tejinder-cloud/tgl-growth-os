@@ -1,7 +1,7 @@
 import { Octokit } from "@octokit/rest";
 import fs from "node:fs";
 import path from "node:path";
-import { config } from "../config.js";
+import { config, isTestMode } from "../config.js";
 
 export const octokit = new Octokit({
   auth: config.githubToken || undefined,
@@ -433,6 +433,38 @@ export async function createBranch(
 }
 
 /**
+ * Checks whether a head branch has commits beyond the base branch (default: main).
+ */
+export async function getBranchCommitsAhead(
+  headBranch: string,
+  baseBranch = "main"
+): Promise<{ success: boolean; aheadBy: number; error?: string }> {
+  if (!config.githubToken) {
+    return { success: true, aheadBy: 1 };
+  }
+
+  try {
+    const res = await octokit.repos.compareCommitsWithBasehead({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      basehead: `${baseBranch}...${headBranch}`,
+    });
+
+    return {
+      success: true,
+      aheadBy: res.data.ahead_by ?? 0,
+    };
+  } catch (err: any) {
+    console.error(`[GitHub Git API] Error comparing ${baseBranch}...${headBranch}:`, err);
+    return {
+      success: false,
+      aheadBy: 0,
+      error: err.response?.data?.message || err.message || "Failed to compare commits",
+    };
+  }
+}
+
+/**
  * Creates or updates a file directly on a specific git branch via the GitHub Contents API.
  */
 export async function createOrUpdateFileOnBranch(
@@ -515,10 +547,11 @@ export interface CreatePullRequestParams {
  * If an open PR already exists for the head branch, it updates and returns it.
  */
 export async function createPullRequest(
-  params: CreatePullRequestParams
+  params: CreatePullRequestParams,
+  options?: { testMode?: boolean }
 ): Promise<{ number: number; html_url: string }> {
-  if (!config.githubToken) {
-    console.warn(`[GitHub] GITHUB_TOKEN not set; simulating PR creation for ${params.title}`);
+  if (options?.testMode || isTestMode() || !config.githubToken) {
+    console.warn(`[GitHub] Test mode active or GITHUB_TOKEN not set; simulating PR creation for ${params.title}`);
     const fakePrNum = Math.floor(200 + Math.random() * 800);
     return {
       number: fakePrNum,
@@ -915,6 +948,49 @@ export async function closeIssue(
 }
 
 /**
+ * Reopens a GitHub issue and optionally posts a comment explaining the reopening.
+ */
+export async function reopenIssue(
+  issueNumber: number,
+  comment?: string
+): Promise<{ success: boolean; error?: string }> {
+  if (mockIssuesStore.has(issueNumber)) {
+    const item = mockIssuesStore.get(issueNumber)!;
+    item.state = "open";
+    if (comment) {
+      await addCommentToIssue(issueNumber, comment);
+    }
+    return { success: true };
+  }
+
+  if (!config.githubToken) {
+    console.warn(`[GitHub] GITHUB_TOKEN not set; simulating issue #${issueNumber} reopening`);
+    return { success: true };
+  }
+
+  try {
+    if (comment) {
+      await addCommentToIssue(issueNumber, comment);
+    }
+
+    await octokit.issues.update({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      issue_number: issueNumber,
+      state: "open",
+    });
+
+    return { success: true };
+  } catch (err: any) {
+    console.error(`[GitHub API] Error reopening issue #${issueNumber}:`, err);
+    return {
+      success: false,
+      error: err.response?.data?.message || err.message || "Failed to reopen issue",
+    };
+  }
+}
+
+/**
  * Removes a specific label from a GitHub issue.
  */
 export async function removeLabelFromIssue(
@@ -1002,6 +1078,33 @@ export async function getIssueComments(
   } catch (err: any) {
     console.warn(`[GitHub API] Error listing comments on #${issueNumber}:`, err.message);
     return [];
+  }
+}
+
+/**
+ * Deletes a specific comment from an issue thread.
+ * GUARANTEE: Never alters issue state or issue labels.
+ */
+export async function deleteIssueComment(
+  commentId: number
+): Promise<{ success: boolean; error?: string }> {
+  if (isTestMode() || !config.githubToken) {
+    console.warn(`[GitHub] Test mode active or GITHUB_TOKEN not set; simulating deletion of comment #${commentId}`);
+    return { success: true };
+  }
+
+  try {
+    await octokit.issues.deleteComment({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      comment_id: commentId,
+    });
+    return { success: true };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.response?.data?.message || err.message || "Failed to delete comment",
+    };
   }
 }
 
