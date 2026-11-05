@@ -352,7 +352,7 @@ export async function getAgentCostCap(agentName: string): Promise<number> {
 
   // Standard defaults per spec:
   if (agentName === "chief-of-staff") return 0.5;
-  if (agentName === "web-builder") return 6.0;
+  if (agentName === "web-builder") return 12.0;
   if (agentName === "prospect-researcher") return 2.0;
 
   return DEFAULT_DAILY_CAP_USD;

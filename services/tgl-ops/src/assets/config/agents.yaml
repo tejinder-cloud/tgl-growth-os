@@ -145,7 +145,7 @@
   reviewer: "Creative Director"
   status: active
   autorun: true
-  daily_cost_cap_usd: 6.00
+  daily_cost_cap_usd: 12.00
   runner_limits:
     max_tool_calls: 150
     timeout_minutes: 60
