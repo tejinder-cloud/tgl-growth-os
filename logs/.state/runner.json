@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-05T12:10:10.820Z",
+  "updatedAt": "2026-11-05T12:13:25.837Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -44,12 +44,13 @@
       "agent": "web-builder",
       "door": "core",
       "title": "[TASK]: [PLAN-D10b] Outreach Sequencer live wiring: composition root that registers the ",
-      "status": "in-progress",
+      "status": "interrupted",
       "runStartedAt": "2026-11-05T11:43:24.799477+00:00",
-      "runCompletedAt": "2026-11-05T11:50:12.911+00:00",
+      "runCompletedAt": "2026-11-05T12:12:45.738+00:00",
+      "error": "Run interrupted by process termination (SIGTERM).",
       "recoveryAttempts": 0,
-      "ownerInstance": "inst_1793879932665_f7ea2a07",
-      "heartbeatAt": "2026-11-05T12:10:10.101976+00:00",
+      "ownerInstance": "inst_1793880804181_063601f7",
+      "heartbeatAt": "2026-11-05T12:13:25.111416+00:00",
       "toolCallsCount": 0
     }
   }
