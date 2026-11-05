@@ -6,6 +6,7 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 const day = (d: string) => new Date(d + "T00:00:00Z").toLocaleDateString("en-IN", { day: "numeric", month: "short", timeZone: "UTC" });
 const eng = (e: string) => ENGINE_LABEL[e] ?? e;
 const r = (x: Ratio) => `${x.n} of ${x.of}`;
+const answers = (n: number) => `${n} answer${n === 1 ? "" : "s"}`;
 function delta(now: Ratio, prev: Ratio | null): string {
   if (!prev) return "";
   const d = now.n - prev.n;
@@ -39,8 +40,8 @@ export function dailyEmail(d: DailyContent, appUrl: string): Email {
   if (d.gained.length) blocks.push({ title: "Newly named", lines: d.gained.slice(0, 5).map((g) => `• “${g.prompt}” — ${eng(g.engine)}`) });
   if (d.lost.length) blocks.push({ title: "No longer named", lines: d.lost.slice(0, 5).map((g) => `• “${g.prompt}” — ${eng(g.engine)}`) });
   if (!d.gained.length && !d.lost.length && d.prevOverall) blocks.push({ lines: ["No question changed since the day before."] });
-  if (d.competitors.length) blocks.push({ title: "Competitors", lines: d.competitors.slice(0, 4).map((c) => `• ${c.name}: named in ${c.today} answers${c.prev != null && c.prev !== c.today ? ` (was ${c.prev})` : ""}`) });
-  if (d.newSites.length) blocks.push({ title: "New sites AI cited", lines: [d.newSites.join(", ")] });
+  if (d.competitors.length) blocks.push({ title: "Competitors", lines: d.competitors.slice(0, 4).map((c) => `• ${c.name}: named in ${answers(c.today)}${c.prev != null && c.prev !== c.today ? ` (was ${c.prev})` : ""}`) });
+  if (d.newSites.length) blocks.push({ title: "New sites AI cited today", lines: [d.newSites.join(", ")] });
   if (d.topRec) blocks.push({ title: "One thing to do", lines: [`${d.topRec}${d.openRecs > 1 ? ` — one of ${d.openRecs} recommendations on your dashboard.` : ""}`] });
   const subject = `${d.brand}: named in ${r(d.overall)} AI answers${d.prevOverall && d.overall.n !== d.prevOverall.n ? ` (${d.overall.n - d.prevOverall.n > 0 ? "+" : ""}${d.overall.n - d.prevOverall.n})` : ""} · ${day(d.date)}`;
   const body = render(blocks, d.topRec ? { label: "See the recommendation", url: `${appUrl}/dashboard/recommendations` } : { label: "Open your dashboard", url: `${appUrl}/dashboard` }, `${appUrl}/dashboard/settings`);
@@ -54,9 +55,9 @@ export function weeklyEmail(w: WeeklyContent, appUrl: string): Email {
     w.engines.map((e) => `${eng(e.engine)} ${r(e.week)}`).join(" · "),
     w.unbranded.of ? `In questions that don't mention you by name: ${r(w.unbranded)}. That's the number that shows whether AI recommends you on its own.` : "",
   ].filter(Boolean) }];
-  if (w.strongest.length) blocks.push({ title: "Where AI names you", lines: w.strongest.map((s) => `• “${s.prompt}” — ${s.named} of ${s.of} answers`) });
+  if (w.strongest.length) blocks.push({ title: "Where AI names you", lines: w.strongest.map((s) => `• “${s.prompt}” — ${s.named} of ${answers(s.of)}`) });
   if (w.neverNamed.length) blocks.push({ title: "Where it never did this week", lines: w.neverNamed.map((q) => `• “${q}”`) });
-  if (w.competitors.length) blocks.push({ title: "Who AI named instead", lines: w.competitors.slice(0, 4).map((c) => `• ${c.name}: ${c.answers} answers (you: ${w.brandAnswers})`) });
+  if (w.competitors.length) blocks.push({ title: "Who AI named instead", lines: w.competitors.slice(0, 4).map((c) => `• ${c.name}: ${answers(c.answers)} (you: ${w.brandAnswers})`) });
   if (w.topSites.length) blocks.push({ title: "Sites AI read most", lines: [w.topSites.map((s) => `${s.domain} (${s.answers})`).join(", ")] });
   const recLine = [w.recsDone ? `You completed ${w.recsDone} recommendation${w.recsDone === 1 ? "" : "s"} this week.` : "", w.topRec ? `Next: ${w.topRec}` : ""].filter(Boolean);
   if (recLine.length) blocks.push({ title: "What to do next", lines: recLine });
