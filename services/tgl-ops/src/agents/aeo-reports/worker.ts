@@ -6,8 +6,9 @@ import { postLine } from "../../lib/post.js";
 import { getAlertsChannel } from "../../lib/cron-wrapper.js";
 import { getTodayDateString } from "../../lib/standup.js";
 import { getSupabase } from "../prospect-researcher/db.js";
-import { buildDaily, buildWeekly, dailyHasNews, type AnswerRow } from "./build.js";
-import { dailyEmail, weeklyEmail, type Email } from "./email.js";
+import { buildDaily, buildMonthly, buildWeekly, dailyHasNews, previousMonth, type AnswerRow } from "./build.js";
+import { monthlyPdf } from "./pdf.js";
+import { dailyEmail, monthlyEmail, weeklyEmail, type Email } from "./email.js";
 
 export const AGENT = "aeo-audit-engine";
 const addDays = (d: string, n: number) => new Date(Date.parse(d + "T00:00:00Z") + n * 86_400_000).toISOString().slice(0, 10);
@@ -56,13 +57,13 @@ async function context(sb: SupabaseClient, brandId: string) {
   return { brand: brand as any, competitors: (comps ?? []).map((c: any) => c.name as string), variants: (variants ?? []).map((v: any) => v.name as string), recs: recs ?? [], openRecs: open.length, topRec: (open[0]?.title as string) ?? null };
 }
 
-async function recipients(sb: SupabaseClient, tenantId: string, kind: "daily" | "weekly"): Promise<string[]> {
+async function recipients(sb: SupabaseClient, tenantId: string, kind: "daily" | "weekly" | "monthly"): Promise<string[]> {
   const { data: tenant } = await sb.from("tenants").select("kind").eq("id", tenantId).maybeSingle();
   if (tenant?.kind === "agency_client") return [];                 // white-label: TGL never emails an agency's brand (SPEC §9)
   const { data: members } = await sb.from("tenant_members").select("user_id, email_daily, email_weekly").eq("tenant_id", tenantId);
   const out: string[] = [];
   for (const m of (members ?? []) as any[]) {
-    if (kind === "daily" ? !m.email_daily : !m.email_weekly) continue;
+    if (kind === "daily" ? !m.email_daily : !m.email_weekly) continue;   // monthly follows the weekly choice
     const { data } = await sb.auth.admin.getUserById(m.user_id);
     if (data?.user?.email) out.push(data.user.email);
   }
@@ -70,12 +71,12 @@ async function recipients(sb: SupabaseClient, tenantId: string, kind: "daily" | 
 }
 
 /** Resend REST API. Returns null on success, else the error. */
-export async function sendEmail(to: string[], e: Email, fetchImpl: typeof fetch = fetch): Promise<string | null> {
+export async function sendEmail(to: string[], e: Email, fetchImpl: typeof fetch = fetch, attachments?: { filename: string; content: string }[]): Promise<string | null> {
   const key = process.env.RESEND_API_KEY?.trim(), from = process.env.REPORTS_FROM?.trim();
   if (!key || !from) return "RESEND_API_KEY / REPORTS_FROM not set";
   const res = await fetchImpl("https://api.resend.com/emails", {
     method: "POST", headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
-    body: JSON.stringify({ from, to, subject: e.subject, text: e.text, html: e.html, reply_to: process.env.REPORTS_REPLY_TO?.trim() || undefined }),
+    body: JSON.stringify({ from, to, subject: e.subject, text: e.text, html: e.html, reply_to: process.env.REPORTS_REPLY_TO?.trim() || undefined, ...(attachments?.length ? { attachments } : {}) }),
   });
   return res.ok ? null : `Resend HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`;
 }
@@ -153,6 +154,50 @@ export async function runWeeklyReports(today = getTodayDateString()): Promise<nu
       made++;
     } catch (err: any) {
       await postLine({ channel: getAlertsChannel(), text: `[Warning] *@${AGENT}* weekly report failed for \`${brandId}\`: \`${String(err?.message ?? err).slice(0, 300)}\`` }).catch(() => {});
+    }
+  }
+  return made;
+}
+
+/** 1st of the month, 09:00 IST: one-page review of the previous calendar month — stored, PDF in Storage, emailed. */
+export async function runMonthlyReports(today = getTodayDateString()): Promise<number> {
+  if (isTestMode()) return 0;
+  const sb = getSupabase();
+  if (!sb) return 0;
+  const appUrl = process.env.TRUEVISIBLE_APP_URL?.trim().replace(/\/$/, "");
+  const pm = previousMonth(today);
+  const { data: rows } = await sb.from("v_visibility_daily").select("brand_id").gte("run_date", pm.start).lte("run_date", pm.end);
+  let made = 0;
+  for (const brandId of [...new Set((rows ?? []).map((r: any) => r.brand_id as string))]) {
+    const { data: exists } = await sb.from("reports").select("id").eq("brand_id", brandId).eq("kind", "monthly").eq("period_end", pm.end).limit(1);
+    if (exists?.length) continue;
+    try {
+      const ctx = await context(sb, brandId);
+      const [month, prev, sites] = await Promise.all([loadAnswers(sb, brandId, pm.start, pm.end), loadAnswers(sb, brandId, pm.prevStart, pm.prevEnd), loadSites(sb, brandId, pm.start, pm.end)]);
+      const perDomain = new Map<string, Set<string>>();
+      for (const s of sites) { if (!perDomain.has(s.domain)) perDomain.set(s.domain, new Set()); perDomain.get(s.domain)!.add(s.answer); }
+      const names = [ctx.brand.name, ...ctx.variants, ...(ctx.brand.primary_domain ? [ctx.brand.primary_domain] : [])].map((n: string) => n.toLowerCase());
+      const recsDone = ctx.recs.filter((r: any) => r.status === "done" && r.updated_at >= pm.start + "T00:00:00+05:30" && r.updated_at <= pm.end + "T23:59:59+05:30").length;
+      const m = buildMonthly({ brand: ctx.brand.name, month: pm.month, start: pm.start, end: pm.end, rows: month, prevRows: prev,
+        isBranded: (t) => names.some((n) => n.length >= 3 && t.toLowerCase().includes(n)), competitorNames: ctx.competitors,
+        sites: [...perDomain].map(([domain, a]) => ({ domain, answers: a.size })), recsDone, openRecs: ctx.openRecs,
+        plan: ctx.recs.filter((r: any) => r.status === "open").slice(0, 3).map((r: any) => r.title as string) });
+      const pdf = await monthlyPdf(m, ctx.brand.primary_domain);
+      const key = `${ctx.brand.tenant_id}/${brandId}/${pm.month}-monthly.pdf`;
+      const up = await sb.storage.from("reports").upload(key, pdf, { contentType: "application/pdf", upsert: true });
+      if (up.error) throw new Error(`upload pdf: ${up.error.message}`);
+      const { data: saved, error } = await sb.from("reports").insert({ tenant_id: ctx.brand.tenant_id, brand_id: brandId, kind: "monthly", period_start: pm.start, period_end: pm.end,
+        summary: `Named in ${m.overall.n} of ${m.overall.of} answers`, content: m, url: key }).select("id").single();
+      if (error) { if (/duplicate|unique/i.test(error.message)) continue; throw new Error(`save report: ${error.message}`); }
+      made++;
+      if (!appUrl) continue;
+      const to = await recipients(sb, ctx.brand.tenant_id, "monthly");
+      if (!to.length) continue;
+      const err = await sendEmail(to, monthlyEmail(m, appUrl, saved.id), fetch, [{ filename: `${ctx.brand.name.replace(/[^A-Za-z0-9]+/g, "-")}-AI-visibility-${pm.month}.pdf`, content: pdf.toString("base64") }]);
+      await sb.from("reports").update(err ? { email_error: err } : { emailed_at: new Date().toISOString(), email_recipients: to.length }).eq("id", saved.id);
+      if (err) await postLine({ channel: getAlertsChannel(), text: `[Warning] *@${AGENT}* monthly report email not sent: \`${err}\`` }).catch(() => {});
+    } catch (err: any) {
+      await postLine({ channel: getAlertsChannel(), text: `[Warning] *@${AGENT}* monthly report failed for \`${brandId}\`: \`${String(err?.message ?? err).slice(0, 300)}\`` }).catch(() => {});
     }
   }
   return made;
