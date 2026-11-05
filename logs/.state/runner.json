@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-05T11:50:14.118Z",
+  "updatedAt": "2026-11-05T12:02:06.723Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -44,11 +44,10 @@
       "agent": "web-builder",
       "door": "aeo",
       "title": "[TASK]: [PLAN-D10b] Outreach Sequencer live wiring: composition root that registers the ",
-      "status": "failed",
+      "status": "in-progress",
       "runStartedAt": "2026-11-05T11:43:24.799477+00:00",
       "runCompletedAt": "2026-11-05T11:50:12.911+00:00",
-      "error": "Agent @web-builder exceeded daily cost cap ($6.19 / $6.00 limit). LLM call blocked.",
-      "recoveryAttempts": 1,
+      "recoveryAttempts": 0,
       "ownerInstance": null,
       "heartbeatAt": null,
       "toolCallsCount": 0
