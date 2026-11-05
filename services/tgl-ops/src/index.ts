@@ -168,6 +168,26 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
+import { runGa4Sync } from "./agents/aeo-impact/ga4.js";
+
+// Every 15 minutes: first GA4 sync for a property connected since the last check
+cron.schedule(
+  "*/15 * * * *",
+  wrapCronJob("TrueVisible GA4 first sync", async () => {
+    await runGa4Sync({ onlyNew: true });
+  }),
+  { timezone: config.timezone }
+);
+
+// 07:15 IST daily: GA4 Impact — AI-referred visits for brands with Google Analytics connected (plan Day 24)
+cron.schedule(
+  "15 7 * * *",
+  wrapCronJob("TrueVisible GA4 sync", async () => {
+    await runGa4Sync();
+  }),
+  { timezone: config.timezone }
+);
+
 import { runCitationTracking, runFirstAudits, runGeminiExperimentJob } from "./agents/aeo-audit-engine/worker.js";
 
 // Every 30 min: Gemini cost experiment — runs once a day after today's Gemini answers exist, only while
