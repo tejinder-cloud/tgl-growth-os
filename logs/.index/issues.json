@@ -174,5 +174,13 @@
     "door": "core",
     "title": "Make the site faster",
     "updatedAt": "2026-11-02T13:27:13.820Z"
+  },
+  "108": {
+    "channel": "#site-build",
+    "ts": "1793879001.738709",
+    "agent": "web-builder",
+    "door": "aeo",
+    "title": "[PLAN-D10b] Outreach Sequencer live wiring: composition root that registers the ",
+    "updatedAt": "2026-11-05T11:43:21.806Z"
   }
 }
