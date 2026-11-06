@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-05T12:13:25.837Z",
+  "updatedAt": "2026-11-06T16:22:12.055Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -26,15 +26,15 @@
     },
     "107": {
       "agent": "web-builder",
-      "door": "core",
+      "door": "aeo",
       "title": "[PLAN-D11]: /aeo landing page + audit form + Rahul Meta campaign (₹500/day)",
-      "status": "needs-brief",
+      "status": "in-progress",
       "runStartedAt": "2026-11-05T11:41:22.367386+00:00",
       "runCompletedAt": "2026-11-05T11:41:36.783+00:00",
       "error": "Issue #107 does not violate §8 and doesn't touch protected paths, but it isn't specific enough to build safely. A senior practitioner would challenge it first.\n\n1. There are no file or template targets. The brief doesn't say where the /aeo page lives (for example the `site/` path or WordPress template), which template or components it reuses, or which parts of the \"paper-and-ink\" system apply. There is no copy, section structure or acceptance criteria beyond \"responsive\".\n2. The lead-capture path is undefined. The brief gives no form fields, no GHL integration method (API, webhook or embed) and no AEO pipeline or stage IDs. It also doesn't say where credentials come from. An embed would likely mean an external script tag, which §8 forbids without approval. That makes the integration method a real guardrail issue.\n3. Several DoD items are outside the web-builder's reach or can't be checked on a branch. Rahul launching the Meta campaign is a human action. Submitting WhatsApp templates means submitting to an external provider. Neither can be verified in a PR. The brief doesn't separate the agent's code deliverables from human or ops follow-ups.\n4. \"Depends-on 8\" isn't explained, so the prerequisite state is unclear.\n5. Going live is out of scope. The agent must not publish or change live page status. The brief doesn't say the page stays draft or staging until the Architect approves.\n\nPlease clarify the points below before the work is re-queued.",
       "recoveryAttempts": 0,
-      "ownerInstance": null,
-      "heartbeatAt": null,
+      "ownerInstance": "inst_1793982085908_ee61f948",
+      "heartbeatAt": "2026-11-06T16:22:11.306205+00:00",
       "toolCallsCount": 0,
       "preflightHash": "b4497969531ee827",
       "preflightVerdict": "needs-brief",
@@ -44,13 +44,15 @@
       "agent": "web-builder",
       "door": "core",
       "title": "[TASK]: [PLAN-D10b] Outreach Sequencer live wiring: composition root that registers the ",
-      "status": "interrupted",
+      "status": "completed",
+      "prNumber": 112,
+      "prUrl": "https://github.com/tejinder-cloud/tgl-growth-os/pull/112",
       "runStartedAt": "2026-11-05T11:43:24.799477+00:00",
-      "runCompletedAt": "2026-11-05T12:12:45.738+00:00",
+      "runCompletedAt": "2026-11-05T12:13:26.12+00:00",
       "error": "Run interrupted by process termination (SIGTERM).",
       "recoveryAttempts": 0,
-      "ownerInstance": "inst_1793880804181_063601f7",
-      "heartbeatAt": "2026-11-05T12:13:25.111416+00:00",
+      "ownerInstance": null,
+      "heartbeatAt": null,
       "toolCallsCount": 0
     }
   }
