@@ -32,18 +32,22 @@ export function dueToday(c: Cadence, today: string, lastRunDate: string | null):
 
 /** Brand ids due today, and which are deep runs. */
 export async function brandsDueToday(sb: SupabaseClient, today: string): Promise<{ due: Set<string>; deep: Set<string> }> {
-  const [{ data: brands }, { data: subs }, { data: last }] = await Promise.all([
+  const [{ data: brands }, { data: subs }, { data: last }, { data: tenants }] = await Promise.all([
     sb.from("brands").select("id, tenant_id").eq("onboarding_step", 4),
     sb.from("subscriptions").select("tenant_id, plan, status, trial_started_at, trial_ends_at, created_at").eq("product", "truevisible").is("brand_id", null).order("created_at", { ascending: false }),
     sb.from("runs").select("brand_id, run_date").eq("kind", "daily").in("status", ["succeeded", "partial"]).order("run_date", { ascending: false }).limit(5000),
+    sb.from("tenants").select("id, kind, parent_tenant_id"),
   ]);
+  // An agency's client brands follow the agency's subscription (SPEC §9: the agency is TGL's customer).
+  const parentOf = new Map(((tenants ?? []) as any[]).filter((t) => t.kind === "agency_client" && t.parent_tenant_id).map((t) => [t.id as string, t.parent_tenant_id as string]));
   const subOf = new Map<string, Sub>();
   for (const s of (subs ?? []) as any[]) if (!subOf.has(s.tenant_id)) subOf.set(s.tenant_id, s);
   const lastOf = new Map<string, string>();
   for (const r of (last ?? []) as any[]) if (!lastOf.has(r.brand_id)) lastOf.set(r.brand_id, r.run_date);
   const due = new Set<string>(), deep = new Set<string>();
   for (const b of (brands ?? []) as any[]) {
-    const d = dueToday(cadenceFor(subOf.get(b.tenant_id) ?? null), today, lastOf.get(b.id) ?? null);
+    const billing = parentOf.get(b.tenant_id) ?? b.tenant_id;
+    const d = dueToday(cadenceFor(subOf.get(billing) ?? null), today, lastOf.get(b.id) ?? null);
     if (d.run) due.add(b.id);
     if (d.run && d.deep) deep.add(b.id);
   }

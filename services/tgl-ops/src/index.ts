@@ -179,6 +179,16 @@ cron.schedule(
 
 import { runGa4Sync } from "./agents/aeo-impact/ga4.js";
 import { syncRazorpaySecret } from "./agents/aeo-billing/razorpay.js";
+import { runAgencyGraceCheck } from "./agents/aeo-billing/agency.js";
+
+// 05:30 IST daily (before the 06:00 checks): agencies unpaid for 15 days → suspended (SPEC §9, plan Day 27)
+cron.schedule(
+  "30 5 * * *",
+  wrapCronJob("TrueVisible agency grace check", async () => {
+    await runAgencyGraceCheck();
+  }),
+  { timezone: config.timezone }
+);
 import { getSupabase as getSupabaseForBilling } from "./agents/prospect-researcher/db.js";
 
 // On boot: copy RAZORPAY_KEY_SECRET into Vault so the database can verify checkout signatures (plan Day 26)
