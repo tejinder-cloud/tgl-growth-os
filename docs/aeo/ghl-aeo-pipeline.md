@@ -43,7 +43,7 @@ If step 2 to 4 fails the visitor sees an error, the alerts channel is told, and 
 
 ## 4. Site wiring
 
-The WordPress theme reads the endpoint from the constant `TGL_AEO_ENDPOINT` (or the `tgl_aeo_endpoint` filter). Add this to wp-config.php once the tgl-ops service is mounted:
+The WordPress theme reads the endpoint from the constant `TGL_AEO_ENDPOINT` (or the `tgl_aeo_endpoint` filter). Add this to wp-config.php once the tgl-ops service is deployed:
 
 ```php
 define('TGL_AEO_ENDPOINT', 'https://<tgl-ops public domain>/aeo/lead');
@@ -51,13 +51,8 @@ define('TGL_AEO_ENDPOINT', 'https://<tgl-ops public domain>/aeo/lead');
 
 If it is not defined the form shows "Requests are temporarily unavailable" and does not post anywhere.
 
-## 5. Mounting the route
+## 5. Route mounting
 
-In `services/tgl-ops/src/app.ts` add:
+The route is mounted in `services/tgl-ops/src/app.ts` (step 11, `app.use("/aeo", aeoRouter)`), after the app's raw-body and JSON parsing, so the public form posts reach it. Before this change the router existed but was not mounted, so every form post would have returned 404. `src/test-task107-aeo-mount.ts` exercises the route through `createApp()`: CORS preflight, foreign origin 403, honeypot 200, invalid payload 422, and unconfigured GHL 503 with `ok:false`.
 
-```ts
-import { aeoRouter } from "./routes/aeo.js";
-app.use("/aeo", aeoRouter);
-```
-
-The route parses its own JSON body, so it works whether or not the app already has a JSON parser.
+Not yet verified end to end: a real write into GHL needs the four GHL variables above, which only a person with the GHL account can supply.
