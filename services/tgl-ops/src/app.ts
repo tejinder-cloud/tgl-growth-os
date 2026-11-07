@@ -10,6 +10,7 @@ import { cardsRouter } from "./routes/cards.js";
 import { githubEventsRouter } from "./routes/github-events.js";
 import { auditRouter } from "./routes/audit.js";
 import { outreachRouter } from "./routes/outreach.js";
+import { aeoRouter } from "./routes/aeo.js";
 
 /**
  * Creates and configures the Express app.
@@ -133,7 +134,11 @@ export function createApp(signingSecret?: string) {
   // 10. Outreach API: GHL inbound-reply webhook (shared-secret header, fails closed)
   app.use("/outreach", outreachRouter);
 
-  // 11. Global Error Handler
+  // 11. AEO lead API: public POST /aeo/lead behind the /aeo audit form. Origin allow-list, honeypot,
+  // per-IP rate limit; fails closed (503) when the GHL env is not configured.
+  app.use("/aeo", aeoRouter);
+
+  // 12. Global Error Handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     console.error("[Server Error]", err);
     res.status(500).json({ error: "Internal Server Error" });
