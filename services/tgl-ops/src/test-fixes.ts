@@ -1,6 +1,9 @@
 // services/tgl-ops/src/test-fixes.ts
 process.env.TGL_TEST_MODE = "1";
 process.env.NODE_ENV = "test";
+process.env.ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-20241022";
+process.env.ANTHROPIC_PRICE_IN = process.env.ANTHROPIC_PRICE_IN || "3.00";
+process.env.ANTHROPIC_PRICE_OUT = process.env.ANTHROPIC_PRICE_OUT || "15.00";
 
 import { gatherStandupMaterial } from "./agents/chief-of-staff/gather.js";
 import { doesCronRunOnDate, isAgentScheduledOnDate, findAgentByName, getAgentRunnerLimits, type AgentRecord } from "./lib/agents.js";
@@ -763,7 +766,36 @@ async function runFixesVerificationSuite(): Promise<void> {
         name: "write_file",
         input: {
           path: "agents/outreach-sequencer/SKILL.md",
-          content: "# Outreach Sequencer SKILL.md\nAutonomous multi-touch sequencer for GHL and WhatsApp.",
+          content: [
+            "# Outreach Sequencer SKILL.md",
+            "Autonomous multi-touch sequencer for GHL and WhatsApp.",
+            "",
+            "## Overview",
+            "Coordinates multi-touch outbound cadences across Indian coaching prospects.",
+            "",
+            "## Channels",
+            "- Touch 1: Email introduction to institute founder",
+            "- Touch 2: WhatsApp follow-up with diagnostic link",
+            "- Touch 3: Email delivery of AEO audit report",
+            "- Touch 4: WhatsApp voice memo with benchmark insight",
+            "- Touch 5: Final email breakup message",
+            "",
+            "## Rules",
+            "- Strictly plain text and bold only; zero emojis",
+            "- Respect quiet hours 20:00 to 09:00 IST",
+            "- DNC list checked before any outbound trigger",
+            "- All status transitions recorded in Supabase",
+            "",
+            "## Verification",
+            "- Unit tests covering 5-touch timing engine",
+            "- Fixture verification against Indian mobile formatting",
+            "",
+            "## Acceptance Criteria",
+            "- 5 touches triggered on correct intervals",
+            "- Supabase status matches touch state",
+            "- Clean error exit on missing credentials",
+            "- Fully automated with zero human intervention",
+          ].join("\n"),
         },
       },
     ],
@@ -1350,9 +1382,13 @@ async function runFixesVerificationSuite(): Promise<void> {
     input: { path: "config/agents.yaml" },
   });
   // Call 22: write_file to produce a commit
+  const lines22: string[] = [];
+  for (let i = 1; i <= 22; i++) {
+    lines22.push(`Line ${i}: verified research limit refusal and resumed write.`);
+  }
   mockCalls.push({
     name: "write_file",
-    input: { path: "services/test-output.txt", content: "done" },
+    input: { path: "services/test-output.txt", content: lines22.join("\n") },
   });
 
   const fixture15RunRes = await runIssueTask(fixture15Issue, {
@@ -1440,7 +1476,33 @@ async function runFixesVerificationSuite(): Promise<void> {
       toolCalls: [
         {
           name: "write_file",
-          input: { path: "dist/output.ts", content: "export const ok = true;\n" },
+          input: {
+            path: "dist/output.ts",
+            content: [
+              "export const ok = true;",
+              "export const version = '1.0.0';",
+              "export interface TestOutput {",
+              "  id: string;",
+              "  name: string;",
+              "  active: boolean;",
+              "  lines: number;",
+              "}",
+              "export function generateOutput(id: string): TestOutput {",
+              "  return {",
+              "    id,",
+              "    name: 'test-runner',",
+              "    active: true,",
+              "    lines: 20,",
+              "  };",
+              "}",
+              "export function validateOutput(out: TestOutput): boolean {",
+              "  return out.active && out.lines >= 20;",
+              "}",
+              "export const DEFAULT_TIMEOUT_MS = 5000;",
+              "export const RETRY_COUNT = 3;",
+              "export default generateOutput;",
+            ].join("\n"),
+          },
         },
       ],
     },
@@ -1745,6 +1807,254 @@ async function runFixesVerificationSuite(): Promise<void> {
   }
   console.log("  [Passed] Future calendar day spend resets cleanly to $0.00 at 00:00 IST");
   console.log("[Test 18 Passed] Daily cost caps IST calendar day reset verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 19: write_file empty/missing rejection, zero-commits non-empty gate,
+  // and PR diff threshold (<20 non-blank lines) closure gate
+  // -------------------------------------------------------------------------
+  console.log("[Test 19] Testing write_file empty rejection, zero-commits non-empty gate, and PR diff threshold gate...");
+
+  // Part 1: write_file tool rejects empty or missing content (never returns SUCCESS for 0 bytes)
+  const wfContext: RunnerToolContext = {
+    issueNumber: 9919,
+    branchName: "task/9919-test-wf-gate",
+    testMode: true,
+    virtualFiles: new Map<string, string>(),
+    successfulWritesCount: 0 as number,
+  };
+
+  // Missing content (undefined)
+  const resMissing = await executeRunnerTool("write_file", { path: "src/empty1.ts" }, wfContext);
+  if (!resMissing.startsWith("ERROR: content is required and cannot be empty (0 bytes)")) {
+    throw new Error(`Test 19.1 Failed: Expected missing content error, got: ${resMissing}`);
+  }
+  if ((wfContext.successfulWritesCount as number) !== 0 || (wfContext.virtualFiles?.size as number) !== 0) {
+    throw new Error("Test 19.2 Failed: Missing content incremented writes or wrote virtual file");
+  }
+
+  // Empty string content ("")
+  const resEmptyStr = await executeRunnerTool("write_file", { path: "src/empty2.ts", content: "" }, wfContext);
+  if (!resEmptyStr.startsWith("ERROR: content is required and cannot be empty (0 bytes)")) {
+    throw new Error(`Test 19.3 Failed: Expected empty string error, got: ${resEmptyStr}`);
+  }
+  if ((wfContext.successfulWritesCount as number) !== 0 || (wfContext.virtualFiles?.size as number) !== 0) {
+    throw new Error("Test 19.4 Failed: Empty string incremented writes or wrote virtual file");
+  }
+
+  // Whitespace-only content ("   \n\t  ")
+  const resWhitespace = await executeRunnerTool("write_file", { path: "src/empty3.ts", content: "   \n\t  " }, wfContext);
+  if (!resWhitespace.startsWith("ERROR: content is required and cannot be empty (0 bytes)")) {
+    throw new Error(`Test 19.5 Failed: Expected whitespace content error, got: ${resWhitespace}`);
+  }
+  if ((wfContext.successfulWritesCount as number) !== 0 || (wfContext.virtualFiles?.size as number) !== 0) {
+    throw new Error("Test 19.6 Failed: Whitespace content incremented writes or wrote virtual file");
+  }
+
+  // Non-empty content succeeds
+  const resValid = await executeRunnerTool("write_file", { path: "src/valid.ts", content: "export const answer = 42;\n" }, wfContext);
+  if (!resValid.startsWith("SUCCESS: Wrote")) {
+    throw new Error(`Test 19.7 Failed: Expected valid write to succeed, got: ${resValid}`);
+  }
+  if ((wfContext.successfulWritesCount as number) !== 1 || (wfContext.virtualFiles?.size as number) !== 1) {
+    throw new Error("Test 19.8 Failed: Valid content failed to increment writes or store virtual file");
+  }
+  console.log("  [Passed] write_file rejects missing, empty, and whitespace content with 0 bytes; allows valid content");
+
+  // Part 2: Zero-commits gate rejects runs whose files are all empty
+  clearMockRunnerStateDbForTests();
+  const test19IssueA = {
+    number: 99191,
+    title: "[TASK]: Zero commits non-empty check",
+    body: "### deliverable\nEmpty files simulation\n\n### for-agent\nweb-builder\n\n### door\ncore\n",
+    labels: ["for:web-builder", "door:core", "type:build", "status:in-progress"],
+    agentName: "web-builder",
+    door: "core",
+  };
+
+  const briefHash19A = computeBriefHash(test19IssueA.body, []);
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        "99191": {
+          agent: "web-builder",
+          door: "core",
+          title: test19IssueA.title,
+          status: "in-progress",
+          branch: "task/99191-zero-commits",
+          toolCallsCount: 0,
+          preflightHash: briefHash19A,
+          preflightVerdict: "proceed",
+          preflightReason: "Valid brief",
+          runStartedAt: new Date().toISOString(),
+          ownerInstance: null,
+          heartbeatAt: null,
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  // Model makes tool call with empty content (which fails) and ends without files
+  const res19A = await runIssueTask(test19IssueA, {
+    testMode: true,
+    mockToolCalls: [
+      {
+        name: "write_file",
+        input: { path: "empty.txt", content: "" },
+      },
+    ],
+    mockModelResponse: "Attempted to write empty file.",
+  });
+
+  if (res19A.success || res19A.status !== "needs-brief" || res19A.error !== "run produced no files") {
+    throw new Error(`Test 19.9 Failed: Expected zero-commits gate rejection, got: ${JSON.stringify(res19A)}`);
+  }
+  if (res19A.prNumber !== undefined) {
+    throw new Error("Test 19.10 Failed: PR must not be opened when 0 non-empty file changes exist");
+  }
+  console.log("  [Passed] Zero-commits gate enforces non-empty file changes and blocks PR creation");
+
+  // Part 3: PR diff threshold gate (< 20 non-blank lines) closes PR and withholds review card
+  clearMockRunnerStateDbForTests();
+  const test19IssueB = {
+    number: 99192,
+    title: "[TASK]: Short diff threshold check",
+    body: "### deliverable\nFew lines output\n\n### for-agent\nweb-builder\n\n### door\ncore\n",
+    labels: ["for:web-builder", "door:core", "type:build", "status:in-progress"],
+    agentName: "web-builder",
+    door: "core",
+  };
+
+  const briefHash19B = computeBriefHash(test19IssueB.body, []);
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        "99192": {
+          agent: "web-builder",
+          door: "core",
+          title: test19IssueB.title,
+          status: "in-progress",
+          branch: "task/99192-diff-gate",
+          toolCallsCount: 0,
+          preflightHash: briefHash19B,
+          preflightVerdict: "proceed",
+          preflightReason: "Valid brief",
+          runStartedAt: new Date().toISOString(),
+          ownerInstance: null,
+          heartbeatAt: null,
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  // Model writes 5 lines (less than 20 non-blank lines)
+  const shortContent = "line 1\nline 2\nline 3\nline 4\nline 5\n";
+  const modelMessageB = "Here is the short 5-line implementation.";
+  const res19B = await runIssueTask(test19IssueB, {
+    testMode: true,
+    mockToolCalls: [
+      {
+        name: "write_file",
+        input: { path: "short.ts", content: shortContent },
+      },
+    ],
+    mockModelResponse: modelMessageB,
+  });
+
+  if (res19B.success || res19B.status !== "needs-brief") {
+    throw new Error(`Test 19.11 Failed: Expected status needs-brief for diff < 20 lines, got ${JSON.stringify(res19B)}`);
+  }
+  if (res19B.error !== "run produced no files") {
+    throw new Error(`Test 19.12 Failed: Expected error 'run produced no files', got '${res19B.error}'`);
+  }
+  if (!res19B.prNumber) {
+    throw new Error("Test 19.13 Failed: Expected PR number to be recorded for the closed PR");
+  }
+  if (res19B.lastModelMessage !== modelMessageB) {
+    throw new Error(`Test 19.14 Failed: Expected model's last message preserved, got '${res19B.lastModelMessage}'`);
+  }
+
+  // Verify runner state record has status: needs-brief, prNumber, and lastModelMessage
+  const state19B = await getRunnerState({ testMode: true });
+  const runRecord19B = state19B.runs["99192"];
+  if (runRecord19B.status !== "needs-brief" || runRecord19B.error !== "run produced no files" || !runRecord19B.prNumber) {
+    throw new Error(`Test 19.15 Failed: Runner state mismatch: ${JSON.stringify(runRecord19B)}`);
+  }
+  if (runRecord19B.lastModelMessage !== modelMessageB) {
+    throw new Error(`Test 19.16 Failed: Runner state missing lastModelMessage: ${runRecord19B.lastModelMessage}`);
+  }
+  console.log("  [Passed] PR with < 20 non-blank lines is closed as 'run produced no files' with model's last message");
+
+  // Part 4: PR with >= 20 non-blank lines passes diff gate and completes
+  clearMockRunnerStateDbForTests();
+  const test19IssueC = {
+    number: 99193,
+    title: "[TASK]: Full deliverable passing diff gate",
+    body: "### deliverable\nFull deliverable >= 20 lines\n\n### for-agent\nweb-builder\n\n### door\ncore\n",
+    labels: ["for:web-builder", "door:core", "type:build", "status:in-progress"],
+    agentName: "web-builder",
+    door: "core",
+  };
+
+  const briefHash19C = computeBriefHash(test19IssueC.body, []);
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        "99193": {
+          agent: "web-builder",
+          door: "core",
+          title: test19IssueC.title,
+          status: "in-progress",
+          branch: "task/99193-full-diff",
+          toolCallsCount: 0,
+          preflightHash: briefHash19C,
+          preflightVerdict: "proceed",
+          preflightReason: "Valid brief",
+          runStartedAt: new Date().toISOString(),
+          ownerInstance: null,
+          heartbeatAt: null,
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  const fullContentLines: string[] = [];
+  for (let i = 1; i <= 25; i++) {
+    fullContentLines.push(`export const item_${i} = "value_${i}";`);
+  }
+  const fullContent = fullContentLines.join("\n");
+
+  const res19C = await runIssueTask(test19IssueC, {
+    testMode: true,
+    mockToolCalls: [
+      {
+        name: "write_file",
+        input: { path: "full.ts", content: fullContent },
+      },
+    ],
+    mockModelResponse: "Delivered full 25-line module.",
+  });
+
+  if (!res19C.success || res19C.status !== "completed") {
+    throw new Error(`Test 19.17 Failed: Expected completed status for diff >= 20 lines, got ${JSON.stringify(res19C)}`);
+  }
+  if (!res19C.prNumber) {
+    throw new Error("Test 19.18 Failed: Expected PR number on completed run");
+  }
+  console.log("  [Passed] PR with >= 20 non-blank lines passes diff gate and completes successfully");
+  console.log("[Test 19 Passed] write_file rejection, zero-commits non-empty gate, and PR diff threshold gate verified.\n");
   passed++;
 
   console.log("==========================================================================");
