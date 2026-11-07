@@ -6,18 +6,26 @@ import { postLine } from "../../lib/post.js";
 import { getAlertsChannel } from "../../lib/cron-wrapper.js";
 import { getTodayDateString } from "../../lib/standup.js";
 import { getSupabase } from "../prospect-researcher/db.js";
-import { buildDaily, buildMonthly, buildWeekly, dailyHasNews, previousMonth, type AnswerRow } from "./build.js";
+import { cadenceFor, type Cadence } from "../aeo-audit-engine/cadence.js";
+import { buildBaseline, buildDaily, buildMonthly, buildWeekly, dailyHasNews, previousMonth, type AnswerRow } from "./build.js";
 import { monthlyPdf } from "./pdf.js";
-import { dailyEmail, monthlyEmail, weeklyEmail, type Email } from "./email.js";
+import { baselineEmail, dailyEmail, monthlyEmail, weeklyEmail, type Email } from "./email.js";
 
 export const AGENT = "aeo-audit-engine";
 const addDays = (d: string, n: number) => new Date(Date.parse(d + "T00:00:00Z") + n * 86_400_000).toISOString().slice(0, 10);
 
 /** Monday–Sunday week before the given Monday (pure; tested). */
+/** The 7 days ending today — so Monday's report includes Monday's weekly run (paid plans run on Mondays). */
 export function previousWeek(today: string): { start: string; end: string } {
-  const dow = new Date(today + "T00:00:00Z").getUTCDay();          // 0 = Sunday
-  const thisMonday = addDays(today, -((dow + 6) % 7));
-  return { start: addDays(thisMonday, -7), end: addDays(thisMonday, -1) };
+  return { start: addDays(today, -6), end: today };
+}
+
+/** Plan cadence per tenant (latest subscription). */
+async function cadenceByTenant(sb: SupabaseClient): Promise<Map<string, Cadence>> {
+  const { data } = await sb.from("subscriptions").select("tenant_id, plan, status, trial_started_at, trial_ends_at, created_at").eq("product", "truevisible").is("brand_id", null).order("created_at", { ascending: false });
+  const m = new Map<string, Cadence>();
+  for (const s of (data ?? []) as any[]) if (!m.has(s.tenant_id)) m.set(s.tenant_id, cadenceFor(s));
+  return m;
 }
 
 async function loadAnswers(sb: SupabaseClient, brandId: string, from: string, to: string): Promise<AnswerRow[]> {
@@ -99,8 +107,12 @@ export async function runDailyDigests(date = getTodayDateString()): Promise<numb
   const appUrl = process.env.TRUEVISIBLE_APP_URL?.trim().replace(/\/$/, "");
   const { data: todayRows } = await sb.from("v_visibility_daily").select("brand_id").eq("run_date", date);
   const brandIds = [...new Set((todayRows ?? []).map((r: any) => r.brand_id as string))];
+  const cad = await cadenceByTenant(sb);
+  const { data: tenantRows } = brandIds.length ? await sb.from("brands").select("id, tenant_id").in("id", brandIds) : { data: [] };
+  const tenantOf = new Map((tenantRows ?? []).map((b: any) => [b.id as string, b.tenant_id as string]));
   let made = 0;
   for (const brandId of brandIds) {
+    if (cad.get(tenantOf.get(brandId) ?? "") !== "daily") continue;   // weekly plans get the weekly email instead
     const { data: exists } = await sb.from("reports").select("id").eq("brand_id", brandId).eq("kind", "daily").eq("period_end", date).limit(1);
     if (exists?.length) continue;
     // Wait until today's daily runs are all finished (audits alone don't make a digest).
@@ -137,7 +149,11 @@ export async function runWeeklyReports(today = getTodayDateString()): Promise<nu
   const { start, end } = previousWeek(today);
   const { data: rows } = await sb.from("v_visibility_daily").select("brand_id").gte("run_date", start).lte("run_date", end);
   let made = 0;
+  const { data: trialTenants } = await sb.from("subscriptions").select("tenant_id").eq("product", "truevisible").eq("plan", "trial");
+  const trials = new Set((trialTenants ?? []).map((t: any) => t.tenant_id as string));
   for (const brandId of [...new Set((rows ?? []).map((r: any) => r.brand_id as string))]) {
+    const { data: bt } = await sb.from("brands").select("tenant_id").eq("id", brandId).maybeSingle();
+    if (bt && trials.has(bt.tenant_id)) continue;                    // trials get the day-7 baseline instead
     const { data: exists } = await sb.from("reports").select("id").eq("brand_id", brandId).eq("kind", "weekly").eq("period_end", end).limit(1);
     if (exists?.length) continue;
     try {
@@ -201,4 +217,54 @@ export async function runMonthlyReports(today = getTodayDateString()): Promise<n
     }
   }
   return made;
+}
+
+/** Hourly: when a trial's 7 days are up — baseline report (stored + emailed) and the trial is marked expired. */
+export async function runTrialBaselines(now = new Date()): Promise<number> {
+  if (isTestMode()) return 0;
+  const sb = getSupabase();
+  if (!sb) return 0;
+  const appUrl = process.env.TRUEVISIBLE_APP_URL?.trim().replace(/\/$/, "");
+  const { data: ended } = await sb.from("subscriptions").select("id, tenant_id, trial_started_at, trial_ends_at").eq("product", "truevisible").eq("plan", "trial").eq("status", "trialing")
+    .not("trial_started_at", "is", null).lte("trial_ends_at", now.toISOString());
+  let made = 0;
+  for (const sub of (ended ?? []) as any[]) {
+    try {
+      const { data: brands } = await sb.from("brands").select("id").eq("tenant_id", sub.tenant_id).eq("onboarding_step", 4);
+      for (const b of brands ?? []) {
+        const start = new Date(Date.parse(sub.trial_started_at) + 5.5 * 3600_000).toISOString().slice(0, 10);
+        const end = new Date(Date.parse(sub.trial_ends_at) + 5.5 * 3600_000).toISOString().slice(0, 10);
+        const { data: exists } = await sb.from("reports").select("id").eq("brand_id", b.id).eq("kind", "baseline").limit(1);
+        if (exists?.length) continue;
+        const ctx = await context(sb, b.id);
+        const [rows, sites] = await Promise.all([loadAnswers(sb, b.id, start, end), loadSites(sb, b.id, start, end)]);
+        const perDomain = new Map<string, Set<string>>();
+        for (const s of sites) { if (!perDomain.has(s.domain)) perDomain.set(s.domain, new Set()); perDomain.get(s.domain)!.add(s.answer); }
+        const names = [ctx.brand.name, ...ctx.variants, ...(ctx.brand.primary_domain ? [ctx.brand.primary_domain] : [])].map((n: string) => n.toLowerCase());
+        const base = buildBaseline({ brand: ctx.brand.name, start, end, rows, isBranded: (t) => names.some((n) => n.length >= 3 && t.toLowerCase().includes(n)),
+          competitorNames: ctx.competitors, sites: [...perDomain].map(([domain, a]) => ({ domain, answers: a.size })),
+          fixes: ctx.recs.filter((r: any) => r.status === "open").slice(0, 3).map((r: any) => r.title as string) });
+        const { data: saved, error } = await sb.from("reports").insert({ tenant_id: sub.tenant_id, brand_id: b.id, kind: "baseline", period_start: start, period_end: end,
+          summary: `${base.overall.of} answers read · named in ${base.overall.n}`, content: base }).select("id").single();
+        if (error) { if (/duplicate|unique/i.test(error.message)) continue; throw new Error(`save baseline: ${error.message}`); }
+        made++;
+        if (!appUrl) continue;
+        const to = await recipients(sb, sub.tenant_id, "weekly");
+        if (!to.length) continue;
+        const err = await sendEmail(to, baselineEmail(base, appUrl, saved.id, managedUrl()));
+        await sb.from("reports").update(err ? { email_error: err } : { emailed_at: new Date().toISOString(), email_recipients: to.length }).eq("id", saved.id);
+      }
+      await sb.from("subscriptions").update({ status: "expired" }).eq("id", sub.id);
+    } catch (err: any) {
+      await postLine({ channel: getAlertsChannel(), text: `[Warning] *@${AGENT}* trial baseline failed for tenant \`${sub.tenant_id}\`: \`${String(err?.message ?? err).slice(0, 300)}\`` }).catch(() => {});
+    }
+  }
+  return made;
+}
+
+/** Where "have it done" goes: the AEO page on the website (pricing lives there). */
+export function managedUrl(): string {
+  const u = new URL(process.env.NEXT_PUBLIC_MANAGED_AEO_URL || "https://thegrowthlab.co.in/answer-engine-optimization-services/");
+  u.searchParams.set("utm_source", "truevisible"); u.searchParams.set("utm_medium", "email"); u.searchParams.set("utm_campaign", "trial_baseline");
+  return u.toString();
 }

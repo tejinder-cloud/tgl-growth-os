@@ -128,3 +128,13 @@ export function previousMonth(today: string): { month: string; start: string; en
   const iso = (d: Date) => d.toISOString().slice(0, 10);
   return { month: iso(first).slice(0, 7), start: iso(first), end: iso(last), prevStart: iso(pFirst), prevEnd: iso(pLast) };
 }
+
+export type BaselineContent = Omit<WeeklyContent, "kind" | "prevOverall" | "recsDone" | "openRecs" | "topRec"> & { kind: "baseline"; questions: number; fixes: string[] };
+
+/** Trial day-7 baseline: what AI says today, not a trend (7 days is too noisy to claim change). */
+export function buildBaseline(p: { brand: string; start: string; end: string; rows: AnswerRow[]; isBranded: (text: string) => boolean;
+  competitorNames: string[]; sites: { domain: string; answers: number }[]; fixes: string[] }): BaselineContent {
+  const w = buildWeekly({ brand: p.brand, start: p.start, end: p.end, week: p.rows, prevWeek: [], isBranded: p.isBranded, competitorNames: p.competitorNames, sites: p.sites, recsDone: 0, openRecs: 0, topRec: null });
+  const { prevOverall: _p, recsDone: _r, openRecs: _o, topRec: _t, kind: _k, ...rest } = w;
+  return { ...rest, kind: "baseline", questions: new Set(dedupe(p.rows).map((r) => r.prompt_id)).size, fixes: p.fixes.slice(0, 3) };
+}

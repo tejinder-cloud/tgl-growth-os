@@ -139,7 +139,16 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
-import { runDailyDigests, runMonthlyReports, runWeeklyReports } from "./agents/aeo-reports/worker.js";
+import { runDailyDigests, runMonthlyReports, runTrialBaselines, runWeeklyReports } from "./agents/aeo-reports/worker.js";
+
+// Hourly at :20: trials whose 7 days are up → day-7 baseline report + email; trial marked expired (decision 7 Nov 2026)
+cron.schedule(
+  "20 * * * *",
+  wrapCronJob("TrueVisible trial baselines", async () => {
+    await runTrialBaselines();
+  }),
+  { timezone: config.timezone }
+);
 
 // 1st of the month, 09:00 IST: monthly review (one-page PDF) for the previous month (plan Day 24)
 cron.schedule(

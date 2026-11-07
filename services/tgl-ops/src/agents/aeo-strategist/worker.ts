@@ -25,11 +25,12 @@ import type { Proposal, SetupSnapshot } from "./types.js";
 export const AGENT = "aeo-strategist";
 const REMIND_AFTER_H = 20; // SLA is 24h (SPEC §3)
 
-// Mirrors private.tv_prompt_limit: paid plans 25 + extra packs (decision 4 Nov 2026), trial 10, internal 50.
+// Mirrors private.tv_prompt_limit (decision 7 Nov 2026): trial 10, Track/Managed 50, Managed Plus 100, internal 50, + extra.
 function limitFor(plan: string, status: string, trialEndsAt: string | null, extra = 0): number {
   if (plan === "internal") return 50;
-  if (plan === "trial") return status === "trialing" && trialEndsAt && Date.parse(trialEndsAt) > Date.now() ? 10 : 0;
-  return ["active", "past_due"].includes(status) ? 25 + extra : 0;
+  if (plan === "trial") return status === "trialing" && (!trialEndsAt || Date.parse(trialEndsAt) > Date.now()) ? 10 : 0;
+  if (!["active", "past_due"].includes(status)) return 0;
+  return (plan === "managed_plus" ? 100 : 50) + extra;
 }
 
 export async function loadSnapshot(sb: SupabaseClient, brandId: string): Promise<SetupSnapshot> {
