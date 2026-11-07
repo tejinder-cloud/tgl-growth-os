@@ -433,14 +433,41 @@ export async function createBranch(
 }
 
 /**
+ * Checks whether a single file change represents non-empty content additions.
+ */
+export function isFileChangeNonEmpty(file: {
+  additions?: number;
+  patch?: string;
+  status?: string;
+}): boolean {
+  if (!file.additions || file.additions <= 0) return false;
+  if (file.patch) {
+    const addedLines = file.patch
+      .split("\n")
+      .filter((line) => line.startsWith("+") && !line.startsWith("+++"))
+      .map((line) => line.slice(1).trim())
+      .filter((line) => line.length > 0);
+    return addedLines.length > 0;
+  }
+  return true;
+}
+
+/**
  * Checks whether a head branch has commits beyond the base branch (default: main).
+ * Counts non-empty file changes among the commits.
  */
 export async function getBranchCommitsAhead(
   headBranch: string,
   baseBranch = "main"
-): Promise<{ success: boolean; aheadBy: number; error?: string }> {
+): Promise<{
+  success: boolean;
+  aheadBy: number;
+  nonEmptyFilesCount: number;
+  files?: Array<{ filename: string; additions: number; status: string }>;
+  error?: string;
+}> {
   if (!config.githubToken) {
-    return { success: true, aheadBy: 1 };
+    return { success: true, aheadBy: 1, nonEmptyFilesCount: 1 };
   }
 
   try {
@@ -450,15 +477,30 @@ export async function getBranchCommitsAhead(
       basehead: `${baseBranch}...${headBranch}`,
     });
 
+    const files = res.data.files || [];
+    let nonEmptyCount = 0;
+    for (const f of files) {
+      if (isFileChangeNonEmpty(f)) {
+        nonEmptyCount++;
+      }
+    }
+
     return {
       success: true,
       aheadBy: res.data.ahead_by ?? 0,
+      nonEmptyFilesCount: nonEmptyCount,
+      files: files.map((f) => ({
+        filename: f.filename,
+        additions: f.additions,
+        status: f.status,
+      })),
     };
   } catch (err: any) {
     console.error(`[GitHub Git API] Error comparing ${baseBranch}...${headBranch}:`, err);
     return {
       success: false,
       aheadBy: 0,
+      nonEmptyFilesCount: 0,
       error: err.response?.data?.message || err.message || "Failed to compare commits",
     };
   }
@@ -886,17 +928,23 @@ export async function squashMergePR(
 }
 
 /**
- * Closes a Pull Request without merging.
+ * Closes a Pull Request without merging, with an optional closing comment.
  */
 export async function closePR(
-  prNumber: number
+  prNumber: number,
+  comment?: string
 ): Promise<{ success: boolean; error?: string }> {
   if (!config.githubToken) {
-    console.warn(`[GitHub] GITHUB_TOKEN not set; simulating PR #${prNumber} closure`);
+    console.warn(`[GitHub] GITHUB_TOKEN not set; simulating PR #${prNumber} closure${comment ? ` with comment: ${comment.slice(0, 60)}` : ""}`);
     return { success: true };
   }
 
   try {
+    if (comment) {
+      await addCommentToIssue(prNumber, comment).catch((err) =>
+        console.warn(`[GitHub API] Warning adding comment to PR #${prNumber} before closing:`, err)
+      );
+    }
     await octokit.pulls.update({
       owner: config.githubOwner,
       repo: config.githubRepo,
@@ -909,6 +957,123 @@ export async function closePR(
     return {
       success: false,
       error: err.response?.data?.message || err.message || "Failed to close PR",
+    };
+  }
+}
+
+export interface PullRequestDiffStats {
+  addedNonBlankLines: number;
+  addedFilesCount: number;
+  allAddedFilesEmpty: boolean;
+  files: Array<{
+    filename: string;
+    status: string;
+    addedNonBlankLines: number;
+    isEmpty: boolean;
+  }>;
+}
+
+/**
+ * Computes diff statistics for a PR: total non-blank added lines, added files count,
+ * and whether all added files in the diff are empty.
+ */
+export async function getPullRequestDiffStats(
+  prNumber: number,
+  options?: {
+    testMode?: boolean;
+    virtualFiles?: Map<string, string>;
+  }
+): Promise<{ success: boolean; stats: PullRequestDiffStats; error?: string }> {
+  if (options?.testMode || isTestMode() || !config.githubToken || options?.virtualFiles) {
+    const vFiles = options?.virtualFiles || new Map<string, string>();
+    let totalNonBlankLines = 0;
+    const fileEntries: PullRequestDiffStats["files"] = [];
+
+    for (const [filename, content] of vFiles.entries()) {
+      const lines = typeof content === "string" ? content.split("\n") : [];
+      const nonBlank = lines.filter((l) => l.trim().length > 0).length;
+      totalNonBlankLines += nonBlank;
+      fileEntries.push({
+        filename,
+        status: "added",
+        addedNonBlankLines: nonBlank,
+        isEmpty: nonBlank === 0,
+      });
+    }
+
+    const addedFiles = fileEntries.filter((f) => f.status === "added");
+    const allAddedFilesEmpty =
+      fileEntries.length === 0 ||
+      (addedFiles.length > 0 && addedFiles.every((f) => f.isEmpty));
+
+    return {
+      success: true,
+      stats: {
+        addedNonBlankLines: totalNonBlankLines,
+        addedFilesCount: addedFiles.length,
+        allAddedFilesEmpty,
+        files: fileEntries,
+      },
+    };
+  }
+
+  try {
+    const res = await octokit.pulls.listFiles({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      pull_number: prNumber,
+      per_page: 100,
+    });
+
+    let totalNonBlankLines = 0;
+    const fileEntries: PullRequestDiffStats["files"] = [];
+
+    for (const file of res.data) {
+      let nonBlank = 0;
+      if (file.patch) {
+        nonBlank = file.patch
+          .split("\n")
+          .filter((line) => line.startsWith("+") && !line.startsWith("+++"))
+          .map((line) => line.slice(1).trim())
+          .filter((line) => line.length > 0).length;
+      } else if (file.additions && file.additions > 0) {
+        nonBlank = file.additions;
+      }
+
+      totalNonBlankLines += nonBlank;
+      fileEntries.push({
+        filename: file.filename,
+        status: file.status,
+        addedNonBlankLines: nonBlank,
+        isEmpty: nonBlank === 0,
+      });
+    }
+
+    const addedFiles = fileEntries.filter((f) => f.status === "added");
+    const allAddedFilesEmpty =
+      fileEntries.length === 0 ||
+      (addedFiles.length > 0 && addedFiles.every((f) => f.isEmpty));
+
+    return {
+      success: true,
+      stats: {
+        addedNonBlankLines: totalNonBlankLines,
+        addedFilesCount: addedFiles.length,
+        allAddedFilesEmpty,
+        files: fileEntries,
+      },
+    };
+  } catch (err: any) {
+    console.error(`[GitHub API] Error fetching diff stats for PR #${prNumber}:`, err);
+    return {
+      success: false,
+      stats: {
+        addedNonBlankLines: 0,
+        addedFilesCount: 0,
+        allAddedFilesEmpty: true,
+        files: [],
+      },
+      error: err.response?.data?.message || err.message || "Failed to fetch PR diff stats",
     };
   }
 }

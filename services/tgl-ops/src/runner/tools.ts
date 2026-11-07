@@ -52,7 +52,7 @@ export const RUNNER_TOOLS: Anthropic.Tool[] = [
   },
   {
     name: "write_file",
-    description: "Creates or updates a file directly on the working branch. The runner may write to services/, .github/, and site/app files. Protected paths: decisions/ and logs/ (written only by service on main).",
+    description: "Creates or updates a file directly on the working branch. The runner may write to services/, .github/, and site/app files. Protected paths: decisions/ and logs/ (written only by service on main). Content cannot be empty.",
     input_schema: {
       type: "object",
       properties: {
@@ -62,7 +62,7 @@ export const RUNNER_TOOLS: Anthropic.Tool[] = [
         },
         content: {
           type: "string",
-          description: "Full UTF-8 content of the file",
+          description: "Full UTF-8 content of the file (required, cannot be empty or 0 bytes)",
         },
       },
       required: ["path", "content"],
@@ -165,12 +165,21 @@ export async function executeRunnerTool(
     }
   } else if (toolName === "write_file") {
     const rawPath = String(input.path || "").trim();
-    const content = String(input.content ?? "");
+    const rawContent = input.content;
     if (!rawPath) {
       result = "ERROR: path is required";
+    } else if (
+      rawContent === undefined ||
+      rawContent === null ||
+      typeof rawContent !== "string" ||
+      rawContent.length === 0 ||
+      rawContent.trim().length === 0
+    ) {
+      result = "ERROR: content is required and cannot be empty (0 bytes)";
     } else if (isProtectedPath(rawPath)) {
       result = `REFUSAL: Path '${rawPath}' is protected. decisions/, logs/ and logs/.state are written only by the service on main and must never be edited in a PR.`;
     } else {
+      const content = rawContent;
       if (virtualFiles) {
         virtualFiles.set(rawPath, content);
       }

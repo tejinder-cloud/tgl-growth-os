@@ -14,6 +14,8 @@ import {
   addCommentToIssue,
   getIssueComments,
   getBranchCommitsAhead,
+  closePR,
+  getPullRequestDiffStats,
   type IssueCommentItem,
 } from "../lib/github-client.js";
 import { postCard, postLine } from "../lib/post.js";
@@ -748,21 +750,32 @@ export async function runIssueTask(
         ).catch((err) => console.warn("[Runner log append warning]", err));
       }
 
-      // Check commits ahead before draft PR
+      // Check commits ahead before draft PR (must count only non-empty file changes)
       let partialCommitsAhead = 1;
+      let partialNonEmptyChanges = 1;
       if (!isTest) {
         const compareRes = await getBranchCommitsAhead(branchName, "main");
         if (compareRes.success) {
           partialCommitsAhead = compareRes.aheadBy;
+          partialNonEmptyChanges = compareRes.nonEmptyFilesCount;
         }
-      } else if (toolContext.virtualFiles && toolContext.virtualFiles.size === 0) {
-        partialCommitsAhead = 0;
+      } else if (toolContext.virtualFiles) {
+        let nonBlankCount = 0;
+        for (const [_, content] of toolContext.virtualFiles.entries()) {
+          if (typeof content === "string" && content.trim().length > 0) {
+            nonBlankCount++;
+          }
+        }
+        partialNonEmptyChanges = nonBlankCount;
+        if (toolContext.virtualFiles.size === 0 || nonBlankCount === 0) {
+          partialCommitsAhead = 0;
+        }
       }
 
       let draftPrNumber: number | undefined;
       let draftPrUrl: string | undefined;
 
-      if (partialCommitsAhead > 0) {
+      if (partialCommitsAhead > 0 && partialNonEmptyChanges > 0) {
         // Open or update draft PR
         const draftPrTitle = `[DRAFT] feat(${agentName}): ${issue.title.replace(/^\[TASK\]:\s*/i, "")} (#${issueNum})`;
         const draftPrBody = `## Summary
@@ -874,22 +887,34 @@ Work in progress — fixes #${issueNum}
     }
 
     // 7.5 HARD GATE: Verify branch has commits beyond main before calling PR API
+    // The zero-commits gate must count only non-empty file changes.
     let commitsAhead = 1;
+    let nonEmptyChanges = 1;
     if (!isTest) {
       const compareRes = await getBranchCommitsAhead(branchName, "main");
       if (compareRes.success) {
         commitsAhead = compareRes.aheadBy;
+        nonEmptyChanges = compareRes.nonEmptyFilesCount;
       } else {
         console.warn(`[Runner Commit Check] Could not compare ${branchName} with main: ${compareRes.error}`);
       }
     } else {
-      if (toolContext.virtualFiles && toolContext.virtualFiles.size === 0) {
-        commitsAhead = 0;
+      if (toolContext.virtualFiles) {
+        let nonBlankFiles = 0;
+        for (const [_, content] of toolContext.virtualFiles.entries()) {
+          if (typeof content === "string" && content.trim().length > 0) {
+            nonBlankFiles++;
+          }
+        }
+        nonEmptyChanges = nonBlankFiles;
+        if (toolContext.virtualFiles.size === 0 || nonBlankFiles === 0) {
+          commitsAhead = 0;
+        }
       }
     }
 
-    if (commitsAhead === 0) {
-      console.warn(`[Runner Zero Commits Gate] Branch ${branchName} has 0 commits beyond main. Run produced no files.`);
+    if (commitsAhead === 0 || nonEmptyChanges === 0) {
+      console.warn(`[Runner Zero Commits Gate] Branch ${branchName} has ${commitsAhead} commits and ${nonEmptyChanges} non-empty file changes beyond main. Run produced no files.`);
       const noFilesReason = "run produced no files";
       const explanation = (lastModelMessage && lastModelMessage.trim()) || (existingRecord?.lastModelMessage && existingRecord.lastModelMessage.trim()) || "";
 
@@ -985,6 +1010,103 @@ Fixes #${issueNum}
     });
 
     console.log(`[Runner] PR #${prRes.number} opened: ${prRes.html_url}`);
+
+    // 8.5 HARD GATE: Verify PR diff adds >= 20 non-blank lines and added files are not all empty
+    // The review card must not post for a PR whose diff adds fewer than 20 non-blank lines,
+    // or whose added files are all empty; such a PR is closed as "run produced no files" with the model's last message.
+    const diffStatsRes = await getPullRequestDiffStats(prRes.number, {
+      testMode: isTest,
+      virtualFiles: toolContext.virtualFiles,
+    });
+
+    const diffStats = diffStatsRes.stats;
+    const addsFewerThan20Lines = diffStats.addedNonBlankLines < 20;
+    const allAddedFilesEmpty =
+      diffStats.files.length === 0 ||
+      (diffStats.addedFilesCount > 0 && diffStats.allAddedFilesEmpty);
+
+    if (addsFewerThan20Lines || allAddedFilesEmpty) {
+      const diffGateReason = "run produced no files";
+      const explanation =
+        (lastModelMessage && lastModelMessage.trim()) ||
+        (existingRecord?.lastModelMessage && existingRecord.lastModelMessage.trim()) ||
+        "";
+
+      console.warn(
+        `[Runner PR Diff Gate] PR #${prRes.number} adds ${diffStats.addedNonBlankLines} non-blank lines (min 20) or all added files empty (${allAddedFilesEmpty}). Closing PR as '${diffGateReason}'. Review card withheld.`
+      );
+
+      // Close PR as "run produced no files" with the model's last message
+      const prCloseComment = `Closed: ${diffGateReason}.\n\n${explanation}`;
+      await closePR(prRes.number, prCloseComment).catch((err) =>
+        console.warn(`[Runner closePR error on PR #${prRes.number}]`, err)
+      );
+
+      // Post model's last message to issue thread
+      if (!isTest) {
+        const ghComment = `**[Run Completed: Needs Brief — Run produced no files]**\n\n${explanation}`;
+        await addCommentToIssue(issueNum, ghComment).catch((err) =>
+          console.warn("[Runner GitHub comment error]", err)
+        );
+      }
+
+      // Post to Slack thread
+      if (slackChannel && slackThreadTs) {
+        await postLine({
+          channel: slackChannel,
+          thread_ts: slackThreadTs,
+          text: `*[Needs Brief — Run produced no files]*\nPR #${prRes.number} closed: diff adds ${diffStats.addedNonBlankLines} non-blank lines (minimum 20 required)${allAddedFilesEmpty ? " or all added files are empty" : ""}.\n${explanation}`,
+        }).catch((err) => console.warn("[Runner Slack thread post error]", err));
+      }
+
+      // Label status:needs-brief
+      await removeLabelFromIssue(issueNum, "status:in-progress").catch(() => {});
+      await addLabelsToIssue(issueNum, ["status:needs-brief"]).catch(() => {});
+
+      // Release claim with status: needs-brief and error: run produced no files
+      await releaseRunnerClaim(
+        issueNum,
+        instanceId,
+        {
+          agent: agentName,
+          door: issue.door || "core",
+          title: issue.title,
+          status: "needs-brief",
+          branch: branchName,
+          prNumber: prRes.number,
+          prUrl: prRes.html_url,
+          error: diffGateReason,
+          runCompletedAt: new Date().toISOString(),
+          recoveryAttempts: 0,
+          toolCallsCount,
+          preflightHash: currentBriefHash,
+          preflightVerdict: "proceed",
+          preflightReason: preflight.reason,
+          lastModelMessage: explanation,
+        },
+        { testMode: isTest }
+      ).catch((err) => console.warn("[Runner state save warning]", err));
+
+      return {
+        success: false,
+        issueNumber: issueNum,
+        status: "needs-brief",
+        branchName,
+        prNumber: prRes.number,
+        prUrl: prRes.html_url,
+        toolCallsCount,
+        tokens: {
+          input: totalInputTokens,
+          output: totalOutputTokens,
+          costUsd: totalCostUsd,
+        },
+        error: diffGateReason,
+        writtenFiles: toolContext.virtualFiles ? Array.from(toolContext.virtualFiles.keys()) : undefined,
+        toolResults: toolContext.toolResults,
+        nudgesSent: writeNudgesSent,
+        lastModelMessage: explanation,
+      };
+    }
 
     // 9. Post "PR #N ready for review" in card thread
     const targetChannel = slackChannel || (isTest ? (config.opsChannelId || "#ops") : config.approvalsChannelId);
