@@ -180,6 +180,16 @@ cron.schedule(
 import { runGa4Sync } from "./agents/aeo-impact/ga4.js";
 import { syncRazorpaySecret } from "./agents/aeo-billing/razorpay.js";
 import { runAgencyGraceCheck } from "./agents/aeo-billing/agency.js";
+import { checkWordPressConnections } from "./agents/aeo-execution/worker.js";
+
+// Every 2 minutes: test newly saved WordPress (Easy MCP AI) connections (plan Day 28)
+cron.schedule(
+  "*/2 * * * *",
+  wrapCronJob("TrueVisible WordPress connection check", async () => {
+    await checkWordPressConnections();
+  }),
+  { timezone: config.timezone }
+);
 
 // 05:30 IST daily (before the 06:00 checks): agencies unpaid for 15 days → suspended (SPEC §9, plan Day 27)
 cron.schedule(
