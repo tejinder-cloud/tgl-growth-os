@@ -11,6 +11,7 @@ import { githubEventsRouter } from "./routes/github-events.js";
 import { auditRouter } from "./routes/audit.js";
 import { outreachRouter } from "./routes/outreach.js";
 import { aeoRouter } from "./routes/aeo.js";
+import { billingRouter } from "./routes/billing.js";
 
 /**
  * Creates and configures the Express app.
@@ -137,6 +138,9 @@ export function createApp(signingSecret?: string) {
   // 11. AEO lead API: public POST /aeo/lead behind the /aeo audit form. Origin allow-list, honeypot,
   // per-IP rate limit; fails closed (503) when the GHL env is not configured.
   app.use("/aeo", aeoRouter);
+
+  // 12. Billing: Razorpay webhooks for TrueVisible Track (signature-checked; fails closed) (plan Day 26)
+  app.use("/billing", billingRouter);
 
   // 12. Global Error Handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

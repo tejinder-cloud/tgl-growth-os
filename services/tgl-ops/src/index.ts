@@ -178,6 +178,11 @@ cron.schedule(
 );
 
 import { runGa4Sync } from "./agents/aeo-impact/ga4.js";
+import { syncRazorpaySecret } from "./agents/aeo-billing/razorpay.js";
+import { getSupabase as getSupabaseForBilling } from "./agents/prospect-researcher/db.js";
+
+// On boot: copy RAZORPAY_KEY_SECRET into Vault so the database can verify checkout signatures (plan Day 26)
+{ const sb = getSupabaseForBilling(); if (sb && !process.env.TGL_TEST_MODE) syncRazorpaySecret(sb).catch(() => {}); }
 
 // Every 15 minutes: first GA4 sync for a property connected since the last check
 cron.schedule(
