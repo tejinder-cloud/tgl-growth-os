@@ -13,7 +13,9 @@
 //   3. The audit and PDF are cached in the sequence state, so a retry never pays for a second audit.
 //   4. Dry run builds and renders everything but does not contact GHL and does not advance the sequence.
 //   5. Three consecutive failures on a touch pause the sequence (worker.ts posts the single #alerts line).
-import { ONE_PAGER_TOUCH, SEQUENCE, TOTAL_TOUCHES, dueAtForTouch, renderTouch, resolveChannel } from "./sequence.js";
+//   6. With ports.auditEveryTouch (the file templates quote the prospect's own audit from touch 1), every touch
+//      builds the audit first; without it only touches 3 and 4 do, as before.
+import { ONE_PAGER_TOUCH, SEQUENCE, TOTAL_TOUCHES, dueAtForTouch, renderTouch, resolveChannel, type MessageContext } from "./sequence.js";
 import type { AuditSummary, OutreachState, RenderedMessage, TouchChannel, TouchRecord } from "./types.js";
 import { MAX_HOLD_ATTEMPTS, type DueTouch, type ExecuteResult, type SendMode } from "./worker.js";
 
@@ -37,11 +39,17 @@ export interface OutboundMessage {
   attachmentUrl?: string;
 }
 
+export type RenderPort = (touch: number, channel: TouchChannel, ctx: MessageContext & { email?: string }) => RenderedMessage;
+
 export interface ExecutorPorts {
   now: () => Date;
   senderName: string;
   /** True when WhatsApp is enabled on the GHL location. */
   whatsappEnabled: boolean;
+  /** Message renderer. Defaults to the code templates in sequence.ts; the composition root supplies the file templates. */
+  render?: RenderPort;
+  /** Build the audit and one-pager before every touch, not only touches 3 and 4. */
+  auditEveryTouch?: boolean;
   loadProspect: (prospectId: string) => Promise<ProspectView | null>;
   /** Persist the full sequence state to prospects.signals.outreach. */
   saveState: (prospectId: string, state: OutreachState) => Promise<void>;
@@ -72,6 +80,8 @@ function withFailure(state: OutreachState, kind: "audit_attempts" | "send_failur
 }
 
 export function makeExecute(ports: ExecutorPorts): (item: DueTouch, mode: SendMode) => Promise<ExecuteResult> {
+  const render: RenderPort = ports.render || ((n, channel, ctx) => renderTouch(n, channel, ctx));
+
   return async function execute(item: DueTouch, mode: SendMode): Promise<ExecuteResult> {
     const prospect = await ports.loadProspect(item.prospectId);
     if (!prospect) return { status: "skipped", reason: "prospect not found" };
@@ -85,7 +95,8 @@ export function makeExecute(ports: ExecutorPorts): (item: DueTouch, mode: SendMo
     if (!def) return { status: "skipped", reason: `unknown touch ${item.touch}` };
 
     // Touch 3 attaches the PDF and touch 4 quotes it; both need the prospect's own audit. Touch 2 uses it only if already built.
-    const needsAudit = item.touch === ONE_PAGER_TOUCH || item.touch === ONE_PAGER_TOUCH + 1;
+    // With file templates every touch quotes the audit, so it is built before the first touch.
+    const needsAudit = Boolean(ports.auditEveryTouch) || item.touch === ONE_PAGER_TOUCH || item.touch === ONE_PAGER_TOUCH + 1;
     let attachmentUrl: string | undefined;
 
     if (needsAudit) {
@@ -112,14 +123,16 @@ export function makeExecute(ports: ExecutorPorts): (item: DueTouch, mode: SendMo
 
     let message: RenderedMessage;
     try {
-      message = renderTouch(item.touch, channel, {
+      const ctx: MessageContext & { email?: string } = {
         company: prospect.company,
         category: prospect.category,
         city: prospect.city,
         decisionMakerName: prospect.decisionMakerName,
         audit: state.audit,
         senderName: ports.senderName,
-      });
+        email: prospect.email,
+      };
+      message = render(item.touch, channel, ctx);
     } catch (err) {
       const reason = `render failed: ${errMessage(err)}`;
       const failed = withFailure(state, "audit_attempts", reason);
