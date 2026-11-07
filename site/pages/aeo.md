@@ -3,7 +3,7 @@
 **Title tag:** Does ChatGPT recommend your institute? AI search audit | The Growth Lab
 **Meta:** When a parent or student asks ChatGPT, Gemini or Perplexity for a coaching institute, is yours named? Request a written AI search audit for your institute.
 **Primary CTA everywhere:** "Request your AI search audit" -> `#audit` with `data-tgl-event="aeo_cta_click"`
-**Traffic source:** Meta campaign (Rahul), see `docs/aeo/meta-campaign-brief.md`. The page must work on a phone first.
+**Traffic source:** Meta campaign (Rahul), see `products/aeo/meta-campaign-brief.md`. The page must work on a phone first.
 
 ## Brief review (for the Architect, also in the PR)
 Open questions. Until answered the page avoids each of these rather than guessing:
@@ -51,7 +51,7 @@ Button: Request your AI search audit
 Tracking: `data-tgl-event="aeo_audit_submit"` on success only.
 Success state (replaces the form, no confetti, no motion): "Received. We will message you on WhatsApp at the number you gave. If you want to add a question, reply to that message."
 Failure states: field errors inline under each field; 429 and 502/503 show "We could not save your request. Please try again in a few minutes." The form never shows success unless the endpoint returned `ok: true`.
-Writes to: GHL pipeline `AEO`, stage `New request` via `POST /aeo/lead` (see `docs/aeo/ghl-aeo-pipeline.md`).
+Writes to: GHL pipeline `AEO`, stage `New request` via `POST /aeo/lead` (see `products/aeo/ghl-aeo-pipeline.md`).
 
 ## 5. aeo-faq (FAQPage schema)
 - **What is an AI search audit?** We ask ChatGPT, Gemini and Perplexity the questions a student or parent would ask when choosing an institute, and write down what they answer about you and about the institutes they name instead.
@@ -71,5 +71,5 @@ Same behaviour as /coaching: < 768px after 1,200px scroll, terracotta pill "Requ
 
 ## Build map
 - `tgl-theme/patterns/aeo-hero.php`, `aeo-checks.php`, `aeo-how.php`, `aeo-audit-form.php`, `aeo-faq.php`
-- Endpoint: `TGL_AEO_ENDPOINT` constant in wp-config.php (see docs/aeo/ghl-aeo-pipeline.md section 4)
+- Endpoint: `TGL_AEO_ENDPOINT` constant in wp-config.php (see products/aeo/ghl-aeo-pipeline.md section 4)
 - No plugin, no external script. The form script is first-party and inline.

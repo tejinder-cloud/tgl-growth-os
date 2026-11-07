@@ -4,7 +4,7 @@
 // without network access.
 //
 // GHL pipelines cannot be created through the API, so the pipeline and its stages are created once in the
-// GHL UI (see docs/aeo/ghl-aeo-pipeline.md) and referenced here by id from the environment:
+// GHL UI (see products/aeo/ghl-aeo-pipeline.md) and referenced here by id from the environment:
 //   GHL_API_KEY            Private Integration token (scopes: contacts.write, opportunities.write)
 //   GHL_LOCATION_ID        Sub-account (location) id
 //   GHL_AEO_PIPELINE_ID    id of the pipeline named "AEO"

@@ -20,11 +20,11 @@ Primary text, 2 to 3 short lines. Headline: "AI search audit for your institute"
 
 ## Pre-launch checklist
 - [ ] `/aeo` page published by the Architect (the builder leaves it as draft).
-- [ ] `TGL_AEO_ENDPOINT` set in wp-config.php and `GHL_*` variables set on tgl-ops (docs/aeo/ghl-aeo-pipeline.md).
+- [ ] `TGL_AEO_ENDPOINT` set in wp-config.php and `GHL_*` variables set on tgl-ops (products/aeo/ghl-aeo-pipeline.md).
 - [ ] `app.use("/aeo", aeoRouter)` merged and deployed.
 - [ ] Test submission from a phone: lead appears in GHL pipeline AEO, stage New request, with UTMs in the note, and a Slack alert posted.
 - [ ] Meta pixel already on the site fires `Lead` on the success state (verified in Meta Events Manager test events).
-- [ ] WhatsApp templates approved and the `New request` workflow tested (docs/aeo/whatsapp-templates.md).
+- [ ] WhatsApp templates approved and the `New request` workflow tested (products/aeo/whatsapp-templates.md).
 - [ ] Ad copy checked against the brand voice: no exclamation marks, no invented numbers.
 
 ## Reading the first week
