@@ -1,7 +1,7 @@
 // Minimal MCP client over Streamable HTTP (JSON-RPC 2.0; replies as JSON or SSE). Used for the customer's
 // WordPress site through the Easy MCP AI plugin (SPEC §7, plan Day 28). Bearer token from Supabase Vault.
 
-export type McpTool = { name: string; description?: string; annotations?: { readOnlyHint?: boolean; destructiveHint?: boolean } };
+export type McpTool = { name: string; description?: string; inputSchema?: { properties?: Record<string, unknown>; required?: string[] }; annotations?: { readOnlyHint?: boolean; destructiveHint?: boolean } };
 
 /** Body of an MCP reply: plain JSON, or the last JSON-RPC message in an SSE stream (pure; tested). */
 export function parseMcpBody(contentType: string, text: string): any {
@@ -57,5 +57,5 @@ export class McpClient {
 /** What the token allows, in plain words (pure; tested). */
 export function summariseTools(tools: McpTool[]): { total: number; canWrite: boolean; destructive: number; names: string[] } {
   const write = tools.filter((t) => t.annotations?.readOnlyHint === false || (!t.annotations?.readOnlyHint && /create|update|edit|insert|publish|set|save/i.test(t.name)));
-  return { total: tools.length, canWrite: write.length > 0, destructive: tools.filter((t) => t.annotations?.destructiveHint).length, names: tools.map((t) => t.name).slice(0, 60) };
+  return { total: tools.length, canWrite: write.length > 0, destructive: tools.filter((t) => t.annotations?.destructiveHint).length, names: tools.map((t) => t.name).slice(0, 400) };
 }
