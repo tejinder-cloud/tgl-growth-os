@@ -180,7 +180,16 @@ cron.schedule(
 import { runGa4Sync } from "./agents/aeo-impact/ga4.js";
 import { syncRazorpaySecret } from "./agents/aeo-billing/razorpay.js";
 import { runAgencyGraceCheck } from "./agents/aeo-billing/agency.js";
-import { checkWordPressConnections } from "./agents/aeo-execution/worker.js";
+import { checkWordPressConnections, runImplementer } from "./agents/aeo-execution/worker.js";
+
+// Every minute: the Implementer drafts requested pages on WordPress and publishes approved drafts (plan Day 29)
+cron.schedule(
+  "* * * * *",
+  wrapCronJob("TrueVisible Implementer (WordPress)", async () => {
+    await runImplementer();
+  }),
+  { timezone: config.timezone }
+);
 
 // Every 2 minutes: test newly saved WordPress (Easy MCP AI) connections (plan Day 28)
 cron.schedule(
