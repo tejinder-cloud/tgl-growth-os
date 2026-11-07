@@ -18,16 +18,16 @@ const WEEK_MS = 7 * 86_400_000;
 const inFlight = new Set<string>();
 
 /** After a completed run: generate only if that run has no batch yet and the last batch is a week old. Pure; tested. */
-export function shouldGenerate(p: { verified: boolean; latestRunId: string | null; batchForRun: boolean; lastBatchAt: string | null; now?: number }): { go: boolean; why: string } {
+export function shouldGenerate(p: { verified: boolean; latestRunId: string | null; batchForRun: boolean; lastBatchAt: string | null; now?: number; force?: boolean }): { go: boolean; why: string } {
   if (!p.verified) return { go: false, why: "setup not verified" };
   if (!p.latestRunId) return { go: false, why: "no completed run" };
   if (p.batchForRun) return { go: false, why: "latest run already has recommendations" };
-  if (p.lastBatchAt && (p.now ?? Date.now()) - Date.parse(p.lastBatchAt) < WEEK_MS) return { go: false, why: "last batch under a week old" };
+  if (!p.force && p.lastBatchAt && (p.now ?? Date.now()) - Date.parse(p.lastBatchAt) < WEEK_MS) return { go: false, why: "last batch under a week old" };   // monthly deep run refreshes regardless
   return { go: true, why: "due" };
 }
 
 /** Called by the Citation Tracker when a brand's run completes. Never throws. */
-export async function recommendAfterRun(sb: SupabaseClient, brandId: string): Promise<void> {
+export async function recommendAfterRun(sb: SupabaseClient, brandId: string, opts: { force?: boolean } = {}): Promise<void> {
   if (isTestMode() || inFlight.has(brandId)) return;
   inFlight.add(brandId);
   try {
@@ -38,7 +38,7 @@ export async function recommendAfterRun(sb: SupabaseClient, brandId: string): Pr
     ]);
     const latestRunId = (run?.id as string | undefined) ?? null;
     const { data: forRun } = latestRunId ? await sb.from("recommendations").select("id").eq("brand_id", brandId).eq("run_id", latestRunId).limit(1) : { data: [] };
-    const d = shouldGenerate({ verified: brand?.onboarding_step === 4 && brand?.setup_status === "verified", latestRunId, batchForRun: !!forRun?.length, lastBatchAt: lastRec?.created_at ?? null });
+    const d = shouldGenerate({ verified: brand?.onboarding_step === 4 && brand?.setup_status === "verified", latestRunId, batchForRun: !!forRun?.length, lastBatchAt: lastRec?.created_at ?? null, force: opts.force });
     if (!d.go) { console.log(`[Recommendations] ${brand?.name ?? brandId}: skipped — ${d.why}`); return; }
     await generateRecommendations(sb, brandId, latestRunId!);
   } catch (err: any) {
@@ -106,10 +106,10 @@ export async function relayManagedAeoRequests(): Promise<void> {
       : { data: null };
     const channel = (await resolveChannelId("#doors-aeo")) || config.approvalsChannelId;
     const text = [
-      `:raised_hand: *Clicked Start managed AEO* — *${brand?.name ?? r.brand_id}*${brand?.primary_domain ? ` (${brand.primary_domain})` : ""}`,
+      `:raised_hand: *${r.note && /^(Clicked|Asked)/.test(r.note) ? r.note.replace(/ in the dashboard$/, "") : "Clicked Start managed AEO"}* — *${brand?.name ?? r.brand_id}*${brand?.primary_domain ? ` (${brand.primary_domain})` : ""}`,
       `From ${r.email ?? "unknown"} · plan ${sub ? `${sub.plan} (${sub.status})` : "—"}${rec?.title ? ` · from “${rec.title}”` : ""}`,
-      r.note && !/^Clicked Start managed AEO/.test(r.note) ? `> ${String(r.note).slice(0, 500)}` : null,
-      `They clicked it in the dashboard and were sent to the AEO page on thegrowthlab.co.in. Worth a personal follow-up.`,
+      r.note && !/^(Clicked|Asked)/.test(r.note) ? `> ${String(r.note).slice(0, 500)}` : null,
+      `Sent to the AEO page on thegrowthlab.co.in from the dashboard. Worth a personal follow-up.`,
     ].filter(Boolean).join("\n");
     const msg = await slackClient.chat.postMessage({ channel, text }).catch((e) => { console.error("[Managed AEO] slack", e); return null; });
     if (msg?.ts) await sb.from("managed_aeo_requests").update({ notified_at: new Date().toISOString(), slack_ts: msg.ts }).eq("id", r.id);

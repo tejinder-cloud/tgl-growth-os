@@ -24,6 +24,8 @@ export interface TrackerDeps {
   kind?: RunKind;
   /** Free searches per calendar month by engine (Gemini grounding: AEO_GEMINI_FREE_SEARCHES_PER_MONTH). Omitted = none. */
   freeSearchesPerMonth?: Partial<Record<EngineId, number>>;
+  /** Daily job: only these brands (cadence by plan). Omitted = all eligible. */
+  onlyBrandIds?: Set<string>;
 }
 
 export interface EngineOutcome { brand: string; brandId?: string; engine: EngineId; status: "succeeded" | "partial" | "failed" | "skipped"; ok: number; total: number; mentioned: number; usd: number; note?: string }
@@ -38,7 +40,8 @@ export async function runTracker(d: TrackerDeps): Promise<TrackerSummary> {
   }
 
   const kind: RunKind = d.kind ?? "daily";
-  const brands = await d.store.loadEligibleBrands(d.brandId, { includeUnverified: kind === "audit" });
+  const brands = (await d.store.loadEligibleBrands(d.brandId, { includeUnverified: kind === "audit" }))
+    .filter((b) => !d.onlyBrandIds || d.onlyBrandIds.has(b.id));
   // Remaining free allowance this month, shared by every brand in this run (the allowance is per provider account).
   const freeLeft: Partial<Record<EngineId, number>> = {};
   for (const cfg of configs) {

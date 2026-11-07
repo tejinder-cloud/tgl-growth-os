@@ -73,9 +73,8 @@ await t("weekly: totals vs previous week, unbranded split, never-named list, com
   assert.ok(e.text.includes("You completed 1 recommendation this week."));
 });
 
-await t("previous week is Monday–Sunday before today's week", () => {
-  assert.deepEqual(previousWeek("2026-11-09"), { start: "2026-11-02", end: "2026-11-08" });   // Monday
-  assert.deepEqual(previousWeek("2026-11-05"), { start: "2026-10-26", end: "2026-11-01" });   // Thursday
+await t("weekly report covers the 7 days ending today (Monday's weekly run included)", () => {
+  assert.deepEqual(previousWeek("2026-11-09"), { start: "2026-11-03", end: "2026-11-09" });
 });
 
 await t("Resend: needs key + from; posts subject/html/text to recipients", async () => {

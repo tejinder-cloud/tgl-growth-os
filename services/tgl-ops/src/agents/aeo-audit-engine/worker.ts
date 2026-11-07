@@ -7,6 +7,7 @@ import { postLine } from "../../lib/post.js";
 import { getAlertsChannel } from "../../lib/cron-wrapper.js";
 import { appendFileInRepo } from "../../lib/github-client.js";
 import { getSupabase } from "../prospect-researcher/db.js";
+import { brandsDueToday, startTrialClock } from "./cadence.js";
 import { supabaseStore } from "./store.js";
 import { AGENT, runTracker, summaryLine, type TrackerSummary } from "./tracker.js";
 
@@ -28,7 +29,10 @@ export async function runCitationTracking(options?: { brandId?: string; kind?: "
   }
 
   const runDate = getTodayDateString();
+  // Daily job runs only the brands whose plan is due today (internal + live trials daily; paid weekly + monthly deep run).
+  const cadence = options?.kind === "audit" || options?.brandId ? null : await brandsDueToday(sb, runDate);
   const summary = await runTracker({
+    onlyBrandIds: cadence?.due,
     store: supabaseStore(sb),
     runDate,
     usdInr,
@@ -52,9 +56,10 @@ export async function runCitationTracking(options?: { brandId?: string; kind?: "
   // Recommendations follow a completed run (event-driven, no polling). The recommender decides whether a new
   // batch is due; this only tells it which brands just got fresh answers.
   const fresh = [...new Set(ran.filter((o) => (o.status === "succeeded" || o.status === "partial") && o.brandId).map((o) => o.brandId!))];
+  for (const id of fresh) await startTrialClock(sb, id).catch((e) => console.error("[Citation Tracker] trial clock:", e?.message ?? e));
   if (fresh.length) {
     import("../aeo-recommender/worker.js")
-      .then(async (m) => { for (const id of fresh) await m.recommendAfterRun(sb, id); })
+      .then(async (m) => { for (const id of fresh) await m.recommendAfterRun(sb, id, { force: cadence?.deep.has(id) ?? false }); })
       .catch((err) => console.error("[Citation Tracker] recommendations after run failed:", err?.message ?? err));
   }
   const failed = ran.filter((o) => o.status !== "succeeded");
