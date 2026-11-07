@@ -5,15 +5,19 @@ This is the document the agents were missing. It answers the questions a senior 
 
 ---
 
-## 1. Who we are, in one breath
-The Growth Lab is an AI-native growth operator for coaching and training institutes across India. We install the system that qualifies every enquiry before it's dialled, replies on WhatsApp in under a minute, and connects ad spend to actual admissions — powered by TrueLead, our own scoring engine. Founded and run by Tejinder Singh, who teaches digital marketing and generative AI at two universities and has spent over a decade in the work.
+> **Status, 7 Nov 2026:** sections 1–2 reflect the 3 Nov positioning. The objects library, the prompt-chips section and any `/coaching` references below were written for the retired coaching-institute positioning; the website sprint (see the project brief) replaces them. Until then, agents use them for visual grammar only, never for copy or audience.
 
-**Master line:** We don't generate leads. We generate clients.
-**Category line:** The AI growth operator for coaching institutes.
+## 1. Who we are, in one breath
+The Growth Lab is an AI-native company from Chandigarh that does two things for businesses across India. First, AI visibility: when a patient, parent, guest or buyer asks ChatGPT, Gemini or Perplexity who to choose, we find out whether the business is named, what is said, who is named instead, and we fix it — through the TrueVisible dashboard and the Managed AEO retainer. Second, AI automation: the agents that handle enquiries, follow-ups and reporting so a small team runs like a large one. We run our own company on those agents. Founded and run by Tejinder Singh, who teaches digital marketing and generative AI at two universities and has spent over a decade in the work. *(Positioning changed 3 Nov 2026, recorded in decisions/; the earlier coaching-institute and TrueLead-led wording is retired. TrueLead is parked until TrueVisible ships.)*
+
+**Master line:** `[ARCHITECT TO CONFIRM]` — the one sentence he will say in Bengaluru. Working candidate: "Get recommended in AI answers. Get your follow-ups done by AI agents."
+**Category line:** AI visibility and AI automation for businesses customers now ask AI about.
+**Services, exactly two:** AEO services + the TrueVisible dashboard · AI Automation services. Nothing else is offered on any page.
 **Geography:** Pan-India. Based in Chandigarh Tricity. The site never says "North India" as a limit; it may say "from Chandigarh" as an origin.
+**Proof:** no clients may be named. Proof is TGL's own data (client zero of its own tracker), the honest one-page audit a visitor can request, and the live agent board.
 
 ## 2. Who we're talking to
-The owner or director of a coaching institute with 2+ branches or 150+ enquiries a month, spending ₹50,000+ a month on ads, with a counselling team of three or more. 35–55. Reads on a phone, often at night. Has been burned by at least one agency. Doesn't want to learn marketing; wants to stop losing students he already paid to find. Respects people who show their work and speak plainly. Distrusts anything that looks like a template.
+The owner, director or marketing head of a hospital or clinic, a coaching institute, a hotel, a real-estate developer or a D2C brand — a business whose customers now ask an AI assistant before they call. 35–55. Reads on a phone, often at night. Has been burned by at least one agency. Doesn't want to learn marketing; wants to know whether AI names them and what to do if it doesn't. Respects people who show their work and speak plainly. Distrusts anything that looks like a template. Write "customer" (or patient, parent, guest, buyer when the vertical is explicit), never "student" alone.
 
 **They should feel, in order:** *recognised* (this is my problem, exactly) → *shown* (here's the mechanism, not a promise) → *safe* (these people are serious, they'll tell me if I'm not a fit).
 **They must never feel:** *sold to.*
