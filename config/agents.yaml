@@ -232,3 +232,20 @@
       frequency: monthly
       schedule: "0 9 14 * *"
       description: "Monthly audit of all agent skill files against standard"
+
+- name: ads-analyst
+  department: marketing
+  channel: "#marketing"
+  trigger: "Weekly campaign review (Monday 10:00 IST), new campaign launch, mention @ads-analyst"
+  reviewer: "Chief of Staff"
+  status: planned
+  daily_cost_cap_usd: 1.00
+  routines:
+    - name: weekly_campaign_review
+      frequency: weekly
+      schedule: "0 10 * * 1"
+      description: "Review every live campaign per door (Meta, Google Search, ChatGPT ads once eligible): spend, cost per audit request, cost per booked call; ranked optimisation proposals to #marketing; no budget change without Architect approval"
+    - name: daily_spend_guard
+      frequency: daily
+      schedule: "0 9 * * *"
+      description: "Compare yesterday's ad spend per campaign against the approved daily budget; alert #alerts on any overspend above 10 percent"
