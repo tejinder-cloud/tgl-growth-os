@@ -2,7 +2,7 @@ process.env.TGL_TEST_MODE = "1";
 process.env.NODE_ENV = "test";
 import assert from "node:assert/strict";
 import { isAllowedTool } from "./agents/aeo-execution/safety.js";
-import { argsFor, editLink, pageFromAsset, placeholders, postFields, toolPayload } from "./agents/aeo-execution/implement.js";
+import { argsFor, editLink, pageFromAsset, placeholders, postFields, publishAs, toolPayload } from "./agents/aeo-execution/implement.js";
 
 let passed = 0;
 function t(name: string, fn: () => void) { try { fn(); passed++; console.log(`✓ ${name}`); } catch (e) { console.error(`✗ ${name}`); throw e; } }
@@ -41,6 +41,14 @@ t("tool results: structured, JSON text, nested post, errors", () => {
   assert.equal(postFields(toolPayload({ structuredContent: { id: 9, link: { rendered: "https://s.in/x/" }, content: { raw: "hi [add x]" } } })).content, "hi [add x]");
   assert.throws(() => toolPayload({ isError: true, content: [{ type: "text", text: "Sorry, you are not allowed" }] }), /not allowed/);
   assert.equal(editLink("https://thegrowthlab.co.in/wp-json/easy-mcp-ai/v1/mcp", 42), "https://thegrowthlab.co.in/wp-admin/post.php?post=42&action=edit");
+});
+
+t("page or blog post: explainers are posts; services, industries and hubs are pages", () => {
+  assert.equal(publishAs({ title: "/what-is-aeo-geo-ai-visibility-india", body: "# What is AEO and why does your business need AI visibility?\n..." }), "post");
+  assert.equal(publishAs({ title: "/ai-automation-whatsapp-crm-lead-scoring", body: "# AI automation for leads: WhatsApp, CRM and lead scoring\n..." }), "page");
+  assert.equal(publishAs({ title: "/case-studies hub (summary page)", body: "# Case studies: how The Growth Lab turns leads into clients" }), "page");
+  assert.equal(publishAs({ title: "Industry pages template + coaching institute (Chandigarh) draft", body: "# How can a coaching institute in Chandigarh show up in ChatGPT answers?" }), "page");
+  assert.equal(publishAs({ title: "/aeo-vs-seo", body: "# AEO vs SEO: a plain guide" }), "post");
 });
 
 console.log(`\nDay 29: ${passed} checks passed`);
