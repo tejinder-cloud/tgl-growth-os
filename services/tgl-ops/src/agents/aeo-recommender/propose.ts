@@ -3,6 +3,8 @@ import { getAnthropicModel } from "../../lib/anthropic-pricing.js";
 import { callStructuredTool } from "../../lib/anthropic-structured.js";
 import { ASSET_KINDS, CATEGORIES, type AssetKind, type RecEvidence, type Recommendation } from "./types.js";
 
+import { publishAs } from "../aeo-execution/implement.js";
+
 export const SYSTEM = `You are TGL's AEO strategist. A TrueVisible customer wants AI engines (ChatGPT, Gemini, Perplexity) to name them when buyers ask the questions below.
 From the EVIDENCE (their tracked questions, what AI answered, and which sites AI cited when it did NOT name them), propose 4 to 8 concrete actions, best first.
 
@@ -11,6 +13,8 @@ Rules:
 2. Never write counts, percentages or statistics in title or body — the app shows the measured numbers next to your text. Say what to do and why in plain words.
 3. Each action comes with one ready-to-use asset the customer could publish or send today:
    - page_draft: a page (markdown) that answers one or more of the tracked questions directly, with headings that mirror how buyers ask.
+     Set publish_as: "page" for something they sell or are — a service, industry, location, pricing or case-study hub that stays true for years and belongs in the site menu;
+     "post" for an article that explains a topic, answers a how/what/why question, compares options or reacts to news — dated, filed on the blog.
    - faq_block: 5–8 Q&As (markdown) written the way buyers ask, answers 2–4 sentences.
    - json_ld: valid JSON-LD (Organization / LocalBusiness / ProfessionalService / FAQPage / Service) — JSON only, no comments.
    - llms_txt: an llms.txt file for their site.
@@ -47,6 +51,7 @@ export const TOOL: Anthropic.Tool = {
                 kind: { type: "string", enum: [...ASSET_KINDS] },
                 title: { type: "string" },
                 content: { type: "string" },
+                publish_as: { type: "string", enum: ["page", "post"], description: "page_draft only: page (service/hub, in the menu) or post (blog article)" },
               },
               required: ["kind", "title", "content"],
             },
@@ -135,7 +140,7 @@ export function validateRecommendations(raw: any, ev: RecEvidence): { recs: Reco
       sites: siteRefs.map((ref) => { const s = ev.sites.find((x) => x.ref === ref)!; return { domain: s.domain, answers_without_you: s.withoutYou, competitor_named: s.competitorNotYou, competitors: s.competitors }; }),
       answers_without_you: ev.totalAnswers - ev.namedAnswers, total_answers: ev.totalAnswers,
     };
-    recs.push({ title, body, category, impact, ease, promptRefs, siteRefs, asset: { kind, title: strip(r.asset.title, 120) || title, format, content }, evidence });
+    recs.push({ title, body, category, impact, ease, promptRefs, siteRefs, asset: { kind, title: strip(r.asset.title, 120) || title, format, content, ...(kind === "page_draft" ? { publishAs: r?.asset?.publish_as === "post" || r?.asset?.publish_as === "page" ? r.asset.publish_as : publishAs({ title: r.asset.title ?? "", body: content }) } : {}) }, evidence });
     if (recs.length >= 8) break;
   }
   recs.sort((a, b) => b.impact * b.ease - a.impact * a.ease);

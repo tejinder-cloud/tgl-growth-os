@@ -5,7 +5,7 @@ import { isTestMode } from "../../config.js";
 import { getSupabase } from "../prospect-researcher/db.js";
 import { McpClient, summariseTools, type McpTool } from "./mcp.js";
 import { isAllowedTool } from "./safety.js";
-import { argsFor, editLink, pageFromAsset, placeholders, postFields, toolPayload, type Schema } from "./implement.js";
+import { argsFor, editLink, pageFromAsset, placeholders, postFields, publishAs, toolPayload, type Schema } from "./implement.js";
 
 export async function checkWordPressConnections(fetchImpl: typeof fetch = fetch): Promise<number> {
   if (isTestMode()) return 0;
@@ -81,13 +81,17 @@ async function draft(sb: any, site: SiteTools, a: Action, endpoint: string) {
   const { data: asset } = await sb.from("assets").select("kind, title, content").eq("id", a.detail?.asset_id).maybeSingle();
   if (!asset) throw new Error("asset not found");
   const page = pageFromAsset(asset);
-  const res = postFields(await site.call("wp_create_page", { title: page.title, content: page.html, status: "draft", slug: page.slug }));
-  if (!res.id) throw new Error("WordPress didn't return the new page's id");
+  // Page or blog post: the customer's choice on the card, else the recommender's, else the rule.
+  const type: "page" | "post" = a.detail?.wp_type === "post" || a.detail?.wp_type === "page" ? a.detail.wp_type
+    : asset.content?.publish_as === "post" || asset.content?.publish_as === "page" ? asset.content.publish_as : publishAs({ title: asset.title, body: asset.content?.body ?? "" });
+  const noun = type === "post" ? "blog post" : "page";
+  const res = postFields(await site.call(`wp_create_${type}`, { title: page.title, content: page.html, status: "draft", slug: page.slug }));
+  if (!res.id) throw new Error(`WordPress didn't return the new ${noun}'s id`);
   return {
     status: "in_progress",
-    description: `Draft page: ${page.title}`,
+    description: `Draft ${noun}: ${page.title}`,
     url: editLink(endpoint, res.id),
-    detail: { ...a.detail, step: "awaiting_approval", wp_id: res.id, wp_type: "page", title: page.title, slug: page.slug ?? null, placeholders: page.placeholders, drafted_at: new Date().toISOString(), error: null },
+    detail: { ...a.detail, step: "awaiting_approval", wp_id: res.id, wp_type: type, title: page.title, slug: page.slug ?? null, placeholders: page.placeholders, drafted_at: new Date().toISOString(), error: null },
   };
 }
 
@@ -96,20 +100,22 @@ async function publish(site: SiteTools, a: Action, endpoint: string) {
   if (!id) throw new Error("no draft to publish");
   // Never publish a page that still has fill-in-the-blanks: check what's in WordPress now, not what we drafted.
   // Fail safe: if the draft can't be read back, don't publish.
-  if (!site.has("wp_get_page")) throw new Error("can't read the draft back from WordPress to check it, so it wasn't published");
+  const type: "page" | "post" = a.detail?.wp_type === "post" ? "post" : "page";
+  const noun = type === "post" ? "blog post" : "page";
+  if (!site.has(`wp_get_${type}`)) throw new Error("can't read the draft back from WordPress to check it, so it wasn't published");
   {
-    const now = postFields(await site.call("wp_get_page", { id }));
+    const now = postFields(await site.call(`wp_get_${type}`, { id }));
     if (typeof now.content !== "string") throw new Error("couldn't read the draft's text back from WordPress, so it wasn't published");
     const left = placeholders(now.content);
     if (left.length) {
       return { status: "in_progress", url: editLink(endpoint, id), detail: { ...a.detail, step: "awaiting_approval", placeholders: left, blocked_at: new Date().toISOString() } };
     }
   }
-  const res = postFields(await site.call("wp_update_page", { id, status: "publish" }));
-  const live = res.link && !/preview=|page_id=/.test(res.link) ? res.link : `${new URL(endpoint).origin}/${a.detail?.slug ?? `?page_id=${id}`}`;
+  const res = postFields(await site.call(`wp_update_${type}`, { id, status: "publish" }));
+  const live = res.link && !/preview=|page_id=|[?&]p=/.test(res.link) ? res.link : `${new URL(endpoint).origin}/?${type === "post" ? "p" : "page_id"}=${id}`;
   return {
     status: "done",
-    description: `Published page: ${a.detail?.title ?? a.description.replace(/^Draft page: /, "")}`,
+    description: `Published ${noun}: ${a.detail?.title ?? a.description.replace(/^Draft (page|blog post): /, "")}`,
     url: live,
     detail: { ...a.detail, step: "published", placeholders: [], published_at: new Date().toISOString(), error: null },
   };
