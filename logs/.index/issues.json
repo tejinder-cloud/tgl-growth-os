@@ -246,5 +246,13 @@
     "door": "aeo",
     "title": "[PLAN-D10b] Outreach Sequencer live wiring: composition root that registers the ",
     "updatedAt": "2026-11-08T06:47:40.011Z"
+  },
+  "137": {
+    "channel": "#standup",
+    "ts": "1794128096.103619",
+    "agent": "chief-of-staff",
+    "door": "core",
+    "title": "prospects count by city",
+    "updatedAt": "2026-11-08T08:54:56.403Z"
   }
 }
