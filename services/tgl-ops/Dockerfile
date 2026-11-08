@@ -22,6 +22,7 @@ RUN npm ci --only=production
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/src/assets ./dist/assets
 COPY --from=builder /app/src/assets ./src/assets
+RUN mkdir -p /app/logs/.state
 
 EXPOSE 3000
 

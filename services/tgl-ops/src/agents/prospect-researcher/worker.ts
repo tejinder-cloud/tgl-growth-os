@@ -8,8 +8,8 @@ import { checkAgentCostCap, recordCostEntry, recordApiSpend, usageCostsLedger } 
 import { postLine } from "../../lib/post.js";
 import { getAlertsChannel } from "../../lib/cron-wrapper.js";
 import type { ProspectRecord, ResearchRunOptions, ResearchRunResult } from "./types.js";
-import { getNextRotation, advanceRotation } from "./rotation.js";
-import { searchPlacesCandidates, verifyDomainDns, enrichPlaceDetails } from "./sources/places.js";
+import { getNextRotation, advanceRotation, syncRotationStateFromRepo } from "./rotation.js";
+import { searchPlacesCandidates, verifyDomainDns, enrichPlaceDetails, type RawPlaceCandidate } from "./sources/places.js";
 import { enrichCandidateSignals, isCandidateOrgSizeGe50 } from "./sources/enrichment.js";
 import { evaluateProspectRubric, checkPlaybookCDisqualification } from "./rubric.js";
 import { isProspectDuplicate, analyzeRejectionPatterns } from "./dedupe.js";
@@ -25,8 +25,10 @@ export interface ValidationFunnelMetrics {
   dnsFailed: number;
   playbookCDisqualified: number;
   placeDetailsEnriched: number;
+  placeDetailsFailed: number;
   emailVerified: number;
-  emailUnverified: number;
+  phoneVerified: number;
+  contactUnverified: number;
   scoredGe70: number;
   scoredBelow70: number;
   writeGatePassed: number;
@@ -105,7 +107,10 @@ export async function runProspectResearch(
     };
   }
 
-  // 1. Resolve rotation city & category
+  // 1. Sync rotation state from repo if on ephemeral container boot
+  await syncRotationStateFromRepo(options);
+
+  // Resolve rotation city & category
   const rotation = getNextRotation({
     cityOverride: options?.city,
     categoryOverride: options?.category,
@@ -117,6 +122,7 @@ export async function runProspectResearch(
   const targetCount = options?.targetCount || 20;
 
   console.log(`\n==========================================================================`);
+  console.log(`[Prospect Researcher Run] Target Metro & Category: ${city} × ${category}`);
   console.log(`[Prospect Researcher] Sourcing batch: ${city} × ${category} (Target: ${targetCount})`);
   console.log(`Evidence Standard: Places place_id + DNS + Apollo/Hunter verified email + 5-dim reasons`);
   console.log(`==========================================================================`);
@@ -136,8 +142,10 @@ export async function runProspectResearch(
     dnsFailed: 0,
     playbookCDisqualified: 0,
     placeDetailsEnriched: 0,
+    placeDetailsFailed: 0,
     emailVerified: 0,
-    emailUnverified: 0,
+    phoneVerified: 0,
+    contactUnverified: 0,
     scoredGe70: 0,
     scoredBelow70: 0,
     writeGatePassed: 0,
@@ -170,19 +178,16 @@ export async function runProspectResearch(
   const qualifiedProspects: ProspectRecord[] = [];
   let playwrightSearchesUsed = 0;
 
-  // 5. Processing Loop with strict sequential gates
+  // Filter candidates through Stage 1-3 (Place ID, Initial Playbook C, and DNS)
+  const dnsPassedCandidates: RawPlaceCandidate[] = [];
   for (const cand of rawCandidates) {
-    if (qualifiedProspects.length >= targetCount) {
-      break;
-    }
-
     // Gate 1: Places place_id existence
     if (!cand.placeId || !cand.placeIdVerified) {
       console.log(`  • [Gate 1 Dropped] '${cand.name}': Missing verified Places place_id`);
       continue;
     }
 
-    // Gate 2: Playbook C Enterprise Chain Disqualification (by signal)
+    // Gate 2: Playbook C Enterprise Chain Disqualification (by initial signal)
     const initialSignals = {
       meta_ads_active: false,
       meta_ad_count: 0,
@@ -192,8 +197,9 @@ export async function runProspectResearch(
       review_surge: false,
       branch_count: cand.placesBrandCount || 1,
       places_brand_count: cand.placesBrandCount,
+      brand_prefix: cand.brandPrefix,
     };
-    const chainCheck = checkPlaybookCDisqualification(cand.name, cand.website || "", initialSignals);
+    const chainCheck = checkPlaybookCDisqualification(cand.name, cand.website || "", initialSignals, city);
     if (chainCheck.disqualified) {
       funnel.playbookCDisqualified++;
       console.log(`  • [Gate 2 Disqualified] '${cand.name}': ${chainCheck.reason}`);
@@ -212,15 +218,22 @@ export async function runProspectResearch(
       funnel.dnsPassed++;
       cand.dnsVerified = true;
       cand.dnsIp = dnsRes.ip;
+      dnsPassedCandidates.push(cand);
     } else {
-      // If website not in Places searchText response, fetch Place Details to retrieve website
+      // If website not in searchText, fetch Place Details to retrieve website
       const detailed = await enrichPlaceDetails(cand, options);
       cand.website = detailed.website;
       cand.phone = detailed.phone;
       cand.rating = detailed.rating;
       cand.userRatingsTotal = detailed.userRatingsTotal;
       cand.googleMapsUrl = detailed.googleMapsUrl;
-      funnel.placeDetailsEnriched++;
+      cand.placeDetailsEnriched = detailed.placeDetailsEnriched;
+
+      if (detailed.placeDetailsEnriched) {
+        funnel.placeDetailsEnriched++;
+      } else {
+        funnel.placeDetailsFailed++;
+      }
 
       if (!cand.website) {
         funnel.dnsFailed++;
@@ -237,42 +250,117 @@ export async function runProspectResearch(
       funnel.dnsPassed++;
       cand.dnsVerified = true;
       cand.dnsIp = dnsRes.ip;
-      website = cand.website;
+      dnsPassedCandidates.push(cand);
+    }
+  }
+
+  // Gate 4: Place Details Enrichment on ALL candidates that passed DNS
+  let enrichmentAttempts = 0;
+  let enrichmentFailures = 0;
+
+  for (const cand of dnsPassedCandidates) {
+    if (!cand.placeDetailsEnriched) {
+      enrichmentAttempts++;
+      const detailed = await enrichPlaceDetails(cand, options);
+      cand.name = detailed.name;
+      cand.address = detailed.address;
+      cand.website = detailed.website || cand.website;
+      cand.phone = detailed.phone || cand.phone;
+      cand.rating = detailed.rating !== undefined ? detailed.rating : cand.rating;
+      cand.userRatingsTotal = detailed.userRatingsTotal !== undefined ? detailed.userRatingsTotal : cand.userRatingsTotal;
+      cand.googleMapsUrl = detailed.googleMapsUrl || cand.googleMapsUrl;
+      cand.placeDetailsEnriched = detailed.placeDetailsEnriched;
+
+      if (detailed.placeDetailsEnriched) {
+        funnel.placeDetailsEnriched++;
+      } else {
+        enrichmentFailures++;
+        funnel.placeDetailsFailed++;
+        console.warn(`  • [Gate 4 Enrichment Failed] '${cand.name}': ${detailed.placeDetailsError || "Unknown API error"}`);
+      }
+    }
+  }
+
+  // Circuit Breaker:
+  // "a run where enrichment fails for more than half the candidates must stop and alert rather than score blind."
+  if (enrichmentAttempts > 0 && enrichmentFailures > Math.floor(enrichmentAttempts / 2) && !isTest) {
+    const alertMsg = `*[Prospect Researcher Circuit Breaker]* Place Details enrichment failed for ${enrichmentFailures} of ${enrichmentAttempts} candidates (>50% failure rate). Halting run to prevent blind scoring. Places API error or quota ceiling reached.`;
+    console.error(alertMsg);
+    const alertsChannel = getAlertsChannel();
+    await postLine({ channel: alertsChannel, text: alertMsg }).catch(() => {});
+    return {
+      city,
+      category,
+      discoveredCount: rawCandidates.length,
+      qualifiedCount: 0,
+      dedupedCount: 0,
+      prospects: [],
+      placesCallsUsed: getPlacesQuotaState(options).count,
+      playwrightSearches: 0,
+      tokens: { input: 0, output: 0, costUsd: 0 },
+      cardTs: undefined,
+      csvPath: "",
+      rejectionPatternProposal: undefined,
+      standupLines: {
+        did: `Discovered ${rawCandidates.length} candidates in ${city} (${category}), but Place Details enrichment failed for ${enrichmentFailures}/${enrichmentAttempts} candidates.`,
+        blocked: `Place Details enrichment failed for >50% candidates: halted by circuit breaker to avoid blind scoring.`,
+        need: "Places API investigation (quota, billing, or field mask).",
+        tomorrow: `Resume next scheduled metro upon resolving Places enrichment.`,
+      },
+    };
+  }
+
+  // 5. Processing Loop: Website Scraping, Meta Ads, Contact Resolution, Rubric Scoring
+  for (const cand of dnsPassedCandidates) {
+    if (qualifiedProspects.length >= targetCount) {
+      break;
     }
 
-    // Gate 4: Place Details Enrichment (if not already enriched)
-    if (!cand.phone || !cand.googleMapsUrl) {
-      const detailed = await enrichPlaceDetails(cand, options);
-      cand.phone = detailed.phone;
-      cand.googleMapsUrl = detailed.googleMapsUrl;
-      funnel.placeDetailsEnriched++;
-    }
+    const website = cand.website || "";
 
     // Gate 5: Meta Ad Library check via Playwright & Apollo/Hunter Contact Resolution
+    // Signals from Places, website scrape and Meta Ad Library populate BEFORE scoring
     const enrichedDetails = await enrichCandidateSignals(cand, category, options);
     playwrightSearchesUsed++;
 
-    // Gate 6: Verified Contact (Hunter email OR Places phone for owner-run businesses)
+    // Gate 6: Contact Verification Gate
+    // - For large organisations (>=50 staff, e.g. hospitals): MUST have Hunter-verified work email
+    // - For owner-run clinics (<50 staff): Places verified business phone is accepted
     const dm = enrichedDetails.decisionMaker;
-    const hasVerifiedContact =
+    const isHunterEmail = Boolean(
       dm.verified &&
-      (Boolean(dm.email && dm.email.includes("@")) ||
-        Boolean(dm.phone && dm.source.includes("places:phone")));
+      dm.email &&
+      dm.email.includes("@") &&
+      dm.source &&
+      dm.source.includes("hunter:")
+    );
+    const isOwnerPhone = Boolean(
+      dm.verified &&
+      dm.phone &&
+      String(dm.phone).trim().length >= 8 &&
+      dm.source &&
+      dm.source.includes("places:phone") &&
+      !enrichedDetails.signals.is_large_org
+    );
 
-    if (!hasVerifiedContact) {
-      funnel.emailUnverified++;
+    if (isHunterEmail) {
+      funnel.emailVerified++;
+    } else if (isOwnerPhone) {
+      funnel.phoneVerified++;
+    } else {
+      funnel.contactUnverified++;
       console.log(
-        `  • [Gate 6 Dropped] '${cand.name}': No verified contact (Hunter email or Places phone) (${dm.source})`
+        `  • [Gate 6 Dropped] '${cand.name}': No verified contact (requires Hunter work email for large orgs or Places phone for owner-run clinics) (${dm.source})`
       );
       continue;
     }
-    funnel.emailVerified++;
 
     // Gate 7: Rubric Fit Scoring (>= 70 threshold with 5 distinct dimensions)
     const rubricResult = evaluateProspectRubric({
       company: cand.name,
       domain: website,
       category,
+      city,
       signals: enrichedDetails.signals,
       decisionMaker: enrichedDetails.decisionMaker,
     });
@@ -340,8 +428,8 @@ export async function runProspectResearch(
   console.log(`1. Raw Candidates (Google Places API):       ${funnel.discovered}`);
   console.log(`2. Live DNS Passed / Failed:                ${funnel.dnsPassed} passed / ${funnel.dnsFailed} failed`);
   console.log(`3. Playbook C Disqualified (Chains):        ${funnel.playbookCDisqualified}`);
-  console.log(`4. Place Details Enriched:                  ${funnel.placeDetailsEnriched}`);
-  console.log(`5. Contact Verified (Hunter / Places):       ${funnel.emailVerified} verified / ${funnel.emailUnverified} dropped`);
+  console.log(`4. Place Details Enriched / Failed:         ${funnel.placeDetailsEnriched} enriched / ${funnel.placeDetailsFailed} failed`);
+  console.log(`5. Contact Verified (Hunter Email / Phone):  ${funnel.emailVerified} email / ${funnel.phoneVerified} owner-phone / ${funnel.contactUnverified} dropped`);
   console.log(`6. Fit Score >= 70 / Below 70:              ${funnel.scoredGe70} passed / ${funnel.scoredBelow70} sub-cutoff`);
   console.log(`7. Write Gate Validated / Dropped:          ${funnel.writeGatePassed} passed / ${funnel.writeGateFailed} failed`);
   console.log(`8. Deduplicated Out:                        ${funnel.dedupedOut}`);
@@ -426,7 +514,7 @@ export async function runProspectResearch(
   // 9. Format Daily Standup Log
   const shortfallReason =
     qualifiedProspects.length < targetCount
-      ? ` (Shortfall of ${targetCount - qualifiedProspects.length} accounts: ${funnel.discovered} candidates discovered via Places, ${funnel.dnsPassed} DNS alive, ${funnel.playbookCDisqualified} disqualified by Playbook C, ${funnel.emailVerified} verified by Hunter/Apollo, ${funnel.scoredGe70} scored >= 70)`
+      ? ` (Shortfall of ${targetCount - qualifiedProspects.length} accounts: ${funnel.discovered} candidates discovered via Places, ${funnel.dnsPassed} DNS alive, ${funnel.playbookCDisqualified} disqualified by Playbook C, ${funnel.placeDetailsEnriched} Place Details enriched, ${funnel.emailVerified} email verified via Hunter, ${funnel.phoneVerified} owner phones, ${funnel.scoredGe70} scored >= 70)`
       : "";
 
   const standupLines = {
@@ -503,13 +591,16 @@ function appendProspectResearcherLog(params: {
   const logFile = path.join(dir, "prospect-researcher.md");
   const logContent = `
 ### Run — ${params.timeStr} IST (${params.city} · ${params.category})
+- **Scheduled Pair:** ${params.city} × ${params.category}
 - **Qualified Accounts:** ${params.qualifiedCount} / ${params.targetCount}
 - **Validator Funnel:**
   - Raw Candidates (Places API): ${params.funnel.discovered}
   - Live DNS Passed: ${params.funnel.dnsPassed} (Failed: ${params.funnel.dnsFailed})
   - Playbook C Disqualified (Enterprise Chains): ${params.funnel.playbookCDisqualified}
-  - Place Details Enriched: ${params.funnel.placeDetailsEnriched}
-  - Email Verified via Hunter/Apollo: ${params.funnel.emailVerified} (Unverified/Dropped: ${params.funnel.emailUnverified})
+  - Place Details Enriched: ${params.funnel.placeDetailsEnriched} (Failed: ${params.funnel.placeDetailsFailed})
+  - Email Verified via Hunter: ${params.funnel.emailVerified}
+  - Places Phone Verified (Owner-Run <50 staff only): ${params.funnel.phoneVerified}
+  - Contact Unverified / Dropped: ${params.funnel.contactUnverified}
   - Fit Score >= 70: ${params.funnel.scoredGe70} (Sub-cutoff: ${params.funnel.scoredBelow70})
   - Write Gate Validated: ${params.funnel.writeGatePassed} (Rejected: ${params.funnel.writeGateFailed})
 - **Places API Daily Quota:** ${params.placesUsed} / 95 calls
@@ -538,7 +629,8 @@ function appendProspectResearcherLog(params: {
 }
 
 /**
- * Re-scores existing prospects with updated root domain chain detection
+ * Re-scores existing prospects with updated root domain chain detection,
+ * enterprise chain rule enforcement (moving chain HQs like Max Saket to rejected),
  * and organisation size DM role rules (<50 staff vs ≥50 staff).
  */
 export async function rescoreProspects(options?: { testMode?: boolean }): Promise<{
@@ -563,13 +655,15 @@ export async function rescoreProspects(options?: { testMode?: boolean }): Promis
     const { brand, rootDomain } = extractBrandToken(p.company, p.website);
     p.signals.brand_prefix = brand;
 
-    // Check if root domain or company reveals chain footprint
-    if (rootDomain === "maxhealthcare.in" || p.company.toLowerCase().includes("max super speciality")) {
+    // Apply Generic Chain Rule (Playbook C):
+    // 1. Brand appears at 3 or more Places locations
+    // 2. Or the root domain hosts other branches
+    // 3. Or the registered HQ is in another metro
+    const chainCheck = checkPlaybookCDisqualification(p.company, p.website, p.signals, p.city);
+    if (chainCheck.disqualified && chainCheck.reason) {
       p.signals.chain_evidence = p.signals.chain_evidence || [];
-      if (!p.signals.chain_evidence.some((e) => e.includes("maxhealthcare.in") || e.includes("Max"))) {
-        p.signals.chain_evidence.push(
-          "Root domain maxhealthcare.in operates national multi-city hospital network (Delhi NCR, Mohali, Dehradun, Mumbai)"
-        );
+      if (!p.signals.chain_evidence.includes(chainCheck.reason)) {
+        p.signals.chain_evidence.push(chainCheck.reason);
       }
     }
 
@@ -582,6 +676,7 @@ export async function rescoreProspects(options?: { testMode?: boolean }): Promis
       company: p.company,
       domain: p.website,
       category: p.category,
+      city: p.city,
       signals: p.signals,
       decisionMaker: p.decision_maker,
     });

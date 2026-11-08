@@ -4,6 +4,7 @@ import type { DecisionMaker, ProspectSignals } from "../types.js";
 import type { RawPlaceCandidate } from "./places.js";
 import { checkMetaAdLibrary } from "./meta-ads.js";
 import { scrapeClinicWebsite } from "./website-scraper.js";
+import { isSubBranchUrl } from "../rubric.js";
 
 const HUNTER_API_KEY = process.env.HUNTER_API_KEY || "";
 
@@ -177,6 +178,10 @@ export async function enrichCandidateSignals(
     }
   }
 
+  if (candidate.website && isSubBranchUrl(candidate.website)) {
+    chainEvidence.push(`Root domain hosts other branches via subpath ${candidate.website}`);
+  }
+
   // Check Places brand count signal (>1 places under same brand)
   if (candidate.placesBrandCount && candidate.placesBrandCount > 1) {
     chainEvidence.push(
@@ -222,6 +227,10 @@ export async function enrichCandidateSignals(
     places_brand_count: candidate.placesBrandCount,
     is_large_org: orgSizeGe50,
     brand_prefix: candidate.brandPrefix,
+    root_domain_hosts_other_branches: Boolean(
+      (candidate.website && isSubBranchUrl(candidate.website)) ||
+      chainEvidence.some((e) => /locations?\/centres?|hospital-network|other branches/i.test(e))
+    ),
   };
 
   return {
@@ -411,10 +420,11 @@ async function findVerifiedDecisionMaker(
     };
   }
 
-  // Option B: Architect Decision for Owner-Run Businesses (<50 staff)
+  // Option B: Architect Decision for Owner-Run Businesses (<50 staff) ONLY
   // For owner-run clinics, an authoritative verified contact is the business phone from Google Places.
   // Decision-maker = owner/doctor.
-  if (candidate.phone && candidate.phone.trim().length >= 8) {
+  // CRITICAL: Large organisations / hospitals (>=50 staff) CANNOT use Places phone; Playbook D requires Hunter email.
+  if (!orgSizeGe50 && candidate.phone && candidate.phone.trim().length >= 8) {
     const doctorName = websiteDoctorName || "Owner / Lead Doctor";
     const doctorRole = websiteDoctorRole || "Owner / Lead Doctor";
     const sanitized = sanitizeDecisionMaker(
@@ -438,7 +448,7 @@ async function findVerifiedDecisionMaker(
     name: "",
     role: "",
     email: "",
-    source: "unverified:no_contact_found",
+    source: orgSizeGe50 ? "unverified:large_org_requires_hunter_email" : "unverified:no_contact_found",
     verified: false,
   };
 }

@@ -24,6 +24,8 @@ export interface ProspectSignals {
   places_brand_count?: number;
   is_large_org?: boolean;
   brand_prefix?: string;
+  root_domain_hosts_other_branches?: boolean;
+  registered_hq_metro?: string;
   raw_signals?: Record<string, any>;
 }
 
