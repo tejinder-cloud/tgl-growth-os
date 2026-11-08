@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-08T06:55:32.512Z",
+  "updatedAt": "2026-11-08T06:55:35.856Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -87,6 +87,7 @@
       "runCompletedAt": "2026-11-08T05:46:12.548+00:00",
       "error": "Run interrupted by process termination (SIGTERM).",
       "recoveryAttempts": 2,
+      "lastRecoveryAlertAt": "2026-11-08T06:55:35.03+00:00",
       "ownerInstance": "inst_1794120930583_fab26946",
       "heartbeatAt": "2026-11-08T06:55:31.80719+00:00",
       "toolCallsCount": 0
