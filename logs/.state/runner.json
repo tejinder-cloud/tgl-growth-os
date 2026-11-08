@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-08T05:30:05.715Z",
+  "updatedAt": "2026-11-08T05:38:29.995Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -82,13 +82,13 @@
       "agent": "web-builder",
       "door": "core",
       "title": "[PLAN-D12]: Sales Desk SKILL.md + worker + proposal template",
-      "status": "blocked",
+      "status": "in-progress",
       "runStartedAt": "2026-11-08T05:00:03.055778+00:00",
       "runCompletedAt": "2026-11-08T05:30:04.893+00:00",
       "error": "Daily cost cap exceeded for @web-builder ($12.24 >= $12.00). Execution stopped.",
       "recoveryAttempts": 2,
-      "ownerInstance": null,
-      "heartbeatAt": null,
+      "ownerInstance": "inst_1794116306301_9c1fa7ed",
+      "heartbeatAt": "2026-11-08T05:38:29.287694+00:00",
       "toolCallsCount": 0
     },
     "120": {
