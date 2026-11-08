@@ -2,7 +2,7 @@ process.env.TGL_TEST_MODE = "1";
 process.env.NODE_ENV = "test";
 import assert from "node:assert/strict";
 import { checkCall, isAllowedTool } from "./agents/aeo-execution/safety.js";
-import { argsFor, editLink, matchPage, metaValue, pageFromAsset, pageList, parseMetaAsset, placeholders, postFields, publishAs, toolPayload } from "./agents/aeo-execution/implement.js";
+import { argsFor, editLink, matchPage, metaValue, seoFields, pageFromAsset, pageList, parseMetaAsset, placeholders, postFields, publishAs, toolPayload } from "./agents/aeo-execution/implement.js";
 
 let passed = 0;
 function t(name: string, fn: () => void) { try { fn(); passed++; console.log(`✓ ${name}`); } catch (e) { console.error(`✗ ${name}`); throw e; } }
@@ -81,6 +81,16 @@ t("meta: parse the suggestion, match pages, only Rank Math's two fields are writ
   assert.deepEqual(argsFor(get, { id: 12, key: "rank_math_title", post_type: "pages" }), { post_id: 12, key: "rank_math_title", post_type: "pages" });
   assert.equal(metaValue({ rank_math_title: "Old" }, "rank_math_title"), "Old");
   assert.equal(metaValue({ meta: { rank_math_title: ["Old"] } }, "rank_math_title"), "Old");
+});
+
+t("Rank Math SEO tool: only title and description, values read from any shape", () => {
+  assert.equal(isAllowedTool("wp_rm_update_post_seo"), true);
+  assert.doesNotThrow(() => checkCall("wp_rm_update_post_seo", { id: 1, title: "T", description: "D" }));
+  assert.throws(() => checkCall("wp_rm_update_post_seo", { id: 1, title: "T", robots: ["noindex"] }), /robots/);
+  assert.deepEqual(seoFields({ title: "", description: "Old" }), { title: "", description: "Old" });
+  assert.deepEqual(seoFields({ seo: { rank_math_title: "A", rank_math_description: null } }), { title: "A", description: "" });
+  assert.deepEqual(seoFields({ something: 1 }), { title: null, description: null });
+  assert.deepEqual(argsFor({ required: ["post_id"], properties: { post_id: {}, seo_title: {}, seo_description: {} } }, { id: 5, title: "T", description: "D" }), { post_id: 5, seo_title: "T", seo_description: "D" });
 });
 
 console.log(`\nDay 29: ${passed} checks passed`);
