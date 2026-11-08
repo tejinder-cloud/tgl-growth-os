@@ -21,8 +21,9 @@ export function pageFromAsset(asset: { title: string; content: { format?: string
 }
 
 const ALIASES: Record<string, string[]> = {
-  id: ["id", "post_id", "page_id", "ID"], title: ["title", "post_title"], content: ["content", "post_content", "body"],
+  id: ["id", "post_id", "page_id", "ID"], title: ["title", "post_title", "seo_title", "rank_math_title"], content: ["content", "post_content", "body"],
   status: ["status", "post_status"], slug: ["slug", "post_name", "name"],
+  description: ["description", "seo_description", "meta_description", "rank_math_description"],
   key: ["key", "meta_key"], value: ["value", "meta_value"], meta: ["meta"], post_type: ["post_type"], per_page: ["per_page", "limit", "number"],
 };
 /** Map our values onto the tool's argument names; fail loudly if a required argument can't be filled. */
@@ -130,4 +131,16 @@ export function metaValue(payload: any, key?: string): string | null {
   }
   const v = payload.value ?? payload.meta_value ?? payload.data?.value ?? (Array.isArray(payload) ? payload[0] : undefined);
   return v == null ? null : Array.isArray(v) ? (v[0] == null ? null : String(v[0])) : typeof v === "object" ? null : String(v);
+}
+
+/** The SEO title and description from a Rank Math read (wp_rm_get_post_seo or the Rank Math ability), whatever its shape. */
+export function seoFields(payload: any): { title: string | null; description: string | null } {
+  const pick = (keys: string[]) => {
+    for (const o of [payload, payload?.seo, payload?.meta, payload?.data, payload?.fields]) {
+      if (!o || typeof o !== "object") continue;
+      for (const k of keys) if (k in o) { const v = o[k]; return v == null ? "" : typeof v === "object" ? (v.raw ?? v.value ?? "") : String(v); }
+    }
+    return null;
+  };
+  return { title: pick(["title", "seo_title", "rank_math_title"]), description: pick(["description", "seo_description", "meta_description", "rank_math_description"]) };
 }

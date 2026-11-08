@@ -5,7 +5,7 @@ import { isTestMode } from "../../config.js";
 import { getSupabase } from "../prospect-researcher/db.js";
 import { McpClient, summariseTools, type McpTool } from "./mcp.js";
 import { checkCall, isAllowedTool, SCHEMA_VERSION } from "./safety.js";
-import { argsFor, editLink, matchPage, metaValue, pageFromAsset, pageList, parseMetaAsset, placeholders, postFields, publishAs, toolPayload, type Schema } from "./implement.js";
+import { argsFor, editLink, matchPage, metaValue, seoFields, pageFromAsset, pageList, parseMetaAsset, placeholders, postFields, publishAs, toolPayload, type Schema } from "./implement.js";
 
 export async function checkWordPressConnections(fetchImpl: typeof fetch = fetch): Promise<number> {
   if (isTestMode()) return 0;
@@ -125,6 +125,8 @@ async function publish(site: SiteTools, a: Action, endpoint: string) {
   };
 }
 
+const RM_OFF = "Rank Math tools are switched off in Easy MCP AI — in WordPress open Easy MCP AI → Integrations, turn on Rank Math, then try again in 2 minutes";
+
 type MetaChange = { label: string; page_id: number; page_title: string; link: string; field: "title" | "description"; key: string; old: string | null; new: string };
 
 /** Meta titles/descriptions, step 1: find each page, read what's there now, and list the changes for approval. */
@@ -135,15 +137,18 @@ async function planMeta(sb: any, site: SiteTools, a: Action, endpoint: string) {
   const pages = pageList(await site.call("wp_list_pages", { per_page: 100, status: "publish" }));
   if (!pages.length) throw new Error("couldn't list the site's pages");
   const origin = new URL(endpoint).origin;
+  const reader = site.has("wp_rm_get_post_seo") ? "wp_rm_get_post_seo" : site.has("wp_ability_rank_math_get_post_seo_meta") ? "wp_ability_rank_math_get_post_seo_meta" : null;
+  if (!reader || !site.has("wp_rm_update_post_seo")) throw new Error(RM_OFF);
   const changes: MetaChange[] = []; const unmatched: string[] = [];
   for (const p of pairs) {
     const page = matchPage(p.label, pages, origin);
     if (!page) { unmatched.push(p.label); continue; }
+    // A read error stops the plan: "couldn't read" must never be shown as "empty".
+    const now = seoFields(await site.call(reader, { id: page.id }));
     for (const [field, key, value] of [["title", "rank_math_title", p.title], ["description", "rank_math_description", p.description]] as const) {
       if (!value) continue;
       if (placeholders(value).length) { unmatched.push(`${p.label} (${field} still has a fill-in)`); continue; }
-      // A read error stops the plan: "couldn't read" must never be shown as "empty".
-      const old = metaValue(await site.call("wp_get_post_meta", { id: page.id, key, post_type: "pages" }), key);
+      const old = now[field] || null;
       if (old?.trim() === value.trim()) continue;
       changes.push({ label: p.label, page_id: page.id, page_title: page.title, link: page.link, field, key, old, new: value });
     }
@@ -161,12 +166,21 @@ async function planMeta(sb: any, site: SiteTools, a: Action, endpoint: string) {
 async function applyMeta(site: SiteTools, a: Action) {
   const changes = (a.detail?.changes ?? []) as MetaChange[];
   if (!changes.length) throw new Error("nothing to apply");
+  if (!site.has("wp_rm_update_post_seo")) throw new Error(RM_OFF);
+  const reader = site.has("wp_rm_get_post_seo") ? "wp_rm_get_post_seo" : "wp_ability_rank_math_get_post_seo_meta";
   const done: MetaChange[] = [];
-  for (const c of changes) {
-    await site.call("wp_update_post_meta", { id: c.page_id, meta: { [c.key]: c.new }, post_type: "pages" });
-    const back = metaValue(await site.call("wp_get_post_meta", { id: c.page_id, key: c.key, post_type: "pages" }), c.key);
-    if (back !== null && back.trim() !== c.new.trim()) throw new Error(`WordPress didn't keep the new ${c.field} for "${c.page_title}"`);
-    done.push(c);
+  // One call per page with only the fields that change; then read back and compare.
+  for (const pageId of [...new Set(changes.map((c) => c.page_id))]) {
+    const mine = changes.filter((c) => c.page_id === pageId);
+    const values: Record<string, unknown> = { id: pageId };
+    for (const c of mine) values[c.field] = c.new;
+    await site.call("wp_rm_update_post_seo", values);
+    const back = site.has(reader) ? seoFields(await site.call(reader, { id: pageId })) : null;
+    for (const c of mine) {
+      const got = back?.[c.field];
+      if (got != null && got.trim() !== c.new.trim()) throw new Error(`WordPress didn't keep the new ${c.field} for "${c.page_title}"`);
+      done.push(c);
+    }
   }
   const n = new Set(done.map((c) => c.page_id)).size;
   return {
