@@ -43,6 +43,7 @@ import {
 const runningIssues = new Set<number>();
 let isGlobalRunnerActive = false;
 let activeIssueNumber: number | null = null;
+let isShuttingDown = false;
 
 export function isIssueRunningLocally(issueNumber: number): boolean {
   return runningIssues.has(issueNumber);
@@ -56,14 +57,24 @@ export function setActiveIssueNumberForTests(num: number | null): void {
   activeIssueNumber = num;
 }
 
+export function setShuttingDownForTests(value: boolean): void {
+  isShuttingDown = value;
+}
+
+export function isShutdownInProgress(): boolean {
+  return isShuttingDown;
+}
+
 /**
  * Graceful shutdown handler on SIGTERM / SIGINT.
  * On SIGTERM the runner writes status "interrupted" for the active run and releases atomic claim cleanly.
+ * Deploy interruptions must never increment recovery_attempts.
  */
 export async function handleRunnerShutdown(
   signal?: string,
   options?: { instanceId?: string; testMode?: boolean }
 ): Promise<void> {
+  isShuttingDown = true;
   const isTest = options?.testMode === true || isTestMode();
   const instanceId = options?.instanceId || CONTAINER_INSTANCE_ID;
   if (activeIssueNumber !== null) {
@@ -76,6 +87,7 @@ export async function handleRunnerShutdown(
         {
           status: "interrupted",
           error: `Run interrupted by process termination (${signal || "SIGTERM"}).`,
+          recoveryAttempts: 0,
           runCompletedAt: new Date().toISOString(),
         },
         { testMode: isTest }
@@ -282,6 +294,7 @@ export async function runIssueTask(
         preflightHash: existingRecord?.preflightHash,
         preflightVerdict: existingRecord?.preflightVerdict,
         preflightReason: existingRecord?.preflightReason,
+        recoveryAttempts: (existingRecord?.status === "interrupted" || !existingRecord?.branch || Boolean(existingRecord?.error?.includes("SIGTERM"))) ? 0 : existingRecord?.recoveryAttempts,
       },
       { instanceId, testMode: isTest }
     );
@@ -311,7 +324,7 @@ export async function runIssueTask(
       console.warn(`[Runner] ${capMsg}`);
       const state = await getRunnerState({ testMode: isTest });
       const existingRun = state.runs[String(issueNum)];
-      const attempts = (existingRun?.recoveryAttempts || 0) + 1;
+      const attempts = existingRun?.recoveryAttempts ?? 0;
       await addLabelsToIssue(issueNum, ["status:blocked"]);
       await releaseRunnerClaim(
         issueNum,
@@ -1294,7 +1307,42 @@ Fixes #${issueNum}
     console.error(`[Runner Run Error on Issue #${issueNum}]:`, err);
     const errMsg = err?.message || String(err);
 
-    // Increments recovery_attempts ONLY when a resumed run throws during execution
+    // Deploy interruptions must never increment recovery_attempts on any path
+    const isDeployInterruption =
+      isShuttingDown ||
+      errMsg.includes("SIGTERM") ||
+      errMsg.includes("SIGINT") ||
+      errMsg.includes("process termination") ||
+      errMsg.includes("aborted") ||
+      errMsg.includes("AbortError");
+
+    if (isDeployInterruption) {
+      console.warn(
+        `[Runner Deploy Interruption] Issue #${issueNum} interrupted by deploy/process termination (${errMsg}). Releasing claim without incrementing recovery_attempts.`
+      );
+      await releaseRunnerClaim(
+        issueNum,
+        instanceId,
+        {
+          status: "interrupted",
+          error: `Run interrupted by process termination (SIGTERM).`,
+          recoveryAttempts: 0,
+          runCompletedAt: new Date().toISOString(),
+        },
+        { testMode: isTest }
+      ).catch(() => {});
+
+      return {
+        success: false,
+        issueNumber: issueNum,
+        status: "blocked",
+        toolCallsCount: 0,
+        nudgesSent: writeNudgesSent,
+        error: errMsg,
+      };
+    }
+
+    // Increments recovery_attempts ONLY when a non-interrupted run throws during execution
     const failureInfo = await incrementRecoveryAttempts(issueNum, errMsg, { instanceId, testMode: isTest });
     const attempts = failureInfo.attempts;
 

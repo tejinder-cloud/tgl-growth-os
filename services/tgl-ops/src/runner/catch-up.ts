@@ -412,13 +412,20 @@ export async function recoverInterruptedRunnerIssues(options?: {
           );
         }
 
+        // Deploy interruptions (SIGTERM, container restart, or in-progress run with branch null) must never increment recoveryAttempts
+        const isDeployInterruption =
+          Boolean(run.status === "interrupted") ||
+          Boolean(run.error?.includes("SIGTERM") || run.error?.includes("process termination")) ||
+          (!run.branch && run.status === "in-progress");
+
         // Resumed without counting attempts, with fresh session budget!
+        // Deploy interruptions must never count toward recoveryAttempts
         await releaseRunnerClaim(
           issueNum,
           instanceId,
           {
             status: "in-progress",
-            recoveryAttempts: attempts,
+            recoveryAttempts: isDeployInterruption ? 0 : attempts,
             lastRecoveryAt: new Date().toISOString(),
             toolCallsCount: 0,
           },
@@ -433,7 +440,8 @@ export async function recoverInterruptedRunnerIssues(options?: {
 
         // Requirement (3): Boot recovery of an interrupted run with a proceed verdict and no PR
         // must start a model session on the existing branch with a fresh session budget, never mark it completed.
-        if (run.preflightVerdict === "proceed") {
+        // If branch is null (interrupted before branch establishment), trigger runner so preflight & branch run fresh.
+        if (run.preflightVerdict === "proceed" || !run.branch) {
           console.log(
             `[Runner Boot Recovery] Starting model session on branch ${run.branch || "task/" + issueNum} with fresh session budget for Issue #${issueNum}...`
           );

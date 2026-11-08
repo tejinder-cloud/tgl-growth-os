@@ -584,6 +584,29 @@ export async function incrementRecoveryAttempts(
   const nowIso = new Date().toISOString();
   const state = await getRunnerState({ testMode: isTest });
   const existing = state.runs[String(issueNumber)];
+
+  // Deploy interruptions must never increment recovery_attempts on any path
+  const isDeployInterruption =
+    errorMsg.includes("SIGTERM") ||
+    errorMsg.includes("SIGINT") ||
+    errorMsg.includes("process termination") ||
+    errorMsg.includes("interrupted") ||
+    existing?.status === "interrupted";
+
+  if (isDeployInterruption) {
+    console.log(
+      `[incrementRecoveryAttempts] Skipping recovery_attempts increment for Issue #${issueNumber}: deploy interruption (${errorMsg}).`
+    );
+    const updates: Partial<RunnerRecord> = {
+      status: "interrupted",
+      recoveryAttempts: 0,
+      error: errorMsg,
+      runCompletedAt: nowIso,
+    };
+    await releaseRunnerClaim(issueNumber, instId, updates, { testMode: isTest });
+    return { attempts: 0, isBlocked: false };
+  }
+
   const attempts = (existing?.recoveryAttempts || 0) + 1;
   const isBlocked = attempts >= 2;
 
