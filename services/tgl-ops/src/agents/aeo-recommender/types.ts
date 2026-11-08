@@ -24,6 +24,6 @@ export const CATEGORIES = ["offsite", "onsite", "content", "technical"] as const
 export type Recommendation = {
   title: string; body: string; category: (typeof CATEGORIES)[number]; impact: number; ease: number;
   promptRefs: string[]; siteRefs: string[];
-  asset: { kind: AssetKind; title: string; format: "markdown" | "json" | "text"; content: string };
+  asset: { kind: AssetKind; title: string; format: "markdown" | "json" | "text"; content: string; publishAs?: "page" | "post" };
   evidence: Record<string, unknown>;   // computed by code from the refs
 };

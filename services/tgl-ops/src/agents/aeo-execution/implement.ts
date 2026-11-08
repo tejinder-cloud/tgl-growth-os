@@ -68,3 +68,12 @@ export function postFields(p: any): { id?: number; link?: string; status?: strin
 
 export const editLink = (endpoint: string, id: number) => `${new URL(endpoint).origin}/wp-admin/post.php?post=${id}&action=edit`;
 export const previewLink = (endpoint: string, id: number) => `${new URL(endpoint).origin}/?page_id=${id}&preview=true`;
+
+/** Page or blog post, when the recommender didn't say (pure; tested; same rule as the app's lib/execution.ts).
+ *  A heading that asks or explains (what/why/how…, "?", guide, vs) reads as a blog article; anything else — a service,
+ *  industry, location or hub — is a page that belongs in the menu. */
+export function publishAs(a: { title: string; body: string }): "page" | "post" {
+  const h1 = (a.body.match(/^#\s+(.+)$/m)?.[1] ?? a.title.replace(/^\//, "").replace(/[-_]+/g, " ")).trim();
+  if (/\b(hub|services?|pricing|case[- ]studies|about|contact|industr(y|ies)|locations?)\b/i.test(a.title)) return "page";
+  return /^(what|why|how|when|which|who|is|are|can|should|does|do|will)\b/i.test(h1) || /\?\s*$/.test(h1) || /\b(guide|vs\.?|versus|explained|checklist|tips)\b/i.test(h1) ? "post" : "page";
+}

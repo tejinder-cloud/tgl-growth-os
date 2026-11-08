@@ -77,7 +77,7 @@ export async function generateRecommendations(sb: SupabaseClient, brandId: strin
 async function saveBatch(sb: SupabaseClient, tenantId: string, brandId: string, recs: Recommendation[], runId: string) {
   const batch = randomUUID();
   const { data: assets, error: aErr } = await sb.from("assets").insert(recs.map((r) => ({
-    tenant_id: tenantId, brand_id: brandId, kind: r.asset.kind, title: r.asset.title, content: { format: r.asset.format, body: r.asset.content },
+    tenant_id: tenantId, brand_id: brandId, kind: r.asset.kind, title: r.asset.title, content: { format: r.asset.format, body: r.asset.content, ...(r.asset.publishAs ? { publish_as: r.asset.publishAs } : {}) },
   }))).select("id");
   if (aErr || !assets || assets.length !== recs.length) throw new Error(`save assets: ${aErr?.message ?? "count mismatch"}`);
   // Untouched recommendations from the last batch are replaced; ones the customer acted on stay.
