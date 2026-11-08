@@ -66,6 +66,9 @@ export interface CadenceRecord {
   tasks: CadenceTaskRecord[];
   workflow_enrolled?: boolean;
   dry_run: boolean;
+  /** True once every task, the tag and (when configured) the workflow enrolment are done. */
+  complete?: boolean;
+  last_error?: string;
 }
 
 /** Persisted in prospects.signals.sales_desk */
