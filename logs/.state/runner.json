@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-08T07:00:49.303Z",
+  "updatedAt": "2026-11-08T08:08:19.706Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -87,8 +87,8 @@
       "runCompletedAt": "2026-11-08T06:55:35.993+00:00",
       "recoveryAttempts": 0,
       "lastRecoveryAlertAt": "2026-11-08T06:55:35.03+00:00",
-      "ownerInstance": null,
-      "heartbeatAt": null,
+      "ownerInstance": "inst_1794125297479_b85a3ba4",
+      "heartbeatAt": "2026-11-08T08:08:18.997423+00:00",
       "toolCallsCount": 0
     },
     "120": {
