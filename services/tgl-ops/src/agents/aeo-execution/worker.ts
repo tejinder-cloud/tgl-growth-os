@@ -95,9 +95,12 @@ async function publish(site: SiteTools, a: Action, endpoint: string) {
   const id = Number(a.detail?.wp_id);
   if (!id) throw new Error("no draft to publish");
   // Never publish a page that still has fill-in-the-blanks: check what's in WordPress now, not what we drafted.
-  if (site.has("wp_get_page")) {
+  // Fail safe: if the draft can't be read back, don't publish.
+  if (!site.has("wp_get_page")) throw new Error("can't read the draft back from WordPress to check it, so it wasn't published");
+  {
     const now = postFields(await site.call("wp_get_page", { id }));
-    const left = placeholders(now.content ?? "");
+    if (typeof now.content !== "string") throw new Error("couldn't read the draft's text back from WordPress, so it wasn't published");
+    const left = placeholders(now.content);
     if (left.length) {
       return { status: "in_progress", url: editLink(endpoint, id), detail: { ...a.detail, step: "awaiting_approval", placeholders: left, blocked_at: new Date().toISOString() } };
     }
