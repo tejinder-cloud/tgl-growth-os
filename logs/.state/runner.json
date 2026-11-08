@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-08T05:56:02.061Z",
+  "updatedAt": "2026-11-08T06:00:03.075Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -82,13 +82,13 @@
       "agent": "web-builder",
       "door": "core",
       "title": "[PLAN-D12]: Sales Desk SKILL.md + worker + proposal template",
-      "status": "interrupted",
+      "status": "in-progress",
       "runStartedAt": "2026-11-08T05:00:03.055778+00:00",
       "runCompletedAt": "2026-11-08T05:46:12.548+00:00",
       "error": "Run interrupted by process termination (SIGTERM).",
       "recoveryAttempts": 2,
-      "ownerInstance": null,
-      "heartbeatAt": null,
+      "ownerInstance": "inst_1794116767374_86139dd1",
+      "heartbeatAt": "2026-11-08T06:00:02.716251+00:00",
       "toolCallsCount": 0
     },
     "120": {
