@@ -230,5 +230,13 @@
     "door": "aeo",
     "title": "[PLAN-D10b] Outreach Sequencer live wiring: composition root that registers the ",
     "updatedAt": "2026-11-07T10:26:15.154Z"
+  },
+  "131": {
+    "channel": "#site-build",
+    "ts": "1794046974.505579",
+    "agent": "web-builder",
+    "door": "aeo",
+    "title": "[PLAN-D10b] Outreach Sequencer live wiring: composition root that registers the ",
+    "updatedAt": "2026-11-08T05:55:57.228Z"
   }
 }
