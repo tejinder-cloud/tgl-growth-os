@@ -142,7 +142,8 @@ async function planMeta(sb: any, site: SiteTools, a: Action, endpoint: string) {
     for (const [field, key, value] of [["title", "rank_math_title", p.title], ["description", "rank_math_description", p.description]] as const) {
       if (!value) continue;
       if (placeholders(value).length) { unmatched.push(`${p.label} (${field} still has a fill-in)`); continue; }
-      const old = metaValue(await site.call("wp_get_post_meta", { id: page.id, key }).catch(() => null));
+      // A read error stops the plan: "couldn't read" must never be shown as "empty".
+      const old = metaValue(await site.call("wp_get_post_meta", { id: page.id, key, post_type: "pages" }), key);
       if (old?.trim() === value.trim()) continue;
       changes.push({ label: p.label, page_id: page.id, page_title: page.title, link: page.link, field, key, old, new: value });
     }
@@ -162,8 +163,8 @@ async function applyMeta(site: SiteTools, a: Action) {
   if (!changes.length) throw new Error("nothing to apply");
   const done: MetaChange[] = [];
   for (const c of changes) {
-    await site.call("wp_update_post_meta", { id: c.page_id, key: c.key, value: c.new });
-    const back = metaValue(await site.call("wp_get_post_meta", { id: c.page_id, key: c.key }).catch(() => null));
+    await site.call("wp_update_post_meta", { id: c.page_id, meta: { [c.key]: c.new }, post_type: "pages" });
+    const back = metaValue(await site.call("wp_get_post_meta", { id: c.page_id, key: c.key, post_type: "pages" }), c.key);
     if (back !== null && back.trim() !== c.new.trim()) throw new Error(`WordPress didn't keep the new ${c.field} for "${c.page_title}"`);
     done.push(c);
   }

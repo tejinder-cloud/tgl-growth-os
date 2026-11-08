@@ -16,7 +16,11 @@ const DENY = /(delete|trash|remove|destroy|purge|empty|reset|deactivate|uninstal
 
 /** Per-call limits on top of the allowlist. */
 export function checkCall(name: string, values: Record<string, unknown>): void {
-  if (name === "wp_update_post_meta" && !WRITABLE_META.has(String(values.key ?? ""))) throw new Error(`writing post meta "${String(values.key)}" is not allowed`);
+  if (name === "wp_update_post_meta") {
+    const keys = values.meta && typeof values.meta === "object" ? Object.keys(values.meta as object) : [String(values.key ?? "")];
+    const bad = keys.filter((k) => !WRITABLE_META.has(k));
+    if (!keys.length || bad.length) throw new Error(`writing post meta "${bad.join(", ") || "(none)"}" is not allowed`);
+  }
 }
 
 export function isAllowedTool(name: string, tool?: Pick<McpTool, "annotations">): boolean {
