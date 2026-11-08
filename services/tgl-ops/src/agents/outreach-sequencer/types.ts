@@ -36,6 +36,10 @@ export interface AuditSummary {
   top_competitors: string[];
   top_cited_domains: string[];
   audited_at: string;
+  /** Answers naming each of the top competitors, from the same audit run. Feeds {{competitor_mentions}}. */
+  competitor_mentions?: Record<string, number>;
+  /** Buyer prompt where the prospect fared worst in the same audit run. Feeds {{weakest_query}}. */
+  weakest_query?: string;
 }
 
 /** Sequence state persisted in prospects.signals.outreach */
