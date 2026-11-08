@@ -713,7 +713,7 @@ export async function findOpenIssuesWithLabels(labels: string[]): Promise<GitHub
 export async function findLinkedPR(
   issueNumber: number,
   options?: { state?: "open" | "all" }
-): Promise<{ number: number; html_url: string; state: string } | null> {
+): Promise<{ number: number; html_url: string; state: string; headRefName?: string } | null> {
   if (!config.githubToken) {
     return null;
   }
@@ -744,6 +744,7 @@ export async function findLinkedPR(
         number: matched.number,
         html_url: matched.html_url,
         state: matched.state,
+        headRefName: matched.head?.ref,
       };
     }
   } catch (err) {

@@ -16,7 +16,7 @@ import { handleRunnerShutdown, setActiveIssueNumberForTests, computeBriefHash, r
 import { executeRunnerTool, type RunnerToolContext } from "./runner/tools.js";
 import { buildRunnerSystemPrompt, buildRunnerUserMessage, buildRepositoryMap, extractAndLoadBriefFiles } from "./runner/prompt.js";
 import { verifyPrDescriptionIssueLinking } from "./ci/check-pr-description.js";
-import { resetMockPostedLines, mockPostedLines } from "./lib/post.js";
+import { resetMockPostedLines, mockPostedLines, resetMockPostedCards, mockPostedCards } from "./lib/post.js";
 import { mockIssuesStore } from "./lib/github-client.js";
 import {
   pollChiefOfStaffIntake,
@@ -24,7 +24,18 @@ import {
   setBootTimestampForTests,
   simulateProcessRebootForTests,
   loadIntakeState,
+  saveIntakeState,
+  getIntakeLastReadTime,
+  checkIntakeHealth,
+  resetIntakeHealthForTests,
+  classifyArchitectMessage,
 } from "./agents/chief-of-staff/intake.js";
+import { execute0900PlanDispatch } from "./agents/chief-of-staff/dispatch.js";
+import { synthesizeStandupDigest } from "./agents/chief-of-staff/anthropic.js";
+import { handleApproveAction } from "./routes/interactions.js";
+import { handleApprovalsThreadReply } from "./routes/events.js";
+import { resumeIssueWithInstruction } from "./runner/resume.js";
+import { recordIssueMapping } from "./lib/issues-index.js";
 import {
   getAgentCostCap,
   getAgentTodaySpend,
@@ -2055,6 +2066,371 @@ async function runFixesVerificationSuite(): Promise<void> {
   }
   console.log("  [Passed] PR with >= 20 non-blank lines passes diff gate and completes successfully");
   console.log("[Test 19 Passed] write_file rejection, zero-commits non-empty gate, and PR diff threshold gate verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 20: Approve on Plan Dispatch card sets status:in-progress and triggers runner,
+  // never completes or closes issue
+  // -------------------------------------------------------------------------
+  console.log("[Test 20] Testing approve on Plan Dispatch card (Requirement B)...");
+  clearMockRunnerStateDbForTests();
+  resetMockPostedLines();
+
+  // Setup Issue 117 as closed with status:completed and approved:yes (the defect state)
+  const test20IssueNum = 117;
+  mockIssuesStore.set(test20IssueNum, {
+    number: test20IssueNum,
+    title: "[PLAN-D12]: Sales Desk SKILL.md + worker + proposal template",
+    body: "### brief\nSales Desk SKILL.md + worker\n\n### for-agent\nweb-builder\n\n### door\naeo\n",
+    state: "closed",
+    labels: ["for:web-builder", "door:aeo", "type:build", "status:completed", "approved:yes"],
+    html_url: `https://github.com/tejinder-cloud/tgl-growth-os/issues/${test20IssueNum}`,
+  });
+
+  const approveDispatchAction = {
+    action_id: "action_approve",
+    value: JSON.stringify({
+      planDay: 12,
+      issue: test20IssueNum,
+      agent: "web-builder",
+      door: "aeo",
+      title: "Plan Day 12: Sales Desk SKILL.md + worker + proposal template",
+      summary: "Sales Desk SKILL.md + worker: dossier, calendar, proposal in 4h, follow-up cadence; proposal template.",
+    }),
+  };
+
+  const approveDispatchPayload = {
+    user: "U_ARCHITECT",
+    container: { message_ts: "1794049500.000001" },
+    channel: { id: "C0BATS9F99B" },
+    message: {
+      blocks: [
+        {
+          type: "section",
+          text: { type: "mrkdwn", text: "Plan Day 12 summary" },
+        },
+        {
+          block_id: "card_actions",
+          type: "actions",
+          elements: [{ type: "button", action_id: "action_approve" }],
+        },
+      ],
+    },
+  };
+
+  await handleApproveAction(approveDispatchPayload, approveDispatchAction);
+
+  const issue20After = mockIssuesStore.get(test20IssueNum);
+  if (!issue20After) {
+    throw new Error("Test 20.1 Failed: Issue 117 not found in mock store");
+  }
+
+  // 1. Must be reopened (state: open)
+  if (issue20After.state !== "open") {
+    throw new Error(`Test 20.2 Failed: Expected issue state 'open', got '${issue20After.state}'`);
+  }
+
+  // 2. Must have status:in-progress
+  if (!issue20After.labels.includes("status:in-progress")) {
+    throw new Error(`Test 20.3 Failed: Expected status:in-progress label, got ${JSON.stringify(issue20After.labels)}`);
+  }
+
+  // 3. Must NOT have status:completed or approved:yes
+  if (issue20After.labels.includes("status:completed")) {
+    throw new Error("Test 20.4 Failed: Issue must not have status:completed after plan dispatch approve");
+  }
+  if (issue20After.labels.includes("approved:yes")) {
+    throw new Error("Test 20.5 Failed: Issue must not have approved:yes after plan dispatch approve");
+  }
+
+  // 4. Runner state must be in-progress
+  const stateAfter20 = await getRunnerState({ testMode: true });
+  const runRecord20 = stateAfter20.runs[String(test20IssueNum)];
+  if (!runRecord20 || runRecord20.status !== "in-progress") {
+    throw new Error(`Test 20.6 Failed: Runner state should be in-progress, got ${JSON.stringify(runRecord20)}`);
+  }
+
+  console.log("  [Passed] Plan dispatch approve reopened issue, removed completed/approved, set status:in-progress, and initialized runner");
+  console.log("[Test 20 Passed] Plan dispatch card approval behavior verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 21: "#N:" instruction on completed-with-open-PR issue resumes session on existing branch
+  // -------------------------------------------------------------------------
+  console.log("[Test 21] Testing #N: instruction on completed-with-open-PR issue (Requirement C)...");
+  clearMockRunnerStateDbForTests();
+  resetMockPostedLines();
+  resetIntakeStateForTests();
+
+  const test21IssueNum = 120;
+  const test21PrNum = 121;
+  const test21Branch = "task/120-plan-d10b-outreach-sequencer-l";
+
+  // Setup Issue 120 in mock store
+  mockIssuesStore.set(test21IssueNum, {
+    number: test21IssueNum,
+    title: "[TASK]: [PLAN-D10b] Outreach Sequencer live wiring",
+    body: "### deliverable\nOutreach Sequencer live wiring\n\n### for-agent\nweb-builder\n\n### door\naeo\n",
+    state: "open",
+    labels: ["for:web-builder", "door:aeo", "type:build", "status:in-progress"],
+    html_url: `https://github.com/tejinder-cloud/tgl-growth-os/issues/${test21IssueNum}`,
+  });
+
+  // Set runner state: issue 120 completed with open PR 121 and 23 prior calls
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        [String(test21IssueNum)]: {
+          agent: "web-builder",
+          door: "aeo",
+          title: "[TASK]: [PLAN-D10b] Outreach Sequencer live wiring",
+          status: "completed",
+          branch: test21Branch,
+          prNumber: test21PrNum,
+          prUrl: `https://github.com/tejinder-cloud/tgl-growth-os/pull/${test21PrNum}`,
+          toolCallsCount: 23,
+          preflightVerdict: "proceed",
+          preflightReason: "Valid brief",
+          runStartedAt: new Date().toISOString(),
+          runCompletedAt: new Date().toISOString(),
+          ownerInstance: null,
+          heartbeatAt: null,
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  // Architect sends instruction: "#120: Partial. templates.ts accepted; compose.ts next."
+  const instruction21Text = "#120: Partial. templates.ts accepted; compose.ts next.";
+
+  // Verify deterministic classifier classifies it as task with issueNumber: 120
+  const classification21 = await classifyArchitectMessage(instruction21Text, { testMode: true });
+  if (classification21.category !== "task" || classification21.issueNumber !== 120) {
+    throw new Error(`Test 21.1 Failed: Expected task with issueNumber 120, got ${JSON.stringify(classification21)}`);
+  }
+
+  // Execute intake poll with this mock message
+  const intake21Res = await pollChiefOfStaffIntake({
+    channelId: "C073SJJ22P9",
+    testMode: true,
+    mockMessages: [
+      {
+        ts: "1794049600.000001",
+        user: "U_ARCHITECT",
+        text: instruction21Text,
+      },
+    ],
+  });
+
+  if (intake21Res.processedCount !== 1) {
+    throw new Error(`Test 21.2 Failed: Expected 1 processed message, got ${intake21Res.processedCount}`);
+  }
+
+  const stateAfter21 = await getRunnerState({ testMode: true });
+  const runRecord21 = stateAfter21.runs[String(test21IssueNum)];
+
+  // 1. Must be reset to status:in-progress
+  if (runRecord21?.status !== "in-progress") {
+    throw new Error(`Test 21.3 Failed: Expected status in-progress, got ${runRecord21?.status}`);
+  }
+
+  // 2. Must preserve the existing branch
+  if (runRecord21?.branch !== test21Branch) {
+    throw new Error(`Test 21.4 Failed: Expected branch '${test21Branch}', got '${runRecord21?.branch}'`);
+  }
+
+  // 3. Must have reset toolCallsCount to 0 for a fresh session budget
+  if (runRecord21?.toolCallsCount !== 0) {
+    throw new Error(`Test 21.5 Failed: Expected toolCallsCount 0, got ${runRecord21?.toolCallsCount}`);
+  }
+
+  // 4. Must post confirmation in thread
+  const confirmed21 = mockPostedLines.some(
+    (p) => p.text?.includes(`→ @web-builder, #${test21IssueNum} resumed, card in #doors-aeo`)
+  );
+  if (!confirmed21) {
+    throw new Error(`Test 21.6 Failed: Expected confirmation line in thread, got: ${JSON.stringify(mockPostedLines)}`);
+  }
+
+  console.log("  [Passed] #N: instruction resumed completed-with-open-PR issue on existing branch with fresh budget");
+  console.log("[Test 21 Passed] Resuming completed-with-open-PR issue verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 22: Reply in card thread after Discuss resumes the issue like "#N:" does
+  // -------------------------------------------------------------------------
+  console.log("[Test 22] Testing card thread reply after Discuss (Requirement D)...");
+  clearMockRunnerStateDbForTests();
+  resetMockPostedLines();
+
+  const test22IssueNum = 127;
+  const test22Branch = "task/127-discuss-revision";
+  const test22ThreadTs = "1794049700.123456";
+
+  mockIssuesStore.set(test22IssueNum, {
+    number: test22IssueNum,
+    title: "[TASK]: Discuss revision test issue",
+    body: "### deliverable\nDiscuss deliverable\n\n### for-agent\nweb-builder\n\n### door\ncore\n",
+    state: "open",
+    labels: ["for:web-builder", "door:core", "type:build", "status:in-progress"],
+    html_url: `https://github.com/tejinder-cloud/tgl-growth-os/issues/${test22IssueNum}`,
+  });
+
+  // Runner state has existing branch and completed status
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        [String(test22IssueNum)]: {
+          agent: "web-builder",
+          door: "core",
+          title: "[TASK]: Discuss revision test issue",
+          status: "completed",
+          branch: test22Branch,
+          prNumber: 128,
+          toolCallsCount: 20,
+          preflightVerdict: "proceed",
+          preflightReason: "Valid brief",
+          runStartedAt: new Date().toISOString(),
+          ownerInstance: null,
+          heartbeatAt: null,
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  // Map thread to issue in issues.json index
+  await recordIssueMapping(
+    test22IssueNum,
+    {
+      channel: "C0BATS9F99B",
+      ts: test22ThreadTs,
+      agent: "web-builder",
+      door: "core",
+      title: "Discuss revision test issue",
+    },
+    { testMode: true }
+  );
+
+  // Architect replies in the card thread
+  const discussReplyEvent = {
+    user: "U_ARCHITECT",
+    text: "Please add the missing parameter validation and update tests.",
+    thread_ts: test22ThreadTs,
+    channel: "C0BATS9F99B",
+  };
+
+  await handleApprovalsThreadReply(discussReplyEvent);
+
+  const stateAfter22 = await getRunnerState({ testMode: true });
+  const runRecord22 = stateAfter22.runs[String(test22IssueNum)];
+
+  // 1. Must be reset to status:in-progress
+  if (runRecord22?.status !== "in-progress") {
+    throw new Error(`Test 22.1 Failed: Expected status in-progress, got ${runRecord22?.status}`);
+  }
+
+  // 2. Must preserve the existing branch
+  if (runRecord22?.branch !== test22Branch) {
+    throw new Error(`Test 22.2 Failed: Expected branch '${test22Branch}', got '${runRecord22?.branch}'`);
+  }
+
+  // 3. Must have reset toolCallsCount to 0
+  if (runRecord22?.toolCallsCount !== 0) {
+    throw new Error(`Test 22.3 Failed: Expected toolCallsCount 0, got ${runRecord22?.toolCallsCount}`);
+  }
+
+  // 4. Must post confirmation in thread
+  const confirmed22 = mockPostedLines.some(
+    (p) => p.text?.includes(`→ @web-builder, #${test22IssueNum} resumed, card in #doors-core`)
+  );
+  if (!confirmed22) {
+    throw new Error(`Test 22.4 Failed: Expected confirmation line in thread, got: ${JSON.stringify(mockPostedLines)}`);
+  }
+
+  console.log("  [Passed] Card thread reply resumed issue on existing branch with fresh budget");
+  console.log("[Test 22 Passed] Card thread reply after Discuss behavior verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 23: Intake health formatting, 09:00 card, digest, and 10-minute stall alert
+  // -------------------------------------------------------------------------
+  console.log("[Test 23] Testing intake health line and 10-minute stall alert (Requirement A)...");
+  resetMockPostedLines();
+  resetIntakeHealthForTests();
+
+  // Set intake state with lastPolledAt = 11:08:08 UTC (16:38 IST)
+  const fixedPollIso = "2026-11-07T11:08:08.677Z";
+  saveIntakeState(
+    {
+      version: 1,
+      lastProcessedTsByChannel: { C073SJJ22P9: "1794049603.573219" },
+      lastPolledAt: fixedPollIso,
+    },
+    true
+  );
+
+  // 1. Verify getIntakeLastReadTime returns 16:38 IST
+  const readTime23 = getIntakeLastReadTime({ testMode: true });
+  if (readTime23 !== "16:38 IST") {
+    throw new Error(`Test 23.1 Failed: Expected '16:38 IST', got '${readTime23}'`);
+  }
+
+  // 2. Verify 09:00 status card includes "intake last read 16:38 IST"
+  resetMockPostedCards();
+  const dispatch23 = await execute0900PlanDispatch({ testMode: true, day: 8 });
+  const morningCard23 = mockPostedCards.find((c) => c.title.includes("Plan Status Card"));
+  if (!morningCard23 || !morningCard23.summary.includes("intake last read 16:38 IST")) {
+    throw new Error(`Test 23.2 Failed: 09:00 card missing intake health line: ${morningCard23?.summary}`);
+  }
+
+  // 3. Verify standup gather material includes intakeLastReadTime
+  const gathered23 = await gatherStandupMaterial("2026-11-07", { testMode: true });
+  if (gathered23.intakeLastReadTime !== "16:38 IST") {
+    throw new Error(`Test 23.3 Failed: Gathered material missing intakeLastReadTime: ${gathered23.intakeLastReadTime}`);
+  }
+
+  // 4. Verify standup digest includes "intake last read 16:38 IST"
+  const digest23 = await synthesizeStandupDigest(gathered23, { testMode: true });
+  if (!digest23.digestText.includes("intake last read 16:38 IST")) {
+    throw new Error(`Test 23.4 Failed: Standup digest missing intake health line: ${digest23.digestText}`);
+  }
+
+  // 5. Test checkIntakeHealth: healthy when elapsed time < 10m
+  const baseMs23 = new Date(fixedPollIso).getTime();
+  const healthyCheck = await checkIntakeHealth({
+    testMode: true,
+    nowMs: baseMs23 + 5 * 60 * 1000, // 5 min later
+    lastPolledAt: fixedPollIso,
+  });
+  if (!healthyCheck.healthy || healthyCheck.stalled || healthyCheck.alertSent) {
+    throw new Error(`Test 23.5 Failed: Expected healthy check at 5m, got: ${JSON.stringify(healthyCheck)}`);
+  }
+
+  // 6. Test checkIntakeHealth: stalled and sends alert when elapsed time >= 10m
+  const stalledCheck = await checkIntakeHealth({
+    testMode: true,
+    nowMs: baseMs23 + 12 * 60 * 1000, // 12 min later
+    lastPolledAt: fixedPollIso,
+  });
+  if (stalledCheck.healthy || !stalledCheck.stalled || !stalledCheck.alertSent) {
+    throw new Error(`Test 23.6 Failed: Expected stalled alert at 12m, got: ${JSON.stringify(stalledCheck)}`);
+  }
+
+  const stallAlertLine = mockPostedLines.find((p) => p.text?.includes("[Intake Health Alert]"));
+  if (!stallAlertLine || !stallAlertLine.text?.includes("12 minutes") || !stallAlertLine.text?.includes("16:38 IST")) {
+    throw new Error(`Test 23.7 Failed: Stall alert line missing or wrong text: ${JSON.stringify(stallAlertLine)}`);
+  }
+
+  console.log("  [Passed] Intake health line rendered in 09:00 card, standup digest, and 10-minute stall watchdog alerts cleanly");
+  console.log("[Test 23 Passed] Intake health monitoring and stall alert verified.\n");
   passed++;
 
   console.log("==========================================================================");

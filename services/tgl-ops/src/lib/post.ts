@@ -38,6 +38,11 @@ export function resetMockPostedLines(): void {
   mockPostedLines.length = 0;
 }
 
+export const mockPostedCards: PostCardOptions[] = [];
+export function resetMockPostedCards(): void {
+  mockPostedCards.length = 0;
+}
+
 export interface PostFileOptions {
   channel: string;
   filePath?: string;
@@ -223,6 +228,7 @@ export function buildCardBlocks(options: PostCardOptions): any[] {
  * Automatically splits cards exceeding 50 blocks into multiple threaded messages.
  */
 export async function postCard(options: PostCardOptions): Promise<{ ok: boolean; ts?: string; channel?: string; dryRun?: boolean; error?: string }> {
+  mockPostedCards.push(options);
   const { channel, agent, title, thread_ts } = options;
   const blocks = buildCardBlocks(options);
 

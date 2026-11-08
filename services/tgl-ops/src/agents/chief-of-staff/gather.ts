@@ -7,6 +7,7 @@ import { loadDoorConfig } from "../../lib/agents.js";
 import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
 import { getAgentsCostStatusForStandup, type AgentCostCapInfo } from "../../lib/cost-cap.js";
 import { loadPlanEntries, getCurrentPlanDay } from "../../lib/plan.js";
+import { getIntakeLastReadTime } from "./intake.js";
 
 export interface LogEntry {
   agent: string;
@@ -64,6 +65,7 @@ export interface GatheredData {
   openProposals: OpenProposal[];
   agentCostStatuses: AgentCostCapInfo[];
   carriedForwardPlanEntries: CarriedForwardPlanEntry[];
+  intakeLastReadTime?: string;
   rawSummaryText: string;
 }
 
@@ -502,7 +504,10 @@ export async function gatherStandupMaterial(
     console.warn("[Gather] Error checking carried forward entries:", err.message);
   }
 
-  // 10. Format raw material string for LLM user prompt
+  // 10. Gather intake health
+  const intakeLastReadTime = getIntakeLastReadTime({ testMode: isTest });
+
+  // 11. Format raw material string for LLM user prompt
   const rawSummaryText = formatGatheredText({
     date,
     compileTime,
@@ -514,6 +519,7 @@ export async function gatherStandupMaterial(
     openProposals,
     agentCostStatuses,
     carriedForwardPlanEntries,
+    intakeLastReadTime,
   });
 
   return {
@@ -527,6 +533,7 @@ export async function gatherStandupMaterial(
     openProposals,
     agentCostStatuses,
     carriedForwardPlanEntries,
+    intakeLastReadTime,
     rawSummaryText,
   };
 }
@@ -613,6 +620,10 @@ export function formatGatheredText(data: Omit<GatheredData, "rawSummaryText">): 
       parts.push(`- Day ${c.day} (@${c.agent}): "${c.title}"`);
     }
   }
+
+  // 9. Intake Health
+  parts.push("\n### 9. INTAKE HEALTH:");
+  parts.push(`- intake last read ${data.intakeLastReadTime || "never"}`);
 
   return parts.join("\n");
 }

@@ -129,7 +129,7 @@ Immediate priority
   });
 }
 
-async function handleApprovalsThreadReply(event: any): Promise<void> {
+export async function handleApprovalsThreadReply(event: any): Promise<void> {
   const actor = await getActorDisplayName(event.user || "architect");
   const text = event.text || "";
   const dateStr = getTodayDateString();
@@ -161,17 +161,35 @@ async function handleApprovalsThreadReply(event: any): Promise<void> {
     });
   }
 
-  // Check if thread belongs to an issue in status:needs-brief; if so, treat reply as answers
+  // Check if thread belongs to an issue in status:needs-brief or after Discuss on a card
   try {
     const { handleNeedsBriefClarification } = await import("../runner/clarifications.js");
-    await handleNeedsBriefClarification({
+    const clarifyRes = await handleNeedsBriefClarification({
       channel: event.channel,
       threadTs: thread_ts,
       replyText: text,
       actor,
     });
+
+    if (!clarifyRes || !clarifyRes.handled) {
+      // If not handled as needs-brief clarification, treat as Discuss reply resuming the issue
+      const { findIssueByThreadTs } = await import("../lib/issues-index.js");
+      const mapped = await findIssueByThreadTs(thread_ts);
+      if (mapped) {
+        console.log(`[Card Thread Reply] Resuming issue #${mapped.issueNumber} on behalf of ${actor}...`);
+        const { resumeIssueWithInstruction } = await import("../runner/resume.js");
+        await resumeIssueWithInstruction({
+          issueNumber: mapped.issueNumber,
+          instructionText: text,
+          source: "thread",
+          actor,
+          slackChannel: event.channel,
+          slackThreadTs: thread_ts,
+        });
+      }
+    }
   } catch (clarifyErr: any) {
-    console.error("[Clarifications Error in Approvals Thread]", clarifyErr);
+    console.error("[Clarifications / Discuss Reply Error in Thread]", clarifyErr);
   }
 }
 

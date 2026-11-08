@@ -3,6 +3,7 @@ import { loadAgents } from "../../lib/agents.js";
 import { createIssue, octokit } from "../../lib/github-client.js";
 import { postCard, postLine } from "../../lib/post.js";
 import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
+import { getIntakeLastReadTime } from "./intake.js";
 import {
   loadPlanEntries,
   getCurrentPlanDay,
@@ -380,9 +381,11 @@ export async function execute0900PlanDispatch(options?: {
         ? `\n• *Carried / Blocked:* ${carriedForwardEntries.map((c) => `Day ${c.day} (@${c.agent})`).join(", ")}`
         : "\n• *Carried Items:* None";
 
+    const intakeLastRead = getIntakeLastReadTime(options);
     const summaryText = `*Chief of Staff 09:00 IST Status Card*
 • *Current Day:* Day ${currentDay} (${currentEntry?.title || "Active"})
 • *Open Issues:* ${openIssuesCount} active in repo${carriedNotice}
+• *Intake:* intake last read ${intakeLastRead}
 
 *Action:* Say *"go"* in #architect for Day ${currentDay + 1} (or *"day N"* for any specific day). Weekends allowed.`;
 
