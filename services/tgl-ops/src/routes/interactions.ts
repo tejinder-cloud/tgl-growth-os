@@ -10,6 +10,8 @@ import {
   closeIssue,
   deleteBranch,
   getPR,
+  getIssue,
+  reopenIssue,
 } from "../lib/github-client.js";
 import { postLine } from "../lib/post.js";
 import { getTodayDateString, getCurrentTimeIST } from "../lib/standup.js";
@@ -222,7 +224,7 @@ export async function resolveActionTargets(meta: any): Promise<ResolvedTargets> 
   };
 }
 
-async function handleApproveAction(payload: any, action: any): Promise<void> {
+export async function handleApproveAction(payload: any, action: any): Promise<void> {
   const meta = JSON.parse(action.value || "{}");
   const actor = await getActorDisplayName(payload.user);
   const agent = meta.agent || "web-builder";
@@ -241,6 +243,94 @@ async function handleApproveAction(payload: any, action: any): Promise<void> {
   // Format with strict markdown link [#N](url), never Slack <url|text>
   const cleanSummary = formatSlackToMarkdown(summary);
   const targetLink = formatMarkdownRefLink(targetUrl, prNum || issueNum);
+
+  // 1a. Plan Dispatch Card Approval:
+  // Approving a Plan Dispatch card approves the brief to begin execution.
+  // It MUST set status:in-progress and trigger the runner, NEVER complete or close the issue.
+  // Issue completion happens ONLY when the issue's PR merges.
+  const isPlanDispatch = Boolean(
+    meta.planDay !== undefined ||
+    meta.type === "plan_dispatch" ||
+    (meta.title && /^Plan Day \d+/i.test(meta.title))
+  );
+
+  if (isPlanDispatch) {
+    const targetIssue = issueNum || linkedIssueNum || meta.issue;
+    console.log(`[Action Approve] Plan Dispatch Card approved by ${actor} for issue #${targetIssue} (Plan Day ${meta.planDay}). Starting execution...`);
+
+    if (targetIssue) {
+      const ghIssue = await getIssue(targetIssue);
+      if (ghIssue?.state === "closed") {
+        await reopenIssue(targetIssue);
+      }
+      await removeLabelFromIssue(targetIssue, "status:completed").catch(() => {});
+      await removeLabelFromIssue(targetIssue, "approved:yes").catch(() => {});
+      await removeLabelFromIssue(targetIssue, "status:blocked").catch(() => {});
+      await removeLabelFromIssue(targetIssue, "status:needs-brief").catch(() => {});
+      await addLabelsToIssue(targetIssue, ["status:in-progress", `for:${agent}`]).catch(() => {});
+
+      const { resetRunnerIssue } = await import("../runner/state.js");
+      await resetRunnerIssue(targetIssue, {
+        agent,
+        door: meta.door || "core",
+        title: meta.title || `Issue #${targetIssue}`,
+        status: "in-progress",
+      });
+
+      const { runIssueTask } = await import("../runner/runner.js");
+      const issueInput = {
+        number: targetIssue,
+        title: ghIssue?.title || meta.title || `Issue #${targetIssue}`,
+        body: ghIssue?.body || meta.summary || "",
+        labels: ["type:build", "status:in-progress", `for:${agent}`, `door:${meta.door || "core"}`],
+        html_url: ghIssue?.html_url || targetUrl,
+        agentName: agent,
+        door: meta.door || "core",
+        slackChannel: channel,
+        slackThreadTs: messageTs,
+      };
+      runIssueTask(issueInput).catch((err) => {
+        console.warn(`[Action Approve] Error executing runner for issue #${targetIssue}:`, err);
+      });
+    }
+
+    // Record decision in decisions/YYYY-MM-DD.md
+    const planDecisionLine = `- ${timeStr} IST · ${actor} · APPROVE · chief-of-staff · Plan Day ${meta.planDay || ""} approved, execution started · ${targetLink}`;
+    await appendFileInRepo(
+      `decisions/${dateStr}.md`,
+      planDecisionLine,
+      `chore(decision): record plan day ${meta.planDay} approval per ${actor}`
+    ).catch((e) => console.warn("[Action Approve] Decision log warning:", e));
+
+    // Update Slack card message
+    if (messageTs && config.slackBotToken) {
+      try {
+        const originalBlocks = payload.message?.blocks || [];
+        const updatedBlocks = originalBlocks
+          .filter((b: any) => b.block_id !== "card_actions")
+          .concat([
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: `*Plan Day ${meta.planDay || ""} Approved by ${actor} at ${timeStr} IST — Execution started.*`,
+              },
+            },
+          ]);
+
+        await slackClient.chat.update({
+          channel,
+          ts: messageTs,
+          text: `Plan Day ${meta.planDay || ""} Approved by ${actor} — Execution started.`,
+          blocks: updatedBlocks,
+        });
+      } catch (err) {
+        console.warn("[Card Update Warning]", err);
+      }
+    }
+
+    return;
+  }
 
   // 1. If this is a PR approval, squash-merge the PR first
   if (prNum) {

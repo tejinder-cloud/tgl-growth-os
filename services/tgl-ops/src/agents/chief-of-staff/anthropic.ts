@@ -271,6 +271,9 @@ function generateDeterministicDigest(data: GatheredData): string {
     }
   }
 
+  // 6. Health & Infrastructure
+  lines.push(`• *Intake:* intake last read ${data.intakeLastReadTime || "never"}`);
+
   lines.push("\n_Active agents: reply in-thread with your 4 lines: Did · Blocked · Need · Tomorrow._");
   return lines.join("\n");
 }

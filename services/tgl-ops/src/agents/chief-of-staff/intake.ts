@@ -196,28 +196,43 @@ export async function classifyArchitectMessage(
   const modelName = getAnthropicModel();
   const { priceInPerMTok, priceOutPerMTok } = getAnthropicPricing();
 
-  // Architect Operational Commands: "#N: resume" and "#N: block"
+  // Architect Operational Commands: "#N: resume", "#N: block", and general "#N: <instructions>"
   const cleanCmdText = messageText.replace(/^[*_~`]+|[*_~`]+$/g, "").trim();
-  const resumeCmdMatch = cleanCmdText.match(/^(?:issue\s*)?#?(\d+)\s*:\s*resume\b/i);
-  if (resumeCmdMatch) {
-    const issueNum = parseInt(resumeCmdMatch[1], 10);
-    return {
-      category: "command_resume",
-      issueNumber: issueNum,
-      confidence: 1.0,
-      brief: messageText,
-      tokens: { input: 0, output: 0, costUsd: 0 },
-    };
-  }
+  const colonInstructionMatch = cleanCmdText.match(/^(?:issue\s*)?#?(\d+)\s*:\s*([\s\S]+)$/i);
+  if (colonInstructionMatch) {
+    const issueNum = parseInt(colonInstructionMatch[1], 10);
+    const instructionBody = colonInstructionMatch[2].trim();
+    if (/^resume\b/i.test(instructionBody)) {
+      return {
+        category: "command_resume",
+        issueNumber: issueNum,
+        confidence: 1.0,
+        brief: messageText,
+        tokens: { input: 0, output: 0, costUsd: 0 },
+      };
+    }
+    if (/^block\b/i.test(instructionBody)) {
+      return {
+        category: "command_block",
+        issueNumber: issueNum,
+        confidence: 1.0,
+        brief: messageText,
+        tokens: { input: 0, output: 0, costUsd: 0 },
+      };
+    }
+    // Any other "#N: <instructions>" instruction is directly recognized as a task on issue #N
+    let agent = "web-builder";
+    if (/research|prospect|lead|places/i.test(instructionBody)) agent = "prospect-researcher";
+    else if (/copy|design|brand|visual/i.test(instructionBody)) agent = "creative-director";
+    else if (/video/i.test(instructionBody)) agent = "video-team";
 
-  const blockCmdMatch = cleanCmdText.match(/^(?:issue\s*)?#?(\d+)\s*:\s*block\b/i);
-  if (blockCmdMatch) {
-    const issueNum = parseInt(blockCmdMatch[1], 10);
     return {
-      category: "command_block",
+      category: "task",
       issueNumber: issueNum,
+      agent,
+      door: "aeo",
       confidence: 1.0,
-      brief: messageText,
+      brief: instructionBody,
       tokens: { input: 0, output: 0, costUsd: 0 },
     };
   }
@@ -781,8 +796,36 @@ export async function pollChiefOfStaffIntake(options?: {
         continue;
       }
 
-      // Process Architect message
-      const classification = await classifyArchitectMessage(text, { testMode: isTest });
+      // Process Architect message with try/catch error isolation
+      let classification: any;
+      try {
+        classification = await classifyArchitectMessage(text, { testMode: isTest });
+      } catch (classifyErr: any) {
+        console.error(`[Intake Classification Error] Failed to classify message ${msg.ts}:`, classifyErr?.message || classifyErr);
+        const msgKey = `${channel}:${msg.ts}`;
+        const prevFailures = state.failedAttemptsByMessageKey?.[msgKey] || 0;
+        const currentAttempts = prevFailures + 1;
+        if (!state.failedAttemptsByMessageKey) {
+          state.failedAttemptsByMessageKey = {};
+        }
+        state.failedAttemptsByMessageKey[msgKey] = currentAttempts;
+
+        if (currentAttempts >= 2) {
+          delete state.failedAttemptsByMessageKey[msgKey];
+          const errSummary = (classifyErr?.message || "Classification failed").slice(0, 150);
+          await postLine({
+            channel,
+            text: `*Chief of Staff Error:* Failed to classify message (${errSummary}). Marked as processed.`,
+            thread_ts: msg.ts,
+          }).catch(() => {});
+          if (!lastTs || Number(msg.ts) > Number(lastTs)) {
+            lastTs = msg.ts;
+            state.lastProcessedTsByChannel[channel] = lastTs;
+          }
+        }
+        saveIntakeState(state, isTest);
+        continue;
+      }
 
       // Log intake token cost
       const logLine = `- ${timeStr} IST — Intake classification [${classification.category}]: ${classification.tokens.input} input, ${classification.tokens.output} output · Cost: $${classification.tokens.costUsd.toFixed(4)}`;
@@ -996,75 +1039,18 @@ export async function pollChiefOfStaffIntake(options?: {
         } else if (classification.category === "task") {
           if (classification.issueNumber) {
             const issueNum = classification.issueNumber;
-            const existingIssue = await getIssue(issueNum);
-
-            // 1. Add Architect's text as a comment
-            await addCommentToIssue(
-              issueNum,
-              `**Architect Instruction (via Slack intake):**\n\n${text}`
-            );
-
-            // 2. Identify assigned agent: web-builder for build issues
-            const isBuildIssue =
-              existingIssue?.labels.some((l) => l === "type:build") ||
-              /(?:runner|pdf|build|code|engine|script|app|short-form)/i.test(text) ||
-              (existingIssue && /(?:runner|pdf|build|code|engine|script|app|short-form)/i.test(existingIssue.title));
-
-            let assignedAgent = "web-builder";
-            if (existingIssue) {
-              const forLabel = existingIssue.labels.find((l) => l.startsWith("for:"));
-              if (forLabel && !isBuildIssue) {
-                assignedAgent = forLabel.replace(/^for:/, "");
-              }
-            }
-            if (classification.agent && !isBuildIssue) {
-              assignedAgent = classification.agent;
-            }
-
-            // 3. Set status:in-progress for the issue's agent
-            await removeLabelFromIssue(issueNum, "status:needs-brief");
-            await removeLabelFromIssue(issueNum, "status:blocked");
-            await addLabelsToIssue(issueNum, ["status:in-progress", `for:${assignedAgent}`]);
-
-            // 4. Derive door and channel
-            let door = classification.door || "aeo";
-            if (existingIssue) {
-              const doorLabel = existingIssue.labels.find((l) => l.startsWith("door:"));
-              if (doorLabel) {
-                door = doorLabel.replace(/^door:/, "");
-              }
-            }
-            const doorChannel = `#doors-${door}`;
-
-            // 5. Trigger runner
+            const { resumeIssueWithInstruction } = await import("../../runner/resume.js");
+            const resumeRes = await resumeIssueWithInstruction({
+              issueNumber: issueNum,
+              instructionText: text,
+              source: "intake",
+              slackChannel: channel,
+              slackThreadTs: threadTs,
+              testMode: isTest,
+              triggerRunnerInTestMode: options?.triggerRunnerInTestMode,
+            });
             lastTriggeredRunnerIssue = issueNum;
-            try {
-              if (!isTest || options?.triggerRunnerInTestMode) {
-                const { runIssueTask } = await import("../../runner/runner.js");
-                const issueInput = {
-                  number: issueNum,
-                  title: existingIssue?.title || `Issue #${issueNum}`,
-                  body: existingIssue?.body || "",
-                  labels: existingIssue?.labels || ["type:build", "status:in-progress", `for:${assignedAgent}`, `door:${door}`],
-                  html_url: existingIssue?.html_url,
-                  agentName: assignedAgent,
-                  door,
-                  slackChannel: channel,
-                  slackThreadTs: threadTs,
-                };
-                runIssueTask(issueInput, { testMode: isTest }).catch((err) => {
-                  console.warn(`[Intake] Error executing runner for issue #${issueNum}:`, err);
-                });
-              } else {
-                console.log(`[Intake Test Mode] Runner triggered for issue #${issueNum} (@${assignedAgent})`);
-              }
-            } catch (err: any) {
-              console.warn(`[Intake] Could not trigger runner for issue #${issueNum}:`, err?.message || String(err));
-            }
-
-            // 6. Reply in-thread
-            const replyText = `→ @${assignedAgent}, #${issueNum} resumed, card in ${doorChannel}`;
-            postResult = await postLine({ channel, text: replyText, thread_ts: threadTs });
+            postResult = { ok: resumeRes.success };
           } else {
             const rawAgent = classification.agent || "web-builder";
             const agentRecord = await findAgentByName(rawAgent);
@@ -1211,4 +1197,98 @@ export async function pollChiefOfStaffIntake(options?: {
   }
 
   return { polledCount, processedCount };
+}
+
+/**
+ * Formats an ISO timestamp or date to IST "HH:mm IST".
+ */
+export function formatTimestampToIST(isoOrDate: string | Date): string {
+  try {
+    const d = typeof isoOrDate === "string" ? new Date(isoOrDate) : isoOrDate;
+    if (isNaN(d.getTime())) return "never";
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const istDate = new Date(d.getTime() + istOffset);
+    const hours = String(istDate.getUTCHours()).padStart(2, "0");
+    const minutes = String(istDate.getUTCMinutes()).padStart(2, "0");
+    return `${hours}:${minutes} IST`;
+  } catch {
+    return "never";
+  }
+}
+
+/**
+ * Returns formatted IST time of last completed intake poll (e.g. "16:38 IST" or "never").
+ */
+export function getIntakeLastReadTime(options?: { testMode?: boolean }): string {
+  const isTest = options?.testMode === true || isTestMode();
+  const state = loadIntakeState(isTest);
+  if (!state.lastPolledAt) {
+    return "never";
+  }
+  return formatTimestampToIST(state.lastPolledAt);
+}
+
+let lastStallAlertMs = 0;
+const STALL_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
+const STALL_COOLDOWN_MS = 15 * 60 * 1000; // 15-minute alert cooldown
+
+export function resetIntakeHealthForTests(): void {
+  lastStallAlertMs = 0;
+}
+
+/**
+ * Checks if intake polling has completed within the last 10 minutes.
+ * If no poll has completed for >= 10 minutes, posts an alert to #alerts.
+ */
+export async function checkIntakeHealth(options?: {
+  testMode?: boolean;
+  nowMs?: number;
+  lastPolledAt?: string;
+  forceAlert?: boolean;
+}): Promise<{
+  healthy: boolean;
+  stalled: boolean;
+  elapsedMinutes: number;
+  alertSent: boolean;
+  lastReadTime: string;
+}> {
+  const isTest = options?.testMode === true || isTestMode();
+  const state = loadIntakeState(isTest);
+  const nowMs = options?.nowMs || Date.now();
+  const polledAtStr = options?.lastPolledAt || state.lastPolledAt;
+
+  if (!polledAtStr) {
+    return {
+      healthy: true,
+      stalled: false,
+      elapsedMinutes: 0,
+      alertSent: false,
+      lastReadTime: "never",
+    };
+  }
+
+  const polledAtMs = new Date(polledAtStr).getTime();
+  const elapsedMs = Math.max(0, nowMs - polledAtMs);
+  const elapsedMinutes = Math.floor(elapsedMs / 60000);
+  const stalled = elapsedMs >= STALL_THRESHOLD_MS;
+  const lastReadTime = formatTimestampToIST(polledAtStr);
+
+  let alertSent = false;
+  if (stalled && (options?.forceAlert || (nowMs - lastStallAlertMs >= STALL_COOLDOWN_MS))) {
+    const alertsChannel = isTest ? (config.opsChannelId || "#ops") : (config.alertsChannelId || "#alerts");
+    const alertText = `*[Intake Health Alert]* No intake poll has completed for ${elapsedMinutes} minutes (threshold: 10m). Last read: ${lastReadTime}.`;
+    await postLine({ channel: alertsChannel, text: alertText }).catch((err) => {
+      console.warn("[Intake Health Alert Failure]", err);
+    });
+    lastStallAlertMs = nowMs;
+    alertSent = true;
+  }
+
+  return {
+    healthy: !stalled,
+    stalled,
+    elapsedMinutes,
+    alertSent,
+    lastReadTime,
+  };
 }

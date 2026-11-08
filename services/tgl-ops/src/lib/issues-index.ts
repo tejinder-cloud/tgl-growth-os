@@ -231,3 +231,29 @@ export async function findNeedsBriefIssueByThreadTs(
 
   return candidates[0];
 }
+
+/**
+ * Look up mapped issue for a Slack thread timestamp without requiring status:needs-brief.
+ * Used to resume an issue when a thread reply is posted after Discuss on a card.
+ */
+export async function findIssueByThreadTs(
+  threadTs: string,
+  options?: { testMode?: boolean }
+): Promise<{ issueNumber: number; entry: IssueIndexEntry } | undefined> {
+  const index = await loadIssuesIndex(options);
+  const candidates: { issueNumber: number; entry: IssueIndexEntry }[] = [];
+
+  for (const [numStr, entry] of Object.entries(index)) {
+    if (entry.ts === threadTs) {
+      candidates.push({ issueNumber: Number(numStr), entry });
+    }
+  }
+
+  if (candidates.length === 0) {
+    return undefined;
+  }
+
+  // Sort descending by issue number (most recent first)
+  candidates.sort((a, b) => b.issueNumber - a.issueNumber);
+  return candidates[0];
+}

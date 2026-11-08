@@ -25,7 +25,7 @@ import {
   checkAndRunStartupCatchup,
 } from "./agents/chief-of-staff/worker.js";
 import { execute0900PlanDispatch } from "./agents/chief-of-staff/dispatch.js";
-import { pollChiefOfStaffIntake } from "./agents/chief-of-staff/intake.js";
+import { pollChiefOfStaffIntake, checkIntakeHealth } from "./agents/chief-of-staff/intake.js";
 
 import {
   setupProcessErrorHandlers,
@@ -51,6 +51,15 @@ cron.schedule(
   "*/2 * * * *",
   wrapCronJob("CoS Architect Intake Polling", async () => {
     await pollChiefOfStaffIntake();
+  }),
+  { timezone: config.timezone }
+);
+
+// Every 2 minutes: Intake health watchdog (alerts #alerts if no poll completes for 10 minutes)
+cron.schedule(
+  "*/2 * * * *",
+  wrapCronJob("Intake Health Watchdog", async () => {
+    await checkIntakeHealth();
   }),
   { timezone: config.timezone }
 );
