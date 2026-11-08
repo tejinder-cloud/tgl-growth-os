@@ -250,12 +250,14 @@ export function validateProspectRecord(p: any): { valid: boolean; reason?: strin
     }
   }
 
-  // 6. Fit score threshold
-  if (typeof p.fit_score !== "number" || p.fit_score < 70) {
-    return {
-      valid: false,
-      reason: `Fit score (${p.fit_score}) is below qualification threshold of 70`,
-    };
+  // 6. Fit score threshold (only enforced for active/qualified candidates; rejected rows carry fit_score = 0)
+  if (p.status !== "rejected") {
+    if (typeof p.fit_score !== "number" || p.fit_score < 70) {
+      return {
+        valid: false,
+        reason: `Fit score (${p.fit_score}) is below qualification threshold of 70`,
+      };
+    }
   }
 
   return { valid: true };

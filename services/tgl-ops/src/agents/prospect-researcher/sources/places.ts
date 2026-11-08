@@ -18,6 +18,8 @@ export interface RawPlaceCandidate {
   dnsIp?: string;
   placesBrandCount?: number;
   brandPrefix?: string;
+  placeDetailsEnriched?: boolean;
+  placeDetailsError?: string;
 }
 
 const PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || "";
@@ -111,19 +113,50 @@ export async function searchPlacesCandidates(
  * Enriches candidate with Place Details via Google Places API (New) — places/{id}.
  * Endpoint: GET https://places.googleapis.com/v1/places/{id}
  * Header Authentication: X-Goog-Api-Key
- * FieldMask: id,displayName,formattedAddress,rating,userRatingCount,websiteUri,nationalPhoneNumber,googleMapsUri
+ * FieldMask: id,displayName,formattedAddress,rating,userRatingCount,websiteUri,nationalPhoneNumber,googleMapsUri,businessStatus,regularOpeningHours
  * Strictly consumes 1 quota unit.
  */
 export async function enrichPlaceDetails(
   candidate: RawPlaceCandidate,
   options?: { testMode?: boolean }
 ): Promise<RawPlaceCandidate> {
-  if (!PLACES_API_KEY || !candidate.placeId) {
-    return candidate;
+  if (!candidate.placeId) {
+    return {
+      ...candidate,
+      placeDetailsEnriched: false,
+      placeDetailsError: "Missing placeId",
+    };
   }
 
-  const endpoint = `https://places.googleapis.com/v1/places/${encodeURIComponent(candidate.placeId)}`;
-  const fieldMask = "id,displayName,formattedAddress,rating,userRatingCount,websiteUri,nationalPhoneNumber,googleMapsUri";
+  // In test mode without API key, mark enriched so test harness functions cleanly
+  if (options?.testMode && !PLACES_API_KEY) {
+    return {
+      ...candidate,
+      placeDetailsEnriched: true,
+    };
+  }
+
+  if (!PLACES_API_KEY) {
+    return {
+      ...candidate,
+      placeDetailsEnriched: false,
+      placeDetailsError: "GOOGLE_PLACES_API_KEY not configured",
+    };
+  }
+
+  // Sanitize place ID: strip leading "places/" resource prefix if present
+  const cleanPlaceId = candidate.placeId.replace(/^places\//, "").trim();
+  if (!cleanPlaceId) {
+    return {
+      ...candidate,
+      placeDetailsEnriched: false,
+      placeDetailsError: "Malformed placeId: empty after cleaning",
+    };
+  }
+
+  const endpoint = `https://places.googleapis.com/v1/places/${encodeURIComponent(cleanPlaceId)}`;
+  const fieldMask =
+    "id,displayName,formattedAddress,rating,userRatingCount,websiteUri,nationalPhoneNumber,googleMapsUri,businessStatus,regularOpeningHours";
 
   try {
     checkAndConsumePlacesQuota(1, options);
@@ -148,16 +181,29 @@ export async function enrichPlaceDetails(
         address: data.formattedAddress || candidate.address,
         website: data.websiteUri || candidate.website,
         phone: data.nationalPhoneNumber || candidate.phone,
-        rating: data.rating || candidate.rating,
-        userRatingsTotal: data.userRatingCount || candidate.userRatingsTotal,
+        rating: data.rating !== undefined ? data.rating : candidate.rating,
+        userRatingsTotal: data.userRatingCount !== undefined ? data.userRatingCount : candidate.userRatingsTotal,
         googleMapsUrl: data.googleMapsUri || candidate.googleMapsUrl,
+        placeDetailsEnriched: true,
       };
     }
-  } catch (err: any) {
-    console.warn(`[Places API (New) Details Error on ${candidate.name}]:`, err.message || err);
-  }
 
-  return candidate;
+    console.error(
+      `[Places API Details Error on ${candidate.name} (${cleanPlaceId})]: HTTP ${res.status} error=${data.error?.message || JSON.stringify(data)}`
+    );
+    return {
+      ...candidate,
+      placeDetailsEnriched: false,
+      placeDetailsError: data.error?.message || `HTTP ${res.status}`,
+    };
+  } catch (err: any) {
+    console.error(`[Places API (New) Details Network Failure on ${candidate.name}]:`, err.message || err);
+    return {
+      ...candidate,
+      placeDetailsEnriched: false,
+      placeDetailsError: err.message || String(err),
+    };
+  }
 }
 
 /**

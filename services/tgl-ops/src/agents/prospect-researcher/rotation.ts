@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { config, isTestMode } from "../../config.js";
 import type { RotationCity, RotationCategory, RotationState } from "./types.js";
-import { putFileInRepo } from "../../lib/github-client.js";
+import { putFileInRepo, readFileFromRepo } from "../../lib/github-client.js";
 
 export const ROTATION_CITIES: RotationCity[] = [
   "Delhi NCR",
@@ -30,6 +30,63 @@ function getRotationFilePath(testMode: boolean): string {
   return path.join(config.repoRoot, ROTATION_STATE_FILE);
 }
 
+/**
+ * Calculates deterministic IST weekday-based rotation indices for Mon-Fri:
+ * Monday (1)    -> Delhi NCR (0)
+ * Tuesday (2)   -> Mumbai (1)
+ * Wednesday (3) -> Bengaluru (2)
+ * Thursday (4)  -> Hyderabad (3)
+ * Friday (5)    -> Chandigarh Tricity (4)
+ * Categories rotate day-by-day and week-by-week across:
+ * hospitals (0), cosmetic_dental (1), ivf_fertility (2), high_ticket_coaching (3).
+ */
+export function getWeekdayDefaultRotation(now = new Date()): { cityIndex: number; categoryIndex: number } {
+  // Format current date in Asia/Kolkata timezone
+  const istDateString = now.toLocaleDateString("en-US", { timeZone: "Asia/Kolkata" });
+  const istDate = new Date(istDateString);
+  const dayOfWeek = istDate.getDay(); // 0 = Sun, 1 = Mon, 2 = Tue, 3 = Wed, 4 = Thu, 5 = Fri, 6 = Sat
+
+  // Monday to Friday maps to indices 0 to 4. Weekend defaults to 0 (Delhi NCR).
+  const cityIndex = dayOfWeek >= 1 && dayOfWeek <= 5 ? (dayOfWeek - 1) % ROTATION_CITIES.length : 0;
+
+  // Calculate week of year in IST
+  const startOfYear = new Date(istDate.getFullYear(), 0, 1);
+  const daysDiff = Math.floor((istDate.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000));
+  const weekNumber = Math.max(0, Math.floor(daysDiff / 7));
+
+  // Category cycles day by day across the 4 categories
+  const categoryIndex = (weekNumber + cityIndex) % ROTATION_CATEGORIES.length;
+
+  return { cityIndex, categoryIndex };
+}
+
+/**
+ * Synchronizes rotation state from GitHub repository into local container filesystem.
+ * Essential for ephemeral Railway container boots so state committed on main is restored.
+ */
+export async function syncRotationStateFromRepo(options?: { testMode?: boolean }): Promise<void> {
+  const test = options?.testMode === true || isTestMode();
+  if (test) return;
+
+  const filePath = getRotationFilePath(false);
+  if (!fs.existsSync(filePath) && config.githubToken) {
+    try {
+      const content = await readFileFromRepo(ROTATION_STATE_FILE);
+      if (content) {
+        const dir = path.dirname(filePath);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+        fs.writeFileSync(filePath, content, "utf8");
+        console.log(`[Rotation Sync] Restored rotation state from GitHub repo (${ROTATION_STATE_FILE})`);
+        return;
+      }
+    } catch (err: any) {
+      console.warn(`[Rotation Sync Warning]: Could not restore state from repo:`, err?.message || err);
+    }
+  }
+}
+
 export function loadRotationState(options?: { testMode?: boolean }): RotationState {
   const test = options?.testMode === true || isTestMode();
   const filePath = getRotationFilePath(test);
@@ -37,16 +94,32 @@ export function loadRotationState(options?: { testMode?: boolean }): RotationSta
   if (fs.existsSync(filePath)) {
     try {
       const raw = fs.readFileSync(filePath, "utf8");
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (typeof parsed.currentCityIndex === "number" && typeof parsed.currentCategoryIndex === "number") {
+        return parsed;
+      }
     } catch {
       // fallback
     }
   }
 
+  // In test mode, keep deterministic 0,0 default so unit tests pass identically
+  if (test) {
+    return {
+      version: 1,
+      currentCityIndex: 0,
+      currentCategoryIndex: 0,
+      completedRunsCount: 0,
+      lastRunAt: new Date().toISOString(),
+    };
+  }
+
+  // In production if no state exists on disk, use deterministic IST weekday schedule
+  const weekday = getWeekdayDefaultRotation();
   const fresh: RotationState = {
     version: 1,
-    currentCityIndex: 0,
-    currentCategoryIndex: 0,
+    currentCityIndex: weekday.cityIndex,
+    currentCategoryIndex: weekday.categoryIndex,
     completedRunsCount: 0,
     lastRunAt: new Date().toISOString(),
   };

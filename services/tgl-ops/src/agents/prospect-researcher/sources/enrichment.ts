@@ -411,10 +411,11 @@ async function findVerifiedDecisionMaker(
     };
   }
 
-  // Option B: Architect Decision for Owner-Run Businesses (<50 staff)
+  // Option B: Architect Decision for Owner-Run Businesses (<50 staff) ONLY
   // For owner-run clinics, an authoritative verified contact is the business phone from Google Places.
   // Decision-maker = owner/doctor.
-  if (candidate.phone && candidate.phone.trim().length >= 8) {
+  // CRITICAL: Large organisations / hospitals (>=50 staff) CANNOT use Places phone; Playbook D requires Hunter email.
+  if (!orgSizeGe50 && candidate.phone && candidate.phone.trim().length >= 8) {
     const doctorName = websiteDoctorName || "Owner / Lead Doctor";
     const doctorRole = websiteDoctorRole || "Owner / Lead Doctor";
     const sanitized = sanitizeDecisionMaker(
@@ -438,7 +439,7 @@ async function findVerifiedDecisionMaker(
     name: "",
     role: "",
     email: "",
-    source: "unverified:no_contact_found",
+    source: orgSizeGe50 ? "unverified:large_org_requires_hunter_email" : "unverified:no_contact_found",
     verified: false,
   };
 }
