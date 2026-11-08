@@ -19,6 +19,8 @@ export interface RunnerToolContext {
   totalToolCallsCount?: number;
   toolResults?: Array<{ name: string; result: string }>;
   successfulWritesCount?: number;
+  finished?: boolean;
+  finishDetails?: { items: Array<{ item: string; file: string }>; summary?: string };
 }
 
 export const RUNNER_TOOLS: Anthropic.Tool[] = [
@@ -52,7 +54,7 @@ export const RUNNER_TOOLS: Anthropic.Tool[] = [
   },
   {
     name: "write_file",
-    description: "Creates or updates a file directly on the working branch. The runner may write to services/, .github/, and site/app files. Protected paths: decisions/ and logs/ (written only by service on main). Content cannot be empty.",
+    description: "Creates or updates a file directly on the working branch. The runner may write to services/, .github/, and site/app files. Protected paths: decisions/ and logs/ (written only by service on main). Content cannot be empty. For files over 6,000 characters, write in parts using write_file for the first part and append_file for the rest.",
     input_schema: {
       type: "object",
       properties: {
@@ -63,6 +65,24 @@ export const RUNNER_TOOLS: Anthropic.Tool[] = [
         content: {
           type: "string",
           description: "Full UTF-8 content of the file (required, cannot be empty or 0 bytes)",
+        },
+      },
+      required: ["path", "content"],
+    },
+  },
+  {
+    name: "append_file",
+    description: "Appends UTF-8 text content to an existing file on the current working branch. Use this after write_file when authoring files in parts under 6,000 characters each. Protected paths: decisions/ and logs/.",
+    input_schema: {
+      type: "object",
+      properties: {
+        path: {
+          type: "string",
+          description: "Relative path to file, e.g. services/tgl-ops/src/index.ts or README.md",
+        },
+        content: {
+          type: "string",
+          description: "UTF-8 content to append to the end of the file (required, cannot be empty or 0 bytes)",
         },
       },
       required: ["path", "content"],
@@ -80,6 +100,32 @@ export const RUNNER_TOOLS: Anthropic.Tool[] = [
         },
       },
       required: ["text"],
+    },
+  },
+  {
+    name: "finish",
+    description: "Declares that all numbered Architect items and deliverables are completed. Must list each numbered Architect item with the file where it was built. A runner session ends cleanly only when finish is called or when budget/caps are reached.",
+    input_schema: {
+      type: "object",
+      properties: {
+        items: {
+          type: "array",
+          description: "List of completed numbered Architect items with their built file paths",
+          items: {
+            type: "object",
+            properties: {
+              item: { type: "string", description: "Item description or numbered requirement" },
+              file: { type: "string", description: "Relative file path where the deliverable was built" },
+            },
+            required: ["item", "file"],
+          },
+        },
+        summary: {
+          type: "string",
+          description: "Optional brief summary of deliverables built",
+        },
+      },
+      required: ["items"],
     },
   },
 ];
@@ -198,6 +244,51 @@ export async function executeRunnerTool(
         }
       }
     }
+  } else if (toolName === "append_file") {
+    const rawPath = String(input.path || "").trim();
+    const rawContent = input.content;
+    if (!rawPath) {
+      result = "ERROR: path is required";
+    } else if (
+      rawContent === undefined ||
+      rawContent === null ||
+      typeof rawContent !== "string" ||
+      rawContent.length === 0 ||
+      rawContent.trim().length === 0
+    ) {
+      result = "ERROR: content is required and cannot be empty (0 bytes)";
+    } else if (isProtectedPath(rawPath)) {
+      result = `REFUSAL: Path '${rawPath}' is protected. decisions/, logs/ and logs/.state are written only by the service on main and must never be edited in a PR.`;
+    } else {
+      let existingContent = "";
+      if (virtualFiles && virtualFiles.has(rawPath)) {
+        existingContent = virtualFiles.get(rawPath)!;
+      } else {
+        const remote = await readFileFromBranch(rawPath, branchName);
+        if (remote !== null) {
+          existingContent = remote;
+        }
+      }
+
+      const newContent = existingContent + rawContent;
+      if (virtualFiles) {
+        virtualFiles.set(rawPath, newContent);
+      }
+
+      if (testMode) {
+        context.successfulWritesCount = (context.successfulWritesCount || 0) + 1;
+        result = `SUCCESS: Appended ${rawContent.length} bytes to ${rawPath} (total: ${newContent.length} bytes, test mode branch: ${branchName})`;
+      } else {
+        const commitMsg = `feat(task-${issueNumber}): append to ${rawPath}`;
+        const res = await createOrUpdateFileOnBranch(rawPath, newContent, commitMsg, branchName);
+        if (!res.success) {
+          result = `ERROR: Failed to append to ${rawPath} on branch ${branchName}: ${res.error}`;
+        } else {
+          context.successfulWritesCount = (context.successfulWritesCount || 0) + 1;
+          result = `SUCCESS: Appended ${rawContent.length} bytes to ${rawPath} on branch ${branchName} (total: ${newContent.length} bytes, commit SHA: ${res.sha})`;
+        }
+      }
+    }
   } else if (toolName === "post_thread") {
     const text = String(input.text || "").trim();
     if (!text) {
@@ -213,6 +304,18 @@ export async function executeRunnerTool(
       result = `SUCCESS: Posted message to thread ${slackThreadTs}`;
     } else {
       result = `SUCCESS: Message recorded (no active thread specified): "${text.slice(0, 80)}"`;
+    }
+  } else if (toolName === "finish") {
+    const items = Array.isArray(input.items) ? input.items : [];
+    if (items.length === 0) {
+      result = "ERROR: items list is required. List each numbered Architect item with its file.";
+    } else {
+      context.finished = true;
+      context.finishDetails = {
+        items,
+        summary: input.summary || "",
+      };
+      result = `SUCCESS: Session marked finished with ${items.length} items verified: ${items.map((i: any) => `${i.item || "item"} -> ${i.file || "unknown"}`).join(", ")}`;
     }
   } else {
     result = `ERROR: Unknown tool ${toolName}`;

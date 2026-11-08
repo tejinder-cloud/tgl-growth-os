@@ -12,12 +12,12 @@ import { getCurrentPlanDay } from "./lib/plan.js";
 import { getRunnerState, saveRunnerState, recordRunnerIssue, resetRunnerIssue, releaseRunnerClaim, assertValidRunnerStatusAndPr, clearMockRunnerStateDbForTests } from "./runner/state.js";
 import { catchUpRunnerIssues, recoverInterruptedRunnerIssues } from "./runner/catch-up.js";
 import { runPreflightCheck } from "./runner/preflight.js";
-import { handleRunnerShutdown, setActiveIssueNumberForTests, computeBriefHash, runIssueTask } from "./runner/runner.js";
+import { handleRunnerShutdown, setActiveIssueNumberForTests, computeBriefHash, runIssueTask, getRunnerMaxTokens } from "./runner/runner.js";
 import { executeRunnerTool, type RunnerToolContext } from "./runner/tools.js";
 import { buildRunnerSystemPrompt, buildRunnerUserMessage, buildRepositoryMap, extractAndLoadBriefFiles } from "./runner/prompt.js";
 import { verifyPrDescriptionIssueLinking } from "./ci/check-pr-description.js";
 import { resetMockPostedLines, mockPostedLines, resetMockPostedCards, mockPostedCards } from "./lib/post.js";
-import { mockIssuesStore } from "./lib/github-client.js";
+import { mockIssuesStore, getPullRequestDiffStats } from "./lib/github-client.js";
 import {
   pollChiefOfStaffIntake,
   resetIntakeStateForTests,
@@ -1517,10 +1517,20 @@ async function runFixesVerificationSuite(): Promise<void> {
         },
       ],
     },
-    // Turn 3: empty string text, no tool calls (session completion)
+    // Turn 3: empty string text with finish tool call (concludes session while testing lastModelMessage preservation)
     {
       text: "",
-      toolCalls: [],
+      toolCalls: [
+        {
+          name: "finish",
+          input: {
+            items: [
+              { item: "1. generateOutput module", file: "dist/output.ts" },
+            ],
+            summary: "Completed test output module.",
+          },
+        },
+      ],
     },
   ];
 
@@ -1554,13 +1564,13 @@ async function runFixesVerificationSuite(): Promise<void> {
   console.log("  [Passed] Text-only plan turn gets nudged, then write_file executes and run completes with PR");
   console.log("  [Passed] Initial plan text is preserved in last_model_message across subsequent empty-string turns");
 
-  // Part 2: Mock with text-only turns exceeding 2 nudges ends cleanly with needs-brief
+  // Part 2: Mock with text-only turns exceeding 3 nudges ends cleanly with needs-brief
   clearMockRunnerStateDbForTests();
   const test16BNum = 9977;
   const test16BIssue = {
     number: test16BNum,
-    title: "Fixture session text-only 2-nudge limit test",
-    body: "Deliverable: verify max 2 nudges before ending when no writes happen",
+    title: "Fixture session text-only 3-nudge limit test",
+    body: "Deliverable: verify max 3 nudges before ending when no writes happen",
     labels: ["for:web-builder", "status:in-progress"],
   };
   const test16BBriefHash = computeBriefHash(test16BIssue.body, []);
@@ -1592,7 +1602,8 @@ async function runFixesVerificationSuite(): Promise<void> {
   const mockTurnsExhaust = [
     { text: "Plan turn 1 without writes", toolCalls: [] }, // triggers nudge 1
     { text: "Plan turn 2 without writes", toolCalls: [] }, // triggers nudge 2
-    { text: "Plan turn 3 without writes", toolCalls: [] }, // nudges exhausted (2 >= 2), breaks
+    { text: "Plan turn 3 without writes", toolCalls: [] }, // triggers nudge 3
+    { text: "Plan turn 4 without writes", toolCalls: [] }, // nudges exhausted (3 >= 3), breaks
   ];
 
   const res16Exhaust = await runIssueTask(test16BIssue, {
@@ -1603,16 +1614,16 @@ async function runFixesVerificationSuite(): Promise<void> {
   if (res16Exhaust.success !== false || res16Exhaust.status !== "needs-brief") {
     throw new Error(`Test 16.7 Failed: Expected status needs-brief after nudges exhausted, got: ${res16Exhaust.status}`);
   }
-  if (res16Exhaust.nudgesSent !== 2) {
-    throw new Error(`Test 16.8 Failed: Expected exactly 2 nudges sent, got: ${res16Exhaust.nudgesSent}`);
+  if (res16Exhaust.nudgesSent !== 3) {
+    throw new Error(`Test 16.8 Failed: Expected exactly 3 nudges sent, got: ${res16Exhaust.nudgesSent}`);
   }
   if (res16Exhaust.error !== "run produced no files") {
     throw new Error(`Test 16.9 Failed: Expected 'run produced no files', got: ${res16Exhaust.error}`);
   }
-  if (res16Exhaust.lastModelMessage !== "Plan turn 3 without writes") {
-    throw new Error(`Test 16.10 Failed: Expected lastModelMessage 'Plan turn 3 without writes', got: '${res16Exhaust.lastModelMessage}'`);
+  if (res16Exhaust.lastModelMessage !== "Plan turn 4 without writes") {
+    throw new Error(`Test 16.10 Failed: Expected lastModelMessage 'Plan turn 4 without writes', got: '${res16Exhaust.lastModelMessage}'`);
   }
-  console.log("  [Passed] Session allows up to 2 nudges before ending with status:needs-brief and preserving last text block");
+  console.log("  [Passed] Session allows up to 3 nudges before ending with status:needs-brief and preserving last text block");
   console.log("[Test 16 Passed] Runner nudge loop and last_model_message preservation verified.\n");
   passed++;
 
@@ -1966,22 +1977,18 @@ async function runFixesVerificationSuite(): Promise<void> {
     { testMode: true }
   );
 
-  // Model writes 5 lines (less than 20 non-blank lines)
-  const shortContent = "line 1\nline 2\nline 3\nline 4\nline 5\n";
-  const modelMessageB = "Here is the short 5-line implementation.";
+  // Model opens PR with all-empty added files (0 non-blank lines across all files)
+  const emptyVFiles = new Map<string, string>([["empty.ts", "   \n\n   \n"]]);
+  const modelMessageB = "Here is the empty implementation.";
   const res19B = await runIssueTask(test19IssueB, {
     testMode: true,
-    mockToolCalls: [
-      {
-        name: "write_file",
-        input: { path: "short.ts", content: shortContent },
-      },
-    ],
+    mockCommitsAhead: 1,
+    virtualFiles: emptyVFiles,
     mockModelResponse: modelMessageB,
   });
 
   if (res19B.success || res19B.status !== "needs-brief") {
-    throw new Error(`Test 19.11 Failed: Expected status needs-brief for diff < 20 lines, got ${JSON.stringify(res19B)}`);
+    throw new Error(`Test 19.11 Failed: Expected status needs-brief for all empty files diff, got ${JSON.stringify(res19B)}`);
   }
   if (res19B.error !== "run produced no files") {
     throw new Error(`Test 19.12 Failed: Expected error 'run produced no files', got '${res19B.error}'`);
@@ -2002,7 +2009,7 @@ async function runFixesVerificationSuite(): Promise<void> {
   if (runRecord19B.lastModelMessage !== modelMessageB) {
     throw new Error(`Test 19.16 Failed: Runner state missing lastModelMessage: ${runRecord19B.lastModelMessage}`);
   }
-  console.log("  [Passed] PR with < 20 non-blank lines is closed as 'run produced no files' with model's last message");
+  console.log("  [Passed] PR with all added files empty is closed as 'run produced no files' with model's last message");
 
   // Part 4: PR with >= 20 non-blank lines passes diff gate and completes
   clearMockRunnerStateDbForTests();
@@ -2431,6 +2438,515 @@ async function runFixesVerificationSuite(): Promise<void> {
 
   console.log("  [Passed] Intake health line rendered in 09:00 card, standup digest, and 10-minute stall watchdog alerts cleanly");
   console.log("[Test 23 Passed] Intake health monitoring and stall alert verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 24: Max tokens raised & stop_reason: max_tokens cuts off incomplete
+  // tool_use without writing; append_file writes files in parts under 6,000 chars (Req 1, 2, 3)
+  // -------------------------------------------------------------------------
+  console.log("[Test 24] Testing max_tokens raised, stop_reason max_tokens cutoff handling, and append_file tool...");
+
+  // 1. Verify getRunnerMaxTokens returns 8192
+  const maxRunnerTokens = getRunnerMaxTokens();
+  if (maxRunnerTokens !== 8192) {
+    throw new Error(`Test 24.1 Failed: Expected max runner tokens to be 8192, got: ${maxRunnerTokens}`);
+  }
+  console.log("  [Passed] Runner max_tokens raised to model maximum output (8192 tokens)");
+
+  // 2. Test turn ending with stop_reason: "max_tokens" and incomplete tool_use
+  clearMockRunnerStateDbForTests();
+  const test24IssueA = {
+    number: 99241,
+    title: "[TASK]: Test max_tokens tool_use truncation handling",
+    body: "### deliverable\nWrite long service module\n\n### for-agent\nweb-builder\n\n### door\ncore\n",
+    labels: ["for:web-builder", "door:core", "type:build", "status:in-progress"],
+    agentName: "web-builder",
+    door: "core",
+  };
+
+  const briefHash24A = computeBriefHash(test24IssueA.body, []);
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        "99241": {
+          agent: "web-builder",
+          door: "core",
+          title: test24IssueA.title,
+          status: "in-progress",
+          branch: "task/99241-max-tokens-cutoff",
+          toolCallsCount: 0,
+          preflightHash: briefHash24A,
+          preflightVerdict: "proceed",
+          preflightReason: "Valid brief",
+          runStartedAt: new Date().toISOString(),
+          ownerInstance: null,
+          heartbeatAt: null,
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  const truncatedContent = "export const partial = 'this string was cut off mid-turn";
+  const mockTurns24A = [
+    // Turn 1: Truncated write_file call with stopReason: "max_tokens"
+    {
+      text: "Starting large file write...",
+      toolCalls: [
+        {
+          name: "write_file",
+          input: {
+            path: "services/tgl-ops/src/truncated.ts",
+            content: truncatedContent, // 56 chars
+          },
+        },
+      ],
+      stopReason: "max_tokens",
+      usage: { input_tokens: 500, output_tokens: 4096 },
+    },
+    // Turn 2: Model receives instructions, writes part 1 then part 2 with append_file, then calls finish
+    {
+      text: "Understood. Splitting write into parts.",
+      toolCalls: [
+        {
+          name: "write_file",
+          input: {
+            path: "services/tgl-ops/src/truncated.ts",
+            content: "// Part 1 content\nexport const part1 = 1;\n",
+          },
+        },
+        {
+          name: "append_file",
+          input: {
+            path: "services/tgl-ops/src/truncated.ts",
+            content: "// Part 2 content\nexport const part2 = 2;\n",
+          },
+        },
+        {
+          name: "finish",
+          input: {
+            items: [
+              { item: "1. truncated.ts written in parts", file: "services/tgl-ops/src/truncated.ts" },
+            ],
+            summary: "Completed partitioned file write.",
+          },
+        },
+      ],
+      stopReason: "end_turn",
+      usage: { input_tokens: 600, output_tokens: 250 },
+    },
+  ];
+
+  const res24A = await runIssueTask(test24IssueA, {
+    testMode: true,
+    mockTurns: mockTurns24A,
+  });
+
+  if (!res24A.success || res24A.status !== "completed") {
+    throw new Error(`Test 24.2 Failed: Expected run to succeed after splitting write into parts, got: ${JSON.stringify(res24A)}`);
+  }
+
+  // Verify turn traces logged stop_reason and output tokens
+  if (!res24A.turnTraces || res24A.turnTraces.length < 2) {
+    throw new Error(`Test 24.3 Failed: Expected turnTraces with at least 2 turns, got: ${JSON.stringify(res24A.turnTraces)}`);
+  }
+  const turn1Trace = res24A.turnTraces[0];
+  if (turn1Trace.stop_reason !== "max_tokens" || turn1Trace.output_tokens !== 4096) {
+    throw new Error(`Test 24.4 Failed: Turn 1 trace mismatch: ${JSON.stringify(turn1Trace)}`);
+  }
+  const turn2Trace = res24A.turnTraces[1];
+  if (turn2Trace.stop_reason !== "end_turn" || turn2Trace.output_tokens !== 250) {
+    throw new Error(`Test 24.5 Failed: Turn 2 trace mismatch: ${JSON.stringify(turn2Trace)}`);
+  }
+  console.log("  [Passed] Turn traces logged stop_reason and output tokens per turn");
+
+  // Verify toolResults contains the cutoff instruction for Turn 1
+  const cutoffResult = res24A.toolResults?.find((tr) => tr.result.includes("Your last write was cut off at"));
+  if (!cutoffResult) {
+    throw new Error(`Test 24.6 Failed: Expected cutoff instruction in tool results, got: ${JSON.stringify(res24A.toolResults)}`);
+  }
+  const expectedCutoff = `Your last write was cut off at ${truncatedContent.length} characters. Write this file in parts: write_file for the first part, then append_file for the rest, each under 6,000 characters.`;
+  if (cutoffResult.result !== expectedCutoff) {
+    throw new Error(`Test 24.7 Failed: Cutoff text mismatch. Expected '${expectedCutoff}', got '${cutoffResult.result}'`);
+  }
+  console.log("  [Passed] Incomplete tool_use on stop_reason: max_tokens was not treated as write and returned instruction");
+
+  // 3. Test append_file directly via executeRunnerTool
+  const appendCtx: RunnerToolContext = {
+    issueNumber: 9924,
+    branchName: "task/9924-append-test",
+    testMode: true,
+    virtualFiles: new Map<string, string>(),
+    successfulWritesCount: 0,
+  };
+
+  // write initial content
+  await executeRunnerTool("write_file", { path: "split.ts", content: "// Header\n" }, appendCtx);
+  // append part 2
+  const appendRes1 = await executeRunnerTool("append_file", { path: "split.ts", content: "// Body\n" }, appendCtx);
+  if (!appendRes1.startsWith("SUCCESS: Appended")) {
+    throw new Error(`Test 24.8 Failed: Expected append_file to succeed, got: ${appendRes1}`);
+  }
+  // append part 3
+  await executeRunnerTool("append_file", { path: "split.ts", content: "// Footer\n" }, appendCtx);
+
+  const finalContent = appendCtx.virtualFiles?.get("split.ts");
+  if (finalContent !== "// Header\n// Body\n// Footer\n") {
+    throw new Error(`Test 24.9 Failed: Appended content mismatch, got: '${finalContent}'`);
+  }
+  if (appendCtx.successfulWritesCount !== 3) {
+    throw new Error(`Test 24.10 Failed: Expected 3 successful writes, got: ${appendCtx.successfulWritesCount}`);
+  }
+
+  // append_file rejects empty content
+  const appendEmptyRes = await executeRunnerTool("append_file", { path: "split.ts", content: "" }, appendCtx);
+  if (!appendEmptyRes.startsWith("ERROR: content is required and cannot be empty (0 bytes)")) {
+    throw new Error(`Test 24.11 Failed: Expected empty content error for append_file, got: ${appendEmptyRes}`);
+  }
+
+  // append_file rejects protected paths
+  const appendProtRes = await executeRunnerTool("append_file", { path: "decisions/2026-11-08.md", content: "forbidden" }, appendCtx);
+  if (!appendProtRes.startsWith("REFUSAL: Path 'decisions/2026-11-08.md' is protected")) {
+    throw new Error(`Test 24.12 Failed: Expected protected path refusal for append_file, got: ${appendProtRes}`);
+  }
+  console.log("  [Passed] append_file validates paths, rejects empty content, and appends correctly across multiple parts");
+  console.log("[Test 24 Passed] Max tokens raised, stop_reason max_tokens cutoff handling, and append_file verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 25: PR diff gate on base...head non-empty additions & PR never closed if any non-empty changed file (Req 4)
+  // -------------------------------------------------------------------------
+  console.log("[Test 25] Testing getPullRequestDiffStats compare API and non-empty changed file rule...");
+
+  // 1. Verify getPullRequestDiffStats calculation with non-empty files (e.g. 208 lines like PR #131)
+  const pr131VFiles = new Map<string, string>([
+    ["services/tgl-ops/src/agents/outreach-sequencer/execute.ts", Array(17).fill("const x = 1;").join("\n")],
+    ["services/tgl-ops/src/agents/outreach-sequencer/templates.ts", Array(187).fill("export const tpl = 2;").join("\n")],
+    ["services/tgl-ops/src/agents/outreach-sequencer/types.ts", Array(4).fill("export type T = 3;").join("\n")],
+    ["services/tgl-ops/src/empty.ts", "   \n\n   \n"], // Empty file (0 non-blank lines)
+  ]);
+
+  const diffStats131 = await getPullRequestDiffStats(131, {
+    testMode: true,
+    virtualFiles: pr131VFiles,
+  });
+
+  if (!diffStats131.success) {
+    throw new Error(`Test 25.1 Failed: Expected diffStats success, got error: ${diffStats131.error}`);
+  }
+  if (diffStats131.stats.addedNonBlankLines !== 208) {
+    throw new Error(`Test 25.2 Failed: Expected 208 added non-blank lines on non-empty files, got: ${diffStats131.stats.addedNonBlankLines}`);
+  }
+  if (!diffStats131.stats.hasNonEmptyChangedFile) {
+    throw new Error("Test 25.3 Failed: Expected hasNonEmptyChangedFile to be true");
+  }
+  if (diffStats131.stats.allAddedFilesEmpty) {
+    throw new Error("Test 25.4 Failed: Expected allAddedFilesEmpty to be false");
+  }
+  const emptyEntry = diffStats131.stats.files.find((f) => f.filename.includes("empty.ts"));
+  if (!emptyEntry || !emptyEntry.isEmpty || emptyEntry.addedNonBlankLines !== 0) {
+    throw new Error(`Test 25.5 Failed: Empty file was not correctly identified as empty: ${JSON.stringify(emptyEntry)}`);
+  }
+  console.log("  [Passed] getPullRequestDiffStats correctly counts additions on non-empty files (208 lines) and identifies empty files");
+
+  // 2. Verify: A PR with ANY non-empty changed file is NEVER closed by the gate
+  clearMockRunnerStateDbForTests();
+  const test25IssueA = {
+    number: 99251,
+    title: "[TASK]: PR with non-empty changed file never closed by gate",
+    body: "### deliverable\nImplement non-empty deliverable\n\n### for-agent\nweb-builder\n\n### door\ncore\n",
+    labels: ["for:web-builder", "door:core", "type:build", "status:in-progress"],
+    agentName: "web-builder",
+    door: "core",
+  };
+
+  const briefHash25A = computeBriefHash(test25IssueA.body, []);
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        "99251": {
+          agent: "web-builder",
+          door: "core",
+          title: test25IssueA.title,
+          status: "in-progress",
+          branch: "task/99251-non-empty-pr",
+          toolCallsCount: 0,
+          preflightHash: briefHash25A,
+          preflightVerdict: "proceed",
+          preflightReason: "Valid brief",
+          runStartedAt: new Date().toISOString(),
+          ownerInstance: null,
+          heartbeatAt: null,
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  const res25A = await runIssueTask(test25IssueA, {
+    testMode: true,
+    mockToolCalls: [
+      {
+        name: "write_file",
+        input: { path: "small-fix.ts", content: "export const fixed = true;\n" },
+      },
+    ],
+    mockModelResponse: "Small 1-line deliverable written.",
+  });
+
+  if (!res25A.success || res25A.status !== "completed") {
+    throw new Error(`Test 25.6 Failed: PR with non-empty changed file must complete, got: ${JSON.stringify(res25A)}`);
+  }
+  if (!res25A.prNumber) {
+    throw new Error("Test 25.7 Failed: PR number must be present for completed run");
+  }
+  console.log("  [Passed] A PR with any non-empty changed file is never closed by the gate and completes successfully");
+
+  // 3. Verify: A PR whose changed files are all empty IS closed by the gate as 'run produced no files'
+  clearMockRunnerStateDbForTests();
+  const test25IssueB = {
+    number: 99252,
+    title: "[TASK]: PR whose files are all empty is closed",
+    body: "### deliverable\nEmpty diff test\n\n### for-agent\nweb-builder\n\n### door\ncore\n",
+    labels: ["for:web-builder", "door:core", "type:build", "status:in-progress"],
+    agentName: "web-builder",
+    door: "core",
+  };
+
+  const briefHash25B = computeBriefHash(test25IssueB.body, []);
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        "99252": {
+          agent: "web-builder",
+          door: "core",
+          title: test25IssueB.title,
+          status: "in-progress",
+          branch: "task/99252-empty-pr",
+          toolCallsCount: 0,
+          preflightHash: briefHash25B,
+          preflightVerdict: "proceed",
+          preflightReason: "Valid brief",
+          runStartedAt: new Date().toISOString(),
+          ownerInstance: null,
+          heartbeatAt: null,
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  const res25B = await runIssueTask(test25IssueB, {
+    testMode: true,
+    mockCommitsAhead: 1,
+    virtualFiles: new Map([["empty.ts", "   \n\n\t  \n"]]),
+    mockModelResponse: "Attempted run with empty file.",
+  });
+
+  if (res25B.success || res25B.status !== "needs-brief") {
+    throw new Error(`Test 25.8 Failed: Expected status needs-brief for all-empty diff, got: ${JSON.stringify(res25B)}`);
+  }
+  if (res25B.error !== "run produced no files") {
+    throw new Error(`Test 25.9 Failed: Expected error 'run produced no files', got: '${res25B.error}'`);
+  }
+  console.log("  [Passed] A PR whose changed files are all empty is closed by the gate as 'run produced no files'");
+  console.log("[Test 25 Passed] getPullRequestDiffStats compare calculation and non-empty gate rule verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 26: Session end behavior: text-only turns continue nudge (up to 3) & finish tool (Req 5)
+  // -------------------------------------------------------------------------
+  console.log("[Test 26] Testing session end behavior: text-only continue nudges (up to 3) and finish tool...");
+
+  // 1. Test text-only continue nudges (up to 3)
+  clearMockRunnerStateDbForTests();
+  const test26IssueA = {
+    number: 99261,
+    title: "[TASK]: Session text-only continue nudges limit test",
+    body: "### deliverable\nVerify up to 3 continue nudges on text-only turns\n\n### for-agent\nweb-builder\n\n### door\ncore\n",
+    labels: ["for:web-builder", "door:core", "type:build", "status:in-progress"],
+    agentName: "web-builder",
+    door: "core",
+  };
+
+  const briefHash26A = computeBriefHash(test26IssueA.body, []);
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        "99261": {
+          agent: "web-builder",
+          door: "core",
+          title: test26IssueA.title,
+          status: "in-progress",
+          branch: "task/99261-nudge-test",
+          toolCallsCount: 0,
+          preflightHash: briefHash26A,
+          preflightVerdict: "proceed",
+          preflightReason: "Valid brief",
+          runStartedAt: new Date().toISOString(),
+          ownerInstance: null,
+          heartbeatAt: null,
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  const mockTurns26A = [
+    { text: "Text plan turn 1", toolCalls: [] }, // triggers nudge 1
+    { text: "Text plan turn 2", toolCalls: [] }, // triggers nudge 2
+    { text: "Text plan turn 3", toolCalls: [] }, // triggers nudge 3
+    { text: "Text plan turn 4", toolCalls: [] }, // nudges exhausted (3 >= 3), breaks
+  ];
+
+  const res26A = await runIssueTask(test26IssueA, {
+    testMode: true,
+    mockTurns: mockTurns26A,
+  });
+
+  if (res26A.success !== false || res26A.status !== "needs-brief") {
+    throw new Error(`Test 26.1 Failed: Expected status needs-brief after 3 nudges exhausted, got: ${res26A.status}`);
+  }
+  if (res26A.nudgesSent !== 3) {
+    throw new Error(`Test 26.2 Failed: Expected exactly 3 nudges sent, got: ${res26A.nudgesSent}`);
+  }
+  if (res26A.lastModelMessage !== "Text plan turn 4") {
+    throw new Error(`Test 26.3 Failed: Expected lastModelMessage to hold 'Text plan turn 4', got: '${res26A.lastModelMessage}'`);
+  }
+  console.log("  [Passed] Text-only turns receive continue nudge up to 3 times before ending session");
+
+  // 2. Test session ends cleanly ONLY when finish tool is called with numbered items
+  clearMockRunnerStateDbForTests();
+  const test26IssueB = {
+    number: 99262,
+    title: "[TASK]: Session ends on finish tool call",
+    body: "### deliverable\nBuild outreach composition root\n\n### for-agent\nweb-builder\n\n### door\ncore\n",
+    labels: ["for:web-builder", "door:core", "type:build", "status:in-progress"],
+    agentName: "web-builder",
+    door: "core",
+  };
+
+  const briefHash26B = computeBriefHash(test26IssueB.body, []);
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        "99262": {
+          agent: "web-builder",
+          door: "core",
+          title: test26IssueB.title,
+          status: "in-progress",
+          branch: "task/99262-finish-tool",
+          toolCallsCount: 0,
+          preflightHash: briefHash26B,
+          preflightVerdict: "proceed",
+          preflightReason: "Valid brief",
+          runStartedAt: new Date().toISOString(),
+          ownerInstance: null,
+          heartbeatAt: null,
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  const mockTurns26B = [
+    // Turn 1: text-only plan turn -> receives continue nudge
+    { text: "I will now implement the composition root and register the cron.", toolCalls: [] },
+    // Turn 2: write_file writes deliverable
+    {
+      text: "Writing live.ts deliverable...",
+      toolCalls: [
+        {
+          name: "write_file",
+          input: {
+            path: "services/tgl-ops/src/agents/outreach-sequencer/live.ts",
+            content: "export const compositionRoot = { wired: true };\n",
+          },
+        },
+      ],
+    },
+    // Turn 3: calls finish tool listing each numbered Architect item with its file
+    {
+      text: "All deliverables completed.",
+      toolCalls: [
+        {
+          name: "finish",
+          input: {
+            items: [
+              { item: "1. live.ts composition root", file: "services/tgl-ops/src/agents/outreach-sequencer/live.ts" },
+              { item: "2. Outreach cron registration", file: "services/tgl-ops/src/index.ts" },
+            ],
+            summary: "Wired live sequencer ports and registered cron",
+          },
+        },
+      ],
+    },
+  ];
+
+  const res26B = await runIssueTask(test26IssueB, {
+    testMode: true,
+    mockTurns: mockTurns26B,
+  });
+
+  if (!res26B.success || res26B.status !== "completed") {
+    throw new Error(`Test 26.4 Failed: Expected completed status upon finish tool call, got: ${JSON.stringify(res26B)}`);
+  }
+  if (!res26B.finishDetails || !Array.isArray(res26B.finishDetails.items) || res26B.finishDetails.items.length !== 2) {
+    throw new Error(`Test 26.5 Failed: finishDetails missing or invalid: ${JSON.stringify(res26B.finishDetails)}`);
+  }
+  if (res26B.finishDetails.items[0].file !== "services/tgl-ops/src/agents/outreach-sequencer/live.ts") {
+    throw new Error(`Test 26.6 Failed: finish item file path mismatch: ${JSON.stringify(res26B.finishDetails.items[0])}`);
+  }
+  console.log("  [Passed] Session ends cleanly on finish tool call listing numbered Architect items and files");
+
+  // 3. Test finish tool validation via executeRunnerTool
+  const finishCtx: RunnerToolContext = {
+    issueNumber: 9926,
+    branchName: "task/9926-finish-validation",
+    testMode: true,
+  };
+
+  // Calling finish with empty items returns error and does not set finished
+  const finishEmptyRes = await executeRunnerTool("finish", { items: [] }, finishCtx);
+  if (!finishEmptyRes.startsWith("ERROR: items list is required")) {
+    throw new Error(`Test 26.7 Failed: Expected empty items error, got: ${finishEmptyRes}`);
+  }
+  if (finishCtx.finished) {
+    throw new Error("Test 26.8 Failed: context.finished must be false when items is empty");
+  }
+
+  // Calling finish with items succeeds and sets finished
+  const finishValidRes = await executeRunnerTool(
+    "finish",
+    {
+      items: [{ item: "1. Item A", file: "fileA.ts" }],
+      summary: "Completed Item A",
+    },
+    finishCtx
+  );
+  if (!finishValidRes.startsWith("SUCCESS: Session marked finished with 1 items")) {
+    throw new Error(`Test 26.9 Failed: Expected success for valid finish call, got: ${finishValidRes}`);
+  }
+  if (!finishCtx.finished || !finishCtx.finishDetails?.items) {
+    throw new Error("Test 26.10 Failed: Expected context.finished to be true and finishDetails populated");
+  }
+  console.log("  [Passed] finish tool validates items and records completion details");
+  console.log("[Test 26 Passed] Session end behavior, text-only nudges (up to 3), and finish tool verified.\n");
   passed++;
 
   console.log("==========================================================================");

@@ -180,8 +180,10 @@ export function buildRunnerSystemPrompt(
 - Tools Available:
   • \`read_file(path)\`: Reads file content from the working branch.
   • \`list_dir(path)\`: Lists directory contents on the working branch.
-  • \`write_file(path, content)\`: Writes/updates a file directly on the working branch.
+  • \`write_file(path, content)\`: Creates or overwrites a file on the working branch. Content cannot be empty. For files over 6,000 characters, write in parts using write_file for the first part and append_file for subsequent parts.
+  • \`append_file(path, content)\`: Appends content to an existing file on the working branch. Use this when authoring files in parts under 6,000 characters each.
   • \`post_thread(text)\`: Posts a concise status or inquiry update to the issue card thread.
+  • \`finish(items, summary)\`: Required to conclude the session. Must list each numbered Architect item and the file where it was built.
 
 - PRE-FLIGHT PROCEED VERDICT IS ARCHITECT APPROVAL:
   The pre-flight proceed verdict is the Architect's approval. The task has already undergone pre-flight analysis and received a proceed verdict. Do not pause, wait, or ask questions for approval. You have full approval to execute the task now.
@@ -195,7 +197,13 @@ export function buildRunnerSystemPrompt(
   • After that, writes before reads: prioritize authoring, modifying, and committing files with write_file before performing any additional reads.
 
 - MANDATORY FILE CREATION / MODIFICATION VIA WRITE_FILE:
-  The model must create or change files in this session using write_file, committing in logical steps. Inspect necessary context quickly, then immediately proceed to authoring and updating the deliverable files on the working branch with write_file.
+  The model must create or change files in this session using write_file (and append_file for large files), committing in logical steps. Inspect necessary context quickly, then immediately proceed to authoring and updating the deliverable files on the working branch.
+
+- LARGE FILES IN PARTS:
+  If a file exceeds 6,000 characters, do not attempt to write the entire file in a single write_file call. Write the file in parts: call write_file for the first part, then call append_file for each subsequent part, each under 6,000 characters.
+
+- SESSION COMPLETION VIA FINISH TOOL:
+  A session concludes only when you call the finish tool listing each numbered Architect item with the file where it was built, or when tool call limits or cost caps are reached. Text-only turns without tool calls will receive a continue nudge (up to 3).
 
 - ZERO-WRITE SESSION IS TASK FAILURE:
   A session that ends with no write_file is a task failure, not caution. Ending execution without calling write_file will be treated as an unexecuted run and rejected by the zero-commits gate.
