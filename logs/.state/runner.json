@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-08T06:56:07.755Z",
+  "updatedAt": "2026-11-08T07:00:07.260Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -80,13 +80,12 @@
     },
     "117": {
       "agent": "web-builder",
-      "door": "core",
+      "door": "aeo",
       "title": "[PLAN-D12]: Sales Desk SKILL.md + worker + proposal template",
-      "status": "blocked",
+      "status": "in-progress",
       "runStartedAt": "2026-11-08T05:00:03.055778+00:00",
       "runCompletedAt": "2026-11-08T06:55:35.993+00:00",
-      "error": "Boot recovery limit exceeded (2 attempts). Execution stopped to prevent restart loops.",
-      "recoveryAttempts": 2,
+      "recoveryAttempts": 0,
       "lastRecoveryAlertAt": "2026-11-08T06:55:35.03+00:00",
       "ownerInstance": null,
       "heartbeatAt": null,
@@ -104,7 +103,7 @@
       "runCompletedAt": "2026-11-08T05:56:01.209+00:00",
       "recoveryAttempts": 0,
       "ownerInstance": "inst_1794120930583_fab26946",
-      "heartbeatAt": "2026-11-08T06:56:07.423755+00:00",
+      "heartbeatAt": "2026-11-08T06:59:37.761+00:00",
       "toolCallsCount": 0,
       "preflightHash": "d821c0da704fa8e9",
       "preflightVerdict": "proceed",
