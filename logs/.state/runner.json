@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-07T11:10:20.336Z",
+  "updatedAt": "2026-11-08T05:00:03.435Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -77,6 +77,17 @@
       "preflightVerdict": "proceed",
       "preflightReason": "The brief is concrete and bounded. It asks for a composition root that does five things. (1) It registers the daily tick, Mon-Fri 09:30-17:30 IST. (2) It connects Supabase prospects, GHL, the short-form audit engine and Slack. GHL sends email, and sends WhatsApp when GHL_WA_PHONE_ID is set, with email as the fallback. (3) It reads templates from agents/outreach-sequencer/templates. (4) It wires setOutreachReplyDeps so POST /outreach/ghl-reply works. (5) It stays dry-run until OUTREACH_LIVE=1. It also says not to recreate the modules and templates from PR #104, which are already on main, so the scope is wiring only. Under TASK-P07, writing to services/ on a task branch is allowed, and the CI gate (`npm run build` plus tests) covers it.\n\nThe brief doesn't breach any §8 Never guardrail. The default is dry-run, so nothing goes live until OUTREACH_LIVE=1 is set, and that is a separate deliberate action. The PR doesn't ask for any change to DNS, plugins, external script tags, pricing or positioning, and it doesn't delete content.\n\nThe proof artifact, logs//outreach-sequencer.md, is written at runtime by the service on Railway. The PR does not edit it, so the protected-path rule on logs/ is not violated. The agent must not hand-author or commit anything under logs/ or decisions/. The agent should also write unit tests that render five touches for a test prospect, so the result can be checked in CI without Railway.",
       "lastModelMessage": "I can't complete this task, and the branch holds no usable deliverable. Every `write_file` call I made went out without its `content` argument, so `services/tgl-ops/src/agents/outreach-sequencer/live.ts` is an empty file (0 bytes). It's the only file I wrote or changed. I made roughly ten attempts and kept repeating the same mistake, so I'm stopping rather than burning more calls.\n\nI did not wire the following:\n- **Daily tick:** nothing is registered in `index.ts`.\n- **Reply webhook:** `setOutreachReplyDeps` is not called, so `POST /outreach/ghl-reply` still returns 503.\n- **Dry-run proof:** no tick has run, and nothing is written to `logs/<date>/outreach-sequencer.md`.\n- **Templates:** nothing reads the files in `agents/outreach-sequencer/templates`. I never opened them, so I haven't checked that `renderTouch` matches them.\n\n**Read-only findings, if you restart this**\n- The sequencer modules are in `services/tgl-ops/src/agents/outreach-sequencer/`, not under `agents/`. `worker.ts` (`runTick`), `execute.ts` (`makeExecute`), `store.ts` (`createSupabaseStore`), `ghl.ts`, `onepager.ts` and `reply.ts` are all there.\n- `routes/outreach.ts` already exports `setOutreachReplyDeps`. It needs `{ store, ghl, notify }`.\n- `lib/log.ts` has `appendLog({ agent: \"outreach-sequencer\", text })`, which writes to `logs/<date>/outreach-sequencer.md`.\n- Nothing in the repo enrolls prospects into a sequence. `store.loadEnrollable` exists, but nothing calls it.\n- The GHL client has no field for `GHL_WA_PHONE_ID`. I haven't checked what the GHL API expects for that field.\n\n**Plan for the retry**\n1. **`live.ts`:** write the composition root. It would build the executor ports, the tick ports and the reply wiring, and refuse a live tick if GHL or Supabase is unset.\n2. **`index.ts`:** register a cron every 30 minutes, Mon–Fri 09:00–17:30 IST, and call the wiring once at boot.\n3. **`routes/outreach.ts`:** add a secret-protected `POST /outreach/proof-tick` that forces dry-run and renders all five touches for a clearly labelled test prospect.\n\nThe review needs to know that proof would use a fixture audit, not a real one.\n\nThe empty `live.ts` will fail the build if it merges. Retry the task, or drop that file, before review."
+    },
+    "117": {
+      "agent": "web-builder",
+      "door": "core",
+      "title": "[PLAN-D12]: Sales Desk SKILL.md + worker + proposal template",
+      "status": "in-progress",
+      "runStartedAt": "2026-11-08T05:00:03.055778+00:00",
+      "recoveryAttempts": 0,
+      "ownerInstance": "inst_1794053549100_d4d14b2f",
+      "heartbeatAt": "2026-11-08T05:00:03.055778+00:00",
+      "toolCallsCount": 0
     },
     "120": {
       "agent": "web-builder",
