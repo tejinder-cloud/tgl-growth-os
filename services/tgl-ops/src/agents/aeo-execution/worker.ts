@@ -66,7 +66,12 @@ export async function runImplementer(fetchImpl: typeof fetch = fetch): Promise<n
       if (!token) throw new Error("no saved token");
       const c = new McpClient(wp.config.endpoint, String(token), fetchImpl, 60_000);
       await c.connect();
-      const site = new SiteTools(c, wp.config.schemas ?? {});
+      // Use the site's tools as they are right now (a switch flipped in Easy MCP AI after the last check counts),
+      // and keep the stored copy current for the Settings card.
+      const tools = await c.tools();
+      const schemas = Object.fromEntries(tools.filter((t) => isAllowedTool(t.name, t)).map((t) => [t.name, t.inputSchema ?? {}]));
+      await sb.from("integrations").update({ config: { ...wp.config, schemas, schemas_v: SCHEMA_VERSION, tools: summariseTools(tools).names, tool_count: tools.length } }).eq("brand_id", a.brand_id).eq("provider", "wordpress");
+      const site = new SiteTools(c, schemas);
       const isMeta = a.detail?.wp_type === "meta" || (await sb.from("assets").select("kind").eq("id", a.detail?.asset_id).maybeSingle()).data?.kind === "meta";
       const patch = isMeta
         ? (a.detail?.step === "publish" ? await applyMeta(site, a) : await planMeta(sb, site, a, wp.config.endpoint))
@@ -125,7 +130,7 @@ async function publish(site: SiteTools, a: Action, endpoint: string) {
   };
 }
 
-const RM_OFF = "Rank Math tools are switched off in Easy MCP AI — in WordPress open Easy MCP AI → Integrations, turn on Rank Math, then try again in 2 minutes";
+const RM_OFF = "TrueVisible can't see Easy MCP AI's Rank Math tool wp_rm_update_post_seo — in WordPress open Easy MCP AI → Tools, make sure it's enabled and saved, and that the connection's token has Write access; then try again";
 
 type MetaChange = { label: string; page_id: number; page_title: string; link: string; field: "title" | "description"; key: string; old: string | null; new: string };
 
