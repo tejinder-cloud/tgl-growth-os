@@ -12,7 +12,7 @@ import { getCurrentPlanDay } from "./lib/plan.js";
 import { getRunnerState, saveRunnerState, recordRunnerIssue, resetRunnerIssue, releaseRunnerClaim, assertValidRunnerStatusAndPr, clearMockRunnerStateDbForTests } from "./runner/state.js";
 import { catchUpRunnerIssues, recoverInterruptedRunnerIssues } from "./runner/catch-up.js";
 import { runPreflightCheck } from "./runner/preflight.js";
-import { handleRunnerShutdown, setActiveIssueNumberForTests, computeBriefHash, runIssueTask, getRunnerMaxTokens } from "./runner/runner.js";
+import { handleRunnerShutdown, setActiveIssueNumberForTests, setShuttingDownForTests, computeBriefHash, runIssueTask, getRunnerMaxTokens } from "./runner/runner.js";
 import { executeRunnerTool, type RunnerToolContext } from "./runner/tools.js";
 import { buildRunnerSystemPrompt, buildRunnerUserMessage, buildRepositoryMap, extractAndLoadBriefFiles } from "./runner/prompt.js";
 import { verifyPrDescriptionIssueLinking } from "./ci/check-pr-description.js";
@@ -2947,6 +2947,159 @@ async function runFixesVerificationSuite(): Promise<void> {
   }
   console.log("  [Passed] finish tool validates items and records completion details");
   console.log("[Test 26 Passed] Session end behavior, text-only nudges (up to 3), and finish tool verified.\n");
+  passed++;
+
+  // -------------------------------------------------------------------------
+  // Test 27: Deploy interruptions must never increment recovery_attempts on a branchless run
+  // -------------------------------------------------------------------------
+  console.log("[Test 27] Testing that deploy interruptions never increment recovery_attempts on branchless runs...");
+
+  // Setup branchless issue #117 in runner state
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        "117": {
+          agent: "web-builder",
+          door: "aeo",
+          title: "[PLAN-D12]: Sales Desk SKILL.md + worker + proposal template",
+          status: "in-progress" as const,
+          runStartedAt: new Date().toISOString(),
+          recoveryAttempts: 0,
+          ownerInstance: "inst_deploy_old",
+          heartbeatAt: new Date().toISOString(),
+          // branch is undefined / null (branchless!)
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  // 1. Simulate Deploy Interruption 1: active issue #117 receives SIGTERM before branch creation
+  setActiveIssueNumberForTests(117);
+  await handleRunnerShutdown("SIGTERM", { testMode: true });
+  setActiveIssueNumberForTests(null);
+
+  const stateAfterDeploy1Sigterm = await getRunnerState({ testMode: true });
+  if (stateAfterDeploy1Sigterm.runs["117"]?.recoveryAttempts !== 0) {
+    throw new Error(
+      `Test 27.1 Failed: Expected recoveryAttempts=0 after Deploy 1 SIGTERM, got: ${stateAfterDeploy1Sigterm.runs["117"]?.recoveryAttempts}`
+    );
+  }
+  if (stateAfterDeploy1Sigterm.runs["117"]?.status !== "interrupted") {
+    throw new Error(
+      `Test 27.2 Failed: Expected status 'interrupted' after Deploy 1 SIGTERM, got: ${stateAfterDeploy1Sigterm.runs["117"]?.status}`
+    );
+  }
+  console.log("  [Passed] Deploy 1 SIGTERM marked branchless run 'interrupted' without incrementing recoveryAttempts");
+
+  // Boot recovery 1 on new container
+  const recoveredDeploy1 = await recoverInterruptedRunnerIssues({ testMode: true });
+  if (!recoveredDeploy1.includes(117)) {
+    throw new Error(`Test 27.3 Failed: Branchless run #117 was not recovered on Boot 1: ${recoveredDeploy1.join(", ")}`);
+  }
+
+  const stateAfterBoot1_27 = await getRunnerState({ testMode: true });
+  if (stateAfterBoot1_27.runs["117"]?.recoveryAttempts !== 0) {
+    throw new Error(
+      `Test 27.4 Failed: recoveryAttempts must remain 0 after Boot 1 recovery, got: ${stateAfterBoot1_27.runs["117"]?.recoveryAttempts}`
+    );
+  }
+  if (stateAfterBoot1_27.runs["117"]?.status !== "in-progress") {
+    throw new Error(
+      `Test 27.5 Failed: Expected status 'in-progress' after Boot 1 recovery, got: ${stateAfterBoot1_27.runs["117"]?.status}`
+    );
+  }
+  if (stateAfterBoot1_27.runs["117"]?.branch) {
+    throw new Error(
+      `Test 27.6 Failed: Branch must remain undefined for branchless run, got: ${stateAfterBoot1_27.runs["117"]?.branch}`
+    );
+  }
+  console.log("  [Passed] Boot 1 recovered branchless run to in-progress with recoveryAttempts=0");
+
+  // 2. Simulate Deploy Interruption 2: execution resumed on new container, still branchless, interrupted again by deploy #2
+  setActiveIssueNumberForTests(117);
+  await handleRunnerShutdown("SIGTERM", { testMode: true });
+  setActiveIssueNumberForTests(null);
+
+  const stateAfterDeploy2Sigterm = await getRunnerState({ testMode: true });
+  if (stateAfterDeploy2Sigterm.runs["117"]?.recoveryAttempts !== 0) {
+    throw new Error(
+      `Test 27.7 Failed: Expected recoveryAttempts=0 after Deploy 2 SIGTERM, got: ${stateAfterDeploy2Sigterm.runs["117"]?.recoveryAttempts}`
+    );
+  }
+
+  // Boot recovery 2 on second new container
+  const recoveredDeploy2 = await recoverInterruptedRunnerIssues({ testMode: true });
+  if (!recoveredDeploy2.includes(117)) {
+    throw new Error(`Test 27.8 Failed: Branchless run #117 was not recovered on Boot 2: ${recoveredDeploy2.join(", ")}`);
+  }
+
+  const stateAfterBoot2_27 = await getRunnerState({ testMode: true });
+  if (stateAfterBoot2_27.runs["117"]?.recoveryAttempts !== 0) {
+    throw new Error(
+      `Test 27.9 Failed: Deploy interruptions must NEVER increment recoveryAttempts! Expected 0, got: ${stateAfterBoot2_27.runs["117"]?.recoveryAttempts}`
+    );
+  }
+  if (stateAfterBoot2_27.runs["117"]?.status === "blocked") {
+    throw new Error(
+      `Test 27.10 Failed: Branchless run was falsely marked 'blocked' with: ${stateAfterBoot2_27.runs["117"]?.error}`
+    );
+  }
+  if (stateAfterBoot2_27.runs["117"]?.status !== "in-progress") {
+    throw new Error(
+      `Test 27.11 Failed: Expected status 'in-progress' after Boot 2, got: ${stateAfterBoot2_27.runs["117"]?.status}`
+    );
+  }
+  console.log("  [Passed] Boot 2 recovered branchless run again without incrementing recoveryAttempts (strictly 0, not blocked)");
+
+  // 3. Test that runIssueTask catch block does not increment recoveryAttempts on SIGTERM / process termination
+  setShuttingDownForTests(true);
+  const testBranchlessIssue = {
+    number: 1179,
+    title: "Test Branchless SIGTERM Catch",
+    body: "### deliverable\nTest deliverable",
+    labels: ["for:web-builder", "door:aeo", "type:build", "status:in-progress"],
+  };
+
+  await saveRunnerState(
+    {
+      version: 1,
+      updatedAt: new Date().toISOString(),
+      runs: {
+        "1179": {
+          agent: "web-builder",
+          door: "aeo",
+          title: testBranchlessIssue.title,
+          status: "in-progress" as const,
+          runStartedAt: new Date().toISOString(),
+          recoveryAttempts: 0,
+        },
+      },
+    },
+    { testMode: true }
+  );
+
+  // Calling runIssueTask while shutting down should release claim as interrupted without calling incrementRecoveryAttempts
+  const runAbortRes = await runIssueTask(testBranchlessIssue, {
+    testMode: true,
+  });
+  setShuttingDownForTests(false);
+
+  const stateAfterCatchAbort = await getRunnerState({ testMode: true });
+  if (stateAfterCatchAbort.runs["1179"]?.recoveryAttempts !== 0) {
+    throw new Error(
+      `Test 27.12 Failed: Catch block incremented recoveryAttempts on process termination! Got: ${stateAfterCatchAbort.runs["1179"]?.recoveryAttempts}`
+    );
+  }
+  if (stateAfterCatchAbort.runs["1179"]?.status !== "interrupted") {
+    throw new Error(
+      `Test 27.13 Failed: Expected status 'interrupted' after shutdown abort, got: ${stateAfterCatchAbort.runs["1179"]?.status}`
+    );
+  }
+  console.log("  [Passed] runIssueTask catch block releases as 'interrupted' without incrementing recoveryAttempts on process termination");
+  console.log("[Test 27 Passed] Deploy interruptions with branchless runs verified.\n");
   passed++;
 
   console.log("==========================================================================");
