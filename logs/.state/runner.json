@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-08T05:00:03.435Z",
+  "updatedAt": "2026-11-08T05:21:08.372Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -82,11 +82,13 @@
       "agent": "web-builder",
       "door": "core",
       "title": "[PLAN-D12]: Sales Desk SKILL.md + worker + proposal template",
-      "status": "in-progress",
+      "status": "failed",
       "runStartedAt": "2026-11-08T05:00:03.055778+00:00",
-      "recoveryAttempts": 0,
-      "ownerInstance": "inst_1794053549100_d4d14b2f",
-      "heartbeatAt": "2026-11-08T05:00:03.055778+00:00",
+      "runCompletedAt": "2026-11-08T05:21:07.278+00:00",
+      "error": "Agent @web-builder exceeded daily cost cap ($12.24 / $12.00 limit). LLM call blocked.",
+      "recoveryAttempts": 1,
+      "ownerInstance": null,
+      "heartbeatAt": null,
       "toolCallsCount": 0
     },
     "120": {
