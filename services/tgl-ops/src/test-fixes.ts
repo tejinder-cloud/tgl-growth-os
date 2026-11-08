@@ -3226,7 +3226,10 @@ async function runFixesVerificationSuite(): Promise<void> {
   }
   console.log(`  ✓ Owner-run clinic (<50 staff) accepts Places business phone and qualifies (score: ${clinicEval.fitScore})`);
 
-  // 28.5 Weekly Re-score: Chain Rule marks Max Saket (chain HQ) as rejected with reason
+  // 28.5 Weekly Re-score: Generic Chain Rule (Zero Name Matches)
+  // Rejects Max Saket (root domain hosts other branches) with signal named in fit_reasons
+  // Rejects fixture chains with completely different names (Places locations >= 3, root domain branches, HQ in another metro)
+  // Keeps single-location clinics
   const existingRows: ProspectRecord[] = [
     {
       tenant_id: "tgl",
@@ -3259,13 +3262,104 @@ async function runFixesVerificationSuite(): Promise<void> {
     },
     {
       tenant_id: "tgl",
+      company: "Sunrise Multispeciality Hospital, Indiranagar",
+      category: "hospitals",
+      city: "Bengaluru",
+      website: "https://www.sunrisecare.in/locations/indiranagar",
+      door: "aeo",
+      fit_score: 80,
+      fit_reasons: ["Dim 1: High anxiety (+25 pts)", "Dim 2: Paid budget (+15 pts)", "Dim 3: GBP (+10 pts)", "Dim 4: Scale (+15 pts)", "Dim 5: Reachable (+15 pts)"],
+      decision_maker: {
+        name: "Dr. Ramesh Rao",
+        role: "Medical Director",
+        email: "ramesh@sunrisecare.in",
+        source: "hunter:verified (status: deliverable, score: 90)",
+      },
+      signals: {
+        meta_ads_active: true,
+        meta_ad_count: 6,
+        gbp_reviews: 800,
+        gbp_owner_replies: true,
+        hiring_marketing: false,
+        review_surge: true,
+        branch_count: 1,
+        places_brand_count: 1,
+      },
+      status: "reviewed",
+      source_refs: ["places:place_id:ChIJsunrise", "dns:pass:104.18.22.3"],
+      created_at: "2026-10-30T09:30:00.000Z",
+      rescored_at: "2026-10-30T09:30:00.000Z",
+    },
+    {
+      tenant_id: "tgl",
+      company: "Zenith Dental Care Network",
+      category: "cosmetic_dental",
+      city: "Delhi NCR",
+      website: "https://zenithdentalcare.in",
+      door: "aeo",
+      fit_score: 75,
+      fit_reasons: ["Dim 1: High anxiety (+25 pts)", "Dim 2: Paid budget (+10 pts)", "Dim 3: GBP (+10 pts)", "Dim 4: Scale (+15 pts)", "Dim 5: Reachable (+15 pts)"],
+      decision_maker: {
+        name: "Dr. Vikram Seth",
+        role: "Managing Director",
+        email: "vikram@zenithdentalcare.in",
+        source: "hunter:verified (status: deliverable, score: 92)",
+      },
+      signals: {
+        meta_ads_active: true,
+        meta_ad_count: 5,
+        gbp_reviews: 550,
+        gbp_owner_replies: true,
+        hiring_marketing: false,
+        review_surge: true,
+        branch_count: 3,
+        places_brand_count: 3,
+      },
+      status: "reviewed",
+      source_refs: ["places:place_id:ChIJzenith", "dns:pass:104.18.22.4"],
+      created_at: "2026-10-30T09:30:00.000Z",
+      rescored_at: "2026-10-30T09:30:00.000Z",
+    },
+    {
+      tenant_id: "tgl",
+      company: "Aura Cosmetic Surgery Centre",
+      category: "cosmetic_dental",
+      city: "Chandigarh Tricity",
+      website: "https://auracosmetic.in",
+      door: "aeo",
+      fit_score: 75,
+      fit_reasons: ["Dim 1: High anxiety (+25 pts)", "Dim 2: Paid budget (+10 pts)", "Dim 3: GBP (+10 pts)", "Dim 4: Scale (+15 pts)", "Dim 5: Reachable (+15 pts)"],
+      decision_maker: {
+        name: "Dr. Neha Sharma",
+        role: "Managing Director",
+        email: "neha@auracosmetic.in",
+        source: "hunter:verified (status: deliverable, score: 88)",
+      },
+      signals: {
+        meta_ads_active: true,
+        meta_ad_count: 3,
+        gbp_reviews: 320,
+        gbp_owner_replies: true,
+        hiring_marketing: false,
+        review_surge: false,
+        branch_count: 1,
+        places_brand_count: 1,
+        registered_hq_metro: "Mumbai",
+      },
+      status: "reviewed",
+      source_refs: ["places:place_id:ChIJaura", "dns:pass:104.18.22.5"],
+      created_at: "2026-10-30T09:30:00.000Z",
+      rescored_at: "2026-10-30T09:30:00.000Z",
+    },
+    {
+      tenant_id: "tgl",
       company: "Dr. Batra Advanced Dental Studio",
       category: "cosmetic_dental",
       city: "Delhi NCR",
       website: "https://batradentalstudio.com",
       door: "aeo",
       fit_score: 75,
-      fit_reasons: ["Dim 1: High anxiety (+25 pts)", "Dim 2: Paid budget (+10 pts)", "Dim 3: GBP (+15 pts)", "Dim 4: Single location (0 pts)", "Dim 5: Places phone (+10 pts)"],
+      fit_reasons: ["Dim 1: High anxiety (+25 pts)", "Dim 2: Paid budget (+15 pts)", "Dim 3: GBP (+10 pts)", "Dim 4: Review surge (+10 pts)", "Dim 5: Places phone (+10 pts)"],
       decision_maker: {
         name: "Dr. Anil Batra",
         role: "Owner / Lead Doctor",
@@ -3274,13 +3368,14 @@ async function runFixesVerificationSuite(): Promise<void> {
         source: "places:phone (verified business line) + website:owner",
       },
       signals: {
-        meta_ads_active: false,
-        meta_ad_count: 0,
+        meta_ads_active: true,
+        meta_ad_count: 3,
         gbp_reviews: 140,
         gbp_owner_replies: true,
-        hiring_marketing: false,
-        review_surge: false,
+        hiring_marketing: true,
+        review_surge: true,
         branch_count: 1,
+        places_brand_count: 1,
         is_large_org: false,
       },
       status: "reviewed",
@@ -3293,6 +3388,7 @@ async function runFixesVerificationSuite(): Promise<void> {
   setMockProspectRecordsForTests(existingRows);
   const rescoreResult = await rescoreProspects({ testMode: true });
 
+  // 1. Max Saket rejected by generic chain rule (root domain hosts other branches)
   const rescoredMax = rescoreResult.records.find((r) => r.company.includes("Max"));
   if (!rescoredMax) {
     throw new Error(`Test 28.5 Failed: Max Saket record missing from re-score result`);
@@ -3303,11 +3399,51 @@ async function runFixesVerificationSuite(): Promise<void> {
   if (rescoredMax.fit_score !== 0) {
     throw new Error(`Test 28.5 Failed: Max Saket fit_score must be 0, got: ${rescoredMax.fit_score}`);
   }
-  const hasChainReason = rescoredMax.fit_reasons.some((r) => r.includes("Playbook C") || r.includes("chain") || r.includes("maxhealthcare.in"));
-  if (!hasChainReason) {
-    throw new Error(`Test 28.5 Failed: Max Saket fit_reasons must state Playbook C chain reason: ${JSON.stringify(rescoredMax.fit_reasons)}`);
+  const hasMaxSignal = rescoredMax.fit_reasons.some((r) => r.includes("root domain hosts other branches") || r.includes("brand appears at 3 or more Places locations"));
+  if (!hasMaxSignal) {
+    throw new Error(`Test 28.5 Failed: Max Saket fit_reasons must state generic chain signal (root domain hosts other branches): ${JSON.stringify(rescoredMax.fit_reasons)}`);
   }
-  console.log(`  ✓ Max Saket moved to status='rejected' with fit_score=0: ${rescoredMax.fit_reasons[3]}`);
+  console.log(`  ✓ Max Saket rejected by generic chain rule with signal named in fit_reasons: ${rescoredMax.fit_reasons[3]}`);
+
+  // 2. Fixture chain with different name rejected (Sunrise - root domain hosts other branches)
+  const rescoredSunrise = rescoreResult.records.find((r) => r.company.includes("Sunrise"));
+  if (!rescoredSunrise || rescoredSunrise.status !== "rejected" || rescoredSunrise.fit_score !== 0) {
+    throw new Error(`Test 28.5 Failed: Sunrise chain with different name must be rejected, got: status=${rescoredSunrise?.status}, score=${rescoredSunrise?.fit_score}`);
+  }
+  const hasSunriseSignal = rescoredSunrise.fit_reasons.some((r) => r.includes("root domain hosts other branches"));
+  if (!hasSunriseSignal) {
+    throw new Error(`Test 28.5 Failed: Sunrise fit_reasons must name signal 'root domain hosts other branches': ${JSON.stringify(rescoredSunrise.fit_reasons)}`);
+  }
+  console.log(`  ✓ Fixture chain with different name (Sunrise) rejected by root domain branches signal: ${rescoredSunrise.fit_reasons[3]}`);
+
+  // 3. Fixture chain with different name rejected (Zenith - brand appears at 3 or more Places locations)
+  const rescoredZenith = rescoreResult.records.find((r) => r.company.includes("Zenith"));
+  if (!rescoredZenith || rescoredZenith.status !== "rejected" || rescoredZenith.fit_score !== 0) {
+    throw new Error(`Test 28.5 Failed: Zenith chain must be rejected, got: status=${rescoredZenith?.status}`);
+  }
+  const hasZenithSignal = rescoredZenith.fit_reasons.some((r) => r.includes("brand appears at 3 or more Places locations"));
+  if (!hasZenithSignal) {
+    throw new Error(`Test 28.5 Failed: Zenith fit_reasons must name signal 'brand appears at 3 or more Places locations': ${JSON.stringify(rescoredZenith.fit_reasons)}`);
+  }
+  console.log(`  ✓ Fixture chain with different name (Zenith) rejected by 3+ Places locations signal: ${rescoredZenith.fit_reasons[3]}`);
+
+  // 4. Fixture chain with different name rejected (Aura - registered HQ is in another metro)
+  const rescoredAura = rescoreResult.records.find((r) => r.company.includes("Aura"));
+  if (!rescoredAura || rescoredAura.status !== "rejected" || rescoredAura.fit_score !== 0) {
+    throw new Error(`Test 28.5 Failed: Aura chain must be rejected, got: status=${rescoredAura?.status}`);
+  }
+  const hasAuraSignal = rescoredAura.fit_reasons.some((r) => r.includes("registered HQ is in another metro"));
+  if (!hasAuraSignal) {
+    throw new Error(`Test 28.5 Failed: Aura fit_reasons must name signal 'registered HQ is in another metro': ${JSON.stringify(rescoredAura.fit_reasons)}`);
+  }
+  console.log(`  ✓ Fixture chain with different name (Aura) rejected by HQ in another metro signal: ${rescoredAura.fit_reasons[3]}`);
+
+  // 5. Single-location clinic is NOT rejected
+  const rescoredClinic = rescoreResult.records.find((r) => r.company.includes("Batra"));
+  if (!rescoredClinic || rescoredClinic.status === "rejected" || rescoredClinic.fit_score < 70) {
+    throw new Error(`Test 28.5 Failed: Single-location clinic must NOT be rejected, got: status=${rescoredClinic?.status}, score=${rescoredClinic?.fit_score}`);
+  }
+  console.log(`  ✓ Single-location clinic (Dr. Batra) is NOT rejected (status: ${rescoredClinic.status}, score: ${rescoredClinic.fit_score})`);
 
   // 28.6 Write gate permits status='rejected' records
   const writeGateCheck = validateProspectRecord(rescoredMax);

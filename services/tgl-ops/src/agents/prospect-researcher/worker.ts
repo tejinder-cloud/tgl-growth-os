@@ -197,8 +197,9 @@ export async function runProspectResearch(
       review_surge: false,
       branch_count: cand.placesBrandCount || 1,
       places_brand_count: cand.placesBrandCount,
+      brand_prefix: cand.brandPrefix,
     };
-    const chainCheck = checkPlaybookCDisqualification(cand.name, cand.website || "", initialSignals);
+    const chainCheck = checkPlaybookCDisqualification(cand.name, cand.website || "", initialSignals, city);
     if (chainCheck.disqualified) {
       funnel.playbookCDisqualified++;
       console.log(`  • [Gate 2 Disqualified] '${cand.name}': ${chainCheck.reason}`);
@@ -359,6 +360,7 @@ export async function runProspectResearch(
       company: cand.name,
       domain: website,
       category,
+      city,
       signals: enrichedDetails.signals,
       decisionMaker: enrichedDetails.decisionMaker,
     });
@@ -653,41 +655,15 @@ export async function rescoreProspects(options?: { testMode?: boolean }): Promis
     const { brand, rootDomain } = extractBrandToken(p.company, p.website);
     p.signals.brand_prefix = brand;
 
-    // Apply Chain Rule (Playbook C):
-    // Enterprise chains, multi-city groups, and chain HQs (including Max Saket)
-    const normCompany = p.company.toLowerCase();
-    const isMaxHealthcareChain =
-      rootDomain.includes("maxhealthcare") ||
-      normCompany.includes("max healthcare") ||
-      (normCompany.includes("max") && (normCompany.includes("saket") || normCompany.includes("super speciality") || normCompany.includes("hospital")));
-
-    if (isMaxHealthcareChain) {
+    // Apply Generic Chain Rule (Playbook C):
+    // 1. Brand appears at 3 or more Places locations
+    // 2. Or the root domain hosts other branches
+    // 3. Or the registered HQ is in another metro
+    const chainCheck = checkPlaybookCDisqualification(p.company, p.website, p.signals, p.city);
+    if (chainCheck.disqualified && chainCheck.reason) {
       p.signals.chain_evidence = p.signals.chain_evidence || [];
-      const reason =
-        "Playbook C Chain Rule: Max Healthcare operates nationwide enterprise hospital network (19+ hospitals); chain HQs and flagship outlets (including Max Saket) are disqualified from single-operator retainer";
-      if (!p.signals.chain_evidence.includes(reason)) {
-        p.signals.chain_evidence.push(reason);
-      }
-    }
-
-    const enterpriseChains = [
-      { name: "Apollo Hospitals", domain: "apollohospitals.com", pattern: /apollo/i },
-      { name: "Fortis Healthcare", domain: "fortishealthcare.com", pattern: /fortis/i },
-      { name: "Medanta", domain: "medanta.org", pattern: /medanta/i },
-      { name: "Manipal Hospitals", domain: "manipalhospitals.com", pattern: /manipal/i },
-      { name: "Narayana Health", domain: "narayanahealth.org", pattern: /narayana/i },
-      { name: "Cloudnine", domain: "cloudninecare.com", pattern: /cloudnine/i },
-      { name: "Pristyn Care", domain: "pristyncare.com", pattern: /pristyn/i },
-      { name: "Clove Dental", domain: "clovedental.in", pattern: /clove\s*dental/i },
-      { name: "Indira IVF", domain: "indiraivf.com", pattern: /indira\s*ivf/i },
-    ];
-    for (const ec of enterpriseChains) {
-      if (rootDomain.includes(ec.domain) || ec.pattern.test(normCompany)) {
-        p.signals.chain_evidence = p.signals.chain_evidence || [];
-        const reason = `Playbook C Chain Rule: ${ec.name} operates nationwide enterprise healthcare chain; disqualified from single-operator retainer`;
-        if (!p.signals.chain_evidence.includes(reason)) {
-          p.signals.chain_evidence.push(reason);
-        }
+      if (!p.signals.chain_evidence.includes(chainCheck.reason)) {
+        p.signals.chain_evidence.push(chainCheck.reason);
       }
     }
 
@@ -700,6 +676,7 @@ export async function rescoreProspects(options?: { testMode?: boolean }): Promis
       company: p.company,
       domain: p.website,
       category: p.category,
+      city: p.city,
       signals: p.signals,
       decisionMaker: p.decision_maker,
     });
