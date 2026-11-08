@@ -4,8 +4,8 @@
 import { isTestMode } from "../../config.js";
 import { getSupabase } from "../prospect-researcher/db.js";
 import { McpClient, summariseTools, type McpTool } from "./mcp.js";
-import { isAllowedTool } from "./safety.js";
-import { argsFor, editLink, pageFromAsset, placeholders, postFields, publishAs, toolPayload, type Schema } from "./implement.js";
+import { checkCall, isAllowedTool, SCHEMA_VERSION } from "./safety.js";
+import { argsFor, editLink, matchPage, metaValue, pageFromAsset, pageList, parseMetaAsset, placeholders, postFields, publishAs, toolPayload, type Schema } from "./implement.js";
 
 export async function checkWordPressConnections(fetchImpl: typeof fetch = fetch): Promise<number> {
   if (isTestMode()) return 0;
@@ -13,7 +13,7 @@ export async function checkWordPressConnections(fetchImpl: typeof fetch = fetch)
   if (!sb) return 0;
   const { data } = await sb.from("integrations").select("brand_id, status, config").eq("provider", "wordpress").in("status", ["pending", "connected"]);
   // Pending ones, plus connected ones checked before tool schemas were stored (Day 28 connections).
-  const due = ((data ?? []) as any[]).filter((i) => i.status === "pending" || !i.config?.schemas);
+  const due = ((data ?? []) as any[]).filter((i) => i.status === "pending" || !i.config?.schemas || (i.config?.schemas_v ?? 1) < SCHEMA_VERSION);
   let n = 0;
   for (const i of due) {
     const { data: token } = await sb.rpc("svc_wp_token", { p_brand: i.brand_id });
@@ -25,7 +25,7 @@ export async function checkWordPressConnections(fetchImpl: typeof fetch = fetch)
       const tools = await c.tools();
       const s = summariseTools(tools);
       const schemas = Object.fromEntries(tools.filter((t) => isAllowedTool(t.name, t)).map((t) => [t.name, t.inputSchema ?? {}]));
-      patch = { status: "connected", config: { ...i.config, server, tools: s.names, tool_count: s.total, can_write: s.canWrite, destructive_tools: s.destructive, schemas, tested_at: new Date().toISOString(), error: null } };
+      patch = { status: "connected", config: { ...i.config, server, tools: s.names, tool_count: s.total, can_write: s.canWrite, destructive_tools: s.destructive, schemas, schemas_v: SCHEMA_VERSION, tested_at: new Date().toISOString(), error: null } };
     } catch (err: any) {
       patch = { status: "error", config: { ...i.config, tested_at: new Date().toISOString(), error: String(err?.message ?? err).slice(0, 300) } };
     }
@@ -42,6 +42,7 @@ class SiteTools {
   async call(name: string, values: Record<string, unknown>) {
     if (!isAllowedTool(name)) throw new Error(`${name} is not allowed`);
     if (!(name in this.schemas)) throw new Error(`${name} isn't available on this site`);
+    checkCall(name, values);
     return toolPayload(await this.c.call(name, argsFor(this.schemas[name], values)));
   }
 }
@@ -66,7 +67,10 @@ export async function runImplementer(fetchImpl: typeof fetch = fetch): Promise<n
       const c = new McpClient(wp.config.endpoint, String(token), fetchImpl, 60_000);
       await c.connect();
       const site = new SiteTools(c, wp.config.schemas ?? {});
-      const patch = a.detail?.step === "publish" ? await publish(site, a, wp.config.endpoint) : await draft(sb, site, a, wp.config.endpoint);
+      const isMeta = a.detail?.wp_type === "meta" || (await sb.from("assets").select("kind").eq("id", a.detail?.asset_id).maybeSingle()).data?.kind === "meta";
+      const patch = isMeta
+        ? (a.detail?.step === "publish" ? await applyMeta(site, a) : await planMeta(sb, site, a, wp.config.endpoint))
+        : a.detail?.step === "publish" ? await publish(site, a, wp.config.endpoint) : await draft(sb, site, a, wp.config.endpoint);
       await sb.from("actions").update({ ...patch, performed_at: new Date().toISOString() }).eq("id", a.id);
       if (patch.status === "done" && a.recommendation_id) await sb.from("recommendations").update({ status: "done" }).eq("id", a.recommendation_id);
     } catch (err: any) {
@@ -118,6 +122,56 @@ async function publish(site: SiteTools, a: Action, endpoint: string) {
     description: `Published ${noun}: ${a.detail?.title ?? a.description.replace(/^Draft (page|blog post): /, "")}`,
     url: live,
     detail: { ...a.detail, step: "published", placeholders: [], published_at: new Date().toISOString(), error: null },
+  };
+}
+
+type MetaChange = { label: string; page_id: number; page_title: string; link: string; field: "title" | "description"; key: string; old: string | null; new: string };
+
+/** Meta titles/descriptions, step 1: find each page, read what's there now, and list the changes for approval. */
+async function planMeta(sb: any, site: SiteTools, a: Action, endpoint: string) {
+  const { data: asset } = await sb.from("assets").select("kind, title, content").eq("id", a.detail?.asset_id).maybeSingle();
+  const pairs = parseMetaAsset(asset?.content?.body ?? "");
+  if (!pairs.length) throw new Error("couldn't read any title/description pairs from the suggestion");
+  const pages = pageList(await site.call("wp_list_pages", { per_page: 100, status: "publish" }));
+  if (!pages.length) throw new Error("couldn't list the site's pages");
+  const origin = new URL(endpoint).origin;
+  const changes: MetaChange[] = []; const unmatched: string[] = [];
+  for (const p of pairs) {
+    const page = matchPage(p.label, pages, origin);
+    if (!page) { unmatched.push(p.label); continue; }
+    for (const [field, key, value] of [["title", "rank_math_title", p.title], ["description", "rank_math_description", p.description]] as const) {
+      if (!value) continue;
+      if (placeholders(value).length) { unmatched.push(`${p.label} (${field} still has a fill-in)`); continue; }
+      const old = metaValue(await site.call("wp_get_post_meta", { id: page.id, key }).catch(() => null));
+      if (old?.trim() === value.trim()) continue;
+      changes.push({ label: p.label, page_id: page.id, page_title: page.title, link: page.link, field, key, old, new: value });
+    }
+  }
+  if (!changes.length) throw new Error(unmatched.length ? `couldn't match these to a page on your site: ${unmatched.join(", ")}` : "every page already has these titles and descriptions");
+  const n = new Set(changes.map((c) => c.page_id)).size;
+  return {
+    status: "in_progress", url: null,
+    description: `SEO titles & descriptions for ${n} page${n === 1 ? "" : "s"} (waiting for approval)`,
+    detail: { ...a.detail, step: "awaiting_approval", wp_type: "meta", changes, unmatched, placeholders: placeholders(asset?.content?.body ?? ""), planned_at: new Date().toISOString(), error: null },
+  };
+}
+
+/** Step 2, after approval: write each value through Rank Math's fields, read it back, keep the old values for undo. */
+async function applyMeta(site: SiteTools, a: Action) {
+  const changes = (a.detail?.changes ?? []) as MetaChange[];
+  if (!changes.length) throw new Error("nothing to apply");
+  const done: MetaChange[] = [];
+  for (const c of changes) {
+    await site.call("wp_update_post_meta", { id: c.page_id, key: c.key, value: c.new });
+    const back = metaValue(await site.call("wp_get_post_meta", { id: c.page_id, key: c.key }).catch(() => null));
+    if (back !== null && back.trim() !== c.new.trim()) throw new Error(`WordPress didn't keep the new ${c.field} for "${c.page_title}"`);
+    done.push(c);
+  }
+  const n = new Set(done.map((c) => c.page_id)).size;
+  return {
+    status: "done", url: done[0]?.link || null,
+    description: `Updated SEO titles & descriptions on ${n} page${n === 1 ? "" : "s"}: ${[...new Set(done.map((c) => c.page_title))].join(", ").slice(0, 200)}`,
+    detail: { ...a.detail, step: "published", applied: done.length, placeholders: [], published_at: new Date().toISOString(), error: null },
   };
 }
 

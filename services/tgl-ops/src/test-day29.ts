@@ -1,8 +1,8 @@
 process.env.TGL_TEST_MODE = "1";
 process.env.NODE_ENV = "test";
 import assert from "node:assert/strict";
-import { isAllowedTool } from "./agents/aeo-execution/safety.js";
-import { argsFor, editLink, pageFromAsset, placeholders, postFields, publishAs, toolPayload } from "./agents/aeo-execution/implement.js";
+import { checkCall, isAllowedTool } from "./agents/aeo-execution/safety.js";
+import { argsFor, editLink, matchPage, metaValue, pageFromAsset, pageList, parseMetaAsset, placeholders, postFields, publishAs, toolPayload } from "./agents/aeo-execution/implement.js";
 
 let passed = 0;
 function t(name: string, fn: () => void) { try { fn(); passed++; console.log(`✓ ${name}`); } catch (e) { console.error(`✗ ${name}`); throw e; } }
@@ -49,6 +49,29 @@ t("page or blog post: explainers are posts; services, industries and hubs are pa
   assert.equal(publishAs({ title: "/case-studies hub (summary page)", body: "# Case studies: how The Growth Lab turns leads into clients" }), "page");
   assert.equal(publishAs({ title: "Industry pages template + coaching institute (Chandigarh) draft", body: "# How can a coaching institute in Chandigarh show up in ChatGPT answers?" }), "page");
   assert.equal(publishAs({ title: "/aeo-vs-seo", body: "# AEO vs SEO: a plain guide" }), "post");
+});
+
+t("meta: parse the suggestion, match pages, only Rank Math's two fields are writable", () => {
+  const body = "**Homepage**\nTitle: AEO & GEO Agency in India | The Growth Lab\nDescription: Get named by ChatGPT.\n\n**What is AEO page**\nTitle: What is AEO? | The Growth Lab\nDescription: AEO explained.\n\n**AI automation page**\nTitle: AI Automation for Leads | The Growth Lab\n\n**Pricing page**\nTitle: Pricing";
+  const pairs = parseMetaAsset(body);
+  assert.equal(pairs.length, 4);
+  assert.deepEqual(pairs[0], { label: "Homepage", title: "AEO & GEO Agency in India | The Growth Lab", description: "Get named by ChatGPT." });
+  assert.equal(pairs[2].description, null);
+  const pages = pageList({ pages: [
+    { ID: 12, post_title: "Home", link: "https://thegrowthlab.co.in/", post_name: "home" },
+    { id: 899, title: { rendered: "What is AEO (Answer Engine Optimization) and why does your business need AI visibility?" }, link: "https://thegrowthlab.co.in/what-is-aeo-geo-ai-visibility-india/", slug: "what-is-aeo-geo-ai-visibility-india" },
+    { id: 901, title: "AI automation for leads: WhatsApp, CRM and lead scoring", link: "https://thegrowthlab.co.in/ai-automation-whatsapp-crm-lead-scoring/", slug: "ai-automation-whatsapp-crm-lead-scoring" },
+  ] });
+  const o = "https://thegrowthlab.co.in";
+  assert.equal(matchPage("Homepage", pages, o)?.id, 12);
+  assert.equal(matchPage("What is AEO page", pages, o)?.id, 899);
+  assert.equal(matchPage("AI automation page", pages, o)?.id, 901);
+  assert.equal(matchPage("Pricing page", pages, o), null);
+  assert.equal(metaValue({ value: "x" }), "x"); assert.equal(metaValue([""]), ""); assert.equal(metaValue(null), null);
+  assert.equal(isAllowedTool("wp_update_post_meta"), true);
+  assert.equal(isAllowedTool("wp_delete_post_meta"), false);
+  assert.doesNotThrow(() => checkCall("wp_update_post_meta", { key: "rank_math_title" }));
+  assert.throws(() => checkCall("wp_update_post_meta", { key: "_elementor_data" }), /not allowed/);
 });
 
 console.log(`\nDay 29: ${passed} checks passed`);
