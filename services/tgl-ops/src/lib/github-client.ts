@@ -966,6 +966,7 @@ export interface PullRequestDiffStats {
   addedNonBlankLines: number;
   addedFilesCount: number;
   allAddedFilesEmpty: boolean;
+  hasNonEmptyChangedFile?: boolean;
   files: Array<{
     filename: string;
     status: string;
@@ -975,8 +976,8 @@ export interface PullRequestDiffStats {
 }
 
 /**
- * Computes diff statistics for a PR: total non-blank added lines, added files count,
- * and whether all added files in the diff are empty.
+ * Computes diff statistics for a PR using GitHub's compare API on base...head.
+ * Counts non-blank line additions on non-empty files.
  */
 export async function getPullRequestDiffStats(
   prNumber: number,
@@ -985,7 +986,7 @@ export async function getPullRequestDiffStats(
     virtualFiles?: Map<string, string>;
   }
 ): Promise<{ success: boolean; stats: PullRequestDiffStats; error?: string }> {
-  if (options?.testMode || isTestMode() || !config.githubToken || options?.virtualFiles) {
+  if (options?.testMode || isTestMode() || !config.githubToken) {
     const vFiles = options?.virtualFiles || new Map<string, string>();
     let totalNonBlankLines = 0;
     const fileEntries: PullRequestDiffStats["files"] = [];
@@ -993,12 +994,15 @@ export async function getPullRequestDiffStats(
     for (const [filename, content] of vFiles.entries()) {
       const lines = typeof content === "string" ? content.split("\n") : [];
       const nonBlank = lines.filter((l) => l.trim().length > 0).length;
-      totalNonBlankLines += nonBlank;
+      const isEmpty = nonBlank === 0;
+      if (!isEmpty) {
+        totalNonBlankLines += nonBlank;
+      }
       fileEntries.push({
         filename,
         status: "added",
         addedNonBlankLines: nonBlank,
-        isEmpty: nonBlank === 0,
+        isEmpty,
       });
     }
 
@@ -1006,6 +1010,7 @@ export async function getPullRequestDiffStats(
     const allAddedFilesEmpty =
       fileEntries.length === 0 ||
       (addedFiles.length > 0 && addedFiles.every((f) => f.isEmpty));
+    const hasNonEmptyChangedFile = fileEntries.some((f) => !f.isEmpty && f.addedNonBlankLines > 0);
 
     return {
       success: true,
@@ -1013,23 +1018,36 @@ export async function getPullRequestDiffStats(
         addedNonBlankLines: totalNonBlankLines,
         addedFilesCount: addedFiles.length,
         allAddedFilesEmpty,
+        hasNonEmptyChangedFile,
         files: fileEntries,
       },
     };
   }
 
   try {
-    const res = await octokit.pulls.listFiles({
+    const prRes = await octokit.pulls.get({
       owner: config.githubOwner,
       repo: config.githubRepo,
       pull_number: prNumber,
-      per_page: 100,
+    });
+    const base = prRes.data.base?.ref || "main";
+    const head = prRes.data.head?.ref;
+
+    if (!head) {
+      throw new Error(`PR #${prNumber} has no head ref`);
+    }
+
+    const compareRes = await octokit.repos.compareCommitsWithBasehead({
+      owner: config.githubOwner,
+      repo: config.githubRepo,
+      basehead: `${base}...${head}`,
     });
 
+    const compareFiles = compareRes.data.files || [];
     let totalNonBlankLines = 0;
     const fileEntries: PullRequestDiffStats["files"] = [];
 
-    for (const file of res.data) {
+    for (const file of compareFiles) {
       let nonBlank = 0;
       if (file.patch) {
         nonBlank = file.patch
@@ -1041,12 +1059,20 @@ export async function getPullRequestDiffStats(
         nonBlank = file.additions;
       }
 
-      totalNonBlankLines += nonBlank;
+      const isEmpty =
+        (file.status === "added" && nonBlank === 0) ||
+        (file.changes === 0 && nonBlank === 0) ||
+        (nonBlank === 0 && (file.additions === 0 || !file.patch));
+
+      if (!isEmpty) {
+        totalNonBlankLines += nonBlank;
+      }
+
       fileEntries.push({
         filename: file.filename,
         status: file.status,
         addedNonBlankLines: nonBlank,
-        isEmpty: nonBlank === 0,
+        isEmpty,
       });
     }
 
@@ -1054,6 +1080,7 @@ export async function getPullRequestDiffStats(
     const allAddedFilesEmpty =
       fileEntries.length === 0 ||
       (addedFiles.length > 0 && addedFiles.every((f) => f.isEmpty));
+    const hasNonEmptyChangedFile = fileEntries.some((f) => !f.isEmpty && (f.addedNonBlankLines > 0 || f.status !== "removed"));
 
     return {
       success: true,
@@ -1061,20 +1088,22 @@ export async function getPullRequestDiffStats(
         addedNonBlankLines: totalNonBlankLines,
         addedFilesCount: addedFiles.length,
         allAddedFilesEmpty,
+        hasNonEmptyChangedFile,
         files: fileEntries,
       },
     };
   } catch (err: any) {
-    console.error(`[GitHub API] Error fetching diff stats for PR #${prNumber}:`, err);
+    console.error(`[GitHub API] Error fetching compare diff stats for PR #${prNumber}:`, err);
     return {
       success: false,
       stats: {
         addedNonBlankLines: 0,
         addedFilesCount: 0,
         allAddedFilesEmpty: true,
+        hasNonEmptyChangedFile: false,
         files: [],
       },
-      error: err.response?.data?.message || err.message || "Failed to fetch PR diff stats",
+      error: err.response?.data?.message || err.message || "Failed to fetch PR diff stats via compare API",
     };
   }
 }

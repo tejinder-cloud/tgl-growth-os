@@ -117,11 +117,28 @@ export interface RunnerRunResult {
   toolResults?: Array<{ name: string; result: string }>;
   nudgesSent?: number;
   lastModelMessage?: string;
+  turnTraces?: Array<{ turn: number; stop_reason: string; output_tokens: number; input_tokens: number }>;
+  finishDetails?: any;
 }
 
 export interface MockTurn {
   text?: string;
   toolCalls?: Array<{ name: string; input: Record<string, any> }>;
+  stopReason?: string;
+  usage?: { input_tokens: number; output_tokens: number };
+}
+
+/**
+ * Resolves maximum output tokens for runner sessions.
+ * Sets to model maximum output (8192 tokens for modern Claude models).
+ * Configurable via ANTHROPIC_MAX_TOKENS.
+ */
+export function getRunnerMaxTokens(modelName?: string): number {
+  if (process.env.ANTHROPIC_MAX_TOKENS) {
+    const parsed = parseInt(process.env.ANTHROPIC_MAX_TOKENS, 10);
+    if (!isNaN(parsed) && parsed > 0) return parsed;
+  }
+  return 8192;
 }
 
 /**
@@ -172,6 +189,8 @@ export async function runIssueTask(
     mockModelResponse?: string;
     mockToolCalls?: Array<{ name: string; input: Record<string, any> }>;
     mockTurns?: MockTurn[];
+    mockCommitsAhead?: number;
+    virtualFiles?: Map<string, string>;
   }
 ): Promise<RunnerRunResult> {
   const isTest = options?.testMode === true || isTestMode();
@@ -207,6 +226,8 @@ export async function runIssueTask(
 
   let heartbeatInterval: NodeJS.Timeout | null = null;
   let writeNudgesSent = 0;
+  let turnCount = 0;
+  const turnTraces: Array<{ turn: number; stop_reason: string; output_tokens: number; input_tokens: number }> = [];
 
   try {
     // 2. Identify agent
@@ -544,7 +565,7 @@ export async function runIssueTask(
       slackChannel,
       slackThreadTs,
       testMode: isTest,
-      virtualFiles: new Map(),
+      virtualFiles: options?.virtualFiles || new Map(),
       maxResearchCalls: runnerLimits.researchCalls,
       researchCallsCount: 0,
       totalToolCallsCount: existingRecord?.toolCallsCount || 0,
@@ -610,8 +631,10 @@ export async function runIssueTask(
         let response: {
           content: Anthropic.ContentBlock[];
           usage?: { input_tokens: number; output_tokens: number };
+          stop_reason?: string | null;
         };
 
+        let currentTurnStopReason = "unknown";
         if (options?.mockTurns) {
           if (mockTurnIndex >= options.mockTurns.length) {
             break;
@@ -632,27 +655,46 @@ export async function runIssueTask(
               } as any);
             }
           }
+          currentTurnStopReason = turn.stopReason || (turn.toolCalls && turn.toolCalls.length > 0 ? "tool_use" : "end_turn");
           response = {
             content,
-            usage: { input_tokens: 100, output_tokens: 50 },
+            usage: turn.usage || { input_tokens: 100, output_tokens: 50 },
+            stop_reason: currentTurnStopReason,
           };
         } else {
-          response = await callAnthropicWithCostCap({
+          const maxTokens = getRunnerMaxTokens(modelName);
+          const rawRes = await callAnthropicWithCostCap({
             agent: agentName,
             issueNumber: issueNum,
             params: {
               model: modelName,
-              max_tokens: 4096,
+              max_tokens: maxTokens,
               system: systemPrompt,
               messages,
               tools: RUNNER_TOOLS,
               tool_choice: { type: "auto" },
             },
           });
+          currentTurnStopReason = rawRes.stop_reason || "unknown";
+          response = rawRes;
         }
 
-        totalInputTokens += response.usage?.input_tokens || 0;
-        totalOutputTokens += response.usage?.output_tokens || 0;
+        turnCount++;
+        const turnInTok = response.usage?.input_tokens || 0;
+        const turnOutTok = response.usage?.output_tokens || 0;
+        totalInputTokens += turnInTok;
+        totalOutputTokens += turnOutTok;
+
+        turnTraces.push({
+          turn: turnCount,
+          stop_reason: currentTurnStopReason,
+          output_tokens: turnOutTok,
+          input_tokens: turnInTok,
+        });
+
+        console.log(
+          `[Runner Trace Turn #${turnCount}] stop_reason: ${currentTurnStopReason}, output_tokens: ${turnOutTok}, input_tokens: ${turnInTok}`
+        );
 
         // Extract text content if present - preserve last non-empty text
         const textBlocks = response.content.filter((b) => b.type === "text") as Anthropic.TextBlock[];
@@ -669,37 +711,58 @@ export async function runIssueTask(
 
         // Check for tool use
         const toolUseBlocks = response.content.filter((b) => b.type === "tool_use") as Anthropic.ToolUseBlock[];
-        console.log(`[Runner Model Response] Turn returned ${response.content.length} blocks (text: ${textBlocks.length}, tool_use: ${toolUseBlocks.length})`);
+        console.log(
+          `[Runner Model Response] Turn #${turnCount} returned ${response.content.length} blocks (text: ${textBlocks.length}, tool_use: ${toolUseBlocks.length}, stop_reason: ${currentTurnStopReason})`
+        );
 
+        // (5) Session end: text-only turns always get the continue nudge (up to 3);
+        // a session ends only on a finish tool call listing each numbered Architect item with its file, or on budget/cap.
         if (toolUseBlocks.length === 0) {
-          const hasSuccessfulWrite =
-            (toolContext.successfulWritesCount || 0) > 0 ||
-            (toolContext.virtualFiles && toolContext.virtualFiles.size > 0);
-
-          if (!hasSuccessfulWrite && writeNudgesSent < 2) {
+          if (writeNudgesSent < 3) {
             writeNudgesSent++;
             console.log(
-              `[Runner Nudge #${writeNudgesSent}] Model turn contained no tool_use and no write_file has succeeded. Sending nudge...`
+              `[Runner Nudge #${writeNudgesSent}/3] Model turn was text-only without tool_use. Sending continue nudge...`
             );
             const assistantContent = response.content.length > 0 ? response.content : ([{ type: "text", text: "" }] as any);
             messages.push({ role: "assistant", content: assistantContent });
             messages.push({
               role: "user",
-              content: "Continue. Call write_file now for the first deliverable.",
+              content: "Continue. Call write_file now for the first deliverable. Complete all items and call the finish tool listing each numbered item with its file when done.",
             });
             continue;
           }
 
-          // Model finished with text response
+          // 3 continue nudges exhausted without finish
+          console.warn(`[Runner Nudges Exhausted] Sent 3 continue nudges for text-only turns without finish tool call. Ending session.`);
           break;
         }
 
-        // Append assistant response to messages
-        messages.push({ role: "assistant", content: response.content });
-
-        // Process tool calls
+        // (2) When a turn ends with stop_reason max_tokens and an incomplete tool_use,
+        // do not treat it as a write: reply to the model:
+        // "Your last write was cut off at N characters. Write this file in parts: write_file for the first part, then append_file for the rest, each under 6,000 characters."
+        const isStopReasonMaxTokens = currentTurnStopReason === "max_tokens";
         const toolResultBlocks: Anthropic.ToolResultBlockParam[] = [];
+
         for (const toolUse of toolUseBlocks) {
+          if (isStopReasonMaxTokens && (toolUse.name === "write_file" || toolUse.name === "append_file")) {
+            const rawContent = (toolUse.input as any)?.content;
+            const nChars = typeof rawContent === "string" ? rawContent.length : 0;
+            const cutoffMsg = `Your last write was cut off at ${nChars} characters. Write this file in parts: write_file for the first part, then append_file for the rest, each under 6,000 characters.`;
+            console.warn(
+              `[Runner Incomplete Write Cutoff] Turn stopped with max_tokens during ${toolUse.name}. Cutting off at ${nChars} chars and returning instruction.`
+            );
+            toolResultBlocks.push({
+              type: "tool_result",
+              tool_use_id: toolUse.id,
+              is_error: true,
+              content: cutoffMsg,
+            });
+            if (toolContext.toolResults) {
+              toolContext.toolResults.push({ name: toolUse.name, result: cutoffMsg });
+            }
+            continue;
+          }
+
           if (toolCallsCount >= MAX_TOOL_CALLS) {
             console.warn(`[Runner Limit Reached] Reached ${MAX_TOOL_CALLS} tool calls limit. Preserving progress.`);
             hitLimit = true;
@@ -717,7 +780,16 @@ export async function runIssueTask(
           });
         }
 
+        // Append assistant response and tool results to messages
+        messages.push({ role: "assistant", content: response.content });
         messages.push({ role: "user", content: toolResultBlocks });
+
+        // A session ends cleanly on a finish tool call listing each numbered Architect item with its file
+        if (toolContext.finished) {
+          console.log(`[Runner Finish] Model completed all deliverables via finish tool.`);
+          break;
+        }
+
         if (hitLimit) break;
       }
     }
@@ -857,6 +929,8 @@ Work in progress — fixes #${issueNum}
         toolResults: toolContext.toolResults,
         nudgesSent: writeNudgesSent,
         lastModelMessage: (lastModelMessage && lastModelMessage.trim()) || existingRecord?.lastModelMessage || undefined,
+        turnTraces,
+        finishDetails: toolContext.finishDetails,
       };
     }
 
@@ -899,7 +973,10 @@ Work in progress — fixes #${issueNum}
         console.warn(`[Runner Commit Check] Could not compare ${branchName} with main: ${compareRes.error}`);
       }
     } else {
-      if (toolContext.virtualFiles) {
+      if (options?.mockCommitsAhead !== undefined) {
+        commitsAhead = options.mockCommitsAhead;
+        nonEmptyChanges = options.mockCommitsAhead;
+      } else if (toolContext.virtualFiles) {
         let nonBlankFiles = 0;
         for (const [_, content] of toolContext.virtualFiles.entries()) {
           if (typeof content === "string" && content.trim().length > 0) {
@@ -1011,21 +1088,22 @@ Fixes #${issueNum}
 
     console.log(`[Runner] PR #${prRes.number} opened: ${prRes.html_url}`);
 
-    // 8.5 HARD GATE: Verify PR diff adds >= 20 non-blank lines and added files are not all empty
-    // The review card must not post for a PR whose diff adds fewer than 20 non-blank lines,
-    // or whose added files are all empty; such a PR is closed as "run produced no files" with the model's last message.
+    // 8.5 HARD GATE: Verify PR diff adds non-empty files
+    // Rule (8 Nov): fix getPullRequestDiffStats to use the compare API on base...head and count additions on non-empty files; a PR with any non-empty changed file is never closed by the gate.
     const diffStatsRes = await getPullRequestDiffStats(prRes.number, {
       testMode: isTest,
-      virtualFiles: toolContext.virtualFiles,
+      virtualFiles: isTest ? toolContext.virtualFiles : undefined,
     });
 
     const diffStats = diffStatsRes.stats;
-    const addsFewerThan20Lines = diffStats.addedNonBlankLines < 20;
-    const allAddedFilesEmpty =
-      diffStats.files.length === 0 ||
-      (diffStats.addedFilesCount > 0 && diffStats.allAddedFilesEmpty);
+    const hasNonEmptyChangedFile =
+      diffStats.hasNonEmptyChangedFile ??
+      diffStats.files.some((f) => !f.isEmpty && f.addedNonBlankLines > 0);
 
-    if (addsFewerThan20Lines || allAddedFilesEmpty) {
+    // Rule: a PR with any non-empty changed file is never closed by the gate
+    const shouldCloseDiffGate = !hasNonEmptyChangedFile;
+
+    if (shouldCloseDiffGate) {
       const diffGateReason = "run produced no files";
       const explanation =
         (lastModelMessage && lastModelMessage.trim()) ||
@@ -1033,7 +1111,7 @@ Fixes #${issueNum}
         "";
 
       console.warn(
-        `[Runner PR Diff Gate] PR #${prRes.number} adds ${diffStats.addedNonBlankLines} non-blank lines (min 20) or all added files empty (${allAddedFilesEmpty}). Closing PR as '${diffGateReason}'. Review card withheld.`
+        `[Runner PR Diff Gate] PR #${prRes.number} has no non-empty changed files (all empty or 0 files). Closing PR as '${diffGateReason}'. Review card withheld.`
       );
 
       // Close PR as "run produced no files" with the model's last message
@@ -1055,7 +1133,7 @@ Fixes #${issueNum}
         await postLine({
           channel: slackChannel,
           thread_ts: slackThreadTs,
-          text: `*[Needs Brief — Run produced no files]*\nPR #${prRes.number} closed: diff adds ${diffStats.addedNonBlankLines} non-blank lines (minimum 20 required)${allAddedFilesEmpty ? " or all added files are empty" : ""}.\n${explanation}`,
+          text: `*[Needs Brief — Run produced no files]*\nPR #${prRes.number} closed: diff adds ${diffStats.addedNonBlankLines} non-blank lines (minimum 20 required or all added files are empty).\n${explanation}`,
         }).catch((err) => console.warn("[Runner Slack thread post error]", err));
       }
 
@@ -1105,6 +1183,8 @@ Fixes #${issueNum}
         toolResults: toolContext.toolResults,
         nudgesSent: writeNudgesSent,
         lastModelMessage: explanation,
+        turnTraces,
+        finishDetails: toolContext.finishDetails,
       };
     }
 
@@ -1143,6 +1223,8 @@ Fixes #${issueNum}
         toolResults: toolContext.toolResults,
         nudgesSent: writeNudgesSent,
         lastModelMessage: (lastModelMessage && lastModelMessage.trim()) || existingRecord?.lastModelMessage || undefined,
+        turnTraces,
+        finishDetails: toolContext.finishDetails,
       };
     }
 
@@ -1205,6 +1287,8 @@ Fixes #${issueNum}
       toolResults: toolContext.toolResults,
       nudgesSent: writeNudgesSent,
       lastModelMessage: (lastModelMessage && lastModelMessage.trim()) || existingRecord?.lastModelMessage || undefined,
+      turnTraces,
+      finishDetails: toolContext.finishDetails,
     };
   } catch (err: any) {
     console.error(`[Runner Run Error on Issue #${issueNum}]:`, err);
