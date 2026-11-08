@@ -177,3 +177,286 @@ export function fileLogWriter(env: NodeJS.ProcessEnv = process.env): (dateKey: s
     fs.appendFileSync(file, `${header}${markdown}\n`, "utf8");
   };
 }
+
+// ---------------------------------------------------------------------------
+// Real-world adapters (defaults; every one is injectable for tests)
+// ---------------------------------------------------------------------------
+
+async function defaultAudit(p: OnePagerProspect): Promise<AuditSummary> {
+  const { result, summary } = await runProspectAudit(p);
+  // Templates may quote the top competitor's count; it comes straight from the audit, never estimated.
+  const counts = result.summary.competitorMentions;
+  const competitorMentions: Record<string, number> = {};
+  for (const name of summary.top_competitors) {
+    if (typeof counts[name] === "number") competitorMentions[name] = counts[name];
+  }
+  return Object.keys(competitorMentions).length > 0 ? { ...summary, competitor_mentions: competitorMentions } : summary;
+}
+
+async function defaultStoreOnePager(p: OnePagerProspect, summary: AuditSummary, env: NodeJS.ProcessEnv): Promise<string> {
+  const pdf = renderOnePagerPdf(p, summary);
+  const stored = await uploadOnePager(p.company || domainOf(p.website), pdf, env);
+  return stored.path;
+}
+
+async function defaultSignUrl(storagePath: string, env: NodeJS.ProcessEnv): Promise<string> {
+  const sb = getSupabase();
+  if (!sb) throw new Error("Supabase is not configured; cannot sign one-pager URL");
+  const bucket = (env.OUTREACH_ONEPAGER_BUCKET || "audit-onepagers").trim();
+  const signed = await sb.storage.from(bucket).createSignedUrl(storagePath, 7 * 24 * 60 * 60);
+  if (signed.error || !signed.data?.signedUrl) {
+    throw new Error(`One-pager signed URL failed: ${signed.error?.message || "no url"}`);
+  }
+  return signed.data.signedUrl;
+}
+
+async function defaultAlert(text: string): Promise<unknown> {
+  const { getAlertsChannel } = await import("../../lib/cron-wrapper.js");
+  return postLine({ channel: getAlertsChannel(), text });
+}
+
+// ---------------------------------------------------------------------------
+// Reply webhook dependencies
+// ---------------------------------------------------------------------------
+
+export interface WiringOptions {
+  env?: NodeJS.ProcessEnv;
+  now?: () => Date;
+  store?: ProspectStore;
+  /** Pass a client to use it. Omit to build one from GHL_API_KEY / GHL_LOCATION_ID on first use. */
+  ghl?: GhlClient;
+}
+
+/**
+ * Dependencies for POST /outreach/ghl-reply. The store is always present. GHL annotation (tags, notes) is optional
+ * in handleReply, so a missing GHL config logs a warning and the reply is still routed to the Sales Desk.
+ */
+export function buildReplyDeps(opts: WiringOptions = {}): ReplyDeps {
+  const env = opts.env || process.env;
+  let ghl: GhlClient | undefined = opts.ghl;
+  if (!ghl) {
+    try {
+      ghl = createGhlClient(loadGhlConfig(env));
+    } catch (err) {
+      console.warn(`[Outreach] Reply handler running without GHL annotation: ${(err as Error).message}`);
+    }
+  }
+  return { store: opts.store || createSupabaseStore(), ghl, now: opts.now };
+}
+
+// ---------------------------------------------------------------------------
+// Runtime: the daily tick, the preview and the preflight
+// ---------------------------------------------------------------------------
+
+export interface RuntimeOptions extends WiringOptions {
+  /** Loaded templates. Omit to read agents/outreach-sequencer/templates (throws if missing). */
+  templates?: TemplateSet;
+  alert?: (text: string) => Promise<unknown>;
+  writeLog?: (dateKey: string, markdown: string) => Promise<void>;
+  audit?: (p: OnePagerProspect) => Promise<AuditSummary>;
+  /** Render and store the one-pager PDF; returns the storage path. */
+  storeOnePager?: (p: OnePagerProspect, summary: AuditSummary) => Promise<string>;
+  signUrl?: (storagePath: string) => Promise<string>;
+}
+
+export interface TickResult {
+  /** Null when the tick did not run because of a preflight problem. */
+  summary: TickSummary | null;
+  issues: string[];
+  previewed?: PreviewResult;
+}
+
+export interface OutreachRuntime {
+  tick(): Promise<TickResult>;
+  /** Render all five touches for one prospect without sending or saving anything. */
+  preview(prospectId: string): Promise<PreviewResult>;
+  /** Problems that would make a live send fail or render badly. Empty when clean. */
+  preflight(): string[];
+}
+
+export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntime {
+  const env = opts.env || process.env;
+  const now = opts.now || (() => new Date());
+  const store = opts.store || createSupabaseStore();
+  const templates = opts.templates || loadTemplates(resolveTemplatesDir(env));
+  const alert = opts.alert || defaultAlert;
+  const writeLog = opts.writeLog || fileLogWriter(env);
+  const audit = opts.audit || defaultAudit;
+  const storeOnePager = opts.storeOnePager || ((p, s) => defaultStoreOnePager(p, s, env));
+  const signUrl = opts.signUrl || ((p) => defaultSignUrl(p, env));
+  const senderName = (env.OUTREACH_SENDER_NAME || "").trim() || DEFAULT_SENDER_NAME;
+  const bookingLink = (env.OUTREACH_BOOKING_LINK || "").trim() || undefined;
+  const waOn = whatsappEnabled(env);
+
+  let ghlCache: GhlClient | undefined = opts.ghl;
+  const ghl = (): GhlClient => {
+    if (!ghlCache) ghlCache = createGhlClient(loadGhlConfig(env));
+    return ghlCache;
+  };
+
+  // Rows read at the start of each tick, so the executor sees exactly what listDue saw.
+  const rows = new Map<string, OutreachProspect>();
+  const previewedToday = new Set<string>();
+
+  async function refresh(): Promise<OutreachProspect[]> {
+    const list = await store.loadSequenced();
+    rows.clear();
+    for (const r of list) rows.set(r.id, r);
+    return list;
+  }
+
+  const executorPorts: ExecutorPorts = {
+    now,
+    senderName,
+    whatsappEnabled: waOn,
+    render: makeTemplateRenderer(templates, { bookingLink }),
+    // The file templates quote the prospect's own audit from touch 1, so the audit is built first.
+    auditEveryTouch: true,
+    async loadProspect(id) {
+      const row = rows.get(id) || (await refresh(), rows.get(id));
+      return row ? toView(row) : null;
+    },
+    async saveState(id, state) {
+      await store.saveState(id, state);
+    },
+    async buildOnePager(prospect) {
+      const op = toOnePagerProspect(prospect as ViewWithWebsite);
+      const summary = await audit(op);
+      const storagePath = await storeOnePager(op, summary);
+      return { audit: summary, path: storagePath };
+    },
+    signOnePagerUrl: signUrl,
+    async upsertContact(prospect) {
+      const v = prospect as ViewWithWebsite;
+      const res = await ghl().upsertContact({
+        name: v.decisionMakerName,
+        email: v.email,
+        phone: v.phone,
+        companyName: v.company,
+        website: v.website,
+        tags: ["tgl-outreach"],
+      });
+      return res.contactId;
+    },
+    async sendMessage(msg) {
+      const res = await ghl().sendMessage({
+        contactId: msg.contactId,
+        channel: msg.channel,
+        subject: msg.message.subject,
+        html: msg.message.html,
+        text: msg.message.text,
+        attachmentUrls: msg.attachmentUrl ? [msg.attachmentUrl] : undefined,
+      });
+      return { messageId: res.messageId };
+    },
+  };
+
+  const tickPorts: TickPorts = {
+    now,
+    env,
+    async listDue(at) {
+      const list = await refresh();
+      const due: DueTouch[] = [];
+      for (const r of list) {
+        const s = getOutreachState(r);
+        if (!s || s.state !== "active") continue;
+        const def = SEQUENCE.find((t) => t.n === s.next_touch);
+        if (!def) continue;
+        if (new Date(s.next_due_at).getTime() > at.getTime()) continue;
+        const channel = resolveChannel(def.channel, { hasPhone: Boolean(r.decision_maker?.phone), whatsappEnabled: waOn });
+        due.push({
+          prospectId: r.id,
+          company: r.company,
+          touch: def.n as TouchNumber,
+          channel: channel === "WhatsApp" ? "whatsapp" : "email",
+          dueAt: s.next_due_at,
+        });
+      }
+      return due;
+    },
+    async countToday(at) {
+      const today = istDateKey(at);
+      const list = await store.loadSequenced();
+      let count = 0;
+      for (const r of list) {
+        for (const t of getOutreachState(r)?.touches || []) {
+          if (!t.dry_run && istDateKey(new Date(t.sent_at)) === today) count++;
+        }
+      }
+      return count;
+    },
+    execute: makeExecute(executorPorts),
+    alert,
+  };
+
+  function preflight(): string[] {
+    const issues: string[] = [];
+    if (templatePlaceholders(templates).has("booking_link") && !bookingLink) {
+      issues.push("a template uses {{booking_link}} but OUTREACH_BOOKING_LINK is not set");
+    }
+    if (isLive(env)) {
+      const cfg = loadGhlConfig(env);
+      if (!cfg.apiKey || !cfg.locationId) issues.push("OUTREACH_LIVE=1 but GHL_API_KEY or GHL_LOCATION_ID is not set");
+    }
+    return issues;
+  }
+
+  async function preview(prospectId: string): Promise<PreviewResult> {
+    const pool = [...(await store.loadSequenced()), ...(await store.loadEnrollable(500))];
+    const row = pool.find((r) => r.id === prospectId);
+    if (!row) throw new Error(`Preview prospect ${prospectId} not found among sequenced or enrollable prospects`);
+    const view = toView(row);
+    // Use the stored audit when there is one; otherwise run the short-form audit once. Nothing is saved.
+    const summary = view.outreach?.audit || (await audit(toOnePagerProspect(view)));
+    const result = renderSequencePreview(templates, view, summary, { senderName, bookingLink, whatsappEnabled: waOn });
+    const at = now();
+    await writeLog(
+      istDateKey(at),
+      [
+        `### Preview ${at.toISOString()} (dry run): ${view.company} (${view.id})`,
+        `preview:${view.id} | audit run ${summary.audited_at.slice(0, 10)} | ${summary.mentions} of ${summary.total_queries} answers named the brand`,
+        "",
+        result.markdown,
+      ].join("\n")
+    );
+    return result;
+  }
+
+  async function tick(): Promise<TickResult> {
+    const issues = preflight();
+    const at = now();
+    const live = isLive(env);
+
+    if (issues.length > 0) {
+      console.warn(`[Outreach] Tick skipped, preflight failed: ${issues.join("; ")}`);
+      if (live) await alert(`*Outreach tick skipped.* ${issues.join("; ")}. Nothing was sent.`);
+    }
+
+    const result: TickResult = { summary: null, issues };
+
+    const testId = (env.OUTREACH_TEST_PROSPECT_ID || "").trim();
+    const previewKey = `${istDateKey(at)}:${testId}`;
+    if (testId && !live && isSendWindow(at) && !previewedToday.has(previewKey)) {
+      previewedToday.add(previewKey);
+      try {
+        result.previewed = await preview(testId);
+        console.log(`[Outreach] Preview for ${testId}: ${result.previewed.rendered} of ${TOTAL_TOUCHES} touches rendered, ${result.previewed.failures} failed`);
+      } catch (err) {
+        previewedToday.delete(previewKey);
+        console.warn(`[Outreach] Preview failed: ${(err as Error).message}`);
+      }
+    }
+
+    if (issues.length > 0) return result;
+
+    const summary = await runTick(tickPorts);
+    result.summary = summary;
+    console.log(`[Outreach] Tick ${summary.mode}: ran=${summary.ran} reason=${summary.reason || "-"} due=${summary.due} outcomes=${summary.outcomes.length}`);
+    if (summary.outcomes.length > 0 || summary.reason === "cap_reached") {
+      await writeLog(istDateKey(at), formatTickLog(at, summary));
+    }
+    return result;
+  }
+
+  return { tick, preview, preflight };
+}
