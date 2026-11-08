@@ -18,7 +18,7 @@ Rules:
    - faq_block: 5–8 Q&As (markdown) written the way buyers ask, answers 2–4 sentences.
    - json_ld: valid JSON-LD (Organization / LocalBusiness / ProfessionalService / FAQPage / Service) — JSON only, no comments.
    - llms_txt: an llms.txt file for their site.
-   - meta: title + meta description suggestions for key pages.
+   - meta: title + meta description suggestions for key pages, as blocks of **Page name** / Title: … / Description: … — titles at most 60 characters, descriptions at most 155 (Google cuts longer ones).
    - gbp_edits: Google Business Profile edits (categories, services, description, Q&A).
    - directory_list / thread_list: steps for getting listed on the cited directories, or for joining the cited forum threads (the app attaches the site list).
    - change_pack: a short brief a developer can implement in 30 minutes.

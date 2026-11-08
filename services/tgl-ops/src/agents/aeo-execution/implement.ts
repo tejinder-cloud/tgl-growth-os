@@ -23,7 +23,7 @@ export function pageFromAsset(asset: { title: string; content: { format?: string
 const ALIASES: Record<string, string[]> = {
   id: ["id", "post_id", "page_id", "ID"], title: ["title", "post_title"], content: ["content", "post_content", "body"],
   status: ["status", "post_status"], slug: ["slug", "post_name", "name"],
-  key: ["key", "meta_key"], value: ["value", "meta_value"], per_page: ["per_page", "limit", "number"],
+  key: ["key", "meta_key"], value: ["value", "meta_value"], meta: ["meta"], post_type: ["post_type"], per_page: ["per_page", "limit", "number"],
 };
 /** Map our values onto the tool's argument names; fail loudly if a required argument can't be filled. */
 export function argsFor(schema: Schema | undefined, values: Record<string, unknown>): Record<string, unknown> {
@@ -122,9 +122,12 @@ export function pageList(payload: any): SitePage[] {
   }).filter((p: SitePage) => p.id);
 }
 /** A meta value from a wp_get_post_meta result. */
-export function metaValue(payload: any): string | null {
+export function metaValue(payload: any, key?: string): string | null {
   if (payload == null) return null;
   if (typeof payload === "string") return payload;
+  if (key) {
+    for (const o of [payload, payload?.meta, payload?.data]) if (o && typeof o === "object" && !Array.isArray(o) && key in o) return metaValue(o[key]);
+  }
   const v = payload.value ?? payload.meta_value ?? payload.data?.value ?? (Array.isArray(payload) ? payload[0] : undefined);
   return v == null ? null : Array.isArray(v) ? (v[0] == null ? null : String(v[0])) : typeof v === "object" ? null : String(v);
 }

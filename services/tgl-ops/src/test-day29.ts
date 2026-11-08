@@ -72,6 +72,15 @@ t("meta: parse the suggestion, match pages, only Rank Math's two fields are writ
   assert.equal(isAllowedTool("wp_delete_post_meta"), false);
   assert.doesNotThrow(() => checkCall("wp_update_post_meta", { key: "rank_math_title" }));
   assert.throws(() => checkCall("wp_update_post_meta", { key: "_elementor_data" }), /not allowed/);
+  assert.doesNotThrow(() => checkCall("wp_update_post_meta", { meta: { rank_math_title: "x" } }));
+  assert.throws(() => checkCall("wp_update_post_meta", { meta: { rank_math_title: "x", _wp_page_template: "y" } }), /_wp_page_template/);
+  // The real Easy MCP AI schemas (8 Nov)
+  const upd = { required: ["post_id", "meta"], properties: { meta: {}, resave: {}, post_id: {}, post_type: {} } };
+  assert.deepEqual(argsFor(upd, { id: 12, meta: { rank_math_title: "T" }, post_type: "pages" }), { post_id: 12, meta: { rank_math_title: "T" }, post_type: "pages" });
+  const get = { required: ["post_id"], properties: { key: {}, post_id: {}, post_type: {} } };
+  assert.deepEqual(argsFor(get, { id: 12, key: "rank_math_title", post_type: "pages" }), { post_id: 12, key: "rank_math_title", post_type: "pages" });
+  assert.equal(metaValue({ rank_math_title: "Old" }, "rank_math_title"), "Old");
+  assert.equal(metaValue({ meta: { rank_math_title: ["Old"] } }, "rank_math_title"), "Old");
 });
 
 console.log(`\nDay 29: ${passed} checks passed`);
