@@ -15,7 +15,10 @@ export interface SalesStore {
 
 export function getSalesState(p: SalesProspect): SalesDeskState {
   const s = (p.signals as any)?.sales_desk;
-  if (s && typeof s === "object") return { dossier_appointment_ids: [], ...(s as SalesDeskState) };
+  if (s && typeof s === "object") {
+    const st = s as SalesDeskState;
+    return { ...st, dossier_appointment_ids: Array.isArray(st.dossier_appointment_ids) ? st.dossier_appointment_ids : [] };
+  }
   return { dossier_appointment_ids: [] };
 }
 
