@@ -23,7 +23,7 @@
       "agents": [
         { "name": "aeo-audit-engine", "title": "AEO Audit Engine", "line": "Daily automated citation tracking runs per active brand", "status": "active" },
         { "name": "aeo-recommender", "title": "AEO Recommender", "line": "Prioritised recommendations + assets from stored answers; skipped if the brand's latest run already has a batch or the last batch is under 7 days old (plan Day 22)", "status": "planned" },
-        { "name": "aeo-strategist", "title": "AEO Strategist", "line": "New TrueVisible setups → evidence + proposal → #approvals card; Architect verifies (SPEC §3, plan Day 19)", "status": "planned" },
+        { "name": "aeo-strategist", "title": "AEO Strategist", "line": "New TrueVisible setups → evidence + proposal → #approvals card; Architect verifies (SPEC §3, plan Day 19)", "status": "active" },
         { "name": "seo-technician", "title": "SEO Technician", "line": "Technical and on-page audit of TGL and every Managed AEO client site: crawlability, speed, schema, redirects, titles and headings against the verified prompts; ranked fix list; changes only via the approved execution path", "status": "planned" },
         { "name": "authority-builder", "title": "Authority Builder", "line": "Off-page: directory and citation consistency, digital PR targets drawn from the sources AI answers cite most; proposals only, never paid links or link schemes", "status": "planned" },
         { "name": "gbp-manager", "title": "GBP Manager", "line": "Google Business Profile for TGL and every Managed AEO client: profile completeness, weekly post draft, Q&A, review-response drafts for Architect approval; never posts or replies without approval", "status": "planned" }
