@@ -20,8 +20,9 @@ export interface ReminderDraft {
 const dayNum = (isoDate: string) => Date.parse(isoDate + "T00:00:00Z") / 86400000;
 
 /**
- * For each issued invoice with a balance, returns at most ONE draft: the latest cadence step that is due and not yet
- * logged. Earlier missed steps are skipped, so a late-issued invoice never floods the client with catch-up reminders.
+ * For each issued invoice with a balance, returns at most ONE draft: the latest cadence step that is due and is
+ * later than any step already logged. Earlier missed steps are skipped, so a late-issued invoice never floods the
+ * client with catch-up reminders and a step is never repeated or walked backwards.
  */
 export function planCollections(all: LedgerEntry[], now: Date): ReminderDraft[] {
   const today = dayNum(istDate(now));
@@ -31,8 +32,8 @@ export function planCollections(all: LedgerEntry[], now: Date): ReminderDraft[] 
     const balance = inv.totalMinor - paidMinor(all, inv.number);
     if (balance <= 0) continue;
     const daysFromDue = today - dayNum(inv.dueDate);
-    const logged = new Set(all.filter((e) => e.kind === "reminder" && e.number === inv.number).map((e) => (e as { step: number }).step));
-    const due = CADENCE.filter((c) => daysFromDue >= c.offsetDays && !logged.has(c.step));
+    const maxLogged = all.reduce((m, e) => (e.kind === "reminder" && e.number === inv.number ? Math.max(m, e.step) : m), 0);
+    const due = CADENCE.filter((c) => daysFromDue >= c.offsetDays && c.step > maxLogged);
     const next = due[due.length - 1];
     if (!next) continue;
     out.push({ number: inv.number, step: next.step, audience: next.audience, daysFromDue, outstandingMinor: balance, text: draftText(inv, next.step, next.purpose, balance, daysFromDue) });
