@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-09T07:36:27.599Z",
+  "updatedAt": "2026-11-09T07:38:35.755Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -115,11 +115,10 @@
     "141": {
       "agent": "web-builder",
       "door": "core",
-      "title": "[PLAN-D13]: Finance SKILL.md + v1: GST invoices & ledger",
-      "status": "needs-brief",
+      "title": "Plan Day 13: Finance SKILL.md + v1: GST invoices & ledger",
+      "status": "in-progress",
       "runStartedAt": "2026-11-09T07:36:12.079831+00:00",
       "runCompletedAt": "2026-11-09T07:36:26.37+00:00",
-      "error": "The brief doesn't touch any protected path (`decisions/`, `logs/`) and doesn't break a §8 Never rule, so refusing isn't warranted. It is still underspecified. Only `agents/finance/SKILL.md` is a concrete file target. The other three DoD items name no files or acceptance criteria, and building them would mean guessing at several decisions.\n\n- **Webhook:** The brief says \"Razorpay/Zoho\", which doesn't say which system issues the invoice and which only processes payment. It doesn't say where the \"deal Won\" event comes from (CRM, which system, which payload). It doesn't say where the handler code lives (`services/...`), and it doesn't say how credentials are handled. Invoice rules are also missing: GSTIN, SAC code, tax rates, and how IGST is split from CGST/SGST.\n- **Ledger:** `finance/ledger` has no format, schema, or location. \"All income and per-audit API expenses\" is not defined. It doesn't say where the per-audit cost data comes from, or whether the ledger is a file, a directory of entries, or something else. It also needs to stay clear of the protected `logs/` path.\n- **LUT task:** The brief doesn't say where the checklist is delivered, what format it takes, or how it is handed to the Compliance agent.\n- **Scope:** The brief combines a SKILL.md, a payments integration, a ledger and a compliance checklist. That is a lot for one issue, and it isn't clear that a web-builder agent is the right owner for finance and payment automation.\n\nUnder the \"challenge the brief before you build\" mandate, these gaps need to be closed before a branch is created.",
       "recoveryAttempts": 0,
       "ownerInstance": null,
       "heartbeatAt": null,
