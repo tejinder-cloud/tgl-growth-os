@@ -1,0 +1,54 @@
+{
+  "source": "config/agents.yaml",
+  "groups": [
+    {
+      "id": "architect",
+      "label": "Office of the Architect",
+      "agents": [
+        { "name": "chief-of-staff", "title": "Chief Of Staff", "line": "09:00 IST Morning plan dispatch from config/plan.yaml", "status": "active" }
+      ]
+    },
+    {
+      "id": "revenue",
+      "label": "Revenue",
+      "agents": [
+        { "name": "prospect-researcher", "title": "Prospect Researcher", "line": "Sourcing & qualifying 20 prospects for next metro in rotation", "status": "active" },
+        { "name": "outreach-sequencer", "title": "Outreach Sequencer", "line": "Dispatch 25 personalized outbound sequence touches", "status": "planned" },
+        { "name": "sales-desk", "title": "Sales Desk", "line": "Compile prospect dossiers 4h before calls", "status": "planned" }
+      ]
+    },
+    {
+      "id": "aeo",
+      "label": "AEO delivery",
+      "agents": [
+        { "name": "aeo-audit-engine", "title": "AEO Audit Engine", "line": "Daily automated citation tracking runs per active brand", "status": "active" },
+        { "name": "aeo-recommender", "title": "AEO Recommender", "line": "Prioritised recommendations + assets from stored answers; skipped if the brand's latest run already has a batch or the last batch is under 7 days old (plan Day 22)", "status": "planned" },
+        { "name": "aeo-strategist", "title": "AEO Strategist", "line": "New TrueVisible setups → evidence + proposal → #approvals card; Architect verifies (SPEC §3, plan Day 19)", "status": "planned" },
+        { "name": "seo-technician", "title": "SEO Technician", "line": "Technical and on-page audit of TGL and every Managed AEO client site: crawlability, speed, schema, redirects, titles and headings against the verified prompts; ranked fix list; changes only via the approved execution path", "status": "planned" },
+        { "name": "authority-builder", "title": "Authority Builder", "line": "Off-page: directory and citation consistency, digital PR targets drawn from the sources AI answers cite most; proposals only, never paid links or link schemes", "status": "planned" },
+        { "name": "gbp-manager", "title": "GBP Manager", "line": "Google Business Profile for TGL and every Managed AEO client: profile completeness, weekly post draft, Q&A, review-response drafts for Architect approval; never posts or replies without approval", "status": "planned" }
+      ]
+    },
+    {
+      "id": "marketing",
+      "label": "Marketing",
+      "agents": [
+        { "name": "content-writer", "title": "Content Writer", "line": "Produce 4 posts a week (2 AEO) on Tuesday and Thursday", "status": "planned" },
+        { "name": "repurposer-publisher", "title": "Repurposer Publisher", "line": "Schedule derivative snippets into Buffer", "status": "planned" },
+        { "name": "web-builder", "title": "Web Builder", "line": "Pick up and execute daily plan issue from 09:00 dispatch", "status": "active" },
+        { "name": "creative-director", "title": "Creative Director", "line": "Review pending PRs and visual assets before deploy", "status": "active" },
+        { "name": "video-team", "title": "Video Team", "line": "Check Remotion asset renders and pipeline", "status": "planned" },
+        { "name": "ads-analyst", "title": "Ads Analyst", "line": "Review every live campaign per door (Meta, Google Search, ChatGPT ads once eligible): spend, cost per audit request, cost per booked call; ranked optimisation proposals to #marketing; no budget change without Architect approval", "status": "planned" },
+        { "name": "growth-strategist", "title": "Growth Strategist", "line": "Daily acquisition plan to #marketing: today's actions per channel, the Architect's hour marked, yesterday's conversations booked. KRA: 100 qualified conversations in 30 days; reach is a diagnostic, not a target", "status": "planned" }
+      ]
+    },
+    {
+      "id": "finance-people",
+      "label": "Finance and People",
+      "agents": [
+        { "name": "finance", "title": "Finance", "line": "Monthly close pack, cash-reserve tracker, cost-per-brand audit", "status": "planned" },
+        { "name": "people-ops", "title": "People Ops", "line": "Monthly audit of all agent skill files against standard", "status": "planned" }
+      ]
+    }
+  ]
+}
