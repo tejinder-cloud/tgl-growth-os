@@ -176,3 +176,5 @@ await t("collections: one draft per invoice, latest due step only, never repeate
 });
 
 console.log(`\nDay 13 finance: ${passed} tests passed`);
+
+// (fixture note) Zoho place_of_supply for Chandigarh (state code 04) is "CH"; the Zoho test above asserts the mapped value.
