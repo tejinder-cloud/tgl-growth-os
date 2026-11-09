@@ -43,25 +43,29 @@ async function main(): Promise<void> {
     else if (url.endsWith("/opportunities/")) payload = { opportunity: { id: "o_1" } };
     return { ok: true, status: 200, json: async () => payload, text: async () => "" };
   };
-  setAeoLeadDeps({
+  const liveDeps = {
     ghl: { apiKey: "k", locationId: "loc", pipelineId: "pipe", stageNewId: "stage" },
     fetchFn: fakeFetch,
     notify: async (t: string) => {
       notices.push(t);
     },
     now: () => 1_700_000_000_000,
-  });
+  };
+  setAeoLeadDeps(liveDeps);
   resetAeoRateLimit();
 
   const server = createApp("test-signing-secret").listen(0);
   const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
   const origin = "https://thegrowthlab.co.in";
-  const post = (body: unknown) =>
-    fetch(`${base}/aeo/lead`, {
+  // The per-IP limiter is covered by the Task 107 test; reset it so these cases are independent.
+  const post = (body: unknown) => {
+    resetAeoRateLimit();
+    return fetch(`${base}/aeo/lead`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Origin: origin },
       body: JSON.stringify(body),
     });
+  };
 
   try {
     // 1. Two-field hero payload with a website: accepted, written to GHL, alert posted.
@@ -126,7 +130,7 @@ async function main(): Promise<void> {
     ok("GHL failure returns 502 and ok:false");
 
     // 6. GHL unconfigured fails closed.
-    setAeoLeadDeps({ ghl: null, fetchFn: fakeFetch, notify: async () => undefined, now: () => 1_700_000_000_000 });
+    setAeoLeadDeps({ ...liveDeps, ghl: null });
     const closed = await post({ source: "home_hero", business: "sharmaclinic.in", phone: "9876543210", hp: "" });
     assert.equal(closed.status, 503);
     assert.equal(((await closed.json()) as any).ok, false);
@@ -138,11 +142,11 @@ async function main(): Promise<void> {
   }
 
   // 7. The hero pattern posts what the endpoint accepts, and only shows success on ok:true.
-  const hero = fs.readFileSync(findUp("tgl-theme/patterns/home-hero.php"), "utf8");
-  assert.match(hero, /source:\s*'home_hero'/);
-  assert.match(hero, /phone:\s*phone/);
-  assert.match(hero, /r\.data\.ok === true/);
-  assert.equal((hero.match(/<input /g) || []).length, 3, "business, phone and the honeypot only");
+  const heroPattern = fs.readFileSync(findUp("tgl-theme/patterns/home-hero.php"), "utf8");
+  assert.match(heroPattern, /source:\s*'home_hero'/);
+  assert.match(heroPattern, /phone:\s*phone/);
+  assert.match(heroPattern, /r\.data\.ok === true/);
+  assert.equal((heroPattern.match(/<input /g) || []).length, 3, "business, phone and the honeypot only");
   ok("hero pattern posts source=home_hero with two visible fields and gates success on ok:true");
 
   // 8. agents.yaml: every agent has a valid status, and the daily Citation Tracker owner is active.
