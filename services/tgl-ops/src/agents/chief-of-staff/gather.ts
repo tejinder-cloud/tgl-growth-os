@@ -8,6 +8,7 @@ import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
 import { getAgentsCostStatusForStandup, type AgentCostCapInfo } from "../../lib/cost-cap.js";
 import { loadPlanEntries, getCurrentPlanDay } from "../../lib/plan.js";
 import { getIntakeLastReadTime } from "./intake.js";
+import { getRevenueMetrics, type RevenueMetrics } from "../../lib/revenue.js";
 
 export interface LogEntry {
   agent: string;
@@ -20,6 +21,15 @@ export interface OpenApproval {
   ts: string;
   permalink?: string;
   ageHours?: number;
+}
+
+export interface BlockedIssue {
+  number: number;
+  title: string;
+  label: "status:blocked" | "status:needs-brief" | string;
+  ageDays: number;
+  ageHours?: number;
+  url: string;
 }
 
 export interface InProgressIssue {
@@ -66,6 +76,9 @@ export interface GatheredData {
   agentCostStatuses: AgentCostCapInfo[];
   carriedForwardPlanEntries: CarriedForwardPlanEntry[];
   intakeLastReadTime?: string;
+  revenueMetrics?: RevenueMetrics;
+  blockedIssues?: BlockedIssue[];
+  olderReviewCards?: OpenApproval[];
   rawSummaryText: string;
 }
 
@@ -86,6 +99,8 @@ export async function gatherStandupMaterial(
     mockClosedPrs?: number[];
     mockRejectedIssues?: number[];
     mockHistoryMessages?: any[];
+    mockBlockedIssues?: BlockedIssue[];
+    mockRevenueMetrics?: RevenueMetrics;
   }
 ): Promise<GatheredData> {
   const date = dateStr || getTodayDateString();
@@ -424,6 +439,46 @@ export async function gatherStandupMaterial(
     }
   }
 
+  // 5b. Gather blocked and needs-brief issues
+  const blockedIssues: BlockedIssue[] = options?.mockBlockedIssues ? [...options.mockBlockedIssues] : [];
+  if (!options?.mockBlockedIssues && config.githubToken) {
+    try {
+      const now = Date.now();
+      for (const label of ["status:blocked", "status:needs-brief"]) {
+        const issuesRes = await octokit.issues.listForRepo({
+          owner: config.githubOwner,
+          repo: config.githubRepo,
+          labels: label,
+          state: "open",
+          per_page: 50,
+        });
+
+        for (const iss of issuesRes.data) {
+          if (iss.pull_request) continue;
+          const createdMs = new Date(iss.created_at).getTime();
+          const ageHours = Math.max(0, Math.floor((now - createdMs) / 3600000));
+          const ageDays = Math.floor(ageHours / 24);
+          blockedIssues.push({
+            number: iss.number,
+            title: iss.title,
+            label,
+            ageDays,
+            ageHours,
+            url: iss.html_url,
+          });
+        }
+      }
+    } catch (err: any) {
+      console.warn("[Gather] Error listing blocked/needs-brief issues:", err.message);
+    }
+  }
+
+  // 5c. Review cards older than 2 hours
+  const olderReviewCards: OpenApproval[] = openApprovals.filter((a) => (a.ageHours ?? 0) >= 2);
+
+  // 5d. Revenue metrics (GHL AEO pipeline + Finance ledger)
+  const revenueMetrics = options?.mockRevenueMetrics || (await getRevenueMetrics());
+
   // 6. Gather doors specifications
   const doors: { name: string; scorecardLines: string[] }[] = [];
   for (const dName of ["aeo", "ai", "truelead"]) {
@@ -520,6 +575,9 @@ export async function gatherStandupMaterial(
     agentCostStatuses,
     carriedForwardPlanEntries,
     intakeLastReadTime,
+    revenueMetrics,
+    blockedIssues,
+    olderReviewCards,
   });
 
   return {
@@ -534,6 +592,9 @@ export async function gatherStandupMaterial(
     agentCostStatuses,
     carriedForwardPlanEntries,
     intakeLastReadTime,
+    revenueMetrics,
+    blockedIssues,
+    olderReviewCards,
     rawSummaryText,
   };
 }
@@ -624,6 +685,31 @@ export function formatGatheredText(data: Omit<GatheredData, "rawSummaryText">): 
   // 9. Intake Health
   parts.push("\n### 9. INTAKE HEALTH:");
   parts.push(`- intake last read ${data.intakeLastReadTime || "never"}`);
+
+  // 10. Blockers (from status:blocked, status:needs-brief, review cards > 2h)
+  parts.push("\n### 10. BLOCKERS (Issues with status:blocked / status:needs-brief and review cards older than 2 hours):");
+  const biItems: string[] = [];
+  for (const b of data.blockedIssues || []) {
+    const ageStr = b.ageDays > 0 ? `${b.ageDays}d` : `${b.ageHours || 0}h`;
+    biItems.push(`- #${b.number} "${b.title}" (${b.label}, age: ${ageStr}) · ${b.url}`);
+  }
+  for (const r of data.olderReviewCards || []) {
+    biItems.push(`- Review card: "${r.title}" (@${r.agent}, age: ${r.ageHours ?? 2}h) · ${r.permalink || "in #approvals"}`);
+  }
+  if (biItems.length === 0) {
+    parts.push("None reported. Zero blocked issues and zero review cards older than 2 hours.");
+  } else {
+    parts.push(biItems.join("\n"));
+  }
+
+  // 11. Revenue Metrics
+  parts.push("\n### 11. REVENUE METRICS (GHL AEO pipeline + Finance ledger):");
+  const rev = data.revenueMetrics || { auditRequests: 0, diagnosticCallsBooked: 0, proposalsSent: 0, retainersWon: 0, rupeesInvoiced: 0 };
+  parts.push(`- Audit requests: ${rev.auditRequests}`);
+  parts.push(`- Diagnostic calls booked: ${rev.diagnosticCallsBooked}`);
+  parts.push(`- Proposals sent: ${rev.proposalsSent}`);
+  parts.push(`- Retainers won: ${rev.retainersWon}`);
+  parts.push(`- Rupees invoiced: ₹${rev.rupeesInvoiced}`);
 
   return parts.join("\n");
 }

@@ -22,9 +22,9 @@ export function planBlocks(o: { planId: string; brand: string; domain: string | 
     const use = o.checks.usage.find((u) => u.month === m.month);
     blocks.push({ type: "section", text: { type: "mrkdwn", text: cut(
       `*Month ${m.month} — ${esc(m.theme)}* _(${use?.pages ?? 0} pages · ${use?.outreach ?? 0} outreach)_\n${esc(m.focus)}\n` +
-      weeks.map((i) => `• W${i.week} [${i.kind}·${PATH[i.path] ?? i.path}${i.count > 1 ? `·×${i.count}` : ""}] ${esc(i.title)}${i.recommendation_id ? " ↔ rec" : ""}`).join("\n"), 2900) } });
+      weeks.map((i) => `• W${i.week} [${i.kind}·${PATH[i.path] ?? i.path}${i.count > 1 ? `·×${i.count}` : ""}] ${esc(i.title)}${i.recommendation_id ? " <-> rec" : ""}`).join("\n"), 2900) } });
   }
-  blocks.push({ type: "context", elements: [{ type: "mrkdwn", text: o.checks.passed ? "✅ Passed every check (scope, foundations first, no promises or unmeasured numbers, linked recommendations open)" : cut(`⚠️ *Checks:* ${o.checks.problems.map(esc).join("; ")}`, 2900) }] });
+  blocks.push({ type: "context", elements: [{ type: "mrkdwn", text: o.checks.passed ? "Passed every check (scope, foundations first, no promises or unmeasured numbers, linked recommendations open)" : cut(`*Checks:* ${o.checks.problems.map(esc).join("; ")}`, 2900) }] });
   if (o.buttons) {
     blocks.push({ type: "actions", elements: [
       { type: "button", style: "primary", action_id: "plan_approve", value: o.planId, text: { type: "plain_text", text: "Approve — show the client" } },
