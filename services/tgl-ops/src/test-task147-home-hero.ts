@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import type { AddressInfo } from "node:net";
-import YAML from "yaml";
+import { parse as parseYaml } from "yaml";
 import { createApp } from "./app.js";
 import { setAeoLeadDeps, resetAeoRateLimit } from "./routes/aeo.js";
 
@@ -150,7 +150,7 @@ async function main(): Promise<void> {
   ok("hero pattern posts source=home_hero with two visible fields and gates success on ok:true");
 
   // 8. agents.yaml: every agent has a valid status, and the daily Citation Tracker owner is active.
-  const agents: any[] = YAML.parse(fs.readFileSync(findUp("config/agents.yaml"), "utf8"));
+  const agents: any[] = parseYaml(fs.readFileSync(findUp("config/agents.yaml"), "utf8"));
   for (const a of agents) assert.ok(["active", "planned"].includes(a.status), `${a.name} has status ${a.status}`);
   assert.equal(agents.find((a) => a.name === "aeo-audit-engine")?.status, "active");
   ok("agents.yaml statuses are well formed and aeo-audit-engine is active");
