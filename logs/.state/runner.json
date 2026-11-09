@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-09T09:46:11.128Z",
+  "updatedAt": "2026-11-09T09:50:40.403Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -133,12 +133,19 @@
       "agent": "web-builder",
       "door": "core",
       "title": "[TASK]: Build the new Home page from site/pages/home.md for the webs",
-      "status": "in-progress",
+      "status": "completed",
+      "branch": "task/147-build-the-new-home-page-from-s",
+      "prNumber": 148,
+      "prUrl": "https://github.com/tejinder-cloud/tgl-growth-os/pull/148",
       "runStartedAt": "2026-11-09T09:46:10.373791+00:00",
+      "runCompletedAt": "2026-11-09T09:50:39.167+00:00",
       "recoveryAttempts": 0,
-      "ownerInstance": "inst_1794215214530_7949e5d8",
-      "heartbeatAt": "2026-11-09T09:46:10.373791+00:00",
-      "toolCallsCount": 0
+      "ownerInstance": null,
+      "heartbeatAt": null,
+      "toolCallsCount": 32,
+      "preflightHash": "4963699f583ee968",
+      "preflightVerdict": "proceed",
+      "preflightReason": "The brief has a concrete, verifiable deliverable. It names the spec (site/pages/home.md), the hero asset (tgl-theme/assets/img/tejinder-stage.png), the config file (config/agents.yaml), and two checks that can be tested. The first is that the hero form submits successfully to the /aeo endpoint. The second is that agent statuses in config/agents.yaml are confirmed or fixed before the roster is built. All of these paths are outside the protected paths (decisions/, logs/, logs/.state), and the runner may write to config/ and site/ on a branch. The brief says to build a draft and not to publish before the Architect approves, so it does not conflict with the §8 Never guardrails on publishing live, changing page status, DNS, external plugins or scripts, pricing, or deleting content. The workflow is also defined: Web Builder drafts, Creative Director reviews, Chief of Staff sends the approval card. Two things to watch while building. Test the form end to end without adding external scripts or plugins. Treat the home.md spec as the source of truth for the correct agent statuses, and don't make up values. If the spec doesn't define them, flag that on the PR rather than guessing."
     }
   }
 }
