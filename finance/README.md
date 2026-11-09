@@ -41,3 +41,20 @@ Nothing below is guessed by the service. A missing value holds the invoice with 
 - Ledger lines are append-only. Corrections are new entries. Invoice numbers are never reused, renumbered or back-dated.
 - No emojis in any text the service writes.
 - `decisions/` and `logs/` are written only by the service on main.
+
+## Verification status (web-builder pass on issue #141)
+
+Evidence kind: static read only. No test was executed in this pass and no live provider, Slack or GHL call was made.
+
+Read and confirmed present on the branch:
+- `agents/finance/SKILL.md` has all eleven template sections in order, with the Pushback Posture block, metrics, playbooks A to E, the GHL webhook contract and the never list.
+- `finance/compliance/lut-checklist.md` has sections A to E (export test, LUT in force, invoice content, after the invoice, close-out) and three open questions for the Architect.
+- `finance/ledger/README.md` documents the ledger files.
+- `services/tgl-ops/src/routes/finance.ts` defines `/deal-won`, `/razorpay`, `/invoice-status`, `/expense`, `/collections/run` and `/summary`. Every route returns 401 when its secret is unset or does not match, compared with `timingSafeEqual`.
+- `services/tgl-ops/package.json` has `test:d13-finance` and includes `test-d13-finance.ts` in `npm test`.
+
+Not verified in this pass (the research budget ran out before these reads). The Architect or Reviewer should check them before `FINANCE_LIVE=1`:
+1. `services/tgl-ops/src/app.ts` mounts `financeRouter` at `/finance`.
+2. `app.ts` captures the raw request body as `req.rawBody` on `/finance/razorpay`. The signature check hashes `req.rawBody`. If it is missing, every Razorpay event gets 401, which fails closed but drops payment events.
+3. `setFinanceNotifier` is called at boot with the Slack poster. Until then every Finance line goes to the console only, and the Architect would not see held deals or draft invoices.
+4. `npm run test:d13-finance` passes in CI.
