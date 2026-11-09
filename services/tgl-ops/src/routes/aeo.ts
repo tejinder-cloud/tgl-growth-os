@@ -1,11 +1,12 @@
 // services/tgl-ops/src/routes/aeo.ts
-// POST /aeo/lead : public endpoint behind the /aeo audit request form. Validates, writes the lead to the
-// GHL "AEO" pipeline, and posts a plain-text alert to the ops channel. Fails closed: with GHL unconfigured
-// it returns 503 and the form shows a retry message, rather than pretending the lead was saved.
+// POST /aeo/lead : public endpoint behind the /aeo audit request form and the Home hero form (source=home_hero).
+// Validates, writes the lead to the GHL "AEO" pipeline, and posts a plain-text alert to the ops channel.
+// Fails closed: with GHL unconfigured it returns 503 and the form shows a retry message, rather than
+// pretending the lead was saved.
 //
 // Mount in app.ts:   app.use("/aeo", aeoRouter);
 import express, { Router, type Request, type Response } from "express";
-import { validateLead, writeLeadToGhl, ghlConfigFromEnv, sourceLabel, type AeoLeadClean, type FetchLike, type GhlConfig, type GhlWriteResult } from "../lib/aeo-lead.js";
+import { validateLead, writeLeadToGhl, ghlConfigFromEnv, sourceLabel, HOME_HERO_SOURCE, type AeoLeadClean, type FetchLike, type GhlConfig, type GhlWriteResult } from "../lib/aeo-lead.js";
 
 export interface AeoLeadDeps {
   ghl: GhlConfig | null;
@@ -129,6 +130,15 @@ aeoRouter.post("/lead", express.json({ limit: "16kb" }), async (req: Request, re
 });
 
 export function formatAlert(lead: AeoLeadClean, r: GhlWriteResult): string {
+  if (lead.source === HOME_HERO_SOURCE) {
+    return [
+      "*New AEO audit request (Home hero)*",
+      `Business: ${lead.institute}${lead.domain ? ` (${lead.domain})` : ""}`,
+      `Contact: ${lead.phoneE164}`,
+      `Source: ${sourceLabel(lead)}`,
+      `GHL opportunity: ${r.opportunityId}`,
+    ].join("\n");
+  }
   return [
     "*New AEO audit request*",
     `Institute: ${lead.institute} (${lead.domain})`,
