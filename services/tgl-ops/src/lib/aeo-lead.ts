@@ -207,3 +207,92 @@ export function buildNote(lead: AeoLeadClean): string {
   return lines.join("\n");
 }
 
+export interface GhlConfig {
+  apiKey: string;
+  locationId: string;
+  pipelineId: string;
+  stageNewId: string;
+  baseUrl?: string;
+}
+
+export type FetchLike = (
+  url: string,
+  init: { method: string; headers: Record<string, string>; body: string },
+) => Promise<{ ok: boolean; status: number; json: () => Promise<any>; text: () => Promise<string> }>;
+
+export function ghlConfigFromEnv(env: NodeJS.ProcessEnv = process.env): GhlConfig | null {
+  const cfg = {
+    apiKey: (env.GHL_API_KEY || "").trim(),
+    locationId: (env.GHL_LOCATION_ID || "").trim(),
+    pipelineId: (env.GHL_AEO_PIPELINE_ID || "").trim(),
+    stageNewId: (env.GHL_AEO_STAGE_NEW_ID || "").trim(),
+  };
+  return Object.values(cfg).every(Boolean) ? cfg : null;
+}
+
+export interface GhlWriteResult {
+  contactId: string;
+  opportunityId: string;
+}
+
+async function ghlPost(cfg: GhlConfig, fetchFn: FetchLike, path: string, payload: unknown): Promise<any> {
+  const res = await fetchFn(`${cfg.baseUrl || "https://services.leadconnectorhq.com"}${path}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${cfg.apiKey}`,
+      Version: "2021-07-28",
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`GHL ${path} failed with ${res.status}: ${text.slice(0, 200)}`);
+  }
+  return res.json();
+}
+
+/**
+ * Upsert the contact (GHL dedupes on phone/email), attach the request as a note, and open an opportunity
+ * at the first stage of the AEO pipeline. The stage entry is what triggers the WhatsApp workflows.
+ * Home hero leads carry no email and may carry no website; those keys are left out of the payload.
+ */
+export async function writeLeadToGhl(
+  lead: AeoLeadClean,
+  cfg: GhlConfig,
+  fetchFn: FetchLike,
+): Promise<GhlWriteResult> {
+  const isHero = lead.source === HOME_HERO_SOURCE;
+  const sourceName = isHero ? `home-hero / ${sourceLabel(lead)}` : `aeo-landing / ${sourceLabel(lead)}`;
+  const upsert = await ghlPost(cfg, fetchFn, "/contacts/upsert", {
+    locationId: cfg.locationId,
+    firstName: lead.firstName,
+    lastName: lead.lastName,
+    name: lead.name,
+    ...(lead.email ? { email: lead.email } : {}),
+    phone: lead.phoneE164,
+    companyName: lead.institute,
+    ...(lead.domain ? { website: lead.domain } : {}),
+    source: sourceName,
+    tags: isHero ? ["aeo-audit-request", "source:home-hero"] : ["aeo-audit-request", "source:aeo-page"],
+  });
+  const contactId: string | undefined = upsert?.contact?.id;
+  if (!contactId) throw new Error("GHL contact upsert returned no contact id");
+
+  await ghlPost(cfg, fetchFn, `/contacts/${encodeURIComponent(contactId)}/notes`, { body: buildNote(lead) });
+
+  const opp = await ghlPost(cfg, fetchFn, "/opportunities/", {
+    pipelineId: cfg.pipelineId,
+    locationId: cfg.locationId,
+    pipelineStageId: cfg.stageNewId,
+    contactId,
+    name: `AEO audit - ${lead.institute}`,
+    status: "open",
+    source: sourceName,
+  });
+  const opportunityId: string | undefined = opp?.opportunity?.id ?? opp?.id;
+  if (!opportunityId) throw new Error("GHL opportunity create returned no opportunity id");
+
+  return { contactId, opportunityId };
+}
