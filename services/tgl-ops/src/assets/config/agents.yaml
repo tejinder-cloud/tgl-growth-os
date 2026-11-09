@@ -182,7 +182,7 @@
   channel: "#site-build"
   trigger: "Review requests from Web Builder/Content Writer, mention @creative-director"
   reviewer: "Architect"
-  status: planned
+  status: active
   daily_cost_cap_usd: 1.00
   routines:
     - name: daily_pr_review
