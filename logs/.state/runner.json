@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-08T08:08:19.706Z",
+  "updatedAt": "2026-11-09T07:36:12.850Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -82,13 +82,15 @@
       "agent": "web-builder",
       "door": "aeo",
       "title": "[PLAN-D12]: Sales Desk SKILL.md + worker + proposal template",
-      "status": "in-progress",
+      "status": "completed",
+      "prNumber": 132,
+      "prUrl": "https://github.com/tejinder-cloud/tgl-growth-os/pull/132",
       "runStartedAt": "2026-11-08T05:00:03.055778+00:00",
-      "runCompletedAt": "2026-11-08T06:55:35.993+00:00",
+      "runCompletedAt": "2026-11-08T08:08:20.221+00:00",
       "recoveryAttempts": 0,
       "lastRecoveryAlertAt": "2026-11-08T06:55:35.03+00:00",
-      "ownerInstance": "inst_1794125297479_b85a3ba4",
-      "heartbeatAt": "2026-11-08T08:08:18.997423+00:00",
+      "ownerInstance": null,
+      "heartbeatAt": null,
       "toolCallsCount": 0
     },
     "120": {
@@ -109,6 +111,17 @@
       "preflightVerdict": "proceed",
       "preflightReason": "The brief is concrete and verifiable. It asks for a composition root that registers the Mon-Fri 09:30-17:30 IST tick. It connects Supabase prospects, GHL (WhatsApp when GHL_WA_PHONE_ID is set, email fallback otherwise), the short-form audit engine and Slack. It wires setOutreachReplyDeps so POST /outreach/ghl-reply stops returning 503. It stays dry-run until OUTREACH_LIVE=1. The targets sit in services/tgl-ops (the outreach-sequencer module, index.ts, and a test file), which the runner may write on a branch behind the CI gate. Acceptance is measurable: unit tests render all five touches for a fixture prospect, and a dry-run tick produces five rendered touches. No §8 Never guardrail is violated. Live sends are gated, and there is no DNS, page-status, plugin, pricing or deletion change. Earlier pre-flight reviews returned proceed, and the Architect has resumed the run twice, which resolves any ambiguity. The previous runs failed on tooling (write_file calls with no content), not on the brief. Constraints for the implementer: do not recreate the PR #104 modules, and start with the composition root (live.ts/compose.ts), then the index.ts cron registration, then the test. The PR must not commit anything under logs/ or decisions/. Tests should write to a temp dir. The Railway log proof is runtime output, so attach it as evidence and do not commit it. Every write_file call must include the full content.",
       "lastModelMessage": "I haven't written any code yet. Every `write_file` call so far has failed because my calls sent only the `path` and no `content`. I'm stopping here instead of retrying the same empty call.\n\n**State of the branch:** `task/120-plan-d10b-outreach-sequencer-l` has no commits from me. There is no `live.ts`, no change to `index.ts` and no test.\n\n**What I confirmed by reading the code (static read only):**\n- The worker, executor, templates, store, GHL client, one-pager builder and reply handler from PR #104 are all in `services/tgl-ops/src/agents/outreach-sequencer/`. The agent files in the repo map are TypeScript there, not under `agents/`.\n- `POST /outreach/ghl-reply` returns 503 until `setOutreachReplyDeps` is called. Nothing calls it yet.\n- Nothing yet registers the tick. `index.ts` has no outreach cron.\n- Nothing yet creates the real store, GHL client, audit/one-pager ports or Slack alert port.\n- I can't read `SKILL.md` or the template files, because the research budget is spent. I also can't read `package.json` or the `lib/` folder.\n\n**What I plan to write next, in order:**\n1. `live.ts`, the composition root. It will contain:\n   - ports for the Supabase store, GHL (WhatsApp only when `GHL_WA_PHONE_ID` is set, email fallback otherwise), the short-form audit and one-pager, and Slack `#alerts`;\n   - the file-template renderer, a boot self-check of the templates, and `setOutreachReplyDeps`;\n   - dry-run by default, with live only when `OUTREACH_LIVE=1`, and a fallback to dry-run with an alert if GHL isn't configured;\n   - a dry-run log that renders all five touches per prospect and appends them to `logs/<date>/outreach-sequencer.md`.\n2. `index.ts`: register `30 9 * * 1-5` in the configured timezone (the existing send-window check in `runTick` enforces 09:30–17:30 IST).\n3. `test-task120-outreach-wiring.ts`: render all five touches for a fixture prospect, plus the dry-run and reply-wiring checks.\n\n**Risks for the PR description:**\n- I can't confirm that `weakest_query` is available from the audit result. If a template uses it and it is missing, the touch is held rather than guessed.\n- I won't add the test to `package.json`, because I can't read it and won't overwrite it blind.\n- I can't produce the Railway proof from here. It needs a deployed dry-run tick.\n\nI'm going to make the next `write_file` call with the full file body in `content`."
+    },
+    "141": {
+      "agent": "web-builder",
+      "door": "core",
+      "title": "[PLAN-D13]: Finance SKILL.md + v1: GST invoices & ledger",
+      "status": "in-progress",
+      "runStartedAt": "2026-11-09T07:36:12.079831+00:00",
+      "recoveryAttempts": 0,
+      "ownerInstance": "inst_1794133076583_f5d58f91",
+      "heartbeatAt": "2026-11-09T07:36:12.079831+00:00",
+      "toolCallsCount": 0
     }
   }
 }
