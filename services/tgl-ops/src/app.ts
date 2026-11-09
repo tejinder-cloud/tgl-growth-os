@@ -12,6 +12,7 @@ import { auditRouter } from "./routes/audit.js";
 import { outreachRouter } from "./routes/outreach.js";
 import { aeoRouter } from "./routes/aeo.js";
 import { billingRouter } from "./routes/billing.js";
+import { financeRouter } from "./routes/finance.js";
 
 /**
  * Creates and configures the Express app.
@@ -87,66 +88,3 @@ export function createApp(signingSecret?: string) {
     }
     next();
   });
-
-  // 4. Health check route (unauthenticated for Railway / load balancer)
-  app.use("/health", healthRouter);
-
-  // 5. Slack entry logger: traces every request to /slack/* BEFORE signature verification
-  app.use("/slack", (req: Request, _res: Response, next: NextFunction) => {
-    const retryNum = req.headers["x-slack-retry-num"];
-    const retryReason = req.headers["x-slack-retry-reason"];
-    console.log(`[Slack Entry] ${req.method} ${req.originalUrl || req.url}`, {
-      contentType: req.headers["content-type"],
-      contentLength: req.headers["content-length"],
-      hasTimestamp: Boolean(req.headers["x-slack-request-timestamp"]),
-      hasSignature: Boolean(req.headers["x-slack-signature"]),
-      retryNum: retryNum ? String(retryNum) : undefined,
-      retryReason: retryReason ? String(retryReason) : undefined,
-      userAgent: req.headers["user-agent"],
-    });
-    next();
-  });
-
-  // GET /slack/events for health/endpoint mounting verification
-  app.get("/slack/events", (_req: Request, res: Response) => {
-    res.status(200).json({
-      status: "ok",
-      endpoint: "/slack/events",
-      mounted: true,
-      timestamp: new Date().toISOString(),
-    });
-  });
-
-  // 6. Slack routes with signature verification middleware (all real events strictly verified)
-  const verifier = verifySlackSignature(signingSecret ?? config.slackSigningSecret);
-  app.use("/slack/events", verifier, eventsRouter);
-  app.use("/slack/interactions", verifier, interactionsRouter);
-  app.use("/slack/commands", verifier, commandsRouter);
-
-  // 7. Cards API: Inbound card dispatch endpoint for agents and tests
-  app.use("/cards", cardsRouter);
-
-  // 8. GitHub Webhook Route
-  app.use("/github/events", githubEventsRouter);
-
-  // 9. Audit API: On-demand AEO short-form audit execution and Slack attachment
-  app.use("/audit", auditRouter);
-
-  // 10. Outreach API: GHL inbound-reply webhook (shared-secret header, fails closed)
-  app.use("/outreach", outreachRouter);
-
-  // 11. AEO lead API: public POST /aeo/lead behind the /aeo audit form. Origin allow-list, honeypot,
-  // per-IP rate limit; fails closed (503) when the GHL env is not configured.
-  app.use("/aeo", aeoRouter);
-
-  // 12. Billing: Razorpay webhooks for TrueVisible Track (signature-checked; fails closed) (plan Day 26)
-  app.use("/billing", billingRouter);
-
-  // 12. Global Error Handler
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    console.error("[Server Error]", err);
-    res.status(500).json({ error: "Internal Server Error" });
-  });
-
-  return app;
-}
