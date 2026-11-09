@@ -128,14 +128,14 @@ Hope this helps!`;
   assert.equal(out.recs.length, 3);
 });
 
-await t("trigger: after a completed run, skip if that run has a batch or the last batch is under a week old", () => {
+await t("trigger: after a completed run, skip if that run has a batch", () => {
   const now = Date.parse("2026-11-12T10:00:00Z");
   const base = { verified: true, latestRunId: "r9", batchForRun: false, lastBatchAt: null as string | null, now };
   assert.deepEqual(shouldGenerate(base), { go: true, why: "due" });
   assert.equal(shouldGenerate({ ...base, verified: false }).go, false);
   assert.equal(shouldGenerate({ ...base, latestRunId: null }).go, false);
   assert.equal(shouldGenerate({ ...base, batchForRun: true }).why, "latest run already has recommendations");
-  assert.equal(shouldGenerate({ ...base, lastBatchAt: "2026-11-10T10:00:00Z" }).why, "last batch under a week old");
+  assert.equal(shouldGenerate({ ...base, lastBatchAt: "2026-11-10T10:00:00Z" }).go, true);
   assert.equal(shouldGenerate({ ...base, lastBatchAt: "2026-11-04T10:00:00Z" }).go, true);
 });
 
