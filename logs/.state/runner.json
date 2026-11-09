@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-09T09:58:43.983Z",
+  "updatedAt": "2026-11-09T10:38:34.579Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -133,15 +133,15 @@
       "agent": "web-builder",
       "door": "core",
       "title": "[TASK]: Build the new Home page from site/pages/home.md for the webs",
-      "status": "completed",
+      "status": "in-progress",
       "branch": "task/147-build-the-new-home-page-from-s",
       "prNumber": 148,
       "prUrl": "https://github.com/tejinder-cloud/tgl-growth-os/pull/148",
       "runStartedAt": "2026-11-09T09:46:10.373791+00:00",
       "runCompletedAt": "2026-11-09T09:58:43.096+00:00",
       "recoveryAttempts": 0,
-      "ownerInstance": null,
-      "heartbeatAt": null,
+      "ownerInstance": "inst_1794215214530_7949e5d8",
+      "heartbeatAt": "2026-11-09T10:38:33.832928+00:00",
       "toolCallsCount": 28,
       "preflightHash": "4963699f583ee968",
       "preflightVerdict": "proceed",
