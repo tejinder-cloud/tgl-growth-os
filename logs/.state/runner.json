@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-09T07:48:03.726Z",
+  "updatedAt": "2026-11-09T08:09:18.676Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -120,8 +120,8 @@
       "runStartedAt": "2026-11-09T07:36:12.079831+00:00",
       "runCompletedAt": "2026-11-09T07:38:49.037+00:00",
       "recoveryAttempts": 0,
-      "ownerInstance": "inst_1794133076583_f5d58f91",
-      "heartbeatAt": "2026-11-09T07:48:03.022385+00:00",
+      "ownerInstance": "inst_1794211756444_99acc060",
+      "heartbeatAt": "2026-11-09T08:09:17.937213+00:00",
       "toolCallsCount": 0,
       "preflightHash": "af71b3200957767d",
       "preflightVerdict": "needs-brief",
