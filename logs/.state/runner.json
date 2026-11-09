@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-09T07:38:50.530Z",
+  "updatedAt": "2026-11-09T07:40:08.314Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -116,10 +116,9 @@
       "agent": "web-builder",
       "door": "core",
       "title": "[PLAN-D13]: Finance SKILL.md + v1: GST invoices & ledger",
-      "status": "needs-brief",
+      "status": "in-progress",
       "runStartedAt": "2026-11-09T07:36:12.079831+00:00",
       "runCompletedAt": "2026-11-09T07:38:49.037+00:00",
-      "error": "The brief doesn't touch a protected path and doesn't break a §8 Never rule, so refusing isn't warranted. It is still underspecified, and the thread has no Architect answers to the earlier needs-brief verdict. Only `agents/finance/SKILL.md` is a concrete file target. The other three DoD items have no file targets or verifiable acceptance criteria:\n\n- **Webhook:** The brief doesn't say whether Razorpay or Zoho issues the invoice. It doesn't say where the \"deal Won\" event comes from, where the handler lives (`services/...`), or how credentials are handled. GST rules are missing too: GSTIN, SAC code, rates, and the IGST vs CGST/SGST split.\n- **Ledger:** `finance/ledger` has no format, schema or location. The source of per-audit API cost data isn't named. The ledger must also stay out of the protected `logs/` and `decisions/` paths.\n- **LUT task:** The brief doesn't give the checklist's location, format, or handoff mechanism to the Compliance agent.\n- **Ownership and scope:** A SKILL.md, a payments integration, a ledger and a compliance checklist are too much for one issue. It is also unclear that `web-builder` is the right owner for finance and payment automation.\n\nMandates 1 and 2 (\"challenge the brief before you build\") mean I shouldn't build on guesses. Any live Razorpay/Zoho wiring would also touch production money flows.",
       "recoveryAttempts": 0,
       "ownerInstance": null,
       "heartbeatAt": null,
