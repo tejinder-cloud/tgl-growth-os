@@ -254,5 +254,29 @@
     "door": "core",
     "title": "prospects count by city",
     "updatedAt": "2026-11-08T08:54:56.403Z"
+  },
+  "163": {
+    "channel": "#doors-aeo",
+    "ts": "1794308956.168819",
+    "agent": "aeo-audit-engine",
+    "door": "aeo",
+    "title": "Generate the TGL audit PDF from today’s verified run and post it to #doors-aeo",
+    "cardType": "issue",
+    "linkedIssueNumber": 163,
+    "threadTimestamps": [
+      "1794308956.168819"
+    ],
+    "updatedAt": "2026-11-10T11:09:16.233Z"
+  },
+  "thread:1794308956.168819": {
+    "channel": "#doors-aeo",
+    "ts": "1794308956.168819",
+    "issueNumber": 163,
+    "linkedIssueNumber": 163,
+    "cardType": "issue",
+    "agent": "aeo-audit-engine",
+    "door": "aeo",
+    "title": "Generate the TGL audit PDF from today’s verified run and post it to #doors-aeo",
+    "updatedAt": "2026-11-10T11:09:16.233Z"
   }
 }
