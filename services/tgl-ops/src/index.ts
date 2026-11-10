@@ -191,6 +191,16 @@ import { syncRazorpaySecret } from "./agents/aeo-billing/razorpay.js";
 import { runAgencyGraceCheck } from "./agents/aeo-billing/agency.js";
 import { checkWordPressConnections, runImplementer } from "./agents/aeo-execution/worker.js";
 import { runPlanner } from "./agents/aeo-planner/worker.js";
+import { postWeeklyPlanItems } from "./agents/aeo-planner/weekly.js";
+
+// Monday 09:15 IST: each live 90-day plan's due items in #doors-aeo with Done buttons (plan Day 29b)
+cron.schedule(
+  "15 9 * * 1",
+  wrapCronJob("TrueVisible weekly plan items", async () => {
+    await postWeeklyPlanItems();
+  }),
+  { timezone: config.timezone }
+);
 
 // Every 15 minutes: 90-day plans for verified Managed / Managed Plus brands (and TGL) without one (plan Day 29b)
 cron.schedule(
