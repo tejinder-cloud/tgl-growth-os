@@ -11,6 +11,7 @@ import { githubEventsRouter } from "./routes/github-events.js";
 import { auditRouter } from "./routes/audit.js";
 import { outreachRouter } from "./routes/outreach.js";
 import { aeoRouter } from "./routes/aeo.js";
+import { homeStatsRouter } from "./routes/home-stats.js";
 import { billingRouter } from "./routes/billing.js";
 
 /**
@@ -138,6 +139,10 @@ export function createApp(signingSecret?: string) {
   // 11. AEO lead API: public POST /aeo/lead behind the /aeo audit form. Origin allow-list, honeypot,
   // per-IP rate limit; fails closed (503) when the GHL env is not configured.
   app.use("/aeo", aeoRouter);
+
+  // 11b. Home stats: read-only GET /home/stats for the Client Zero tiles. Counts and dates for TGL's own
+  // tracker only; fails closed (503, no figures) when no provider is wired.
+  app.use("/home", homeStatsRouter);
 
   // 12. Billing: Razorpay webhooks for TrueVisible Track (signature-checked; fails closed) (plan Day 26)
   app.use("/billing", billingRouter);
