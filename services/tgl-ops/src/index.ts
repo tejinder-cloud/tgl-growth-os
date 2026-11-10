@@ -193,6 +193,16 @@ import { checkWordPressConnections, runImplementer } from "./agents/aeo-executio
 import { runPlanner } from "./agents/aeo-planner/worker.js";
 import { runCompetitorIntel } from "./agents/aeo-competitors/worker.js";
 import { postHealthList, relayDataRequests, runConcierge } from "./agents/aeo-concierge/worker.js";
+import { issueInvoices } from "./agents/aeo-billing/invoices-worker.js";
+
+// Every 10 minutes: GST tax invoices for paid invoice rows without one (plan Day 32b)
+cron.schedule(
+  "3,13,23,33,43,53 * * * *",
+  wrapCronJob("TrueVisible tax invoices", async () => {
+    await issueInvoices();
+  }),
+  { timezone: config.timezone }
+);
 
 // Every 10 minutes: data-erasure requests → #alerts (plan Day 32)
 cron.schedule(

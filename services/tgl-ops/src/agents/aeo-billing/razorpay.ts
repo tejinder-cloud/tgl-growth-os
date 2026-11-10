@@ -51,6 +51,8 @@ export async function handleRazorpayEvent(sb: SupabaseClient, ev: any): Promise<
       razorpay_payment_id: pay.id, razorpay_invoice_id: pay.invoice_id ?? null, period_start: iso(s.current_start), period_end: iso(s.current_end),
     }, { onConflict: "razorpay_payment_id" });
   }
+  // Issue the tax invoice right away (also retried every 10 minutes).
+  if (pay?.id) { const { issueInvoices } = await import("./invoices-worker.js"); await issueInvoices(sb).catch(() => {}); }
   return `${event} → ${STATUS[event]}`;
 }
 
