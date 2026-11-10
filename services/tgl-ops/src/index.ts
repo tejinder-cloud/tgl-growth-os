@@ -384,6 +384,7 @@ export { app };
 // Outreach Sequencer live wiring (PLAN-D10b)
 // ---------------------------------------------------------------------------
 import { buildReplyDeps, createOutreachRuntime, fileLogWriter, tickCron, type OutreachRuntime } from "./agents/outreach-sequencer/live.js";
+import { loadOutreachTemplatesAsync, verifyBundledTemplatesMatchRepo } from "./agents/outreach-sequencer/templates.js";
 import { setOutreachReplyDeps } from "./routes/outreach.js";
 
 // POST /outreach/ghl-reply: the handler needs the real store and GHL client, supplied once at boot.
@@ -396,22 +397,27 @@ try {
 // Daily tick, Mon-Fri 09:30-17:30 IST. The send-window rule inside runTick refuses anything outside it.
 // Dry run unless OUTREACH_LIVE=1. A broken template directory must not stop the rest of the service from booting.
 let outreachRuntime: OutreachRuntime | null = null;
-try {
-  const writeFile = fileLogWriter();
-  outreachRuntime = createOutreachRuntime({
-    // Stdout is the Railway log; the file is logs/<date>/outreach-sequencer.md.
-    writeLog: async (dateKey, markdown) => {
-      console.log(`[Outreach] ${dateKey}\n${markdown}`);
-      await writeFile(dateKey, markdown);
-    },
-  });
-  const outreachIssues = outreachRuntime.preflight();
-  if (outreachIssues.length > 0) {
-    console.warn(`[Outreach] Preflight: ${outreachIssues.join("; ")}`);
+(async () => {
+  try {
+    await verifyBundledTemplatesMatchRepo();
+    const templates = await loadOutreachTemplatesAsync();
+    const writeFile = fileLogWriter();
+    outreachRuntime = createOutreachRuntime({
+      templates,
+      // Stdout is the Railway log; the file is logs/<date>/outreach-sequencer.md.
+      writeLog: async (dateKey, markdown) => {
+        console.log(`[Outreach] ${dateKey}\n${markdown}`);
+        await writeFile(dateKey, markdown);
+      },
+    });
+    const outreachIssues = outreachRuntime.preflight();
+    if (outreachIssues.length > 0) {
+      console.warn(`[Outreach] Preflight: ${outreachIssues.join("; ")}`);
+    }
+  } catch (err: any) {
+    console.error("[Outreach] Sequencer not started:", err?.message || err);
   }
-} catch (err: any) {
-  console.error("[Outreach] Sequencer not started:", err?.message || err);
-}
+})();
 
 cron.schedule(
   tickCron(),

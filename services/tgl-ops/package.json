@@ -4,7 +4,8 @@
   "description": "The Growth Lab Ops Slack service & approval webhook",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc && (cp -r src/assets dist/assets 2>/dev/null || true)",
+    "build": "tsx src/scripts/sync-assets.ts && tsc && (cp -r src/assets dist/assets 2>/dev/null || true)",
+    "sync-assets": "tsx src/scripts/sync-assets.ts",
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "test": "tsx src/test-task-p07.ts && tsx src/test-intake-qa.ts && tsx src/test-day17.ts && tsx src/test-day19.ts && tsx src/test-day22.ts && tsx src/test-fixes.ts && tsx src/test-plan-status-and-no-emojis.ts && tsx src/test-day08-aeo.ts",

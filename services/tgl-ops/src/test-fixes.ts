@@ -61,6 +61,17 @@ import { runProspectResearch, rescoreProspects } from "./agents/prospect-researc
 import { setMockProspectRecordsForTests } from "./agents/prospect-researcher/db.js";
 import { evaluateProspectRubric } from "./agents/prospect-researcher/rubric.js";
 import type { ProspectRecord } from "./agents/prospect-researcher/types.js";
+import { syncAssets } from "./scripts/sync-assets.js";
+import {
+  loadOutreachTemplatesAsync,
+  verifyBundledTemplatesMatchRepo,
+  loadTemplatesFromGitHub,
+} from "./agents/outreach-sequencer/templates.js";
+import {
+  wrapCronJob,
+  cronErrorMap,
+  resetCronErrorStatesForTests,
+} from "./lib/cron-wrapper.js";
 
 async function runFixesVerificationSuite(): Promise<void> {
   console.log("==========================================================================");
@@ -3454,6 +3465,126 @@ async function runFixesVerificationSuite(): Promise<void> {
 
   setMockProspectRecordsForTests(null);
   console.log("[Test 28 Passed] All Prospect Researcher defect fixes verified.\n");
+  passed++;
+
+  // --------------------------------------------------------------------------
+  // Test 29: Outreach Sequencer Bundling, Startup Check, Contents API Fallback & Cron Error Throttling
+  // --------------------------------------------------------------------------
+  console.log("[Test 29] Testing Outreach Sequencer Asset Bundling, Startup Check, Fallback & Cron Throttling...");
+
+  // 29.1 Test syncAssets: syncs config/agents.yaml and outreach templates
+  const syncResult = syncAssets();
+  if (!syncResult.agentsSynced || !syncResult.templatesSynced) {
+    throw new Error(`Test 29.1 Failed: syncAssets must sync both agents.yaml and outreach templates: ${JSON.stringify(syncResult)}`);
+  }
+  console.log("  ✓ syncAssets successfully bundles agents.yaml and outreach templates");
+
+  // 29.2 Test verifyBundledTemplatesMatchRepo
+  const verifyResult = await verifyBundledTemplatesMatchRepo();
+  if (!verifyResult.matches) {
+    throw new Error(`Test 29.2 Failed: Bundled templates must match repo copy: ${verifyResult.diffs.join("; ")}`);
+  }
+  console.log("  ✓ verifyBundledTemplatesMatchRepo confirms bundled templates match repo copy");
+
+  // 29.3 Test loadOutreachTemplatesAsync loads from bundled directory
+  const loadedTemplates = await loadOutreachTemplatesAsync();
+  if (loadedTemplates.size !== 5) {
+    throw new Error(`Test 29.3 Failed: Expected 5 templates, got ${loadedTemplates.size}`);
+  }
+  for (let n = 1; n <= 5; n++) {
+    const t = loadedTemplates.get(n);
+    if (!t || t.touch !== n) {
+      throw new Error(`Test 29.3 Failed: Touch ${n} template missing or invalid`);
+    }
+  }
+  console.log("  ✓ loadOutreachTemplatesAsync successfully loads all 5 bundled templates");
+
+  // 29.4 Test loadTemplatesFromGitHub mock fallback
+  const mockOctokit = {
+    repos: {
+      getContent: async ({ path }: { path: string }) => {
+        const touchNum = path.match(/touch-(\d+)\.md/)?.[1] || "1";
+        const contentStr = `---\ntouch: ${touchNum}\nchannel: email\nsubject: "Test subject"\n---\nHello {{first_name}}, STOP to unsubscribe.`;
+        return {
+          data: {
+            type: "file",
+            content: Buffer.from(contentStr, "utf8").toString("base64"),
+          },
+        };
+      },
+    },
+  };
+  const ghTemplates = await loadTemplatesFromGitHub(mockOctokit);
+  if (ghTemplates.size !== 5) {
+    throw new Error(`Test 29.4 Failed: Expected 5 templates from GitHub Contents API, got ${ghTemplates.size}`);
+  }
+  console.log("  ✓ loadTemplatesFromGitHub successfully decodes and parses templates via Contents API");
+
+  // 29.5 Test wrapCronJob repeated failure throttling
+  resetCronErrorStatesForTests();
+  resetMockPostedLines();
+
+  let cronExecutionCount = 0;
+  const failingJob = wrapCronJob("Test Flapping Job", async () => {
+    cronExecutionCount++;
+    throw new Error("Simulated deterministic service connection failure");
+  });
+
+  // Call 1: First failure must post alert immediately
+  failingJob();
+  await new Promise((r) => setTimeout(r, 10));
+
+  const getAlertCount = () => mockPostedLines.length;
+  if (getAlertCount() !== 1) {
+    throw new Error(`Test 29.5 Failed: First cron failure must alert once immediately, got ${getAlertCount()} alerts`);
+  }
+  if (!mockPostedLines[0].text.includes("Simulated deterministic service connection failure")) {
+    throw new Error(`Test 29.5 Failed: Alert text missing expected error message`);
+  }
+  console.log("  ✓ First cron failure alerts immediately");
+
+  // Call 2: Immediate repeated failure with same error must be throttled (no new alert)
+  failingJob();
+  await new Promise((r) => setTimeout(r, 10));
+
+  if (getAlertCount() !== 1) {
+    throw new Error(`Test 29.5 Failed: Repeated failure within 1 hour must be throttled, got ${getAlertCount()} alerts`);
+  }
+  const tracker = cronErrorMap.get("Test Flapping Job");
+  if (!tracker || tracker.count !== 2) {
+    throw new Error(`Test 29.5 Failed: Failure count must be 2, got: ${tracker?.count}`);
+  }
+  console.log("  ✓ Repeated failure with same error is throttled (count incremented to 2)");
+
+  // Call 3: Simulate 1 hour passing (advance lastAlertTime by 61 minutes)
+  tracker.lastAlertTime = Date.now() - 61 * 60 * 1000;
+  failingJob();
+  await new Promise((r) => setTimeout(r, 10));
+
+  if (getAlertCount() !== 2) {
+    throw new Error(`Test 29.5 Failed: After 1 hour, repeated failure must alert with count, got ${getAlertCount()} alerts`);
+  }
+  const secondAlertText = mockPostedLines[1].text;
+  if (!secondAlertText.includes("3 failures")) {
+    throw new Error(`Test 29.5 Failed: Second alert must include failure count (3 failures), got: ${secondAlertText}`);
+  }
+  console.log(`  ✓ After 1 hour, repeated failure alerts with failure count: "${secondAlertText.split("\n")[0]}"`);
+
+  // Call 4: Successful execution clears the error state
+  const succeedingJob = wrapCronJob("Test Flapping Job", async () => {
+    return "ok";
+  });
+  succeedingJob();
+  await new Promise((r) => setTimeout(r, 10));
+
+  if (cronErrorMap.has("Test Flapping Job")) {
+    throw new Error("Test 29.5 Failed: Successful execution must clear cronErrorMap for that job");
+  }
+  console.log("  ✓ Successful run clears cron error tracking state");
+
+  resetCronErrorStatesForTests();
+  resetMockPostedLines();
+  console.log("[Test 29 Passed] Outreach Sequencer Asset Bundling, Startup Check, Fallback & Cron Throttling verified.\n");
   passed++;
 
   console.log("==========================================================================");
