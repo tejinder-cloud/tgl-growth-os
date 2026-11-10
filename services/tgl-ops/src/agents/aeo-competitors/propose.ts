@@ -43,7 +43,7 @@ export const PLAYBOOK_TOOL: Anthropic.Tool = {
 };
 
 export function playbookMessage(brand: string, top: Rival[], excerpts: Map<string, Ans[]>): string {
-  const lines = [`Client: ${brand}. For each rival, explain from the evidence only why AI names them where it doesn't name ${brand}, and what ${brand} can do. Refer to evidence by ref. No numbers — they are attached by code. No guarantees.`];
+  const lines = [`Client: ${brand}. For each rival, explain from the evidence only why AI names them where it doesn't name ${brand}, and what ${brand} can do. Put evidence refs (Q…, S…, E…) only in the refs field — never in the text, which the client reads; name the question or site in words instead. No numbers — they are attached by code. No guarantees.`];
   for (const r of top) {
     lines.push(``, `RIVAL: ${r.name}`);
     r.questions.forEach((q, i) => lines.push(`Q${i + 1}. "${q.prompt}"`));
@@ -56,7 +56,15 @@ export function playbookMessage(brand: string, top: Rival[], excerpts: Map<strin
 export type Playbook = { rival: string; why: { text: string; refs: string[] }[]; moves: string[] };
 const NUM = /\b\d+(?:\.\d+)?\s?(?:%|percent|x\b|times)/i;
 const PROMISE = /\b(guarantee[ds]?|will (?:be )?(?:named|cited|recommended|rank))\b/i;
-const clean = (s: unknown, n: number) => String(s ?? "").replace(/\s+/g, " ").trim().slice(0, n);
+/** Evidence codes (Q3, S1, E2, "(Q3)", "questions Q1 and Q2") are for us; the client reads words (pure; tested). */
+export function stripCodes(t: string): string {
+  return t
+    .replace(/\s*\((?:\s*[QSE]\d{1,2}\s*(?:[,/&]|and)?\s*)+\)/g, "")
+    .replace(/\b(?:questions?|sites?|answers?|excerpts?)\s+[QSE]\d{1,2}(?:\s*(?:,|and|&|\/)\s*[QSE]\d{1,2})*\b/gi, (m) => m.replace(/\s+[QSE]\d.*$/, ""))
+    .replace(/\b[QSE]\d{1,2}(?:\s*(?:,|and|&|\/)\s*[QSE]\d{1,2})*\b/g, "")
+    .replace(/[,;]\s*\)/g, ")").replace(/\(\s*\)/g, "").replace(/\s+([,.;:])/g, "$1").replace(/\.(\s*\.)+/g, ".").replace(/\s{2,}/g, " ").trim();
+}
+const clean = (s: unknown, n: number) => stripCodes(String(s ?? "").replace(/\s+/g, " ").trim()).slice(0, n);
 
 /** Keep reasons whose refs exist for that rival; drop invented numbers and promises (pure; tested). */
 export function validatePlaybooks(raw: any, top: Rival[], excerptCount: Map<string, number>): Playbook[] {
