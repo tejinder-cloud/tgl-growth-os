@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-10T09:35:02.872Z",
+  "updatedAt": "2026-11-10T09:38:43.872Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -117,13 +117,14 @@
       "door": "core",
       "title": "[PLAN-D13]: Finance SKILL.md + v1: GST invoices & ledger",
       "status": "in-progress",
+      "branch": "task/141-plan-d13-finance-skill-md-v1-g",
       "prNumber": 142,
       "prUrl": "https://github.com/tejinder-cloud/tgl-growth-os/pull/142",
       "runStartedAt": "2026-11-09T07:36:12.079831+00:00",
       "runCompletedAt": "2026-11-09T09:06:56.518+00:00",
       "recoveryAttempts": 0,
-      "ownerInstance": null,
-      "heartbeatAt": null,
+      "ownerInstance": "inst_1794303296676_59b45335",
+      "heartbeatAt": "2026-11-10T09:38:43.517316+00:00",
       "toolCallsCount": 0,
       "preflightHash": "af71b3200957767d",
       "preflightVerdict": "needs-brief",
