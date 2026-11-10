@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-10T13:59:48.648Z",
+  "updatedAt": "2026-11-10T14:11:10.677Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -168,11 +168,13 @@
       "agent": "web-builder",
       "door": "core",
       "title": "[TASK]: Prospect fit rubric v2 per decisions/2026-11-10.md. (1) services/tgl-ops/src/age",
-      "status": "in-progress",
+      "status": "failed",
       "runStartedAt": "2026-11-10T13:59:47.718473+00:00",
-      "recoveryAttempts": 0,
-      "ownerInstance": "inst_1794312482170_a1d20aac",
-      "heartbeatAt": "2026-11-10T13:59:47.718473+00:00",
+      "runCompletedAt": "2026-11-10T14:11:08.567+00:00",
+      "error": "Agent @web-builder exceeded daily cost cap ($12.52 / $12.00 limit). LLM call blocked.",
+      "recoveryAttempts": 1,
+      "ownerInstance": null,
+      "heartbeatAt": null,
       "toolCallsCount": 0
     }
   }
