@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-10T10:08:08.230Z",
+  "updatedAt": "2026-11-10T10:22:07.016Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -132,7 +132,7 @@
     },
     "147": {
       "agent": "web-builder",
-      "door": "core",
+      "door": "aeo",
       "title": "[TASK]: Build the new Home page from site/pages/home.md for the webs",
       "status": "in-progress",
       "branch": "task/147-build-the-new-home-page-from-s",
@@ -141,8 +141,8 @@
       "runStartedAt": "2026-11-09T09:46:10.373791+00:00",
       "runCompletedAt": "2026-11-10T09:48:17.995+00:00",
       "recoveryAttempts": 0,
-      "ownerInstance": "inst_1794304519874_375b57c4",
-      "heartbeatAt": "2026-11-10T10:08:07.541676+00:00",
+      "ownerInstance": null,
+      "heartbeatAt": null,
       "toolCallsCount": 0,
       "preflightHash": "16ac11c62a6a28c5",
       "preflightVerdict": "proceed",
