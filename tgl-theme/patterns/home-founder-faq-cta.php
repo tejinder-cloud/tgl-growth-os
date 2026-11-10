@@ -56,7 +56,7 @@ $tgl_calendar = apply_filters(
 
     <!-- wp:details {"className":"tgl-faq-item"} -->
     <details class="wp-block-details tgl-faq-item"><summary>What does the free audit include?</summary>
-      <!-- wp:paragraph --><p>A one-page report: the questions we asked, which assistants named you, who they named instead, and the first fixes. No payment and no card.</p><!-- /wp:paragraph -->
+      <!-- wp:paragraph --><p>A one-page report, by email within 24 hours: the questions we asked, which assistants named you, who they named instead, and the first fixes. No payment and no card.</p><!-- /wp:paragraph -->
     </details>
     <!-- /wp:details -->
 
