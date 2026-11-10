@@ -64,3 +64,18 @@ export function financialYear(d: Date): string {
   const start = ist.getUTCMonth() >= 3 ? y : y - 1;
   return `${String(start).slice(2)}-${String(start + 1).slice(2)}`;
 }
+
+/** GST place-of-supply code for "Other Countries" (exports). */
+export const EXPORT_PLACE_OF_SUPPLY = "96";
+
+/** Mandatory wording on an export invoice issued under a Letter of Undertaking. Fixed by the Architect's instruction on issue #141. */
+export const LUT_EXPORT_LINE = "Supply meant for export under LUT without payment of IGST";
+
+/**
+ * Zero-rated export under LUT: no CGST, SGST or IGST, rate shown as 0. The total equals the agreed amount whether or not
+ * the deal value was stated as GST-inclusive, because no tax is charged.
+ */
+export function computeExport(amountMinor: number): GstBreakup {
+  if (!Number.isInteger(amountMinor) || amountMinor <= 0) throw new Error("amountMinor must be a positive integer");
+  return { supply: "export", ratePct: 0, taxableMinor: amountMinor, cgstMinor: 0, sgstMinor: 0, igstMinor: 0, totalMinor: amountMinor, placeOfSupplyCode: EXPORT_PLACE_OF_SUPPLY };
+}
