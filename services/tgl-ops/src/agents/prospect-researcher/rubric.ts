@@ -171,3 +171,270 @@ export function checkPlaybookCDisqualification(
 
   return { disqualified: false };
 }
+
+/** Convenience wrapper: Dimension 4 points for one engine answer (25 absent with a competitor named, 10 not first, 0 first). */
+export function scoreDim4(params: { company: string; domain: string; answer: string }): number {
+  return _analyseDim4Answer(params).score;
+}
+
+/**
+ * Calculates the 0–100 weighted fit score under rubric v2 (decisions/2026-11-10.md, SKILL.md Playbook F):
+ * - Dimension 1: Category AI-Answer Dependence (25 pts) — unchanged
+ * - Dimension 2: Visible marketing spend (15 pts) — Meta ads, Google Ads, paid directory listings
+ *   (Practo, Justdial, MakeMyTrip) or a site rebuilt in the last 12 months; none observed = 0
+ * - Dimension 3: Google profile maturity (20 pts) — review volume (up to 10) + owner engagement (10); hiring criterion removed
+ * - Dimension 4: AI visibility gap (25 pts) — scored from `dim4Probe`; no probe supplied = 0 pts, "not probed"
+ * - Dimension 5: Decision-Maker Reachability (15 pts: 10 email/phone + 5 phone bonus, 0 = disqualified) — unchanged
+ *
+ * This function is pure and never calls an engine. Use evaluateProspectRubricWithProbe to run the probe
+ * only for candidates that survive Playbook C and Dimension 5.
+ * Threshold: >= 65 pts qualifies.
+ */
+export function evaluateProspectRubric(params: {
+  company: string;
+  domain: string;
+  category: string;
+  city?: string;
+  signals: ProspectSignals;
+  decisionMaker: DecisionMaker;
+  dim4Probe?: Dim4Probe | null;
+}): RubricEvaluation {
+  const { company, domain, category, city, signals, decisionMaker, dim4Probe } = params;
+
+  // First check Playbook C Disqualification (generic chain rule)
+  const chainCheck = checkPlaybookCDisqualification(company, domain, signals, city);
+  if (chainCheck.disqualified) {
+    return {
+      fitScore: 0,
+      qualified: false,
+      disqualified: true,
+      disqualificationReason: chainCheck.reason,
+      fitReasons: [
+        `Dim 1 (AI Dependence): Disqualified under Playbook C (${chainCheck.reason}) (0 pts)`,
+        `Dim 2 (Visible Marketing Spend): N/A (0 pts)`,
+        `Dim 3 (GBP Maturity): N/A (0 pts)`,
+        `Dim 4 (AI Visibility Gap): Not probed, disqualified entity (0 pts)`,
+        `Dim 5 (DM Reachability): Disqualified entity (0 pts)`,
+      ],
+    };
+  }
+
+  const reasons: string[] = [];
+  let score = 0;
+
+  // 1. Dimension 1: Category AI-Answer Dependence (25 pts)
+  const highAnxietyCategories = [
+    "hospitals", "hospital", "cosmetic_dental", "dental",
+    "ivf_fertility", "ivf", "high_ticket_coaching", "coaching"
+  ];
+  let dim1Score = 0;
+  if (highAnxietyCategories.includes(category.toLowerCase())) {
+    dim1Score = 25;
+    reasons.push(`Dim 1 (AI Dependence): High-anxiety category [${category}] with high financial/physical stakes (+25 pts)`);
+  } else if (["hotels", "real_estate", "law_ca"].includes(category.toLowerCase())) {
+    dim1Score = 18;
+    reasons.push(`Dim 1 (AI Dependence): High-consideration professional service category [${category}] (+18 pts)`);
+  } else {
+    dim1Score = 10;
+    reasons.push(`Dim 1 (AI Dependence): Standard commercial consideration category [${category}] (+10 pts)`);
+  }
+  score += dim1Score;
+
+  // 2. Dimension 2: Visible marketing spend (15 pts). Any one observed signal counts; none observed = 0.
+  const spendSignals: string[] = [];
+  if (signals.meta_ads_active) {
+    spendSignals.push(`Meta ads active (${signals.meta_ad_count || 1} creative${(signals.meta_ad_count || 1) === 1 ? "" : "s"})`);
+  }
+  if (signals.google_ads_active) {
+    spendSignals.push("Google Ads observed");
+  }
+  if (Array.isArray(signals.paid_directory_listings) && signals.paid_directory_listings.length > 0) {
+    spendSignals.push(`paid directory listing (${signals.paid_directory_listings.join(", ")})`);
+  }
+  if (signals.site_rebuilt_last_12m) {
+    spendSignals.push("website rebuilt in the last 12 months");
+  }
+  const dim2Score = spendSignals.length > 0 ? 15 : 0;
+  score += dim2Score;
+  reasons.push(
+    spendSignals.length > 0
+      ? `Dim 2 (Visible Marketing Spend): ${spendSignals.join(" · ")} (+15 pts) [Score: 15/15]`
+      : `Dim 2 (Visible Marketing Spend): No Meta ads, Google Ads, paid directory listing or recent site work observed (0 pts) [Score: 0/15]`
+  );
+
+  // 3. Dimension 3: Google profile maturity (20 pts). The v1 hiring criterion is removed.
+  let dim3Score = 0;
+  const dim3Parts: string[] = [];
+  const reviews = signals.gbp_reviews || 0;
+  if (reviews >= 150) {
+    dim3Score += 10;
+    dim3Parts.push(`Review volume: ${reviews} Google reviews (+10 pts)`);
+  } else if (reviews >= 50) {
+    dim3Score += 5;
+    dim3Parts.push(`Review volume: ${reviews} Google reviews (+5 pts)`);
+  } else {
+    dim3Parts.push(`Review volume: ${reviews} Google reviews, profile nascent (0 pts)`);
+  }
+  if (reviews >= 50 && signals.gbp_owner_replies) {
+    dim3Score += 10;
+    dim3Parts.push(`Owner engagement with reviews verified (+10 pts)`);
+  } else {
+    dim3Parts.push(`Owner engagement with reviews not observed (0 pts)`);
+  }
+  score += dim3Score;
+  reasons.push(`Dim 3 (GBP Maturity): ${dim3Parts.join(" · ")} [Score: ${dim3Score}/20]`);
+
+  // 4. Dimension 4: AI visibility gap (25 pts), scored from the probe result.
+  let dim4Score = 0;
+  if (dim4Probe) {
+    dim4Score = Math.min(25, Math.max(0, dim4Probe.score));
+    const where = !dim4Probe.prospect_named
+      ? dim4Probe.competitor_named
+        ? "competitor named and prospect absent"
+        : "no business named in the answer"
+      : dim4Probe.prospect_position === 1
+      ? "prospect named first"
+      : `prospect named but not first (position ${dim4Probe.prospect_position})`;
+    reasons.push(
+      `Dim 4 (AI Visibility Gap): ${dim4Probe.engine} asked "${dim4Probe.question}": ${where} (+${dim4Score} pts) [Score: ${dim4Score}/25]`
+    );
+  } else {
+    reasons.push(`Dim 4 (AI Visibility Gap): Not probed (0 pts) [Score: 0/25]`);
+  }
+  score += dim4Score;
+
+  // 5. Dimension 5: Decision-Maker Reachability (15 pts) — unchanged from v1
+  // Playbook D role enforcement:
+  // Non-DM contacts (Assistant, Consultant, etc.) are labeled "DM unknown" and score Dim 5 = 0 pts.
+  let dim5Score = 0;
+  const isLargeOrg = Boolean(signals.is_large_org);
+  const isOwnerRun = (signals.branch_count ?? 1) < 5 && !isLargeOrg;
+
+  const roleApproved = isDecisionMakerRole(decisionMaker.role, isLargeOrg);
+
+  const isDMUnknown =
+    !roleApproved ||
+    decisionMaker.role === "DM unknown" ||
+    decisionMaker.name === "DM unknown" ||
+    String(decisionMaker.source || "").includes("contact found, DM unknown") ||
+    String(decisionMaker.source || "").includes("contact found, dm unknown");
+
+  if (isDMUnknown) {
+    dim5Score = 0;
+    reasons.push(
+      `Dim 5 (DM Reachability): Contact found, DM unknown — role '${decisionMaker.role || "unknown"}' is not an approved DM for ${isLargeOrg ? "large organisation (≥50 staff)" : "small clinic (<50 staff)"} (0 pts) [Score: 0/15]`
+    );
+  } else {
+    const hasHunterEmail = Boolean(
+      decisionMaker.email &&
+      decisionMaker.email.includes("@") &&
+      decisionMaker.source &&
+      decisionMaker.source.includes("hunter:") &&
+      (decisionMaker.source.includes("deliverable") ||
+        decisionMaker.source.includes("risky") ||
+        decisionMaker.source.includes("status:") ||
+        decisionMaker.source.includes("confidence"))
+    );
+
+    const hasPlacesPhone = Boolean(
+      isOwnerRun &&
+      decisionMaker.phone &&
+      String(decisionMaker.phone).trim().length >= 8 &&
+      decisionMaker.source &&
+      decisionMaker.source.includes("places:phone")
+    );
+
+    if (hasHunterEmail && hasPlacesPhone) {
+      dim5Score = 15;
+      reasons.push(
+        `Dim 5 (DM Reachability): Verified website email via Hunter (+10 pts) · Direct Places business phone verified (+5 pts bonus) [Score: 15/15]`
+      );
+    } else if (hasHunterEmail) {
+      dim5Score = 10;
+      if (decisionMaker.phone) {
+        dim5Score += 5;
+        reasons.push(
+          `Dim 5 (DM Reachability): Verified website email (${decisionMaker.role}) via Hunter (+10 pts) · Direct phone verified (+5 pts bonus) [Score: 15/15]`
+        );
+      } else {
+        reasons.push(
+          `Dim 5 (DM Reachability): Verified website email (${decisionMaker.role}) via Hunter (+10 pts) [Score: 10/15]`
+        );
+      }
+    } else if (hasPlacesPhone) {
+      dim5Score = 10;
+      reasons.push(
+        `Dim 5 (DM Reachability): Verified business phone from Places for owner-run clinic (${decisionMaker.role} / ${decisionMaker.name}) (+10 pts) [Score: 10/15]`
+      );
+    } else {
+      reasons.push(
+        `Dim 5 (DM Reachability): Disqualified — No verified website email via Hunter or Places business phone (0/15 pts)`
+      );
+      return {
+        fitScore: 0,
+        qualified: false,
+        disqualified: true,
+        disqualificationReason: "No verified website email via Hunter or Places business phone",
+        fitReasons: reasons,
+        dim4Probed: false,
+      };
+    }
+  }
+
+  score += dim5Score;
+
+  // The probe record rides along as a sixth fit_reasons entry so touch 1 can quote it.
+  if (dim4Probe) {
+    reasons.push(serializeDim4Probe(dim4Probe));
+  }
+
+  const finalScore = Math.min(100, Math.max(0, score));
+  const qualified = finalScore >= FIT_QUALIFIED_THRESHOLD;
+
+  return {
+    fitScore: finalScore,
+    qualified,
+    fitReasons: reasons,
+    dim4Probed: Boolean(dim4Probe),
+  };
+}
+
+export interface ProbedRubricEvaluation extends RubricEvaluation {
+  /** True when the probe function was called for this candidate. Never true for a Playbook C or Dimension 5 rejection. */
+  probeCalled: boolean;
+  /** The probe result, when one was obtained. */
+  probe?: Dim4Probe | null;
+  /** True when the candidate passed Dimension 5 but no probe result could be obtained (cap, missing engine config, engine error). */
+  probeUnavailable?: boolean;
+}
+
+/**
+ * Rubric v2 with Dimension 4 probe, in the cost-safe order:
+ * 1. Score without a probe. A Playbook C or Dimension 5 disqualification returns here, probe never called.
+ * 2. Otherwise call the probe exactly once and re-score with its result.
+ * If the probe returns null the candidate is NOT scored as qualified: Dimension 4 is unknown, not zero.
+ */
+export async function evaluateProspectRubricWithProbe(params: {
+  company: string;
+  domain: string;
+  category: string;
+  city?: string;
+  signals: ProspectSignals;
+  decisionMaker: DecisionMaker;
+  probe: Dim4ProbeFn;
+}): Promise<ProbedRubricEvaluation> {
+  const { probe, ...base } = params;
+
+  const first = evaluateProspectRubric(base);
+  if (first.disqualified) {
+    return { ...first, probeCalled: false };
+  }
+
+  const result = await probe({ company: base.company, domain: base.domain, category: base.category, city: base.city });
+  if (!result) {
+    return { ...first, qualified: false, probeCalled: true, probe: null, probeUnavailable: true };
+  }
+
+  const scored = evaluateProspectRubric({ ...base, dim4Probe: result });
+  return { ...scored, probeCalled: true, probe: result };
+}
