@@ -280,6 +280,7 @@ ${entry.depends_on.join(", ") || "None"}
     ],
     actions: ["approve", "reject", "discuss"],
     issue: issueNumber,
+    linkedIssue: issueNumber,
     extraMeta: {
       planDay: entry.day,
       agent: assignedAgent,
@@ -306,6 +307,12 @@ ${entry.depends_on.join(", ") || "None"}
           { label: "PROJECT-PLAN.md", url: `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/PROJECT-PLAN.md` },
         ],
         actions: ["discuss"],
+        issue: issueNumber,
+        linkedIssue: issueNumber,
+        extraMeta: {
+          planDay: entry.day,
+          agent: assignedAgent,
+        },
       }).catch(() => ({ ok: false, ts: undefined }));
       architectCardTs = cardRes?.ts;
     }
@@ -400,6 +407,11 @@ export async function execute0900PlanDispatch(options?: {
         { label: "config/plan.yaml", url: `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/config/plan.yaml` },
       ],
       actions: ["discuss"],
+      issue: currentDay,
+      linkedIssue: currentDay,
+      extraMeta: {
+        planDay: currentDay,
+      },
     }).catch(() => ({ ok: false, ts: undefined }));
 
     architectCardTs = cardRes?.ts;

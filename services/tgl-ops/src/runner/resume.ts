@@ -3,6 +3,7 @@ import {
   getIssue,
   reopenIssue,
   addCommentToIssue,
+  updateIssueBody,
   removeLabelFromIssue,
   addLabelsToIssue,
   findLinkedPR,
@@ -69,14 +70,23 @@ export async function resumeIssueWithInstruction(
     await reopenIssue(issueNumber);
   }
 
-  // 2. Add Architect instruction comment
+  // 2. Add Architect instruction comment and update issue body
   const sourceLabel = source === "thread" ? "card thread" : "Slack intake";
   await addCommentToIssue(
     issueNumber,
     `**Architect Instruction (via ${sourceLabel}):**\n\n${instructionText.trim()}`
   ).catch(() => {});
 
-  // 3. Resolve assigned agent: web-builder for build issues or per label
+  const timeIST = getCurrentTimeIST();
+  const instructionBlock = `\n\n### Architect Instruction (${timeIST} by ${actor} via ${sourceLabel})\n${instructionText.trim()}\n`;
+  const effectiveBody = `${existingIssue?.body || ""}${instructionBlock}`;
+  try {
+    await updateIssueBody(issueNumber, effectiveBody);
+  } catch (bodyErr: any) {
+    console.warn(`[Resume Issue #${issueNumber}] updateIssueBody warning:`, bodyErr.message || bodyErr);
+  }
+
+  // 3. Resolve assigned agent: keep issue's assigned agent, or web-builder for build issues
   const isBuildIssue =
     existingIssue?.labels.some((l) => l === "type:build") ||
     /(?:runner|pdf|build|code|engine|script|app|short-form|worker|template)/i.test(instructionText) ||
@@ -85,8 +95,10 @@ export async function resumeIssueWithInstruction(
   let assignedAgent = "web-builder";
   if (existingIssue) {
     const forLabel = existingIssue.labels.find((l) => l.startsWith("for:"));
-    if (forLabel && !isBuildIssue) {
+    if (forLabel) {
       assignedAgent = forLabel.replace(/^for:/, "");
+    } else if (isBuildIssue) {
+      assignedAgent = "web-builder";
     }
   }
 
@@ -143,7 +155,7 @@ export async function resumeIssueWithInstruction(
       const issueInput = {
         number: issueNumber,
         title: existingIssue?.title || `Issue #${issueNumber}`,
-        body: existingIssue?.body || "",
+        body: effectiveBody,
         labels: existingIssue?.labels || ["status:in-progress", `for:${assignedAgent}`, `door:${door}`],
         html_url: existingIssue?.html_url,
         agentName: assignedAgent,

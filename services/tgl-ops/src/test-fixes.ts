@@ -16,7 +16,7 @@ import { handleRunnerShutdown, setActiveIssueNumberForTests, setShuttingDownForT
 import { executeRunnerTool, type RunnerToolContext } from "./runner/tools.js";
 import { buildRunnerSystemPrompt, buildRunnerUserMessage, buildRepositoryMap, extractAndLoadBriefFiles } from "./runner/prompt.js";
 import { verifyPrDescriptionIssueLinking } from "./ci/check-pr-description.js";
-import { resetMockPostedLines, mockPostedLines, resetMockPostedCards, mockPostedCards } from "./lib/post.js";
+import { resetMockPostedLines, mockPostedLines, resetMockPostedCards, mockPostedCards, postCard } from "./lib/post.js";
 import { mockIssuesStore, getPullRequestDiffStats } from "./lib/github-client.js";
 import {
   pollChiefOfStaffIntake,
@@ -35,7 +35,7 @@ import { synthesizeStandupDigest } from "./agents/chief-of-staff/anthropic.js";
 import { handleApproveAction } from "./routes/interactions.js";
 import { handleApprovalsThreadReply } from "./routes/events.js";
 import { resumeIssueWithInstruction } from "./runner/resume.js";
-import { recordIssueMapping } from "./lib/issues-index.js";
+import { recordIssueMapping, findIssueByThreadTs, resetIssuesIndexCacheForTests } from "./lib/issues-index.js";
 import {
   getAgentCostCap,
   getAgentTodaySpend,
@@ -3585,6 +3585,278 @@ async function runFixesVerificationSuite(): Promise<void> {
   resetCronErrorStatesForTests();
   resetMockPostedLines();
   console.log("[Test 29 Passed] Outreach Sequencer Asset Bundling, Startup Check, Fallback & Cron Throttling verified.\n");
+  passed++;
+
+  // ------------------------------------------------------------------------
+  // Test 30: Card thread to issue mapping and auto-resume for all card types
+  // Requirement: A reply in the thread of any card the service posted
+  // (issue card, PR review card, plan card) resumes the linked issue with
+  // the reply as an Architect instruction; the thread→issue map must cover every card type.
+  // ------------------------------------------------------------------------
+  console.log("[Test 30] Testing card thread to issue mapping and auto-resume for all card types...");
+  resetIssuesIndexCacheForTests();
+  resetMockPostedLines();
+  resetMockPostedCards();
+
+  // Subtest 30.1: Standard Issue Card thread mapping and resumption
+  console.log("  [30.1] Standard Issue Card: postCard auto-records mapping; thread reply resumes issue with instruction...");
+  const issue101Num = 101;
+  mockIssuesStore.set(issue101Num, {
+    number: issue101Num,
+    title: "Implement FAQ schema for clinic pages",
+    body: "### deliverable\nImplement FAQ schema JSON-LD on clinic landing page.",
+    state: "open",
+    labels: ["for:web-builder", "door:aeo", "status:in-progress"],
+    html_url: `https://github.com/tejinder-cloud/tgl-growth-os/issues/${issue101Num}`,
+  });
+
+  const issueCardRes = await postCard({
+    channel: "#approvals",
+    agent: "web-builder",
+    door: "aeo",
+    title: "Implement FAQ schema for clinic pages",
+    summary: "Task ready for execution.",
+    issue: issue101Num,
+  });
+
+  if (!issueCardRes.ok || !issueCardRes.ts) {
+    throw new Error("Test 30.1 Failed: postCard failed for issue card");
+  }
+
+  // Verify lookup from threadTs
+  const mapped101 = await findIssueByThreadTs(issueCardRes.ts, { testMode: true });
+  if (!mapped101 || mapped101.issueNumber !== issue101Num) {
+    throw new Error(`Test 30.1 Failed: findIssueByThreadTs expected issue #${issue101Num}, got: ${JSON.stringify(mapped101)}`);
+  }
+  console.log(`    ✓ Issue card mapped to issue #${mapped101.issueNumber} (thread: ${issueCardRes.ts})`);
+
+  // Simulate Architect thread reply via handleApprovalsThreadReply
+  resetMockPostedLines();
+  await handleApprovalsThreadReply({
+    channel: "#approvals",
+    thread_ts: issueCardRes.ts,
+    text: "Add pediatric dentistry FAQs as well",
+    user: "U_ARCHITECT",
+  });
+
+  const updatedIssue101 = mockIssuesStore.get(issue101Num);
+  if (!updatedIssue101?.body.includes("Add pediatric dentistry FAQs as well")) {
+    throw new Error(`Test 30.1 Failed: Issue body must contain Architect instruction, got: ${updatedIssue101?.body}`);
+  }
+  if (!updatedIssue101?.comments?.some((c) => c.includes("Add pediatric dentistry FAQs as well"))) {
+    throw new Error(`Test 30.1 Failed: Issue comments must include Architect instruction`);
+  }
+  const replyConfirmation101 = mockPostedLines.find((l) => l.text.includes(`#${issue101Num} resumed`));
+  if (!replyConfirmation101) {
+    throw new Error(`Test 30.1 Failed: Slack thread confirmation not posted, posted: ${JSON.stringify(mockPostedLines)}`);
+  }
+  console.log(`    ✓ Issue #${issue101Num} resumed via card thread reply; instruction appended to body and confirmation posted`);
+
+  // Subtest 30.2: PR Review Card mapping (resolves to original linked issue, preserving branch)
+  console.log("  [30.2] PR Review Card: maps to original linked issue number (not PR number) and resumes on existing branch...");
+  const linkedIssue102Num = 102;
+  const pr103Num = 103;
+  const branch102 = "feat/clinic-reviews-widget";
+
+  mockIssuesStore.set(linkedIssue102Num, {
+    number: linkedIssue102Num,
+    title: "Build clinic reviews widget",
+    body: "### deliverable\nBuild clinic reviews widget.",
+    state: "open",
+    labels: ["for:web-builder", "door:aeo", "status:in-progress"],
+    html_url: `https://github.com/tejinder-cloud/tgl-growth-os/issues/${linkedIssue102Num}`,
+  });
+
+  // Record initial runner state with branch
+  await resetRunnerIssue(
+    linkedIssue102Num,
+    {
+      agent: "web-builder",
+      door: "aeo",
+      title: "Build clinic reviews widget",
+      branch: branch102,
+      status: "completed",
+    },
+    { testMode: true }
+  );
+
+  const prCardRes = await postCard({
+    channel: "#approvals",
+    agent: "web-builder",
+    door: "aeo",
+    title: "PR Review: Clinic reviews widget",
+    summary: `PR #${pr103Num} ready for review.`,
+    issue: pr103Num,
+    pr: pr103Num,
+    linkedIssue: linkedIssue102Num,
+    branch: branch102,
+  });
+
+  if (!prCardRes.ok || !prCardRes.ts) {
+    throw new Error("Test 30.2 Failed: postCard failed for PR review card");
+  }
+
+  // Look up mapped issue using the PR card's thread ts
+  const mappedPrCard = await findIssueByThreadTs(prCardRes.ts, { testMode: true });
+  if (!mappedPrCard || mappedPrCard.issueNumber !== linkedIssue102Num) {
+    throw new Error(`Test 30.2 Failed: PR card must resolve to linked issue #${linkedIssue102Num}, got: ${mappedPrCard?.issueNumber}`);
+  }
+  console.log(`    ✓ PR card mapped correctly to original linked issue #${mappedPrCard.issueNumber} (PR #${pr103Num})`);
+
+  // Architect replies in PR card thread
+  resetMockPostedLines();
+  await handleApprovalsThreadReply({
+    channel: "#approvals",
+    thread_ts: prCardRes.ts,
+    text: "Change star rating color to gold-accent",
+    user: "U_ARCHITECT",
+  });
+
+  const updatedIssue102 = mockIssuesStore.get(linkedIssue102Num);
+  if (!updatedIssue102?.body.includes("Change star rating color to gold-accent")) {
+    throw new Error("Test 30.2 Failed: Linked issue body must contain the PR review thread instruction");
+  }
+  const replyConfirmation102 = mockPostedLines.find((l) => l.text.includes(`#${linkedIssue102Num} resumed`));
+  if (!replyConfirmation102) {
+    throw new Error("Test 30.2 Failed: Confirmation for linked issue resumption not posted to Slack");
+  }
+  const runnerState102 = await getRunnerState({ testMode: true });
+  if (runnerState102.runs[String(linkedIssue102Num)]?.branch !== branch102) {
+    throw new Error(`Test 30.2 Failed: Resumed runner state must preserve existing branch "${branch102}", got: ${runnerState102.runs[String(linkedIssue102Num)]?.branch}`);
+  }
+  console.log(`    ✓ PR card thread reply resumed linked issue #${linkedIssue102Num} preserving branch "${branch102}"`);
+
+  // Subtest 30.3: Plan Cards (Plan dispatch card, Your hour today card, Plan status card)
+  console.log("  [30.3] Plan Cards: Plan Day dispatch card, Hour card, and Status card mapping and thread resumption...");
+  const planIssue104Num = 104;
+  mockIssuesStore.set(planIssue104Num, {
+    number: planIssue104Num,
+    title: "Plan Day 12: AEO Audit Engine",
+    body: "### Plan Day 12 Brief\nBuild AEO Audit Engine.",
+    state: "open",
+    labels: ["for:web-builder", "door:aeo", "status:in-progress"],
+    html_url: `https://github.com/tejinder-cloud/tgl-growth-os/issues/${planIssue104Num}`,
+  });
+
+  // A. Plan Day dispatch card
+  const planDispatchCardRes = await postCard({
+    channel: "#doors-core",
+    agent: "chief-of-staff",
+    door: "core",
+    title: "Plan Day 12: AEO Audit Engine",
+    summary: "Plan Day 12 dispatched.",
+    issue: planIssue104Num,
+    linkedIssue: planIssue104Num,
+    extraMeta: { planDay: 12 },
+  });
+  const mappedPlanDispatch = await findIssueByThreadTs(planDispatchCardRes.ts!, { testMode: true });
+  if (!mappedPlanDispatch || mappedPlanDispatch.issueNumber !== planIssue104Num) {
+    throw new Error(`Test 30.3 Failed: Plan dispatch card must map to #${planIssue104Num}, got: ${mappedPlanDispatch?.issueNumber}`);
+  }
+  console.log(`    ✓ Plan dispatch card mapped to issue #${mappedPlanDispatch.issueNumber}`);
+
+  // B. "Your hour today: Day 12" card
+  const hourCardRes = await postCard({
+    channel: "#architect",
+    agent: "chief-of-staff",
+    door: "core",
+    title: "Your hour today: Day 12",
+    summary: "Review the engine specs.",
+    issue: planIssue104Num,
+    linkedIssue: planIssue104Num,
+    extraMeta: { planDay: 12 },
+  });
+  const mappedHour = await findIssueByThreadTs(hourCardRes.ts!, { testMode: true });
+  if (!mappedHour || mappedHour.issueNumber !== planIssue104Num) {
+    throw new Error(`Test 30.3 Failed: Hour card must map to #${planIssue104Num}, got: ${mappedHour?.issueNumber}`);
+  }
+  console.log(`    ✓ "Your hour today" card mapped to issue #${mappedHour.issueNumber}`);
+
+  // C. "Plan Status Card — Day 12" card
+  const statusCardRes = await postCard({
+    channel: "#architect",
+    agent: "chief-of-staff",
+    door: "core",
+    title: "Plan Status Card — Day 12",
+    summary: "Chief of Staff 09:00 IST Status Card.",
+    issue: planIssue104Num,
+    linkedIssue: planIssue104Num,
+    extraMeta: { planDay: 12 },
+  });
+  const mappedStatus = await findIssueByThreadTs(statusCardRes.ts!, { testMode: true });
+  if (!mappedStatus || mappedStatus.issueNumber !== planIssue104Num) {
+    throw new Error(`Test 30.3 Failed: Status card must map to #${planIssue104Num}, got: ${mappedStatus?.issueNumber}`);
+  }
+  console.log(`    ✓ "Plan Status Card" mapped to issue #${mappedStatus.issueNumber}`);
+
+  // Resuming via reply in "Your hour today" thread
+  resetMockPostedLines();
+  await handleApprovalsThreadReply({
+    channel: "#architect",
+    thread_ts: hourCardRes.ts!,
+    text: "Priority is Perplexity accuracy first, Gemini second",
+    user: "U_ARCHITECT",
+  });
+  const updatedIssue104 = mockIssuesStore.get(planIssue104Num);
+  if (!updatedIssue104?.body.includes("Priority is Perplexity accuracy first, Gemini second")) {
+    throw new Error("Test 30.3 Failed: Plan issue body must contain the hour card thread instruction");
+  }
+  console.log(`    ✓ Plan issue #${planIssue104Num} resumed from "Your hour today" card thread reply`);
+
+  // Subtest 30.4: Intake polling thread reply detection (resumes mapped issue without LLM classification)
+  console.log("  [30.4] Intake Polling: Thread reply on card is resolved and resumed directly via intake polling...");
+  const issue105Num = 105;
+  mockIssuesStore.set(issue105Num, {
+    number: issue105Num,
+    title: "Optimize Meta Ads scraper",
+    body: "### deliverable\nOptimize Meta Ads scraper.",
+    state: "open",
+    labels: ["for:web-builder", "door:aeo", "status:in-progress"],
+    html_url: `https://github.com/tejinder-cloud/tgl-growth-os/issues/${issue105Num}`,
+  });
+
+  const card105Res = await postCard({
+    channel: "#architect",
+    agent: "web-builder",
+    door: "aeo",
+    title: "Optimize Meta Ads scraper",
+    summary: "Scraper task card.",
+    issue: issue105Num,
+  });
+
+  resetIntakeStateForTests();
+  resetMockPostedLines();
+
+  const mockIntakeMessages = [
+    {
+      ts: "1731235000.000100",
+      thread_ts: card105Res.ts!,
+      channel: "#architect",
+      user: "U_ARCHITECT",
+      text: "Throttle request rate to 2 per second max",
+    },
+  ];
+
+  const intakeResult = await pollChiefOfStaffIntake({
+    testMode: true,
+    mockMessages: mockIntakeMessages,
+    channelId: "#architect",
+  });
+
+  if (intakeResult.processedCount !== 1) {
+    throw new Error(`Test 30.4 Failed: Intake must process the thread reply, processedCount: ${intakeResult.processedCount}`);
+  }
+  const updatedIssue105 = mockIssuesStore.get(issue105Num);
+  if (!updatedIssue105?.body.includes("Throttle request rate to 2 per second max")) {
+    throw new Error(`Test 30.4 Failed: Issue #${issue105Num} body must contain thread reply instruction, got: ${updatedIssue105?.body}`);
+  }
+  const confirmation105 = mockPostedLines.find((l) => l.text.includes(`#${issue105Num} resumed`));
+  if (!confirmation105) {
+    throw new Error(`Test 30.4 Failed: Slack confirmation must be posted for intake resumed issue`);
+  }
+  console.log(`    ✓ Intake polling detected thread reply on card, resolved issue #${issue105Num}, and resumed issue directly`);
+
+  console.log("[Test 30 Passed] Card thread to issue mapping and auto-resume for all card types verified.\n");
   passed++;
 
   console.log("==========================================================================");

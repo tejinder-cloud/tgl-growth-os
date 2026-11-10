@@ -796,6 +796,34 @@ export async function pollChiefOfStaffIntake(options?: {
         continue;
       }
 
+      // Check if this message is a thread reply on any card posted by the service
+      if (msg.thread_ts && msg.thread_ts !== msg.ts) {
+        const { findIssueByThreadTs } = await import("../../lib/issues-index.js");
+        const mapped = await findIssueByThreadTs(msg.thread_ts, { testMode: isTest, channel });
+        if (mapped) {
+          console.log(`[Intake Thread Reply] Card thread reply in ${channel} (thread ${msg.thread_ts}) mapped to issue #${mapped.issueNumber}. Resuming issue...`);
+          const { resumeIssueWithInstruction } = await import("../../runner/resume.js");
+          await resumeIssueWithInstruction({
+            issueNumber: mapped.issueNumber,
+            instructionText: text,
+            source: "thread",
+            actor: msg.user || "Architect",
+            slackChannel: channel,
+            slackThreadTs: msg.thread_ts,
+            testMode: isTest,
+            triggerRunnerInTestMode: options?.triggerRunnerInTestMode,
+          });
+
+          processedCount++;
+          if (!lastTs || Number(msg.ts) > Number(lastTs)) {
+            lastTs = msg.ts;
+            state.lastProcessedTsByChannel[channel] = lastTs;
+            saveIntakeState(state, isTest);
+          }
+          continue;
+        }
+      }
+
       // Process Architect message with try/catch error isolation
       let classification: any;
       try {
