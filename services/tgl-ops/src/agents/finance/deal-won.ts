@@ -1,5 +1,5 @@
 // Deal Won -> draft GST invoice. Idempotent per deal, dry-run unless FINANCE_LIVE=1, never sends anything to a client.
-import { buildInvoice } from "./invoice.js";
+import { buildInvoice, parseProductLine } from "./invoice.js";
 import { createDraft, type FetchLike } from "./providers.js";
 import { exportComplianceTask } from "./compliance.js";
 import { findInvoiceByDeal, newId, nextInvoiceNumber, type LedgerStore } from "./ledger.js";
@@ -29,6 +29,7 @@ const pick = (o: any, ...keys: string[]): any => { for (const k of keys) if (o?.
 /**
  * Normalises a GHL "Opportunity Status Changed" workflow webhook (or an already-normalised body).
  * Returns null unless the status is won. Field contract is documented in agents/finance/SKILL.md.
+ * `product` (custom data key product, product_line or offer) selects the SAC: track or services.
  */
 export function normalizeDealWon(p: any): DealWon | null {
   const opp = p?.opportunity ?? p;
@@ -40,6 +41,7 @@ export function normalizeDealWon(p: any): DealWon | null {
     dealId: String(pick(p, "dealId", "opportunity_id", "opportunityId") ?? pick(opp, "id") ?? ""),
     dealName: String(pick(p, "dealName", "opportunity_name") ?? pick(opp, "name") ?? "TGL engagement"),
     amountInr: amount,
+    product: parseProductLine(pick(p, "product", "product_line", "offer") ?? pick(opp, "product", "product_line", "offer")),
     wonAt: pick(p, "wonAt", "date_updated"),
     description: pick(p, "invoice_description"),
     buyer: {
@@ -95,6 +97,11 @@ export async function handleDealWon(deps: Deps, deal: DealWon): Promise<Outcome>
       (totalMismatch ? ` WARNING: provider total Rs ${minorToRupees(res.totalMinor!).toFixed(2)} differs from computed total. Check before issuing.` : "") +
       (res.providerUrl ? ` ${res.providerUrl}` : ""),
     );
+    // Every export invoice, even a correctly rendered one, goes to Compliance: LUT validity, FIRC and the CA's confirmation are human steps.
+    if (inv.gst.supply === "export") {
+      const t = exportComplianceTask(deal, deps.cfg);
+      await deps.notify(`Compliance task: ${t.title}. ${t.body}`);
+    }
     return { status: "created", number: inv.number, providerInvoiceId: res.providerInvoiceId, totalMismatch } as Outcome;
   });
 }
