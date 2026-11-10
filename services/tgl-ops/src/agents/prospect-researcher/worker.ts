@@ -619,3 +619,178 @@ export async function runProspectResearch(
     standupLines,
   };
 }
+
+/**
+ * Appends execution metrics to logs/<date>/prospect-researcher.md
+ * Note: lines about Dimension 4 probe spend deliberately avoid the word "Cost" followed by a dollar amount,
+ * because the cost ledger parser reads "Cost: $x" lines as LLM run cost. Probe spend is recorded in the ledger
+ * directly (apiName gemini-dim4-probe) by the probe governor.
+ */
+function appendProspectResearcherLog(params: {
+  dateStr: string;
+  timeStr: string;
+  city: string;
+  category: string;
+  qualifiedCount: number;
+  targetCount: number;
+  funnel: ValidationFunnelMetrics;
+  placesUsed: number;
+  costUsd: number;
+  cardTs?: string;
+  standupLines: { did: string; blocked: string; need: string; tomorrow: string };
+  probeStats: ProbeStats;
+  probeShortfall: string | null;
+  benchResult: BenchRescoreResult;
+  options?: { testMode?: boolean };
+}): void {
+  const isTest = params.options?.testMode === true || isTestMode();
+  const dir = path.join(config.repoRoot, isTest ? "logs/.test" : `logs/${params.dateStr}`);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+
+  const logFile = path.join(dir, "prospect-researcher.md");
+  const logContent = `
+### Run — ${params.timeStr} IST (${params.city} · ${params.category})
+- **Scheduled Pair:** ${params.city} × ${params.category}
+- **Rubric:** v2 (qualified at ${FIT_QUALIFIED_THRESHOLD} or above)
+- **Qualified Accounts:** ${params.qualifiedCount} / ${params.targetCount}
+- **Benched Re-score (v2, before discovery):** ${params.benchResult.eligible} eligible · ${params.benchResult.promoted.length} promoted · ${params.benchResult.stillBenched.length} still benched · ${params.benchResult.rejected.length} rejected · ${params.benchResult.notProbed.length} not probed
+- **Dim 4 Probes (${"gemini"}):** ${params.probeStats.completed} completed · ${params.probeStats.failed} failed · ${params.probeStats.skippedCap} skipped at daily cap · ${params.probeStats.skippedUnavailable} skipped, engine unavailable · probe spend $${params.probeStats.costUsd.toFixed(4)} USD
+${params.probeShortfall ? `- **Dim 4 Shortfall:** ${params.probeShortfall}\n` : ""}- **Validator Funnel:**
+  - Raw Candidates (Places API): ${params.funnel.discovered}
+  - Live DNS Passed: ${params.funnel.dnsPassed} (Failed: ${params.funnel.dnsFailed})
+  - Playbook C Disqualified (Enterprise Chains): ${params.funnel.playbookCDisqualified}
+  - Place Details Enriched: ${params.funnel.placeDetailsEnriched} (Failed: ${params.funnel.placeDetailsFailed})
+  - Email Verified via Hunter: ${params.funnel.emailVerified}
+  - Places Phone Verified (Owner-Run <50 staff only): ${params.funnel.phoneVerified}
+  - Contact Unverified / Dropped: ${params.funnel.contactUnverified}
+  - Fit Score >= ${FIT_QUALIFIED_THRESHOLD}: ${params.funnel.scoredGe70} (Sub-cutoff: ${params.funnel.scoredBelow70}, Not probed: ${params.funnel.probeSkipped})
+  - Write Gate Validated: ${params.funnel.writeGatePassed} (Rejected: ${params.funnel.writeGateFailed})
+- **Places API Daily Quota:** ${params.placesUsed} / 95 calls
+- **Estimated Run Cost:** $${params.costUsd.toFixed(4)} USD
+- **Review Card:** ${
+  params.cardTs
+    ? `Dispatched to Slack (ts: ${params.cardTs})`
+    : isTest
+    ? "DRY RUN (test mode) — not posted"
+    : "Not posted (Slack dispatch unavailable or skipped)"
+}
+
+#### Standup Contribution (18:00 IST):
+- **Did:** ${params.standupLines.did}
+- **Blocked:** ${params.standupLines.blocked}
+- **Need from the Architect:** ${params.standupLines.need}
+- **Tomorrow:** ${params.standupLines.tomorrow}
+`;
+
+  fs.appendFileSync(logFile, logContent.trim() + "\n\n", "utf8");
+
+  // In production, also commit run log to GitHub main
+  if (!isTest && config.githubToken) {
+    appendFileInRepo(
+      `logs/${params.dateStr}/prospect-researcher.md`,
+      logContent.trim() + "\n\n",
+      `chore(log): append prospect-researcher run log for ${params.dateStr}`
+    ).catch((err) => {
+      console.warn(`[GitHub Log Append Notice]:`, err.message || err);
+    });
+  }
+}
+
+/**
+ * Re-scores existing prospects with updated root domain chain detection,
+ * enterprise chain rule enforcement (moving chain HQs like Max Saket to rejected),
+ * and organisation size DM role rules (<50 staff vs ≥50 staff).
+ *
+ * Rubric v2: this weekly re-score never calls an engine. Dimension 4 is taken from the dim4_probe already stored
+ * on the row. A row with no stored probe (scored under v1, not yet probed) keeps its score and status unless it is
+ * disqualified; it is probed through the benched-candidate rotation or on its next discovery run, never here.
+ */
+export async function rescoreProspects(options?: { testMode?: boolean }): Promise<{
+  totalRescored: number;
+  disqualifiedChains: string[];
+  qualifiedCount: number;
+  records: ProspectRecord[];
+}> {
+  const isTest = options?.testMode === true || isTestMode();
+  const all = await loadAllProspects(options);
+
+  if (all.length === 0) {
+    console.log(`[Rescore Notice] No existing prospects loaded to re-score.`);
+    return { totalRescored: 0, disqualifiedChains: [], qualifiedCount: 0, records: [] };
+  }
+
+  const disqualifiedChains: string[] = [];
+  const updatedRecords: ProspectRecord[] = [];
+
+  for (const p of all) {
+    // 1. Re-evaluate brand token and root domain
+    const { brand, rootDomain } = extractBrandToken(p.company, p.website);
+    p.signals.brand_prefix = brand;
+
+    // Apply Generic Chain Rule (Playbook C):
+    // 1. Brand appears at 3 or more Places locations
+    // 2. Or the root domain hosts other branches
+    // 3. Or the registered HQ is in another metro
+    const chainCheck = checkPlaybookCDisqualification(p.company, p.website, p.signals, p.city);
+    if (chainCheck.disqualified && chainCheck.reason) {
+      p.signals.chain_evidence = p.signals.chain_evidence || [];
+      if (!p.signals.chain_evidence.includes(chainCheck.reason)) {
+        p.signals.chain_evidence.push(chainCheck.reason);
+      }
+    }
+
+    // 2. Re-evaluate organisation size and DM role
+    const isLargeOrg = isCandidateOrgSizeGe50({ name: p.company }, p.category, p.signals);
+    p.signals.is_large_org = isLargeOrg;
+
+    // 3. Re-evaluate rubric (v2). Dimension 4 comes from the stored probe, if any.
+    const storedProbe = parseDim4Probe(p.fit_reasons);
+    const evalRes = evaluateProspectRubric({
+      company: p.company,
+      domain: p.website,
+      category: p.category,
+      city: p.city,
+      signals: p.signals,
+      decisionMaker: p.decision_maker,
+      dim4Probe: storedProbe,
+    });
+
+    if (evalRes.disqualified) {
+      p.fit_score = 0;
+      p.status = "rejected";
+      p.fit_reasons = evalRes.fitReasons;
+      disqualifiedChains.push(`${p.company} (${evalRes.disqualificationReason || "Chain disqualified"})`);
+    } else if (!storedProbe) {
+      console.log(`[Rescore Notice] '${p.company}' has no Dimension 4 probe yet: score and status unchanged (${p.fit_score}, ${p.status}).`);
+    } else {
+      p.fit_score = evalRes.fitScore;
+      p.fit_reasons = evalRes.fitReasons;
+      if (evalRes.qualified) {
+        p.status = p.status === "handed_to_outreach" ? "handed_to_outreach" : "reviewed";
+      } else {
+        p.status = "rejected";
+      }
+    }
+
+    p.rescored_at = new Date().toISOString();
+    updatedRecords.push(p);
+  }
+
+  // Write updated records back to Supabase
+  if (!isTest && updatedRecords.length > 0) {
+    await upsertProspectRecords(updatedRecords, options);
+  }
+
+  const qualifiedCount = updatedRecords.filter((r) => r.fit_score >= FIT_QUALIFIED_THRESHOLD && r.status !== "rejected").length;
+
+  console.log(`[Rescore Complete] Re-scored ${updatedRecords.length} records: ${disqualifiedChains.length} disqualified as chains, ${qualifiedCount} qualified.`);
+
+  return {
+    totalRescored: updatedRecords.length,
+    disqualifiedChains,
+    qualifiedCount,
+    records: updatedRecords,
+  };
+}
