@@ -194,6 +194,16 @@ import { runPlanner } from "./agents/aeo-planner/worker.js";
 import { runCompetitorIntel } from "./agents/aeo-competitors/worker.js";
 import { postHealthList, relayDataRequests, runConcierge } from "./agents/aeo-concierge/worker.js";
 import { issueInvoices } from "./agents/aeo-billing/invoices-worker.js";
+import { runSiteHealth } from "./agents/aeo-site-health/worker.js";
+
+// Hourly: site health for verified brands not checked in the last ~6 hours (noindex, unreachable, crawlers blocked)
+cron.schedule(
+  "48 * * * *",
+  wrapCronJob("TrueVisible site health", async () => {
+    await runSiteHealth();
+  }),
+  { timezone: config.timezone }
+);
 
 // Every 10 minutes: GST tax invoices for paid invoice rows without one (plan Day 32b)
 cron.schedule(
