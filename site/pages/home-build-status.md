@@ -25,3 +25,5 @@ Evidence kinds: "static read" = file read on the branch; "file write" = file cha
 - The search-results panel has a caption "Search: ten links." that is not in the spec.
 - The calendar secondary link is hidden until TGL_HOME_CALENDAR_URL is defined (Rahul to supply the link).
 - The footer address last line is still [ARCHITECT TO SUPPLY] and renders nothing until supplied.
+
+Correction on the footer line above: tgl-theme/parts/footer.html was not read this session, so how it renders the address placeholder is unverified. The Creative Director should check it.
