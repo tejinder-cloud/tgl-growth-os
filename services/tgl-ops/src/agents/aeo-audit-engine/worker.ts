@@ -55,7 +55,9 @@ export async function runCitationTracking(options?: { brandId?: string; kind?: "
   }
   // Recommendations follow a completed run (event-driven, no polling). The recommender decides whether a new
   // batch is due; this only tells it which brands just got fresh answers.
-  const fresh = [...new Set(ran.filter((o) => (o.status === "succeeded" || o.status === "partial") && o.brandId).map((o) => o.brandId!))];
+  // "Fresh" also covers a brand whose answers for today all came from its first audit (verified the same day):
+  // the trial clock and recommendations start from those answers instead of asking again.
+  const fresh = [...new Set(ran.filter((o) => ((o.status === "succeeded" || o.status === "partial") || o.note === "all prompts already answered today") && o.brandId).map((o) => o.brandId!))];
   for (const id of fresh) await startTrialClock(sb, id).catch((e) => console.error("[Citation Tracker] trial clock:", e?.message ?? e));
   if (fresh.length) {
     import("../aeo-recommender/worker.js")
