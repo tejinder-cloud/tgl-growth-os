@@ -16,6 +16,7 @@ Rules:
 - Build on the open recommendations (refer to them by R-number in rec_ref) and the measured gaps (questions P…, cited sites S…). Every item must say concretely what gets done and where.
 - path: "wordpress" (we publish on their WordPress — only if connected), "change_pack" (paste-ready for their developer), "offsite" (listings, outreach, threads), "gbp" (Google Business Profile), "team" (measurement, reviews of results).
 - Plain, specific English; no jargon. No promises of placement or results, no percentages or numbers you weren't given — results are measured by TrueVisible, never predicted.
+- P…, S… and R… numbers are for you only: use R in rec_ref, but never write P, S or R numbers in titles, details, themes or the summary — the client never sees them. Name the question or site in words instead (e.g. "the Hinglish question about WhatsApp follow-up", "Justdial").
 - At most 4 items per week; include a "measure" item in weeks 4, 8 and 13 (review what changed in the answers).`;
 
 export const TOOL: Anthropic.Tool = {
@@ -66,7 +67,15 @@ export function buildPlanMessage(i: PlanInput): string {
   return lines.join("\n");
 }
 
-const clean = (s: unknown, n: number) => String(s ?? "").replace(/\s+/g, " ").trim().slice(0, n);
+/** Removes internal evidence references (P12, S1, R3, "(P1, P2)", "aimed at P3") from client-facing text (pure; tested). */
+export function stripRefs(t: string): string {
+  return t
+    .replace(/\s*\((?:\s*(?:questions?|sites?)?\s*[PSR]\d{1,2}\s*(?:[,/&]|and)?\s*)+\)/gi, "")
+    .replace(/\b(?:(?:this is )?aimed at|for|in|see|covering|answers?|targets?|questions?|sites?)\s+[PSR]\d{1,2}(?:\s*(?:,|and|&|\/)\s*[PSR]\d{1,2})*\b\.?/gi, "")
+    .replace(/\b[PSR]\d{1,2}(?:\s*(?:,|and|&|\/)\s*[PSR]\d{1,2})*\b/g, "")
+    .replace(/\(\s*\)/g, "").replace(/\s+([,.;:])/g, "$1").replace(/([,;])\s*([.;])/g, "$2").replace(/\s{2,}/g, " ").trim();
+}
+const clean = (s: unknown, n: number) => stripRefs(String(s ?? "").replace(/\s+/g, " ").trim()).slice(0, n);
 
 /** Model output → plan, with references mapped to ids and anything malformed dropped (pure; tested). */
 export function normalisePlan(raw: any, recs: OpenRec[], wordpress: boolean): { summary: string; months: Month[]; items: Item[]; dropped: string[] } {

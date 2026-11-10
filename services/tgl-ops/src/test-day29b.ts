@@ -2,7 +2,7 @@ process.env.TGL_TEST_MODE = "1";
 process.env.NODE_ENV = "test";
 import assert from "node:assert/strict";
 import { checkPlan, monthOf, needsPerson, scopeFor, tierFor, type Item } from "./agents/aeo-planner/plan.js";
-import { buildPlanMessage, normalisePlan } from "./agents/aeo-planner/propose.js";
+import { buildPlanMessage, normalisePlan, stripRefs } from "./agents/aeo-planner/propose.js";
 import { planBlocks } from "./agents/aeo-planner/card.js";
 import { planReadyEmail } from "./agents/aeo-reports/email.js";
 
@@ -47,6 +47,15 @@ t("saying there's no guarantee is not a promise", () => {
   for (const summary of ["Every result is measured by TrueVisible. Nothing here is a promise of placement.", "There is no guarantee of placement.", "This is not a guarantee.", "We never promise rankings."])
     assert.equal(checkPlan({ summary, months, items: good() }, sc, new Set()).passed, true, summary);
   assert.equal(checkPlan({ summary: "We guarantee placement.", months, items: good() }, sc, new Set()).passed, false);
+});
+
+t("internal P/S/R references never reach the client", () => {
+  assert.equal(stripRefs("A page on how a coaching institute can show up in ChatGPT answers (P12). Cover fees."), "A page on how a coaching institute can show up in ChatGPT answers. Cover fees.");
+  assert.equal(stripRefs("Use the same names everywhere (S1, S4, S6). This is aimed at P2."), "Use the same names everywhere.");
+  assert.equal(stripRefs("Two pages for P13 and P14 on hotels"), "Two pages on hotels");
+  assert.equal(stripRefs("Answer the Hinglish questions (P3, P9) on WhatsApp."), "Answer the Hinglish questions on WhatsApp.");
+  assert.equal(stripRefs("Claim profiles on Sortlist and Justdial"), "Claim profiles on Sortlist and Justdial");
+  assert.equal(stripRefs("Hospitals in PS2 and Rs 3999"), "Hospitals in PS2 and Rs 3999");
 });
 
 t("review mode: 'all' always asks a person; 'flagged' only for failures and every Nth sample", () => {
