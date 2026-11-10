@@ -268,6 +268,19 @@
     ],
     "updatedAt": "2026-11-10T11:09:16.233Z"
   },
+  "171": {
+    "channel": "#site-build",
+    "ts": "1794319183.801329",
+    "agent": "web-builder",
+    "door": "core",
+    "title": "Prospect fit rubric v2 per decisions/2026-11-10.md. (1) services/tgl-ops/src/age",
+    "cardType": "issue",
+    "linkedIssueNumber": 171,
+    "threadTimestamps": [
+      "1794319183.801329"
+    ],
+    "updatedAt": "2026-11-10T13:59:44.164Z"
+  },
   "thread:1794308956.168819": {
     "channel": "#doors-aeo",
     "ts": "1794308956.168819",
@@ -278,5 +291,16 @@
     "door": "aeo",
     "title": "Generate the TGL audit PDF from today’s verified run and post it to #doors-aeo",
     "updatedAt": "2026-11-10T11:09:16.233Z"
+  },
+  "thread:1794319183.801329": {
+    "channel": "#site-build",
+    "ts": "1794319183.801329",
+    "issueNumber": 171,
+    "linkedIssueNumber": 171,
+    "cardType": "issue",
+    "agent": "web-builder",
+    "door": "core",
+    "title": "Prospect fit rubric v2 per decisions/2026-11-10.md. (1) services/tgl-ops/src/age",
+    "updatedAt": "2026-11-10T13:59:44.164Z"
   }
 }
