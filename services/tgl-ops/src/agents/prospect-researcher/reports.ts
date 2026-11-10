@@ -107,7 +107,10 @@ export async function postTop25ReviewCard(params: {
       ? `*Written to Supabase:* ${savedCount}`
       : "*Written to Supabase:* 0 saved";
 
-  const summary = `*Top 25 Prospects — ${city} (${category})*\n*Total Qualified Batch:* ${prospects.length} accounts (Fit score ≥ 70)\n${writtenToSupabase}\n\n${lines.slice(0, 8).join("\n\n")}\n\n_(+${Math.max(0, top25.length - 8)} more in attached CSV below)_`;
+  const summary =
+    prospects.length > 0
+      ? `*Top 25 Prospects — ${city} (${category})*\n*Total Qualified Batch:* ${prospects.length} accounts (Fit score ≥ 70)\n${writtenToSupabase}\n\n${lines.slice(0, 8).join("\n\n")}\n\n_(+${Math.max(0, top25.length - 8)} more in attached CSV below)_`
+      : `*Prospect Researcher Batch — ${city} (${category})*\n*Total Qualified Batch:* 0 accounts (Fit score ≥ 70)\n${writtenToSupabase}\n\n*Shortfall:* Sourced accounts did not meet the fit score ≥ 70 qualification threshold or lacked verified corporate contact.`;
 
   const runLogUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/logs/${dateStr}/prospect-researcher.md`;
 
@@ -122,7 +125,9 @@ export async function postTop25ReviewCard(params: {
       { label: "SKILL.md", url: `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/agents/prospect-researcher/SKILL.md` },
       { label: "Door AEO", url: `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/config/doors/aeo.yaml` },
     ],
-    actions: ["approve", "reject", "discuss"] as ("approve" | "reject" | "discuss")[],
+    actions: (prospects.length > 0
+      ? ["approve", "reject", "discuss"]
+      : ["discuss"]) as ("approve" | "reject" | "discuss")[],
     extraMeta: {
       city,
       category,
@@ -137,8 +142,8 @@ export async function postTop25ReviewCard(params: {
     cardResult = { ok: false, channel: targetChannel, dryRun: true };
   }
 
-  // Attach CSV to thread ONLY if real message ts was returned from Slack API
-  if (cardResult.ok && cardResult.ts && !cardResult.dryRun) {
+  // Attach CSV to thread ONLY if real message ts was returned from Slack API and CSV exists
+  if (cardResult.ok && cardResult.ts && !cardResult.dryRun && csvPath && fs.existsSync(csvPath)) {
     try {
       await postFile({
         channel: cardResult.channel || targetChannel,

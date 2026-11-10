@@ -461,7 +461,7 @@ export async function runProspectResearch(
   const csvPath = saveProspectsCsv(rowsToCard, csvLabel, options);
 
   let cardTs: string | undefined;
-  if (options?.postToSlack !== false && qualifiedProspects.length > 0) {
+  if (options?.postToSlack !== false) {
     const cardRes = await postTop25ReviewCard({
       city,
       category,
@@ -605,7 +605,13 @@ function appendProspectResearcherLog(params: {
   - Write Gate Validated: ${params.funnel.writeGatePassed} (Rejected: ${params.funnel.writeGateFailed})
 - **Places API Daily Quota:** ${params.placesUsed} / 95 calls
 - **Estimated Run Cost:** $${params.costUsd.toFixed(4)} USD
-- **Review Card:** ${params.cardTs ? `Dispatched to Slack (ts: ${params.cardTs})` : "DRY RUN — not posted"}
+- **Review Card:** ${
+  params.cardTs
+    ? `Dispatched to Slack (ts: ${params.cardTs})`
+    : isTest
+    ? "DRY RUN (test mode) — not posted"
+    : "Not posted (Slack dispatch unavailable or skipped)"
+}
 
 #### Standup Contribution (18:00 IST):
 - **Did:** ${params.standupLines.did}
