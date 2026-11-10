@@ -113,7 +113,8 @@ const handleShortFormAudit = async (req: Request, res: Response): Promise<void> 
 
   try {
     console.log(`[Audit Route] Triggered short-form audit for: ${brand} (${domain})`);
-    const result = await runShortFormAuditCli(brand, domain);
+    // Real engines in production. Mock answers exist only inside a TGL_TEST_MODE=1 process (the CLI refuses otherwise).
+    const result = await runShortFormAuditCli(brand, domain, { testMode: process.env.TGL_TEST_MODE === "1" });
     res.status(200).json({
       ok: true,
       ...result,

@@ -608,7 +608,8 @@ export async function generateAuditPdf(
 
   // Right stamp badge
   doc.rect(435, 34, 115, 18).lineWidth(1.2).strokeColor("#C85A32").stroke();
-  doc.font(fontSansBold).fontSize(7.5).fillColor("#C85A32").text("TRUEVISIBLE AUDIT", 435, 39, { width: 115, align: "center" });
+  const isMock = result.results.some((r) => Object.values(r.engineResults).some((er) => String(er?.model ?? "").includes("-mock")));
+  doc.font(fontSansBold).fontSize(7.5).fillColor("#C85A32").text(isMock ? "TEST FIXTURE, NOT AN AUDIT" : "TRUEVISIBLE AUDIT", 435, 39, { width: 115, align: "center" });
   doc.font(fontSans).fontSize(8).fillColor("#63615C").text(`Date: ${dateStr}`, 435, 58, { width: 115, align: "center" });
 
   // Dividing rule
