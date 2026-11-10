@@ -35,3 +35,23 @@ Still needed before the draft is approved, and not something the builder can do 
 - The spec says "Free" and "No payment and no card" in several places. Copy is the Architect's, so unchanged.
 - "One primary action per viewport at 390px": the hero button and the sticky mobile CTA could compete. Check on staging at 390px.
 - Not published. Creative Director reviews, then Chief of Staff sends the Architect the approval card.
+
+## Session 2 verification (Task 147): statuses checked against the service code
+Evidence kind: static read of `services/tgl-ops/src/index.ts` and `config/agents.yaml`. No command was run, no test was executed, and no live submission was made.
+
+Status check, agent by agent, for the four agents the spec and the brief put in question:
+- `aeo-audit-engine` is `active`. Correct. `index.ts` registers the 06:00 IST cron "Citation Tracker" (`runCitationTracking`) and a one-minute first-audit queue. No change.
+- `outreach-sequencer` stays `planned`. `index.ts` does register a weekday tick cron, but its own comment says it runs as a dry run unless `OUTREACH_LIVE=1`. The repository cannot show whether that variable is set in production. Marking it `active` would put "On duty" on the public page for work that may only be a dry run, so I did not flip it. Chief of Staff: ask the Architect whether `OUTREACH_LIVE=1` is set on the service. If it is, change the status to `active` and run `node site/build-home-agents.js`.
+- `aeo-recommender` stays `planned`. It is event-driven from the Citation Tracker and no cron of its own is registered for it other than the managed-AEO request relay. Needs the same confirmation as above before it is shown as on duty.
+- `sales-desk` stays `planned`. `index.ts` registers no schedule for it.
+- `aeo-strategist`, `chief-of-staff`, `prospect-researcher`, `web-builder` and `creative-director` are `active` and each has a matching cron or runner path. No change.
+Result: no status was changed in this session. One status (`outreach-sequencer`) is open pending an Architect fact that the repo cannot answer. The org chart reads the config, so it follows whatever is decided.
+
+## Photo handling, as it stands
+`home-founder-faq-cta.php` currently points at `tgl-theme/assets/img/tejinder-stage.png` (1086x1448). The spec requires a WebP under 150 KB plus an @2x. This session cannot convert images, so the PNG is a placeholder reference. Before the Architect approval card goes out, someone with an image tool should export `tejinder-stage.webp` and `tejinder-stage@2x.webp` the same way as the existing founder images and change the `src` and add a `srcset`. I did not change the pattern to point at files that do not exist.
+
+## Things the Creative Director should check on staging
+- 390px: one primary action per viewport. The hero button and any sticky CTA must not both show.
+- Founder crop keeps the microphone in frame; frame is ink-toned; no filter on the face.
+- Footer: contact, address last line pending `[ARCHITECT TO SUPPLY]`, and the four social links. I did not re-read the footer template part in this session; confirm it carries them.
+- Client Zero tiles show a dash when the service is unreachable.
