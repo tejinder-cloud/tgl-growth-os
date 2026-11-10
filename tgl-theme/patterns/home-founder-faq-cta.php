@@ -3,7 +3,7 @@
  * Title: Home Founder, FAQ and CTA Band
  * Slug: tgl-theme/home-founder-faq-cta
  * Categories: tgl-sections
- * Description: Home sections 7, 8 and 9. FAQ uses core Details blocks for FAQPage schema. The calendar link renders only when TGL_HOME_CALENDAR_URL is defined.
+ * Description: Home sections 7, 8 and 9. FAQ uses core Details blocks for FAQPage schema. The calendar link renders only when TGL_HOME_CALENDAR_URL is defined. Founder photo is tejinder-stage.webp with an @2x srcset.
  */
 $tgl_calendar = apply_filters(
     'tgl_home_calendar_url',
@@ -17,7 +17,7 @@ $tgl_calendar = apply_filters(
     <!-- wp:html -->
     <div class="h-founder">
       <figure class="h-founder-photo">
-        <img src="<?php echo esc_url( get_theme_file_uri( 'assets/img/tejinder-stage.png' ) ); ?>" width="1086" height="1448" alt="Tejinder Singh, founder of The Growth Lab, speaking on stage." loading="lazy">
+        <img src="<?php echo esc_url( get_theme_file_uri( 'assets/img/tejinder-stage.webp' ) ); ?>" srcset="<?php echo esc_url( get_theme_file_uri( 'assets/img/tejinder-stage.webp' ) ); ?> 1x, <?php echo esc_url( get_theme_file_uri( 'assets/img/tejinder-stage@2x.webp' ) ); ?> 2x" width="1086" height="1448" alt="Tejinder Singh, founder of The Growth Lab, speaking on stage." loading="lazy">
       </figure>
       <div>
         <h2>Tejinder Singh</h2>
