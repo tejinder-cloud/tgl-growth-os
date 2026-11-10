@@ -69,10 +69,11 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
 - Shape:
   1. Header: "*The Growth Lab — Daily Standup Digest | ${data.date} ${data.compileTime || "18:00"} IST*"
   2. Per-Door Headline Numbers (AEO, AI, TrueLead, Core): either real count/metric or "no data yet".
-  3. Ranked Blockers: strictly ordered by [Money] > [Customer] > [Irreversible] > [Everything else]. If none, "• None reported today."
-  4. Pending Approvals: list each card from #approvals without decisions/ line, with direct link. If none, "• None pending."
-  5. Open Proposals & Warnings: list open proposals (#<num> [@<agent>]: <title>) where approve converts to plan entry. Flag any agent at >=80% of daily cost cap. State any carried forward plan entries.
-  6. Agent Standup Lines: strictly one single terse line per reporting agent (Did · Tomorrow).
+  3. Revenue Line: "• *Revenue:* <audit requests> audit requests · <diagnostic calls booked> diagnostic calls booked · <proposals sent> proposals sent · <retainers won> retainers won · ₹<rupees invoiced> invoiced" (zeros shown as 0, not dash).
+  4. Blockers: list every open issue labelled status:blocked or status:needs-brief with number, title and age, and every open review card older than 2 hours. If those queries return nothing, output strictly "• None reported".
+  5. Pending Approvals: list each card from #approvals without decisions/ line, with direct link. If none, "• None pending."
+  6. Open Proposals & Warnings: list open proposals (#<num> [@<agent>]: <title>) where approve converts to plan entry. Flag any agent at >=80% of daily cost cap. State any carried forward plan entries.
+  7. Agent Standup Lines: strictly one single terse line per reporting agent (Did · Tomorrow).
 - HARD CAP: The entire message MUST be 25 lines or fewer. Count your lines carefully.
 - FACTUAL FIDELITY: Never invent a number, metric, or status not present in the material.
 - NO EMOJIS: Use strictly plain text and bold only (no emoji characters anywhere).
@@ -197,35 +198,34 @@ function generateDeterministicDigest(data: GatheredData): string {
   lines.push("*Product Doors:*");
   lines.push("• *AEO:* no data yet | *AI:* no data yet | *TrueLead:* no data yet | *Core:* operational");
 
-  // 2. Blockers (ranked money > customer > irreversible > everything else)
-  lines.push("\n*Blockers (Ranked):*");
-  const parsedBlockers: { category: string; text: string }[] = [];
+  // Revenue line
+  const rev = data.revenueMetrics || {
+    auditRequests: 0,
+    diagnosticCallsBooked: 0,
+    proposalsSent: 0,
+    retainersWon: 0,
+    rupeesInvoiced: 0,
+  };
+  lines.push(`• *Revenue:* ${rev.auditRequests} audit requests · ${rev.diagnosticCallsBooked} diagnostic calls booked · ${rev.proposalsSent} proposals sent · ${rev.retainersWon} retainers won · ₹${rev.rupeesInvoiced} invoiced`);
 
-  for (const log of data.logs) {
-    const raw = log.content;
-    const match = raw.match(/blocked:\s*([^\n]+)/i);
-    if (match && match[1] && !match[1].toLowerCase().includes("none")) {
-      const bText = match[1].trim();
-      const cat = /cash|invoice|payment|pricing/i.test(bText)
-        ? "Money"
-        : /customer|client|audit/i.test(bText)
-        ? "Customer"
-        : /architecture|ruleset|deploy|database/i.test(bText)
-        ? "Irreversible"
-        : "Operational";
-      parsedBlockers.push({ category: cat, text: `@${log.agent}: ${bText}` });
-    }
+  // 2. Blockers: open issues labeled status:blocked or status:needs-brief, review cards > 2h
+  lines.push("\n*Blockers:*");
+  const blockerLines: string[] = [];
+
+  for (const b of data.blockedIssues || []) {
+    const ageStr = b.ageDays > 0 ? `${b.ageDays}d` : `${b.ageHours || 0}h`;
+    blockerLines.push(`• #${b.number} (${b.title}, ${ageStr}): ${b.label}`);
   }
 
-  // Sort: Money (1) > Customer (2) > Irreversible (3) > Operational (4)
-  const rankOrder: Record<string, number> = { Money: 1, Customer: 2, Irreversible: 3, Operational: 4 };
-  parsedBlockers.sort((a, b) => (rankOrder[a.category] || 5) - (rankOrder[b.category] || 5));
+  for (const rc of data.olderReviewCards || []) {
+    blockerLines.push(`• Review card: *${rc.title}* (@${rc.agent}, ${rc.ageHours ?? 2}h)`);
+  }
 
-  if (parsedBlockers.length === 0) {
-    lines.push("• _None reported today._");
+  if (blockerLines.length === 0) {
+    lines.push("• None reported");
   } else {
-    for (const b of parsedBlockers.slice(0, 3)) {
-      lines.push(`• *[${b.category}]* ${b.text}`);
+    for (const bl of blockerLines) {
+      lines.push(bl);
     }
   }
 
