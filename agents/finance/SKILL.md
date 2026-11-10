@@ -56,3 +56,111 @@ Trigger: GHL workflow "Opportunity status changed to Won" posts to `POST /financ
 - Summary: `GET /finance/summary` gives invoiced, GST collected, received, outstanding, expense, and expense per audit.
 - Corrections are new entries. Lines are never edited.
 
+### Playbook C: Collections cadence
+Applies to issued, unpaid invoices only (drafts are never chased). Days from the due date:
+| Step | Offset | Audience | Purpose |
+|---|---|---|---|
+| 1 | -3 | Client | Heads-up with payment link. |
+| 2 | 0 | Client | Due today, one line. |
+| 3 | +3 | Client | Ask what blocks payment (PO, approval, GSTIN). |
+| 4 | +7 | Client | Offer a call with the Architect for any invoice query. |
+| 5 | +15 | Architect | Escalate: the Architect calls the owner. Pausing delivery or charging a late fee is the Architect's decision. |
+Rules: one draft per invoice per run, the latest due step only (no catch-up flood); a step is logged and never repeated or walked backwards; a full payment or cancellation stops the cadence. Drafts go to the Architect via Slack. A human sends them. Run via `POST /finance/collections/run` from a daily scheduler.
+
+### Playbook D: Export of services and LUT
+A buyer outside India is an export of services under a Letter of Undertaking (LUT).
+1. With `LUT_NUMBER` set, the draft invoice is rendered at 0% with the LUT wording and number (Playbook A step 5). Without it the invoice is not rendered: it is held as `EXPORT_REVIEW` and no invoice is created.
+2. In both cases the service posts a Compliance task pointing at `finance/compliance/lut-checklist.md` and states whether `LUT_NUMBER` is configured.
+3. Compliance works the checklist (LUT in force for the financial year, export test, payment in convertible foreign exchange, FIRC), the CA confirms, the Architect approves before anything is issued.
+4. Foreign-currency invoicing and FIRC collection are never automated here. The draft is a rupee-value draft for the Architect to review; changing it to the client's currency is a human step.
+
+### Playbook E: Safety
+1. **Live switch:** provider writes only when `FINANCE_LIVE=1`; otherwise the invoice is built and returned as `dry_run` with no provider call and no ledger write.
+2. **Fail closed:** no `FINANCE_WEBHOOK_SECRET` or `RAZORPAY_WEBHOOK_SECRET` means 401.
+3. **Drafts only:** no client-facing message, email, SMS or WhatsApp is sent by this agent.
+4. **No tax values in code:** the rate, both SAC codes, TGL's GSTIN and the LUT number are read from the environment. A missing one stops rendering; there is no fallback value.
+5. **DPDP Act:** only invoice fields (name, company, email, phone, GSTIN, address) are used.
+
+---
+
+## 4. Tools & Access
+1. **Razorpay Invoices API** (`RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`): `POST https://api.razorpay.com/v1/invoices`, draft only. Webhook secret `RAZORPAY_WEBHOOK_SECRET`.
+2. **Zoho Books API** (`ZOHO_BOOKS_API_BASE`, `ZOHO_BOOKS_ORG_ID`, `ZOHO_BOOKS_ACCESS_TOKEN`, `ZOHO_TAX_ID_INTRA`, `ZOHO_TAX_ID_INTER`): contacts and invoices. The access token is short-lived; automated refresh is not built (see Standing Routine). A Zoho export draft needs a 0% tax id; none is configured yet, so confirm Zoho export behaviour before using it for an export.
+3. **GoHighLevel** workflow webhook: sends the Won event.
+4. **Slack** via the notifier set with `setFinanceNotifier` (default logs only until wired).
+5. **Ledger:** `finance/ledger/` JSONL via `FileLedger` (`LedgerStore` interface, replaceable with Supabase).
+6. **Code:** `services/tgl-ops/src/agents/finance/` (`gst.ts`, `invoice.ts`, `providers.ts`, `deal-won.ts`, `ledger.ts`, `collections.ts`, `compliance.ts`) and `services/tgl-ops/src/routes/finance.ts`. Tests: `npm run test:d13-finance`, and `src/test-d13-gst-env.ts` for the tax configuration.
+7. **Tax configuration (environment only, none in code; the CA confirms before the first live invoice):**
+   - `GST_RATE` = 18
+   - `SAC_TRACK` = 997331 (software subscription, Track)
+   - `SAC_SERVICES` = 998314 (Managed AEO and AI Automation)
+   - `TGL_GSTIN` = TGL's 15-character GSTIN; the supplier state is its first two digits (optional `FINANCE_SUPPLIER_STATE_CODE` must match)
+   - `LUT_NUMBER` = the LUT number, needed only for export invoices
+   - Also required: `FINANCE_SUPPLIER_NAME`, `FINANCE_AMOUNT_MODE`; optional `FINANCE_PAYMENT_TERMS_DAYS` (default 7).
+   - Legacy names still read as a fallback: `FINANCE_GST_RATE`, `FINANCE_SUPPLIER_GSTIN`, `FINANCE_LUT_NUMBER`, and `FINANCE_SAC_CODE` (used only for a deal with no product line).
+
+GHL webhook contract (workflow custom data keys, rupees): `status` = won, `opportunity_id`, `opportunity_name`, `monetaryValue`, `product` (track or services), `full_name`, `company_name`, `email`, `phone`, `gstin`, `state_code`, `country`. `product`, `gstin` and `state_code` are custom fields the Architect adds. Without `product` the deal is held as `PRODUCT_UNKNOWN`; without `gstin` and `state_code` it is held as `STATE_UNKNOWN`.
+
+---
+
+## 5. Inputs / Outputs / Triggers
+- **Inputs:** GHL Won webhook; Razorpay invoice events; per-audit cost posts; deal value as agreed (pricing is never inferred).
+- **Outputs:** draft invoice in Razorpay or Zoho; ledger lines; Slack lines to the Architect; collections reminder drafts; Compliance task for export deals.
+- **Triggers:** webhook on Won; Razorpay webhook; daily collections run; cost post after each audit.
+
+---
+
+## 6. Colleagues
+- **Department:** `revenue` (`#revenue`) for invoices and collections; `#alerts` for holds and failures.
+- **Upstream:** Sales Desk (proposal accepted, deal moved to Won), AEO Audit Engine (posts per-audit cost).
+- **Downstream:** Architect (issues the draft invoice, sends reminders, decides escalations); Compliance (LUT and export checklist).
+- **Named Reviewer:** Chief of Staff.
+
+---
+
+## 7. Definition of Done
+- [ ] `agents/finance/SKILL.md` follows the standard sections.
+- [ ] A Won deal produces one draft GST invoice (Razorpay or Zoho) with the SAC for its product line and the CGST+SGST, IGST or LUT split, or a named hold; a repeat webhook produces no second invoice.
+- [ ] The generator refuses to render when `GST_RATE`, the SAC, `TGL_GSTIN` or (for an export) `LUT_NUMBER` is missing.
+- [ ] `finance/ledger` records income, payments and per-audit API expenses; the summary reconciles.
+- [ ] Collections cadence drafts the next step for issued unpaid invoices and never repeats a step.
+- [ ] `finance/compliance/lut-checklist.md` exists and export deals raise a Compliance task.
+- [ ] Dry-run by default; live only with `FINANCE_LIVE=1`.
+
+---
+
+## 8. Never
+- **Never send** an invoice, reminder, email, SMS or WhatsApp to a client. Draft only; a human issues and sends.
+- **Never guess** a state code, GSTIN, SAC, GST rate, LUT number, product line, FX rate, price or discount. Hold and ask.
+- **Never put** a tax value in code. Rate, SAC codes, GSTIN and LUT number are environment values.
+- **Never back-date, renumber or delete** an invoice or ledger line. Correct by appending.
+- **Never change** pricing, positioning or the fit/not-fit criteria.
+- **Never invent** a statistic, testimonial, client name or amount.
+- **Never use emojis** in Slack lines, ledger text, invoices or notes.
+- **Never edit `decisions/`, `logs/`, or `logs/.state`** in pull requests.
+- Test hygiene: tests never write to `decisions/` or `logs/`, never call Razorpay, Zoho or Slack, use temp directories for ledger files and clean them.
+
+---
+
+## 9. Reporting
+- **Daily Standup Format (logs to `logs/<date>/finance.md`):**
+  - **Did:** invoices drafted, payments recorded, reminders drafted, audit costs logged.
+  - **Blocked:** held deals and the missing item for each.
+  - **Need from the Architect:** drafts to issue, config to confirm, escalations at step 5.
+  - **Tomorrow:** invoices falling due.
+- **Weekly Scorecard Line:** `Invoiced: Rs x · Received: Rs y · Outstanding: Rs z (oldest: d days) · Holds: h · Audit API cost per audit: Rs c (n unconverted)`
+
+---
+
+## 10. Learning
+- **Pre-Flight Reading:** `AGENTS.md`, `decisions/`, `rejections/`, `memory/finance.md`, `finance/compliance/lut-checklist.md`.
+- **Memory:** Record which holds recur (missing GSTIN, missing state, missing product line), which clients pay late and why, and cost per audit trends; propose process changes via `type:proposal`.
+
+---
+
+## 11. Standing Routine
+- **Daily:** Run collections; reconcile Razorpay events against the ledger; check `/finance/summary` for unconverted expenses and `totalMismatch` flags; append the four-line standup before 17:50 IST.
+- **Weekly:** Post outstanding invoices by age and cost per audit to the Chief of Staff for the Monday scorecard.
+- **Monthly:** Reconcile ledger totals to the provider and bank statements; hand the CA the invoice list and GST summary; check LUT validity and the 1 April renewal.
+- **What You Check:** invoice numbering gaps (there must be none); drafts older than 2 days that were never issued; invoices past due with no reminder logged; expense lines with `amountMinor` null; that the SAC codes and rate in the environment still match the CA's confirmation.
+- **What You May Propose:** automated Zoho token refresh, a Supabase-backed ledger, wiring a daily scheduler for collections, GSTIN verification against the GST portal, mixed-product invoices with a SAC per line, and an e-invoicing check if turnover crosses the threshold (CA to confirm), all via `type:proposal`.
