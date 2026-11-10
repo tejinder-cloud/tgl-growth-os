@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-10T08:10:07.112Z",
+  "updatedAt": "2026-11-10T09:35:02.872Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -116,7 +116,7 @@
       "agent": "web-builder",
       "door": "core",
       "title": "[PLAN-D13]: Finance SKILL.md + v1: GST invoices & ledger",
-      "status": "completed",
+      "status": "in-progress",
       "prNumber": 142,
       "prUrl": "https://github.com/tejinder-cloud/tgl-growth-os/pull/142",
       "runStartedAt": "2026-11-09T07:36:12.079831+00:00",
@@ -133,19 +133,19 @@
       "agent": "web-builder",
       "door": "aeo",
       "title": "[TASK]: Build the new Home page from site/pages/home.md for the webs",
-      "status": "in-progress",
+      "status": "completed",
       "branch": "task/147-build-the-new-home-page-from-s",
       "prNumber": 148,
       "prUrl": "https://github.com/tejinder-cloud/tgl-growth-os/pull/148",
       "runStartedAt": "2026-11-09T09:46:10.373791+00:00",
-      "runCompletedAt": "2026-11-09T11:26:38.039+00:00",
+      "runCompletedAt": "2026-11-10T08:11:38.44+00:00",
       "recoveryAttempts": 0,
       "ownerInstance": null,
       "heartbeatAt": null,
-      "toolCallsCount": 0,
-      "preflightHash": "4963699f583ee968",
+      "toolCallsCount": 23,
+      "preflightHash": "16ac11c62a6a28c5",
       "preflightVerdict": "proceed",
-      "preflightReason": "The brief has a concrete, verifiable deliverable. It names the spec (site/pages/home.md), the hero asset (tgl-theme/assets/img/tejinder-stage.png), the config file (config/agents.yaml), and two checks that can be tested. The first is that the hero form submits successfully to the /aeo endpoint. The second is that agent statuses in config/agents.yaml are confirmed or fixed before the roster is built. All of these paths are outside the protected paths (decisions/, logs/, logs/.state), and the runner may write to config/ and site/ on a branch. The brief says to build a draft and not to publish before the Architect approves, so it does not conflict with the §8 Never guardrails on publishing live, changing page status, DNS, external plugins or scripts, pricing, or deleting content. The workflow is also defined: Web Builder drafts, Creative Director reviews, Chief of Staff sends the approval card. Two things to watch while building. Test the form end to end without adding external scripts or plugins. Treat the home.md spec as the source of truth for the correct agent statuses, and don't make up values. If the spec doesn't define them, flag that on the PR rather than guessing."
+      "preflightReason": "The brief is concrete and the Architect's latest instruction (#147, \"Not approved. Fix and resend\") resolves the open points. Every target sits outside the protected paths (decisions/, logs/, logs/.state):\n\n- site/pages/home.md and the home page build.\n- A read-only stats route in services/, read through TGL_HOME_STATS_ENDPOINT. The runner may write to services/ on a branch, and the CI gate (npm run build plus tests) covers it.\n- Three dated captures.\n- tgl-theme/assets/img/tejinder-stage.png converted to WebP plus @2x, each under 150 KB.\n- config/agents.yaml statuses.\n\nEach item is verifiable:\n- The hero form is a single website field that opens /aeo?site=…&source=home_hero#audit, with no WhatsApp promise.\n- The stats route returns questions tracked, engines, times named on the latest run, the first-run figure and date, and the last-run date.\n- The image files stay under 150 KB.\n- The Creative Director supplies mobile screenshots and a Lighthouse mobile score.\n- aeo-audit-engine is set to active and outreach-sequencer stays planned.\n\nThis does not conflict with the §8 Never guardrails. The work is a draft, and nothing is published until the Architect approves. It adds no external scripts or plugins, and it touches no DNS, pricing, or live page status. It deletes no content.\n\nNotes for the builder:\n- The Architect's statuses override the earlier suggestion to take them from the spec. Use active for aeo-audit-engine and planned for outreach-sequencer, and do not change any other status.\n- Say so on the PR if the stats route cannot be done by 13 Nov.\n- Build the screenshot captures without external scripts. Grey out other business names in the Citation Tracker capture.\n- The Creative Director review and the Chief of Staff approval card follow the stated workflow."
     }
   }
 }
