@@ -52,7 +52,7 @@ export async function issueInvoices(sbIn?: SupabaseClient): Promise<number> {
       if (emails.length && appUrl) {
         const total = Number(inv.amount_minor) + Number(inv.gst_minor);
         const e = render([{ lines: [`Thank you — we've received ${money(total, inv.currency)} for ${description}.`, `Your tax invoice ${number} is attached, and is always in Settings → Plan.`] }],
-          { label: "Open Settings", url: `${appUrl}/dashboard/settings#plan` }, `${appUrl}/dashboard/settings#email`);
+          { label: "Open Settings", url: `${appUrl}/dashboard/settings#plan` }, `${appUrl}/dashboard/settings#email`, undefined, { aboutAnswers: false });
         const err = await sendEmail(emails, { subject: `Tax invoice ${number} — TrueVisible`, ...e }, fetch, [{ filename: `${number.replace(/\//g, "-")}.pdf`, content: pdf.toString("base64") }]);
         if (err) await postLine({ channel: getAlertsChannel(), text: `[Warning] invoice ${number} email not sent: \`${err}\`` }).catch(() => {});
       }
