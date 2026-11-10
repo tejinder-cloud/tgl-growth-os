@@ -179,3 +179,21 @@ $tgl_aeo_endpoint = apply_filters(
   <!-- /wp:html -->
 </section>
 <!-- /wp:group -->
+
+<!-- wp:html -->
+<script>
+// Arrival from the Home hero: /aeo?site=<website>&source=home_hero#audit.
+// Pre-fills the Website field only. The visitor completes the rest of this form, so the endpoint still
+// receives the full /aeo field set. source=home_hero is kept as the lead's "src" attribution, which the
+// existing sourceLabel() already reads; no endpoint change.
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var site = params.get('site');
+  var website = document.getElementById('aeo-website');
+  if (site && website && !website.value) website.value = site.slice(0, 200);
+  if (params.get('source') === 'home_hero' && !params.get('src')) {
+    try { sessionStorage.setItem('tgl_src', 'home_hero'); } catch (e) {}
+  }
+})();
+</script>
+<!-- /wp:html -->
