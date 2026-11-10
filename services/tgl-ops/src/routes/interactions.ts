@@ -526,16 +526,14 @@ export async function handleApproveAction(payload: any, action: any): Promise<vo
   }
 }
 
-async function handleDiscussAction(payload: any, action: any): Promise<void> {
+export async function handleDiscussAction(payload: any, action: any): Promise<void> {
   const meta = JSON.parse(action.value || "{}");
-  const actor = await getActorDisplayName(payload.user);
-  const agent = meta.agent || "web-builder";
   const channel = payload.channel?.id || meta.channel || config.approvalsChannelId;
   const messageTs = payload.container?.message_ts;
 
   await postLine({
     channel,
-    text: `\`@${agent}\` — discussion requested by ${actor}. Please review the brief and proposal above and respond in this thread.`,
+    text: "Reply in this thread; the agent resumes with your reply as its brief.",
     thread_ts: messageTs,
   });
 }
