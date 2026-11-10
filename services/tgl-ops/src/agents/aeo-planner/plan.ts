@@ -26,6 +26,8 @@ const OUTREACH = new Set<Kind>(["outreach", "listing"]);
 
 /** Words a plan must never use: placement guarantees and invented results (excluded everywhere per the tiers decision). */
 const PROMISE = /\b(guarantee[ds]?|guaranteed|assure[ds]?|promise[ds]?|rank(?:ed|ing)? #?1|top (?:spot|position)|will (?:be )?(?:named|cited|recommended|rank))\b/i;
+/** Saying there is NO guarantee is honest, not a promise: drop negated phrases before looking for promises. */
+const denied = (t: string) => t.replace(/\b(?:no|not(?: a| an)?|nothing(?: here)? is a|never(?: a)?|without(?: a)?|isn't a|is not a)\s+(?:\w+\s+){0,2}?(?:guarantee[ds]?|promise[ds]?)(?:\s+of\s+\w+)?/gi, " ");
 const MADE_UP_NUMBER = /\b\d+(?:\.\d+)?\s?(?:%|percent|x\b|times)/i;
 
 export type Checks = { passed: boolean; problems: string[]; usage: { month: number; pages: number; outreach: number }[] };
@@ -53,7 +55,7 @@ export function checkPlan(p: { summary: string; months: Month[]; items: Item[] }
     if (i.kind === "page" && i.path === "offsite") problems.push(`"${i.title}" is a page but marked off-site`);
   }
   for (const [where, text] of [["summary", p.summary], ...p.months.map((m) => [`month ${m.month}`, `${m.theme} ${m.focus}`]), ...p.items.map((i) => [`"${i.title}"`, `${i.title} ${i.detail}`])] as [string, string][]) {
-    if (PROMISE.test(text)) problems.push(`${where} promises a result`);
+    if (PROMISE.test(denied(text))) problems.push(`${where} promises a result`);
     if (MADE_UP_NUMBER.test(text)) problems.push(`${where} quotes a number we didn't measure`);
   }
   return { passed: problems.length === 0, problems: [...new Set(problems)].slice(0, 20), usage };
