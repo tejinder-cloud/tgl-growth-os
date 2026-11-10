@@ -5,6 +5,7 @@ import { checkPlan, monthOf, needsPerson, scopeFor, tierFor, type Item } from ".
 import { buildPlanMessage, normalisePlan, stripRefs } from "./agents/aeo-planner/propose.js";
 import { planBlocks } from "./agents/aeo-planner/card.js";
 import { planReadyEmail } from "./agents/aeo-reports/email.js";
+import { dueItems, planWeek, weekBlocks } from "./agents/aeo-planner/weekly.js";
 
 let passed = 0;
 function t(name: string, fn: () => void) { try { fn(); passed++; console.log(`✓ ${name}`); } catch (e) { console.error(`✗ ${name}`); throw e; } }
@@ -91,6 +92,18 @@ t("prompt, Slack card and client email carry measured numbers only", () => {
   assert.match(text, /named in 12 of 96 answers/); assert.match(text, /plan_approve/); assert.match(text, /Passed every check/);
   const e = planReadyEmail({ brand: "TGL", summary: "s", months, firstWeeks: ["Week 1: Fix schema"], startsOn: "2026-11-10", endsOn: "2027-02-08" }, "https://app.example");
   assert.match(e.subject, /90-day plan for TGL/); assert.match(e.text, /10 Nov – 8 Feb/); assert.match(e.html, /dashboard\/plan/);
+});
+
+t("weekly to-do: this week first, then carried over; done and delivered items left out; Done buttons", () => {
+  assert.deepEqual([planWeek("2026-11-10", "2026-11-09"), planWeek("2026-11-10", "2026-11-16"), planWeek("2026-11-10", "2026-11-17")], [0, 1, 2]);
+  const items = [item(1, "technical"), item(1, "listing", 3, { id: "w1b" }), item(2, "gbp"), item(2, "page", 1, { id: "w2p", recommendation_id: "r1" }), item(3, "outreach")];
+  const due = dueItems(items, 2, new Set(["w1"]), new Set());
+  assert.deepEqual(due.map((i) => i.id), ["w2", "w2p", "w1b"]);
+  assert.deepEqual(dueItems(items, 2, new Set(["w1"]), new Set(["r1"])).map((i) => i.id), ["w2", "w1b"]);
+  const text = JSON.stringify(weekBlocks("TGL", "plan-1", 2, due));
+  assert.match(text, /carried over from week 1/);
+  assert.equal((text.match(/planitem_done/g) ?? []).length, 2);   // the WordPress page is done through its recommendation
+  assert.match(text, /plan-1\|w1b/);
 });
 
 console.log(`\nDay 29b: ${passed} checks passed`);
