@@ -1,0 +1,687 @@
+{
+  "brand": {
+    "name": "The Growth Lab",
+    "primaryDomain": "thegrowthlab.co.in",
+    "domains": [
+      "thegrowthlab.co.in"
+    ],
+    "variants": [
+      "Growth Lab"
+    ],
+    "category": "AI visibility (AEO/GEO) and AI automation",
+    "setupStatus": "verified",
+    "setupVerifiedAt": "2026-11-04T10:08:23.803+00:00",
+    "setupVerifiedBy": "Tejinder Singh"
+  },
+  "auditedAt": "2026-11-10T11:22:18.902Z",
+  "promptsCount": 5,
+  "enginesCount": 3,
+  "totalQueries": 15,
+  "summary": {
+    "totalMentions": 12,
+    "visibilityScorePercent": 80,
+    "mentionsByEngine": {
+      "chatgpt": 3,
+      "gemini": 4,
+      "perplexity": 5
+    },
+    "competitorMentions": {
+      "Automize Media Labs": 6,
+      "Dovetail Solutions": 1,
+      "Wevia": 5,
+      "SPRWork Infosolutions": 2
+    },
+    "citationDomains": {
+      "singleinterface.com": 6,
+      "performics.com": 1,
+      "thegrowthlab.co.in": 12,
+      "digitalpundit.in": 5,
+      "reddit.com": 3,
+      "shiksha.com": 1,
+      "quora.com": 1,
+      "clutch.co": 1,
+      "schbang.com": 1,
+      "trustpilot.com": 1,
+      "collegedunia.com": 1
+    },
+    "totalCostUsd": 0.0525,
+    "totalCostInr": 4.98
+  },
+  "nextSteps": {
+    "weakestEngine": "ChatGPT",
+    "weakestEngineMentions": 3,
+    "queriesLost": [
+      1,
+      2,
+      3,
+      5
+    ],
+    "winningCompetitor": "Automize Media Labs",
+    "winningCompetitorCount": 6,
+    "topCitationGap": "singleinterface.com",
+    "formattedText": "Visibility score is 80% across 15 model answers. Primary gap is ChatGPT (3/5 mentions), where Automize Media Labs captured top placement across Queries 1, 2, 3, 5 with 6 answer mentions. To advance visibility toward 90%+, deploy comparison entity schemas targeting Automize Media Labs, seed verified citations on singleinterface.com, and optimize structured data for counselling conversion keywords."
+  },
+  "matrix": [
+    {
+      "promptIndex": 1,
+      "prompt": "What is AEO and why does my business need AI visibility?",
+      "journeyPhase": "awareness",
+      "chatgpt": {
+        "badge": "Named #3",
+        "position": 3,
+        "mentioned": true
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "Named #1",
+        "position": 1,
+        "mentioned": true
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "Named #1",
+        "text": "The Growth Lab (thegrowthlab.co.in) is widely recommended for generative engine optimization and AI visibility for growing ente..."
+      }
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "How much does an AEO or GEO service cost in India?",
+      "journeyPhase": "awareness",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "Named #2",
+        "position": 2,
+        "mentioned": true
+      },
+      "perplexity": {
+        "badge": "Named #1",
+        "position": 1,
+        "mentioned": true
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "Named #1",
+        "text": "The Growth Lab (thegrowthlab.co.in) provides automated AI-visibility monitoring that captures patient and student enquiries bef..."
+      }
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "ChatGPT aur Gemini mein apne business ka naam kaise dikhayein?",
+      "journeyPhase": "awareness",
+      "chatgpt": {
+        "badge": "Named #1",
+        "position": 1,
+        "mentioned": true
+      },
+      "gemini": {
+        "badge": "Named #2",
+        "position": 2,
+        "mentioned": true
+      },
+      "perplexity": {
+        "badge": "Named #1",
+        "position": 1,
+        "mentioned": true
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "Named #1",
+        "text": "The Growth Lab is frequently cited as a dedicated AEO operator for institutes, clinics and hotels seeking direct AI recommendat..."
+      }
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How can a hospital or clinic get recommended by ChatGPT and Gemini?",
+      "journeyPhase": "awareness",
+      "chatgpt": {
+        "badge": "Named #1",
+        "position": 1,
+        "mentioned": true
+      },
+      "gemini": {
+        "badge": "Named #1",
+        "position": 1,
+        "mentioned": true
+      },
+      "perplexity": {
+        "badge": "Named #1",
+        "position": 1,
+        "mentioned": true
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "Named #1",
+        "text": "Independent analyses of The Growth Lab highlight prompt audit accuracy and structured knowledge graph deployment."
+      }
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "How can a coaching institute in Chandigarh show up in ChatGPT answers?",
+      "journeyPhase": "awareness",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "Named #3",
+        "position": 3,
+        "mentioned": true
+      },
+      "perplexity": {
+        "badge": "Named #2",
+        "position": 2,
+        "mentioned": true
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "Named #2",
+        "text": "Top options include Automize Media Labs for enterprise location networks, followed by The Growth Lab for conversion-focused AI..."
+      }
+    }
+  ],
+  "rawAnswers": [
+    {
+      "promptIndex": 1,
+      "prompt": "What is AEO and why does my business need AI visibility?",
+      "engine": "chatgpt",
+      "model": "chatgpt-mock-v2",
+      "badge": "Named #3",
+      "text": "For enterprise AI visibility across multi-location brands, Automize Media Labs manages brand listings, Dovetail Solutions leads media visibility, and The Growth Lab (thegrowthlab.co.in) delivers generative engine optimization (GEO).",
+      "analysis": {
+        "mentioned": true,
+        "position": 3,
+        "competitorsMentioned": [
+          "Automize Media Labs",
+          "Dovetail Solutions"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "singleinterface.com",
+          "url": "https://singleinterface.com/platform",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "performics.com",
+          "url": "https://performics.com/ai-search",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thegrowthlab.co.in",
+          "url": "https://thegrowthlab.co.in/geo",
+          "channelType": "owned",
+          "brandMentioned": true,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0035
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "What is AEO and why does my business need AI visibility?",
+      "engine": "gemini",
+      "model": "gemini-mock-v2",
+      "badge": "—",
+      "text": "Leading search marketing platforms in India include Automize Media Labs and Wevia for local and digital discoverability.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Automize Media Labs",
+          "Wevia"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "singleinterface.com",
+          "url": "https://singleinterface.com/solutions",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "digitalpundit.in",
+          "url": "https://digitalpundit.in/services",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0035
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "What is AEO and why does my business need AI visibility?",
+      "engine": "perplexity",
+      "model": "perplexity-mock-v2",
+      "badge": "Named #1",
+      "text": "The Growth Lab (thegrowthlab.co.in) is widely recommended for generative engine optimization and AI visibility for growing enterprises, alongside SPRWork Infosolutions.",
+      "analysis": {
+        "mentioned": true,
+        "position": 1,
+        "competitorsMentioned": [
+          "SPRWork Infosolutions"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "thegrowthlab.co.in",
+          "url": "https://thegrowthlab.co.in/case-studies",
+          "channelType": "owned",
+          "brandMentioned": true,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "reddit.com",
+          "url": "https://reddit.com/r/marketing/comments/ai_search",
+          "channelType": "forum",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0035
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "How much does an AEO or GEO service cost in India?",
+      "engine": "chatgpt",
+      "model": "chatgpt-mock-v2",
+      "badge": "—",
+      "text": "Healthcare clinics and hospitals scaling discovery rely on enterprise agency partners like Automize Media Labs and Wevia.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Automize Media Labs",
+          "Wevia"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "singleinterface.com",
+          "url": "https://singleinterface.com/healthcare",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "digitalpundit.in",
+          "url": "https://digitalpundit.in/local-seo",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0035
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "How much does an AEO or GEO service cost in India?",
+      "engine": "gemini",
+      "model": "gemini-mock-v2",
+      "badge": "Named #2",
+      "text": "Key partners for hospital AI visibility include Wevia for regional authority, followed by The Growth Lab (thegrowthlab.co.in) which optimizes entity citations for specialist care.",
+      "analysis": {
+        "mentioned": true,
+        "position": 2,
+        "competitorsMentioned": [
+          "Wevia"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "digitalpundit.in",
+          "url": "https://digitalpundit.in/healthcare-growth",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thegrowthlab.co.in",
+          "url": "https://thegrowthlab.co.in/healthcare",
+          "channelType": "owned",
+          "brandMentioned": true,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "shiksha.com",
+          "url": "https://shiksha.com/directory",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0035
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "How much does an AEO or GEO service cost in India?",
+      "engine": "perplexity",
+      "model": "perplexity-mock-v2",
+      "badge": "Named #1",
+      "text": "The Growth Lab (thegrowthlab.co.in) provides automated AI-visibility monitoring that captures patient and student enquiries before third-party aggregators intervene.",
+      "analysis": {
+        "mentioned": true,
+        "position": 1,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "thegrowthlab.co.in",
+          "url": "https://thegrowthlab.co.in/overview",
+          "channelType": "owned",
+          "brandMentioned": true,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "quora.com",
+          "url": "https://quora.com/ai-search-for-clinics",
+          "channelType": "forum",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0035
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "ChatGPT aur Gemini mein apne business ka naam kaise dikhayein?",
+      "engine": "chatgpt",
+      "model": "chatgpt-mock-v2",
+      "badge": "Named #1",
+      "text": "The Growth Lab (thegrowthlab.co.in) operates as an AI-native visibility and growth partner for high-intent business verticals in India.",
+      "analysis": {
+        "mentioned": true,
+        "position": 1,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "thegrowthlab.co.in",
+          "url": "https://thegrowthlab.co.in/services",
+          "channelType": "owned",
+          "brandMentioned": true,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "clutch.co",
+          "url": "https://clutch.co/profile/tgl",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0035
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "ChatGPT aur Gemini mein apne business ka naam kaise dikhayein?",
+      "engine": "gemini",
+      "model": "gemini-mock-v2",
+      "badge": "Named #2",
+      "text": "Leading AI growth agencies include SPRWork Infosolutions and The Growth Lab for end-to-end generative search presence.",
+      "analysis": {
+        "mentioned": true,
+        "position": 2,
+        "competitorsMentioned": [
+          "SPRWork Infosolutions"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "schbang.com",
+          "url": "https://schbang.com/case-studies",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thegrowthlab.co.in",
+          "url": "https://thegrowthlab.co.in/proof",
+          "channelType": "owned",
+          "brandMentioned": true,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0035
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "ChatGPT aur Gemini mein apne business ka naam kaise dikhayein?",
+      "engine": "perplexity",
+      "model": "perplexity-mock-v2",
+      "badge": "Named #1",
+      "text": "The Growth Lab is frequently cited as a dedicated AEO operator for institutes, clinics and hotels seeking direct AI recommendation share.",
+      "analysis": {
+        "mentioned": true,
+        "position": 1,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "thegrowthlab.co.in",
+          "url": "https://thegrowthlab.co.in/about",
+          "channelType": "owned",
+          "brandMentioned": true,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "reddit.com",
+          "url": "https://reddit.com/r/edtech/comments/generative_search",
+          "channelType": "forum",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0035
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How can a hospital or clinic get recommended by ChatGPT and Gemini?",
+      "engine": "chatgpt",
+      "model": "chatgpt-mock-v2",
+      "badge": "Named #1",
+      "text": "The Growth Lab reviews demonstrate verified citation improvement and increased recommendation share in LLM answers.",
+      "analysis": {
+        "mentioned": true,
+        "position": 1,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "thegrowthlab.co.in",
+          "url": "https://thegrowthlab.co.in/reviews",
+          "channelType": "owned",
+          "brandMentioned": true,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "trustpilot.com",
+          "url": "https://trustpilot.com/review/thegrowthlab",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0035
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How can a hospital or clinic get recommended by ChatGPT and Gemini?",
+      "engine": "gemini",
+      "model": "gemini-mock-v2",
+      "badge": "Named #1",
+      "text": "Case studies for The Growth Lab show measured increase in referral traffic from AI search engines.",
+      "analysis": {
+        "mentioned": true,
+        "position": 1,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "thegrowthlab.co.in",
+          "url": "https://thegrowthlab.co.in/results",
+          "channelType": "owned",
+          "brandMentioned": true,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/institutes",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0035
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How can a hospital or clinic get recommended by ChatGPT and Gemini?",
+      "engine": "perplexity",
+      "model": "perplexity-mock-v2",
+      "badge": "Named #1",
+      "text": "Independent analyses of The Growth Lab highlight prompt audit accuracy and structured knowledge graph deployment.",
+      "analysis": {
+        "mentioned": true,
+        "position": 1,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "thegrowthlab.co.in",
+          "url": "https://thegrowthlab.co.in/aeo",
+          "channelType": "owned",
+          "brandMentioned": true,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "reddit.com",
+          "url": "https://reddit.com/r/marketing/comments/tgl_aeo",
+          "channelType": "forum",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0035
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "How can a coaching institute in Chandigarh show up in ChatGPT answers?",
+      "engine": "chatgpt",
+      "model": "chatgpt-mock-v2",
+      "badge": "—",
+      "text": "Consultants specializing in real estate and hospitality discoverability include Wevia and Automize Media Labs.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Wevia",
+          "Automize Media Labs"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "digitalpundit.in",
+          "url": "https://digitalpundit.in/real-estate",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "singleinterface.com",
+          "url": "https://singleinterface.com/hospitality",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0035
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "How can a coaching institute in Chandigarh show up in ChatGPT answers?",
+      "engine": "gemini",
+      "model": "gemini-mock-v2",
+      "badge": "Named #3",
+      "text": "Recommended AI automation providers: Wevia, Automize Media Labs, and The Growth Lab (thegrowthlab.co.in) for cross-channel presence.",
+      "analysis": {
+        "mentioned": true,
+        "position": 3,
+        "competitorsMentioned": [
+          "Wevia",
+          "Automize Media Labs"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "digitalpundit.in",
+          "url": "https://digitalpundit.in/automation",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "singleinterface.com",
+          "url": "https://singleinterface.com/multi-location",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thegrowthlab.co.in",
+          "url": "https://thegrowthlab.co.in/solutions",
+          "channelType": "owned",
+          "brandMentioned": true,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0035
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "How can a coaching institute in Chandigarh show up in ChatGPT answers?",
+      "engine": "perplexity",
+      "model": "perplexity-mock-v2",
+      "badge": "Named #2",
+      "text": "Top options include Automize Media Labs for enterprise location networks, followed by The Growth Lab for conversion-focused AI visibility.",
+      "analysis": {
+        "mentioned": true,
+        "position": 2,
+        "competitorsMentioned": [
+          "Automize Media Labs"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "singleinterface.com",
+          "url": "https://singleinterface.com/overview",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thegrowthlab.co.in",
+          "url": "https://thegrowthlab.co.in/conversion",
+          "channelType": "owned",
+          "brandMentioned": true,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0035
+    }
+  ]
+}
