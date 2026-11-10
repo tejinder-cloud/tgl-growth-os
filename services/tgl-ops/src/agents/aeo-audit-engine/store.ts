@@ -20,6 +20,8 @@ export interface TrackerStore {
   /** includeUnverified: also brands whose setup is submitted but not yet verified (first audit on submit). */
   loadEligibleBrands(brandId?: string, opts?: { includeUnverified?: boolean }): Promise<TrackedBrand[]>;
   hasCompletedRun(brandId: string, runDate: string, engine: EngineId): Promise<boolean>;
+  /** A run of any kind for this brand × engine × day still in progress (started in the last 2 hours). */
+  hasRunningRun?(brandId: string, runDate: string, engine: EngineId): Promise<boolean>;
   startRun(b: TrackedBrand, runDate: string, engine: EngineId, kind?: RunKind): Promise<string>;
   saveAnswer(b: TrackedBrand, runId: string, promptId: string, ans: EngineAnswer, a: AnswerAnalysis, cites: CitationAnalysis[]): Promise<void>;
   finishRun(runId: string, status: "succeeded" | "partial" | "failed", error: string | null): Promise<void>;
@@ -97,6 +99,12 @@ export function supabaseStore(sb: SupabaseClient): TrackerStore {
     async hasCompletedRun(brandId, runDate, engine) {
       const rows = must(await sb.from("runs").select("id").eq("brand_id", brandId).eq("run_date", runDate).eq("engine", engine)
         .eq("kind", "daily").in("status", ["succeeded", "partial"]).limit(1), "check runs") as any[];
+      return rows.length > 0;
+    },
+
+    async hasRunningRun(brandId, runDate, engine) {
+      const rows = must(await sb.from("runs").select("id").eq("brand_id", brandId).eq("run_date", runDate).eq("engine", engine)
+        .eq("status", "running").gte("started_at", new Date(Date.now() - 2 * 3600_000).toISOString()).limit(1), "running runs") as any[];
       return rows.length > 0;
     },
 
