@@ -87,7 +87,7 @@
   channel: "#doors-aeo"
   trigger: "Audit form submission, mention @aeo-audit-engine"
   reviewer: "Delivery QA"
-  status: planned
+  status: active
   daily_cost_cap_usd: 1.00
   routines:
     - name: daily_citation_tracking
