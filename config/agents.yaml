@@ -95,6 +95,16 @@
       schedule: "0 6 * * *"
       description: "Daily automated citation tracking runs per active brand"
 
+- name: aeo-planner
+  department: aeo-delivery
+  channel: "#doors-aeo"
+  trigger: "Every 15 min: verified Managed / Managed Plus brands (and TGL) without a live 90-day plan"
+  reviewer: "Architect"
+  status: planned
+  daily_cost_cap_usd: 1.00
+  routines:
+    - name: ninety_day_plan
+
 - name: aeo-recommender
   department: aeo-delivery
   channel: "#doors-aeo"

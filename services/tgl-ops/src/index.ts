@@ -190,6 +190,16 @@ import { runGa4Sync } from "./agents/aeo-impact/ga4.js";
 import { syncRazorpaySecret } from "./agents/aeo-billing/razorpay.js";
 import { runAgencyGraceCheck } from "./agents/aeo-billing/agency.js";
 import { checkWordPressConnections, runImplementer } from "./agents/aeo-execution/worker.js";
+import { runPlanner } from "./agents/aeo-planner/worker.js";
+
+// Every 15 minutes: 90-day plans for verified Managed / Managed Plus brands (and TGL) without one (plan Day 29b)
+cron.schedule(
+  "7,22,37,52 * * * *",
+  wrapCronJob("TrueVisible 90-day planner", async () => {
+    await runPlanner();
+  }),
+  { timezone: config.timezone }
+);
 
 // Every minute: the Implementer drafts requested pages on WordPress and publishes approved drafts (plan Day 29)
 cron.schedule(

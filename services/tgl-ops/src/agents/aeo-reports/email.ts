@@ -92,3 +92,16 @@ export function baselineEmail(b: BaselineContent, appUrl: string, reportId: stri
   return { subject: `${b.brand}: your 7-day AI visibility baseline`,
     ...render(blocks, { label: "Keep watching — Track", url: `${appUrl}/dashboard/upgrade?from=baseline&report=${reportId}` }, `${appUrl}/dashboard/settings`, { label: "Have it done — Managed", url: managedUrl }) };
 }
+
+/** "Your 90-day plan is ready" (plan Day 29b): what the 90 days focus on and the first weeks, with the link. */
+export function planReadyEmail(p: { brand: string; summary: string; months: { month: number; theme: string }[]; firstWeeks: string[]; startsOn: string; endsOn: string }, appUrl: string): Email {
+  const blocks: Block[] = [
+    { lines: [`Your 90-day AI visibility plan for ${p.brand} is ready. It runs ${day(p.startsOn)} – ${day(p.endsOn)}.`] },
+    { lines: [p.summary] },
+    { title: "The three months", lines: p.months.map((m) => `Month ${m.month}: ${m.theme}`) },
+    ...(p.firstWeeks.length ? [{ title: "What we start with", lines: p.firstWeeks }] : []),
+    { lines: ["We'll show every change in the dashboard as it happens, and measure the effect in the answers each week."] },
+  ];
+  const { text, html } = render(blocks, { label: "See the full plan", url: `${appUrl}/dashboard/plan` }, `${appUrl}/dashboard/settings#email`);
+  return { subject: `Your 90-day plan for ${p.brand} is ready`, text, html };
+}
