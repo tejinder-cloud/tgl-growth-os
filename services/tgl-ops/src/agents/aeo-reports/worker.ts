@@ -65,7 +65,7 @@ async function context(sb: SupabaseClient, brandId: string) {
   return { brand: brand as any, competitors: (comps ?? []).map((c: any) => c.name as string), variants: (variants ?? []).map((v: any) => v.name as string), recs: recs ?? [], openRecs: open.length, topRec: (open[0]?.title as string) ?? null };
 }
 
-async function recipients(sb: SupabaseClient, tenantId: string, kind: "daily" | "weekly" | "monthly"): Promise<string[]> {
+export async function recipients(sb: SupabaseClient, tenantId: string, kind: "daily" | "weekly" | "monthly"): Promise<string[]> {
   const { data: tenant } = await sb.from("tenants").select("kind").eq("id", tenantId).maybeSingle();
   if (tenant?.kind === "agency_client") return [];                 // white-label: TGL never emails an agency's brand (SPEC §9)
   const { data: members } = await sb.from("tenant_members").select("user_id, email_daily, email_weekly").eq("tenant_id", tenantId);
