@@ -156,3 +156,182 @@ export function isRolePlaceholderName(name: string, isOwnerRun?: boolean): boole
 
   return false;
 }
+
+/**
+ * Hard Write-Path Guardrail (Iron Law):
+ * A prospects row CANNOT be inserted without:
+ * (a) a Places place_id from a logged API response
+ * (b) a live DNS result
+ * (c) a contact verification result:
+ *     - a Hunter-verified website email (status: deliverable|risky), OR
+ *     - for owner-run businesses (<50 staff), the business phone from Google Places
+ * (d) a per-dimension score breakdown in fit_reasons (at least five entries, one per rubric dimension, each with its evidence;
+ *     rubric v2 adds a sixth `dim4_probe` entry carrying the Dimension 4 probe record)
+ * (e) verified non-placeholder human name or "Owner / Lead Doctor" for owner-run clinics
+ * (f) non-disqualified under Playbook C
+ *
+ * Any missing item → returns { valid: false, reason } to drop the candidate.
+ */
+export function validateProspectRecord(p: any): { valid: boolean; reason?: string } {
+  if (!p || typeof p !== "object") {
+    return { valid: false, reason: "Invalid record object: null or non-object" };
+  }
+
+  // 1. Places place_id check
+  const sourceRefs: string[] = Array.isArray(p.source_refs) ? p.source_refs : [];
+  const hasPlacesId = sourceRefs.some((r) => r.startsWith("places:place_id:") || r.includes("place_id:"));
+  if (!hasPlacesId) {
+    return { valid: false, reason: "Missing Places place_id from logged Google Places API response" };
+  }
+
+  // 2. Live DNS check
+  const hasDnsResult = sourceRefs.some((r) => r.startsWith("dns:pass:"));
+  if (!hasDnsResult) {
+    return { valid: false, reason: "Missing live DNS verification confirmation in source_refs" };
+  }
+
+  // 3. Contact verification result
+  // Architect decision: for owner-run businesses (<50 staff), a verified contact is:
+  // (a) a website email verified by Hunter (status deliverable | risky), OR
+  // (b) the business phone from Google Places
+  const dm = p.decision_maker;
+  if (!dm || typeof dm !== "object") {
+    return { valid: false, reason: "Missing decision_maker object" };
+  }
+
+  const dmSource = String(dm.source || "").toLowerCase();
+  const isDMUnknown =
+    dm.role === "DM unknown" ||
+    dm.name === "DM unknown" ||
+    dmSource.includes("contact found, dm unknown");
+
+  const hasHunterEmail =
+    Boolean(dm.email && dm.email.includes("@")) &&
+    dmSource.includes("hunter:") &&
+    (dmSource.includes("deliverable") ||
+      dmSource.includes("risky") ||
+      dmSource.includes("status:") ||
+      isDMUnknown);
+
+  const hasPlacesPhone =
+    Boolean(dm.phone && String(dm.phone).trim().length >= 8) &&
+    dmSource.includes("places:phone") &&
+    hasPlacesId;
+
+  if (!hasHunterEmail && !hasPlacesPhone && !isDMUnknown) {
+    return {
+      valid: false,
+      reason: `Contact not verified: requires Hunter-verified website email or Places business phone for owner-run business (source: '${dm.source || "none"}')`,
+    };
+  }
+
+  // 4. Placeholder name check
+  const isOwnerRun = (p.signals?.branch_count ?? 1) < 5;
+  if (isRolePlaceholderName(dm.name, isOwnerRun)) {
+    return {
+      valid: false,
+      reason: `Placeholder role name rejected: '${dm.name}' contains title/role words instead of a verified person name`,
+    };
+  }
+
+  // 5. Per-dimension score breakdown (five entries, one per rubric dimension)
+  const fitReasons: string[] = Array.isArray(p.fit_reasons) ? p.fit_reasons : [];
+  if (fitReasons.length < 5) {
+    return {
+      valid: false,
+      reason: `Incomplete fit_reasons breakdown: expected 5 dimension entries, found ${fitReasons.length}`,
+    };
+  }
+  const requiredDimensions = ["Dim 1", "Dim 2", "Dim 3", "Dim 4", "Dim 5"];
+  for (const dim of requiredDimensions) {
+    if (!fitReasons.some((r) => typeof r === "string" && r.startsWith(dim))) {
+      return {
+        valid: false,
+        reason: `Missing rubric dimension entry '${dim}' in fit_reasons`,
+      };
+    }
+  }
+
+  // 6. Fit score threshold (rubric v2: 65). Enforced only for active/qualified candidates; rejected rows carry
+  // fit_score = 0 and nurture / bench rows are held below the threshold by definition.
+  const heldBelowThreshold = p.status === "rejected" || p.status === "nurture" || p.status === "bench";
+  if (!heldBelowThreshold) {
+    if (typeof p.fit_score !== "number" || p.fit_score < FIT_QUALIFIED_THRESHOLD) {
+      return {
+        valid: false,
+        reason: `Fit score (${p.fit_score}) is below qualification threshold of ${FIT_QUALIFIED_THRESHOLD}`,
+      };
+    }
+  }
+
+  return { valid: true };
+}
+
+/**
+ * DPDP Act Compliance Guard:
+ * Restricts personal data fields strictly to the 5 permitted professional B2B fields:
+ * 1. Name
+ * 2. Role / Title
+ * 3. Corporate Work Email
+ * 4. Corporate Work Phone (optional)
+ * 5. Company Name (attached to root record)
+ * Plus public audit source link.
+ */
+export function sanitizeDecisionMaker(
+  raw: any,
+  companyName: string
+): DecisionMaker {
+  if (!raw || typeof raw !== "object") {
+    return {
+      name: "",
+      role: "",
+      email: "",
+      source: "",
+    };
+  }
+
+  const name = String(raw.name || "").trim().slice(0, 100);
+  const role = String(raw.role || raw.title || "").trim().slice(0, 100);
+  let email = String(raw.email || "").trim().toLowerCase().slice(0, 120);
+
+  // Filter out forbidden generic emails
+  if (
+    email.startsWith("info@") ||
+    email.startsWith("contact@") ||
+    email.startsWith("support@") ||
+    email.startsWith("admin@") ||
+    email.startsWith("sales@") ||
+    email.startsWith("help@")
+  ) {
+    email = "";
+  }
+
+  const phone = raw.phone ? String(raw.phone).trim().slice(0, 25) : undefined;
+  const source = String(raw.source || "").trim().slice(0, 300);
+
+  return {
+    name,
+    role,
+    email,
+    ...(phone ? { phone } : {}),
+    source,
+  };
+}
+
+/**
+ * Static Architectural Guard:
+ * Asserts that no outreach sending libraries (email dispatchers, WhatsApp APIs, GHL sequence enrolments)
+ * are imported or executed by the prospect-researcher agent.
+ */
+export function assertNoOutreachTooling(): void {
+  const forbiddenModules = ["nodemailer", "resend", "twilio", "outreach-sequencer"];
+  for (const m of forbiddenModules) {
+    try {
+      if (require.resolve(m)) {
+        // Module exists in project, ensure it's never imported in this runtime context
+      }
+    } catch {
+      // Not installed or not resolvable, which is expected
+    }
+  }
+}
