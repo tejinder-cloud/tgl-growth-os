@@ -14,9 +14,9 @@ function delta(now: Ratio, prev: Ratio | null): string {
 }
 
 export type Email = { subject: string; text: string; html: string };
-type Block = { title?: string; lines: string[] };
+export type Block = { title?: string; lines: string[] };
 
-function render(blocks: Block[], cta: { label: string; url: string }, footerUrl: string, cta2?: { label: string; url: string }): { text: string; html: string } {
+export function render(blocks: Block[], cta: { label: string; url: string }, footerUrl: string, cta2?: { label: string; url: string }): { text: string; html: string } {
   const text = [...blocks.flatMap((b) => [...(b.title ? [b.title] : []), ...b.lines, ""]), `${cta.label}: ${cta.url}`, ...(cta2 ? [`${cta2.label}: ${cta2.url}`] : []), "", "— your TrueVisible team", "", `Change which emails you get: ${footerUrl}`].join("\n");
   const html = `<!doctype html><html><body style="margin:0;background:#F7F3EC;font-family:Arial,Helvetica,sans-serif;color:#2B2420">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px">
