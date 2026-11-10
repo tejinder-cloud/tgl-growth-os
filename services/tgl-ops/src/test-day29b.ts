@@ -42,6 +42,13 @@ t("checks catch over-scope, promises, made-up numbers, no foundations, crowded w
   assert.match(all, /points at a recommendation that isn't open/);
 });
 
+t("saying there's no guarantee is not a promise", () => {
+  const sc = scopeFor("managed_plus", 16);
+  for (const summary of ["Every result is measured by TrueVisible. Nothing here is a promise of placement.", "There is no guarantee of placement.", "This is not a guarantee.", "We never promise rankings."])
+    assert.equal(checkPlan({ summary, months, items: good() }, sc, new Set()).passed, true, summary);
+  assert.equal(checkPlan({ summary: "We guarantee placement.", months, items: good() }, sc, new Set()).passed, false);
+});
+
 t("review mode: 'all' always asks a person; 'flagged' only for failures and every Nth sample", () => {
   assert.equal(needsPerson({ mode: "all", passed: true, autoApprovedSoFar: 0, sampleEvery: 5 }).person, true);
   assert.equal(needsPerson({ mode: "flagged", passed: false, autoApprovedSoFar: 0, sampleEvery: 5 }).person, true);
