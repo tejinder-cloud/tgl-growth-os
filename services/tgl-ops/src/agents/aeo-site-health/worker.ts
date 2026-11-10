@@ -46,7 +46,7 @@ export async function runSiteHealth(now = Date.now()): Promise<number> {
       { lines: [`We checked ${b.primary_domain} today and found a problem that hides it from AI assistants:`] },
       { lines: fresh.map((i) => i.text) },
       { title: "How to fix it", lines: [fixFor(b.site_platform), "We check again every few hours and the warning disappears once it's fixed."] },
-    ], { label: "Open your dashboard", url: `${appUrl}/dashboard` }, `${appUrl}/dashboard/settings#email`);
+    ], { label: "Open your dashboard", url: `${appUrl}/dashboard` }, `${appUrl}/dashboard/settings#email`, undefined, { aboutAnswers: false });
     await sendEmail(to, { subject: `${b.primary_domain} is hidden from search engines`, ...e });
   }
   return n;
