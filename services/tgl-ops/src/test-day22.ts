@@ -148,6 +148,17 @@ await t("Gemini experiment summary: same-mention count, cited-site overlap, sear
   assert.deepEqual(summarise(rows as any, ["lite"]).lite, { compared: 2, sameBrandMention: 1, avgSiteOverlap: 0.75, searches: 3, inputTokens: 20, outputTokens: 150, errors: 1 });
 });
 
+await t("no website: meta/schema/llms/change packs dropped, at most 2 page drafts, prompt says no site (Gate 2 rehearsal)", () => {
+  const noSite: RecEvidence = { ...ev, domain: null, platform: "none", site: null };
+  const page = good.recommendations[1];
+  const raw = { recommendations: [good.recommendations[0], page, { ...page, title: "Second page" }, { ...page, title: "Third page" }, good.recommendations[2]] };
+  const { recs, dropped } = validateRecommendations(raw, noSite);
+  assert.deepEqual(recs.map((r) => r.title), [good.recommendations[0].title, page.title, "Second page"]);
+  assert.ok(dropped.some((d) => d.includes("Third page")) && dropped.some((d) => d.includes("no website to put json_ld")));
+  const msg = buildUserMessage(noSite);
+  assert.ok(msg.includes("they have no website yet") && !msg.includes("could not be read"));
+});
+
 console.log(`\nDay 22: ${passed} checks passed`);
 }
 main().catch((e) => { console.error(e); process.exit(1); });

@@ -79,9 +79,14 @@ export function buildUserMessage(ev: RecEvidence): string {
   for (const s of ev.sites) L.push(`${s.ref}. ${s.domain}${s.channelType ? ` [${s.channelType}]` : ""}${s.competitors.length ? ` · names instead: ${s.competitors.join(", ")}` : ""}${s.urls.length ? ` · pages: ${s.urls.join(" ")}` : ""}`);
   L.push(`\nTheir own site was ${ev.ownCited ? "cited in some answers" : "not cited in any answer"} in this period.`);
   if (ev.site?.ok) L.push(`\nTHEIR SITE (${ev.site.url}):\nTitle: ${ev.site.title ?? ""}\nDescription: ${ev.site.description ?? ""}\nHeadings: ${ev.site.headings.join(" | ")}\nText: ${ev.site.text.slice(0, 3500)}`);
+  else if (!ev.domain) L.push(`\nTHEIR SITE: they have no website yet. Lead with off-site actions (directories, listicles, forums, Google Business Profile). At most ${NO_SITE_PAGES} page_draft items, framed as the first pages of a new website. No meta, json_ld, llms_txt or change_pack — there is no site to put them on. Never call their site unreadable, slow or broken.`);
   else L.push(`\nTHEIR SITE: could not be read${ev.site?.error ? ` (${ev.site.error})` : ""}.`);
   return L.join("\n");
 }
+
+/** With no website, these assets have nowhere to go; page drafts are capped and framed as a new site's first pages. */
+export const NO_SITE_KINDS = new Set(["meta", "json_ld", "llms_txt", "change_pack"]);
+export const NO_SITE_PAGES = 2;
 
 const NUMBERY = /\d+\s*(%|percent|per ?cent|answers?|times|citations?|out of|of \d)/i;
 const strip = (s: unknown, n: number) => (typeof s === "string" ? s.trim().slice(0, n) : "");
@@ -108,6 +113,7 @@ export function validateRecommendations(raw: any, ev: RecEvidence): { recs: Reco
   const recs: Recommendation[] = [];
   const pRefs = new Set(ev.prompts.map((p) => p.ref));
   const sRefs = new Set(ev.sites.map((s) => s.ref));
+  let noSitePages = 0;
   for (const r of Array.isArray(raw?.recommendations) ? raw.recommendations : []) {
     const title = strip(r?.title, 90);
     const body = strip(r?.body, 600);
@@ -119,6 +125,8 @@ export function validateRecommendations(raw: any, ev: RecEvidence): { recs: Reco
     const kind = ASSET_KINDS.includes(r?.asset?.kind) ? (r.asset.kind as AssetKind) : null;
     let content = strip(r?.asset?.content, 8000);
     if (!kind || content.length < 40) { dropped.push(`“${title}” — asset missing or too short`); continue; }
+    if (!ev.domain && NO_SITE_KINDS.has(kind)) { dropped.push(`“${title}” — no website to put ${kind} on`); continue; }
+    if (!ev.domain && kind === "page_draft" && ++noSitePages > NO_SITE_PAGES) { dropped.push(`“${title}” — more than ${NO_SITE_PAGES} pages for a business with no website`); continue; }
     let format: "markdown" | "json" | "text" = kind === "llms_txt" ? "text" : "markdown";
     if (kind === "json_ld") {
       const j = content.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
