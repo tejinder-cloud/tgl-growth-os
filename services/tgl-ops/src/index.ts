@@ -308,6 +308,12 @@ cron.schedule(
 );
 
 import { runCitationTracking, runFirstAudits, runGeminiExperimentJob } from "./agents/aeo-audit-engine/worker.js";
+import { supabaseHomeStatsProvider } from "./agents/aeo-audit-engine/home-stats.js";
+import { setHomeStatsProvider } from "./routes/home-stats.js";
+
+// GET /home/stats (Home page Client Zero tiles): TGL's own tracker counts and dates, 10-minute cache.
+// No Supabase configured means no provider, and the route answers 503 so every tile keeps its dash.
+{ const sb = getSupabaseForBilling(); if (sb) setHomeStatsProvider(supabaseHomeStatsProvider(sb)); }
 
 // Every 30 min: Gemini cost experiment — runs once a day after today's Gemini answers exist, only while
 // AEO_GEMINI_EXPERIMENT_MODELS is set (Architect decision 4 Nov 2026). Writes public.experiments only.

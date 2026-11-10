@@ -69,15 +69,17 @@ $tgl_stats_endpoint = apply_filters(
         var list = document.getElementById('tgl-home-tiles');
         if (!list) return;
         var endpoint = list.getAttribute('data-endpoint');
+        var M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        function fmt(v) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v)); return m ? (parseInt(m[3], 10) + ' ' + M[parseInt(m[2], 10) - 1] + ' ' + m[1]) : String(v); }
         if (!endpoint) return; // no endpoint configured: every tile keeps its dash, no typed fallback
         fetch(endpoint, { headers: { Accept: 'application/json' } })
           .then(function (r) { if (!r.ok) throw new Error('bad status'); return r.json(); })
           .then(function (d) {
             list.querySelectorAll('[data-stat]').forEach(function (el) {
               var v = d && d[el.getAttribute('data-stat')];
-              if (v !== undefined && v !== null && v !== '') el.textContent = String(v);
+              if (v !== undefined && v !== null && v !== '') el.textContent = fmt(v);
             });
-            if (d && d.first_run_date) document.getElementById('tgl-home-start-label').textContent = 'Where we started, ' + String(d.first_run_date);
+            if (d && d.first_run_date) document.getElementById('tgl-home-start-label').textContent = 'Where we started, ' + fmt(d.first_run_date);
           })
           .catch(function () { /* unreachable service: all tiles stay as a dash */ });
       })();
