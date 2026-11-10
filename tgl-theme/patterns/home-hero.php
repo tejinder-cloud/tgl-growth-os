@@ -21,7 +21,7 @@
       </div>
       <input type="hidden" name="source" value="home_hero">
       <button type="submit" class="h-btn" data-tgl-event="home_audit_cta_click">See what AI says about you</button>
-      <p class="h-micro">Free. One-page audit, sent to your WhatsApp.</p>
+      <p class="h-micro">Free. One-page report by email within 24 hours.</p>
     </form>
 
     <a class="h-hero-link" href="https://project.thegrowthlab.co.in" data-tgl-event="home_board_click">See our agents at work</a>

@@ -100,7 +100,7 @@ $tgl_pdf           = is_array( $tgl_captures ) && ! empty( $tgl_captures['audit_
     <!-- wp:html -->
     <ol class="h-steps">
       <li><strong>Free audit.</strong> Tell us your business. We ask the AI assistants what your buyers would ask.</li>
-      <li><strong>Honest report.</strong> A one-page report on WhatsApp: where you are named, where you are not, and what to fix first. It is yours either way.</li>
+      <li><strong>Honest report.</strong> A one-page report by email: where you are named, where you are not, and what to fix first. It is yours either way.</li>
       <li><strong>Fix or track.</strong> Track it yourself on the TrueVisible dashboard, or let us do the fixes for you.</li>
       <li><strong>Monthly report.</strong> What we changed, and what the AI assistants say now.</li>
     </ol>
