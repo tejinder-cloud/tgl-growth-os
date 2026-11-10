@@ -2,5 +2,15 @@
   "date": "2026-11-10",
   "posted": false,
   "standupTs": "1794227401.645479",
-  "channel": "C0ASF13879Q"
+  "channel": "C0ASF13879Q",
+  "compiledAt": "2026-11-10T12:20:23.316Z",
+  "digestText": "*The Growth Lab — Daily Standup Digest | 2026-11-10 17:50 IST*\n──────────────────────────────────────────\n*Product Doors:*\n• *AEO:* no data yet | *AI:* no data yet | *TrueLead:* no data yet | *Core:* operational\n• *Revenue:* 0 audit requests · 0 diagnostic calls booked · 0 proposals sent · 0 retainers won · ₹0 invoiced\n\n*Blockers:*\n• #163 ([TASK]: Generate the TGL audit PDF from today’s verified run and post it to #doors-aeo, 1h): status:blocked\n• #163 ([TASK]: Generate the TGL audit PDF from today’s verified run and post it to #doors-aeo, 1h): status:needs-brief\n• #60 ([PLAN-D9]: TrueVisible MVP sprint kick-off & Full audit engine (10 prompts × 5 engines), 10d): status:needs-brief\n\n*Approvals Pending:*\n• _None pending._\n\n*Agent Reports:*\n• *`@aeo-audit-engine`*: 06:05 IST — Citation Tracker: 1 brand(s) · ChatGPT 16/16, Ge\n• *`@chief-of-staff`*: 13:40 IST — Intake classification [task]: 0 input, 0 output \n• *`@prospect-researcher`*: Run — 09:30 IST (Bengaluru · ivf_fertility)\n• *`@web-builder`*: 13:40 IST — Issue #147 pre-flight (proceed): 3142 input, 877\n• *Intake:* intake last read 17:50 IST\n\n_Active agents: reply in-thread with your 4 lines: Did · Blocked · Need · Tomorrow._",
+  "synthesis": {
+    "model": "claude-sonnet-5-5",
+    "inputTokens": 4504,
+    "outputTokens": 2000,
+    "totalCostUsd": 0.0435,
+    "costLine": "Standup compilation: 4504 input, 2000 output (claude-sonnet-5-5) · Cost: $0.0435 USD"
+  },
+  "source": "cron"
 }
