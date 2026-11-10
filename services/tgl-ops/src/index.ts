@@ -192,7 +192,16 @@ import { runAgencyGraceCheck } from "./agents/aeo-billing/agency.js";
 import { checkWordPressConnections, runImplementer } from "./agents/aeo-execution/worker.js";
 import { runPlanner } from "./agents/aeo-planner/worker.js";
 import { runCompetitorIntel } from "./agents/aeo-competitors/worker.js";
-import { postHealthList, runConcierge } from "./agents/aeo-concierge/worker.js";
+import { postHealthList, relayDataRequests, runConcierge } from "./agents/aeo-concierge/worker.js";
+
+// Every 10 minutes: data-erasure requests → #alerts (plan Day 32)
+cron.schedule(
+  "*/10 * * * *",
+  wrapCronJob("TrueVisible data requests", async () => {
+    await relayDataRequests();
+  }),
+  { timezone: config.timezone }
+);
 
 // Hourly 10:00–19:00 IST: journey emails (finish setup, trial day 3/5, after the trial, away 14+ days, managed offer) — Day 31
 cron.schedule(

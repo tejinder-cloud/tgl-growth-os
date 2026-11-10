@@ -114,3 +114,19 @@ export async function postHealthList(now = Date.now()): Promise<void> {
   const channel = (await resolveChannelId("#doors-aeo")) || config.approvalsChannelId;
   await slackClient.chat.postMessage({ channel, text }).catch(() => {});
 }
+
+/** Every 10 minutes: new data-erasure requests (DPDP Act) → #alerts with the 30-day deadline. */
+export async function relayDataRequests(): Promise<number> {
+  if (isTestMode()) return 0;
+  const sb = getSupabase();
+  if (!sb) return 0;
+  const { data } = await sb.from("data_requests").select("id, tenant_id, email, kind, reason, created_at").is("notified_at", null).limit(20);
+  let n = 0;
+  for (const r of (data ?? []) as any[]) {
+    const due = new Date(Date.parse(r.created_at) + 30 * DAY).toISOString().slice(0, 10);
+    await postLine({ channel: getAlertsChannel(), text: `*Data ${r.kind} request* — ${r.email ?? "unknown"} (workspace \`${r.tenant_id}\`)${r.reason ? ` · “${r.reason}”` : ""}. Must be completed by *${due}* (Privacy Notice: 30 days). Cancel any paid plan, delete the workspace, keep invoices.` }).catch(() => {});
+    await sb.from("data_requests").update({ notified_at: new Date().toISOString() }).eq("id", r.id);
+    n++;
+  }
+  return n;
+}
