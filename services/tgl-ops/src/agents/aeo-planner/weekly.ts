@@ -88,7 +88,7 @@ export async function handlePlanItemDoneSubmission(payload: any, sbIn?: Supabase
   if (!meta.channel || !meta.ts) return;
   const hist: any = await slackClient.conversations.history({ channel: meta.channel, latest: meta.ts, inclusive: true, limit: 1 }).catch(() => null);
   const blocks = (hist?.messages?.[0]?.blocks ?? []).map((b: any) => b.block_id === `item_${meta.itemId}`
-    ? { type: "section", block_id: b.block_id, text: { type: "mrkdwn", text: cut(`${b.text?.text ?? ""}\n${error ? `⚠️ Not saved: ${esc(error.message)}` : `✅ Done — ${esc(actor)}${url ? ` · <${url}|proof>` : ""}${note ? ` · ${esc(note)}` : ""}`}`, 2900) } }
+    ? { type: "section", block_id: b.block_id, text: { type: "mrkdwn", text: cut(`${b.text?.text ?? ""}\n${error ? `Not saved: ${esc(error.message)}` : `Done: ${esc(actor)}${url ? ` · <${url}|proof>` : ""}${note ? ` · ${esc(note)}` : ""}`}`, 2900) } }
     : b);
   await slackClient.chat.update({ channel: meta.channel, ts: meta.ts, blocks, text: "Plan items" }).catch(() => {});
 }
