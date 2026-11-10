@@ -191,6 +191,16 @@ import { syncRazorpaySecret } from "./agents/aeo-billing/razorpay.js";
 import { runAgencyGraceCheck } from "./agents/aeo-billing/agency.js";
 import { checkWordPressConnections, runImplementer } from "./agents/aeo-execution/worker.js";
 import { runPlanner } from "./agents/aeo-planner/worker.js";
+import { runCompetitorIntel } from "./agents/aeo-competitors/worker.js";
+
+// Every 30 minutes: a competitor report for verified brands without one in the last 30 days (plan Day 30)
+cron.schedule(
+  "11,41 * * * *",
+  wrapCronJob("TrueVisible competitor intelligence", async () => {
+    await runCompetitorIntel();
+  }),
+  { timezone: config.timezone }
+);
 import { postWeeklyPlanItems } from "./agents/aeo-planner/weekly.js";
 
 // Monday 09:15 IST: each live 90-day plan's due items in #doors-aeo with Done buttons (plan Day 29b)
