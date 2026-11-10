@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-10T11:10:10.859Z",
+  "updatedAt": "2026-11-10T11:10:24.739Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -152,12 +152,17 @@
       "agent": "aeo-audit-engine",
       "door": "core",
       "title": "[TASK]: Generate the TGL audit PDF from today’s verified run and post it to #doors-aeo",
-      "status": "in-progress",
+      "status": "needs-brief",
       "runStartedAt": "2026-11-10T11:10:10.162996+00:00",
+      "runCompletedAt": "2026-11-10T11:10:23.923+00:00",
+      "error": "The brief is a one-line Slack relay. It doesn't violate §8 Never or touch protected paths. But it has no concrete, verifiable deliverable for a branch-based runner, so a senior practitioner would challenge it before building.\n\n1. \"Today's verified run\" is not identified. There is no run ID, no path to the run output, and no definition of \"verified\". Several runs may exist today, or none may have been verified. Guessing risks sending a client-facing report built from the wrong data.\n2. There is no PDF template, generator script, or output location. I can't tell which file or template to use, or where the artifact should be committed, if it should be committed at all.\n3. Posting to #doors-aeo is an external side effect that a PR can't review. The brief doesn't say whether the Slack post is in scope for the runner, which mechanism or credentials to use, or whether the PDF needs approval before posting.\n4. There are no acceptance criteria for Delivery QA to check against. Nothing says what the PDF must contain, which sections or scores, or how it ties back to the verified run's numbers.\n\nI'm asking for these specifics rather than building on assumptions.",
       "recoveryAttempts": 0,
-      "ownerInstance": "inst_1794308957588_b91df0a1",
-      "heartbeatAt": "2026-11-10T11:10:10.162996+00:00",
-      "toolCallsCount": 0
+      "ownerInstance": null,
+      "heartbeatAt": null,
+      "toolCallsCount": 0,
+      "preflightHash": "de2cb1d1e1a2fde4",
+      "preflightVerdict": "needs-brief",
+      "preflightReason": "The brief is a one-line Slack relay. It doesn't violate §8 Never or touch protected paths. But it has no concrete, verifiable deliverable for a branch-based runner, so a senior practitioner would challenge it before building.\n\n1. \"Today's verified run\" is not identified. There is no run ID, no path to the run output, and no definition of \"verified\". Several runs may exist today, or none may have been verified. Guessing risks sending a client-facing report built from the wrong data.\n2. There is no PDF template, generator script, or output location. I can't tell which file or template to use, or where the artifact should be committed, if it should be committed at all.\n3. Posting to #doors-aeo is an external side effect that a PR can't review. The brief doesn't say whether the Slack post is in scope for the runner, which mechanism or credentials to use, or whether the PDF needs approval before posting.\n4. There are no acceptance criteria for Delivery QA to check against. Nothing says what the PDF must contain, which sections or scores, or how it ties back to the verified run's numbers.\n\nI'm asking for these specifics rather than building on assumptions."
     }
   }
 }
