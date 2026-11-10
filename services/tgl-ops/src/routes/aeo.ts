@@ -1,8 +1,7 @@
 // services/tgl-ops/src/routes/aeo.ts
-// POST /aeo/lead : public endpoint behind the /aeo audit request form.
-// Validates, writes the lead to the GHL "AEO" pipeline, and posts a plain-text alert to the ops channel.
-// Fails closed: with GHL unconfigured it returns 503 and the form shows a retry message, rather than
-// pretending the lead was saved.
+// POST /aeo/lead : public endpoint behind the /aeo audit request form. Validates, writes the lead to the
+// GHL "AEO" pipeline, and posts a plain-text alert to the ops channel. Fails closed: with GHL unconfigured
+// it returns 503 and the form shows a retry message, rather than pretending the lead was saved.
 //
 // Mount in app.ts:   app.use("/aeo", aeoRouter);
 import express, { Router, type Request, type Response } from "express";

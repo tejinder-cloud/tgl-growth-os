@@ -18,6 +18,8 @@ import { getTodayDateString, getCurrentTimeIST } from "../lib/standup.js";
 import { findAgentByName } from "../lib/agents.js";
 import { runIssueTask } from "../runner/runner.js";
 import { handleSetupAction, handleSetupChangesSubmission } from "../agents/aeo-strategist/worker.js";
+import { handlePlanAction, handlePlanChangesSubmission } from "../agents/aeo-planner/worker.js";
+import { handlePlanItemDone, handlePlanItemDoneSubmission } from "../agents/aeo-planner/weekly.js";
 
 export const interactionsRouter = Router();
 
@@ -42,6 +44,10 @@ interactionsRouter.post("/", async (req: Request, res: Response): Promise<void> 
       try {
         if (typeof action.action_id === "string" && action.action_id.startsWith("setup_")) {
           await handleSetupAction(payload, action);
+        } else if (action.action_id === "plan_approve" || action.action_id === "plan_changes") {
+          await handlePlanAction(payload, action);
+        } else if (action.action_id === "planitem_done") {
+          await handlePlanItemDone(payload, action);
         } else if (action.action_id === "action_approve") {
           await handleApproveAction(payload, action);
         } else if (action.action_id === "action_discuss") {
@@ -60,6 +66,16 @@ interactionsRouter.post("/", async (req: Request, res: Response): Promise<void> 
 
   // 2. Handle Modal Submissions (Reject Reason submission)
   if (payload.type === "view_submission") {
+    if (payload.view?.callback_id === "planitem_done_modal") {
+      res.json({ response_action: "clear" });
+      handlePlanItemDoneSubmission(payload).catch((err) => console.error("[Plan Item Done Error]", err));
+      return;
+    }
+    if (payload.view?.callback_id === "plan_changes_modal") {
+      res.json({ response_action: "clear" });
+      handlePlanChangesSubmission(payload).catch((err) => console.error("[Plan Changes Submission Error]", err));
+      return;
+    }
     if (payload.view?.callback_id === "setup_changes_modal") {
       res.json({ response_action: "clear" });
       handleSetupChangesSubmission(payload).catch((err) => console.error("[Setup Changes Submission Error]", err));
@@ -518,16 +534,14 @@ export async function handleApproveAction(payload: any, action: any): Promise<vo
   }
 }
 
-async function handleDiscussAction(payload: any, action: any): Promise<void> {
+export async function handleDiscussAction(payload: any, action: any): Promise<void> {
   const meta = JSON.parse(action.value || "{}");
-  const actor = await getActorDisplayName(payload.user);
-  const agent = meta.agent || "web-builder";
   const channel = payload.channel?.id || meta.channel || config.approvalsChannelId;
   const messageTs = payload.container?.message_ts;
 
   await postLine({
     channel,
-    text: `\`@${agent}\` — discussion requested by ${actor}. Please review the brief and proposal above and respond in this thread.`,
+    text: "Reply in this thread; the agent resumes with your reply as its brief.",
     thread_ts: messageTs,
   });
 }

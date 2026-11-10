@@ -17,7 +17,7 @@ $tgl_calendar = apply_filters(
     <!-- wp:html -->
     <div class="h-founder">
       <figure class="h-founder-photo">
-        <img src="<?php echo esc_url( get_theme_file_uri( 'assets/img/tejinder-stage.webp' ) ); ?>" srcset="<?php echo esc_url( get_theme_file_uri( 'assets/img/tejinder-stage.webp' ) ); ?> 1x, <?php echo esc_url( get_theme_file_uri( 'assets/img/tejinder-stage@2x.webp' ) ); ?> 2x" width="1086" height="1448" alt="Tejinder Singh, founder of The Growth Lab, speaking on stage." loading="lazy">
+        <img src="<?php echo esc_url( get_theme_file_uri( 'assets/img/tejinder-stage.webp' ) ); ?>" srcset="<?php echo esc_url( get_theme_file_uri( 'assets/img/tejinder-stage.webp' ) ); ?> 1x, <?php echo esc_url( get_theme_file_uri( 'assets/img/tejinder-stage@2x.webp' ) ); ?> 2x" width="400" height="500" alt="Tejinder Singh, founder of The Growth Lab, speaking on stage." loading="lazy">
       </figure>
       <div>
         <h2>Tejinder Singh</h2>

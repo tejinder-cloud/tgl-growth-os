@@ -71,8 +71,22 @@ export interface WrapCronJobOptions {
   onError?: (err: any) => void;
 }
 
+export interface CronErrorTracker {
+  lastErrorMessage: string;
+  firstAlertTime: number;
+  lastAlertTime: number;
+  count: number;
+}
+
+export const cronErrorMap = new Map<string, CronErrorTracker>();
+
+export function resetCronErrorStatesForTests(): void {
+  cronErrorMap.clear();
+}
+
 /**
  * Wraps every cron job so failures log to #alerts and never crash or exit the process.
+ * A cron that fails with the same error repeatedly alerts once, then once an hour at most, with a count.
  * Returns a synchronous () => void callback as expected by node-cron.
  */
 export function wrapCronJob(
@@ -86,6 +100,10 @@ export function wrapCronJob(
         console.log(`[Cron: ${jobName}] Execution started at ${getCurrentTimeIST()} IST...`);
         await taskFn();
         console.log(`[Cron: ${jobName}] Execution completed.`);
+        // Clear error tracking on successful execution
+        if (cronErrorMap.has(jobName)) {
+          cronErrorMap.delete(jobName);
+        }
       } catch (err: any) {
         const errMsg = err?.stack || err?.message || String(err);
         console.error(`[Cron Failure: ${jobName}]`, err);
@@ -96,13 +114,44 @@ export function wrapCronJob(
             console.error(`[Cron onError hook failed for ${jobName}]`, hookErr);
           }
         }
-        try {
-          await postLine({
-            channel: options?.channel || getAlertsChannel(),
-            text: `*[Cron Failure: ${jobName}]* at ${getCurrentTimeIST()} IST\n• Error: \`${errMsg.slice(0, 400)}\`\n_Process kept running._`,
+
+        const errSummary = errMsg.slice(0, 300);
+        const now = Date.now();
+        const state = cronErrorMap.get(jobName);
+        let shouldAlert = false;
+        let alertText = "";
+
+        if (!state || state.lastErrorMessage !== errSummary) {
+          // New error or first occurrence: alert once immediately
+          cronErrorMap.set(jobName, {
+            lastErrorMessage: errSummary,
+            firstAlertTime: now,
+            lastAlertTime: now,
+            count: 1,
           });
-        } catch (alertErr: any) {
-          console.error(`[Alert Post Failed for ${jobName}]`, alertErr.message);
+          shouldAlert = true;
+          alertText = `*[Cron Failure: ${jobName}]* at ${getCurrentTimeIST()} IST\n• Error: \`${errMsg.slice(0, 400)}\`\n_Process kept running._`;
+        } else {
+          // Repeated failure with same error: count and throttle to once an hour at most
+          state.count++;
+          if (now - state.lastAlertTime >= 60 * 60 * 1000) {
+            state.lastAlertTime = now;
+            shouldAlert = true;
+            alertText = `*[Cron Failure: ${jobName}]* at ${getCurrentTimeIST()} IST (${state.count} failures)\n• Error: \`${errMsg.slice(0, 400)}\`\n_Process kept running._`;
+          } else {
+            console.warn(`[Cron Alert Throttled: ${jobName}] Repeated error suppressed (${state.count} occurrences).`);
+          }
+        }
+
+        if (shouldAlert) {
+          try {
+            await postLine({
+              channel: options?.channel || getAlertsChannel(),
+              text: alertText,
+            });
+          } catch (alertErr: any) {
+            console.error(`[Alert Post Failed for ${jobName}]`, alertErr.message);
+          }
         }
       }
     })().catch((outerErr) => {

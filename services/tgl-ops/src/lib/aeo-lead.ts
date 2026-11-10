@@ -3,10 +3,6 @@
 // opportunity in the "AEO" pipeline). Pure functions plus an injectable fetch so it is unit-testable
 // without network access.
 //
-// One entry point: the /aeo landing form. Name, institute, website, WhatsApp, email and consent are all
-// required. The Home page does not submit a lead: its hero opens /aeo?site=...&source=home_hero#audit and
-// the visitor completes this form.
-//
 // GHL pipelines cannot be created through the API, so the pipeline and its stages are created once in the
 // GHL UI (see products/aeo/ghl-aeo-pipeline.md) and referenced here by id from the environment:
 //   GHL_API_KEY            Private Integration token (scopes: contacts.write, opportunities.write)
@@ -200,7 +196,6 @@ export async function writeLeadToGhl(
   cfg: GhlConfig,
   fetchFn: FetchLike,
 ): Promise<GhlWriteResult> {
-  const sourceName = `aeo-landing / ${sourceLabel(lead)}`;
   const upsert = await ghlPost(cfg, fetchFn, "/contacts/upsert", {
     locationId: cfg.locationId,
     firstName: lead.firstName,
@@ -210,7 +205,7 @@ export async function writeLeadToGhl(
     phone: lead.phoneE164,
     companyName: lead.institute,
     website: lead.domain,
-    source: sourceName,
+    source: `aeo-landing / ${sourceLabel(lead)}`,
     tags: ["aeo-audit-request", "source:aeo-page"],
   });
   const contactId: string | undefined = upsert?.contact?.id;
@@ -225,7 +220,7 @@ export async function writeLeadToGhl(
     contactId,
     name: `AEO audit - ${lead.institute}`,
     status: "open",
-    source: sourceName,
+    source: `aeo-landing / ${sourceLabel(lead)}`,
   });
   const opportunityId: string | undefined = opp?.opportunity?.id ?? opp?.id;
   if (!opportunityId) throw new Error("GHL opportunity create returned no opportunity id");

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-09T09:46:11.128Z",
+  "updatedAt": "2026-11-10T10:08:08.230Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -117,10 +117,11 @@
       "door": "core",
       "title": "[PLAN-D13]: Finance SKILL.md + v1: GST invoices & ledger",
       "status": "completed",
+      "branch": "task/141-plan-d13-finance-skill-md-v1-g",
       "prNumber": 142,
       "prUrl": "https://github.com/tejinder-cloud/tgl-growth-os/pull/142",
       "runStartedAt": "2026-11-09T07:36:12.079831+00:00",
-      "runCompletedAt": "2026-11-09T09:06:56.518+00:00",
+      "runCompletedAt": "2026-11-10T09:48:16.187+00:00",
       "recoveryAttempts": 0,
       "ownerInstance": null,
       "heartbeatAt": null,
@@ -134,11 +135,18 @@
       "door": "core",
       "title": "[TASK]: Build the new Home page from site/pages/home.md for the webs",
       "status": "in-progress",
+      "branch": "task/147-build-the-new-home-page-from-s",
+      "prNumber": 148,
+      "prUrl": "https://github.com/tejinder-cloud/tgl-growth-os/pull/148",
       "runStartedAt": "2026-11-09T09:46:10.373791+00:00",
+      "runCompletedAt": "2026-11-10T09:48:17.995+00:00",
       "recoveryAttempts": 0,
-      "ownerInstance": "inst_1794215214530_7949e5d8",
-      "heartbeatAt": "2026-11-09T09:46:10.373791+00:00",
-      "toolCallsCount": 0
+      "ownerInstance": "inst_1794304519874_375b57c4",
+      "heartbeatAt": "2026-11-10T10:08:07.541676+00:00",
+      "toolCallsCount": 0,
+      "preflightHash": "16ac11c62a6a28c5",
+      "preflightVerdict": "proceed",
+      "preflightReason": "The brief is concrete and the Architect's latest instruction (#147, \"Not approved. Fix and resend\") resolves the open points. Every target sits outside the protected paths (decisions/, logs/, logs/.state):\n\n- site/pages/home.md and the home page build.\n- A read-only stats route in services/, read through TGL_HOME_STATS_ENDPOINT. The runner may write to services/ on a branch, and the CI gate (npm run build plus tests) covers it.\n- Three dated captures.\n- tgl-theme/assets/img/tejinder-stage.png converted to WebP plus @2x, each under 150 KB.\n- config/agents.yaml statuses.\n\nEach item is verifiable:\n- The hero form is a single website field that opens /aeo?site=…&source=home_hero#audit, with no WhatsApp promise.\n- The stats route returns questions tracked, engines, times named on the latest run, the first-run figure and date, and the last-run date.\n- The image files stay under 150 KB.\n- The Creative Director supplies mobile screenshots and a Lighthouse mobile score.\n- aeo-audit-engine is set to active and outreach-sequencer stays planned.\n\nThis does not conflict with the §8 Never guardrails. The work is a draft, and nothing is published until the Architect approves. It adds no external scripts or plugins, and it touches no DNS, pricing, or live page status. It deletes no content.\n\nNotes for the builder:\n- The Architect's statuses override the earlier suggestion to take them from the spec. Use active for aeo-audit-engine and planned for outreach-sequencer, and do not change any other status.\n- Say so on the PR if the stats route cannot be done by 13 Nov.\n- Build the screenshot captures without external scripts. Grey out other business names in the Citation Tracker capture.\n- The Creative Director review and the Chief of Staff approval card follow the stated workflow."
     }
   }
 }

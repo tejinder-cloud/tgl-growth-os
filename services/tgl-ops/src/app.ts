@@ -13,6 +13,7 @@ import { outreachRouter } from "./routes/outreach.js";
 import { aeoRouter } from "./routes/aeo.js";
 import { homeStatsRouter } from "./routes/home-stats.js";
 import { billingRouter } from "./routes/billing.js";
+import { financeRouter } from "./routes/finance.js";
 
 /**
  * Creates and configures the Express app.
@@ -147,7 +148,10 @@ export function createApp(signingSecret?: string) {
   // 12. Billing: Razorpay webhooks for TrueVisible Track (signature-checked; fails closed) (plan Day 26)
   app.use("/billing", billingRouter);
 
-  // 12. Global Error Handler
+  // 13. Finance: deal-Won GST invoice drafts, invoice events, ledger and collections (secret-checked; fails closed) (plan Day 13)
+  app.use("/finance", financeRouter);
+
+  // 14. Global Error Handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     console.error("[Server Error]", err);
     res.status(500).json({ error: "Internal Server Error" });

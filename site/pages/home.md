@@ -15,14 +15,12 @@
 ## 1. home-hero - anchor `#audit`
 - Eyebrow: DOES CHATGPT RECOMMEND YOUR BUSINESS?
 - H1: We get businesses recommended by AI, and we run their busywork on AI agents — the same way we run our own company.
-- Inline form (two fields, one button):
-  - Field 1: Your website or business name
-  - Field 2: WhatsApp number (10-digit Indian mobile, or +country code)
+- Inline start of the audit (one field, one button):
+  - Field: Your website (accepts "example.com" or a full URL)
   - Button: See what AI says about you
-  - Microline: Free. One-page audit, sent to your WhatsApp.
-- Secondary text link under the form: See our agents at work -> `https://project.thegrowthlab.co.in` (`data-tgl-event="home_board_click"`)
-- Form behaviour: posts to `POST /aeo/lead` with `source=home_hero`. Success state: "Received. We will message you on WhatsApp at this number." Never shows success unless the endpoint returns `ok: true`. Tracking `data-tgl-event="aeo_audit_submit"` on success only.
-- **Builder check:** the /aeo spec requires name, institute, website, WhatsApp and email. The endpoint must accept this two-field version from `home_hero`; if it cannot, report it and stop rather than adding fields.
+  - Microline: Free. One-page report by email within 24 hours.
+- Behaviour: the button does not submit a lead. It opens `/aeo?site=<the website typed>&source=home_hero#audit`, where the full form is prefilled with the website. One form, one endpoint, no partial leads. Fires `data-tgl-event="home_audit_start"`. Without JavaScript it is a plain link to `/aeo#audit`.
+- Secondary text link under it: See our agents at work -> `https://project.thegrowthlab.co.in` (`data-tgl-event="home_board_click"`)
 - Visual: none beyond type. The sentence is the hero.
 
 ## 2. home-shift - "The shift"
@@ -75,7 +73,7 @@
 - Pill label: HOW IT WORKS
 - H2: Four steps, and you can stop after any of them.
 1. **Free audit.** Tell us your business. We ask the AI assistants what your buyers would ask.
-2. **Honest report.** A one-page report on WhatsApp: where you are named, where you are not, and what to fix first. It is yours either way.
+2. **Honest report.** A one-page report by email within 24 hours: where you are named, where you are not, and what to fix first. It is yours either way.
 3. **Fix or track.** Track it yourself on the TrueVisible dashboard, or let us do the fixes for you.
 4. **Monthly report.** What we changed, and what the AI assistants say now.
 - Visual: the real one-page audit PDF (TGL's own), dated, shown as an object on the desk.
@@ -96,7 +94,7 @@
 ## 8. home-faq (FAQPage schema via the Details block)
 - **What is AI visibility?** It is whether AI assistants like ChatGPT, Gemini and Perplexity name your business when someone asks them for a recommendation, and whether what they say about you is right.
 - **Can you guarantee ChatGPT will recommend us?** No, and nobody honestly can. We find out what the assistants say today, fix what they read about you, and show you every week whether it is changing.
-- **What does the free audit include?** A one-page report: the questions we asked, which assistants named you, who they named instead, and the first fixes. No payment and no card.
+- **What does the free audit include?** A one-page report, by email within 24 hours: the questions we asked, which assistants named you, who they named instead, and the first fixes. No payment and no card.
 - **What do your AI agents actually do?** Reply to enquiries, qualify leads, follow up on WhatsApp and email, prepare reports and handle routine back-office tasks. A person reviews their work.
 - **Where do you work?** With businesses anywhere in India. Everything we do runs online: the audit, the dashboard, the fixes and the monthly report.
 

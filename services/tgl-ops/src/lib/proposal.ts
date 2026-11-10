@@ -74,6 +74,7 @@ ${whatItWouldChange.trim()}
     title: `Proposal: ${title.replace(/^\[PROPOSAL\]:\s*/i, "")}`,
     summary: cardSummary,
     issue: issueRes.number,
+    linkedIssue: issueRes.number,
     actions: ["approve", "reject", "discuss"],
     extraMeta: {
       type: "proposal",

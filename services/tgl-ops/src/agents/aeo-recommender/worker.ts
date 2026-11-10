@@ -14,15 +14,13 @@ import { proposeRecommendations } from "./propose.js";
 import type { Recommendation } from "./types.js";
 
 export const AGENT = "aeo-recommender";   // own daily cost cap in config/agents.yaml
-const WEEK_MS = 7 * 86_400_000;
 const inFlight = new Set<string>();
 
-/** After a completed run: generate only if that run has no batch yet and the last batch is a week old. Pure; tested. */
-export function shouldGenerate(p: { verified: boolean; latestRunId: string | null; batchForRun: boolean; lastBatchAt: string | null; now?: number; force?: boolean }): { go: boolean; why: string } {
+/** After a completed run: generate once per completed tracker run per brand; skip if recommendations exist for that run id. Pure; tested. */
+export function shouldGenerate(p: { verified: boolean; latestRunId: string | null; batchForRun: boolean; lastBatchAt?: string | null; now?: number; force?: boolean }): { go: boolean; why: string } {
   if (!p.verified) return { go: false, why: "setup not verified" };
   if (!p.latestRunId) return { go: false, why: "no completed run" };
   if (p.batchForRun) return { go: false, why: "latest run already has recommendations" };
-  if (!p.force && p.lastBatchAt && (p.now ?? Date.now()) - Date.parse(p.lastBatchAt) < WEEK_MS) return { go: false, why: "last batch under a week old" };   // monthly deep run refreshes regardless
   return { go: true, why: "due" };
 }
 
