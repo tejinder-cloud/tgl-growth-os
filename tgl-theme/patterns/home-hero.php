@@ -20,7 +20,7 @@
         <input type="text" id="home-site" name="site" inputmode="url" autocomplete="url" placeholder="yourbusiness.com" required maxlength="200">
       </div>
       <input type="hidden" name="source" value="home_hero">
-      <button type="submit" class="h-btn" data-tgl-event="home_audit_cta_click">See what AI says about you</button>
+      <button type="submit" class="h-btn" data-tgl-event="home_audit_start">See what AI says about you</button>
       <p class="h-micro">Free. One-page report by email within 24 hours.</p>
     </form>
 
