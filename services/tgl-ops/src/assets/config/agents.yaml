@@ -95,6 +95,16 @@
       schedule: "0 6 * * *"
       description: "Daily automated citation tracking runs per active brand"
 
+- name: aeo-competitors
+  department: aeo-delivery
+  channel: "#doors-aeo"
+  trigger: "Every 30 min: verified brands with recent answers and no competitor report in 30 days"
+  reviewer: "Architect"
+  status: planned
+  daily_cost_cap_usd: 1.00
+  routines:
+    - name: competitor_report
+
 - name: aeo-planner
   department: aeo-delivery
   channel: "#doors-aeo"
