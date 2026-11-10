@@ -108,7 +108,7 @@ export async function postHealthList(now = Date.now()): Promise<void> {
   const rows = live.map((a) => ({ a, flags: riskFlags(a.state) })).sort((x, y) => y.flags.length - x.flags.length);
   const line = ({ a, flags }: { a: Account; flags: string[] }) => {
     const trialDay = a.state.trialStartedAt && a.state.status === "trialing" ? ` · day ${Math.min(7, Math.floor((now - Date.parse(a.state.trialStartedAt)) / DAY) + 1)} of 7` : "";
-    return `${flags.length ? "⚠️" : "•"} *${a.brandName}* (${a.state.plan}${a.state.status !== "active" ? `, ${a.state.status}` : ""}${trialDay}) · last seen ${seen(a.state.lastSeenAt)} · setup ${a.state.brand?.setupStatus ?? "not started"}${flags.length ? ` — ${flags.join("; ")}` : ""}`;
+    return `${flags.length ? "FLAG" : "-"} *${a.brandName}* (${a.state.plan}${a.state.status !== "active" ? `, ${a.state.status}` : ""}${trialDay}) · last seen ${seen(a.state.lastSeenAt)} · setup ${a.state.brand?.setupStatus ?? "not started"}${flags.length ? ` — ${flags.join("; ")}` : ""}`;
   };
   const text = rows.length ? `*Account health — week of ${ist(now)}* (${rows.filter((r) => r.flags.length).length} need a person)\n${rows.slice(0, 40).map(line).join("\n")}` : `*Account health — week of ${ist(now)}*: no trial or paying accounts yet.`;
   const channel = (await resolveChannelId("#doors-aeo")) || config.approvalsChannelId;
