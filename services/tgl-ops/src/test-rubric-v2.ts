@@ -264,3 +264,128 @@ async function main(): Promise<void> {
     const withProbeEntry = benchRow({ fit_score: 80, status: "new", fit_reasons: [...benchRow().fit_reasons, "dim4_probe: {}"] });
     check("write gate accepts the sixth dim4_probe entry", validateProspectRecord(withProbeEntry).valid === true);
   }
+
+  // 5. The probe is never called for a rejected candidate
+  console.log("\n[5] Probe never called for Dimension 5 (or Playbook C) disqualification");
+  {
+    const dq = fixedProbe(ANSWER_COMPETITORS_ONLY);
+    const dim5 = await evaluateProspectRubricWithProbe({
+      company: COMPANY, domain: DOMAIN, category: CATEGORY, city: CITY,
+      signals: clinicSignals(), decisionMaker: UNVERIFIED_DM, probe: dq.fn,
+    });
+    check("Dimension 5 disqualification: disqualified, score 0", dim5.disqualified === true && dim5.fitScore === 0);
+    check("Dimension 5 disqualification: probe never called", dq.calls() === 0 && dim5.probeCalled === false, `calls ${dq.calls()}`);
+
+    const chain = fixedProbe(ANSWER_COMPETITORS_ONLY);
+    const playbookC = await evaluateProspectRubricWithProbe({
+      company: COMPANY, domain: DOMAIN, category: CATEGORY, city: CITY,
+      signals: clinicSignals({ places_brand_count: 3, branch_count: 3 }), decisionMaker: OWNER_PHONE_DM, probe: chain.fn,
+    });
+    check("Playbook C chain: disqualified and probe never called", playbookC.disqualified === true && chain.calls() === 0);
+
+    const ok = fixedProbe(ANSWER_COMPETITORS_ONLY);
+    const passed = await evaluateProspectRubricWithProbe({
+      company: COMPANY, domain: DOMAIN, category: CATEGORY, city: CITY,
+      signals: clinicSignals(), decisionMaker: OWNER_PHONE_DM, probe: ok.fn,
+    });
+    check("a candidate that passed Dimension 5 is probed exactly once and scores 80", ok.calls() === 1 && passed.fitScore === 80 && passed.probeCalled === true, `calls ${ok.calls()} score ${passed.fitScore}`);
+
+    const unavailable = await evaluateProspectRubricWithProbe({
+      company: COMPANY, domain: DOMAIN, category: CATEGORY, city: CITY,
+      signals: clinicSignals(), decisionMaker: OWNER_PHONE_DM, probe: async () => null,
+    });
+    check("a probe that returns nothing is never scored as qualified", unavailable.probeUnavailable === true && unavailable.qualified === false);
+
+    const bench = fixedProbe(ANSWER_COMPETITORS_ONLY);
+    const benchDq = await rescoreBenchedProspects({ prospects: [benchRow({ decision_maker: UNVERIFIED_DM })], probe: bench.fn });
+    check("benched row failing Dimension 5 is rejected without a probe", benchDq.rejected.length === 1 && bench.calls() === 0);
+  }
+
+  // 6. Cost: probe recorded under prospect-researcher; stops at the daily cap and reports the shortfall
+  console.log("\n[6] Probe cost, daily cap and shortfall");
+  {
+    let spent = 0;
+    const recorded: { usd: number; details: string }[] = [];
+    const questions: string[] = [];
+    const gov = createDim4ProbeGovernor({ testMode: true }, {
+      askEngine: async (_cfg, prompt) => { questions.push(prompt); return mkAnswer(ANSWER_COMPETITORS_ONLY, 0.015); },
+      loadEngineConfig: () => ({ config: CFG, missing: [] }),
+      getSpendUsd: async () => spent,
+      getCapUsd: async () => 0.02,
+      recordSpend: (usd, details) => { spent += usd; recorded.push({ usd, details }); },
+      now: () => new Date("2026-11-10T10:00:00.000Z"),
+    });
+    const input = { company: COMPANY, domain: DOMAIN, category: CATEGORY, city: "Mumbai" };
+    const r1 = await gov.probe(input);
+    const r2 = await gov.probe(input);
+    const r3 = await gov.probe(input);
+    const r4 = await gov.probe(input);
+    check("first two probes run (spend under the cap before each call)", !!r1 && !!r2 && questions.length === 2);
+    check("question is built from category and city", questions[0] === "best dental clinic in Mumbai", questions[0]);
+    check("probe record carries engine, model, verbatim answer, date and cost", r1?.engine === "gemini" && r1?.answer === ANSWER_COMPETITORS_ONLY && r1?.date === "2026-11-10T10:00:00.000Z" && r1?.cost_usd === 0.015);
+    check("every completed probe is recorded as spend", recorded.length === 2 && Math.abs(gov.stats.costUsd - 0.03) < 1e-9);
+    check("probing stops once the daily cap is reached", r3 === null && r4 === null && questions.length === 2);
+    check("shortfall is counted and reported", gov.stats.skippedCap === 2 && /2 of 4 candidate\(s\) not scored/.test(gov.shortfallReport() || "") && /daily cap/.test(gov.shortfallReport() || ""), gov.shortfallReport() || "none");
+
+    const missing = createDim4ProbeGovernor({ testMode: true }, {
+      askEngine: async () => { throw new Error("must not be called"); },
+      loadEngineConfig: () => ({ missing: ["GEMINI_API_KEY"] }),
+      getSpendUsd: async () => 0, getCapUsd: async () => 2, recordSpend: () => {},
+    });
+    check("missing engine configuration yields no probe and a reported shortfall", (await missing.probe(input)) === null && missing.stats.skippedUnavailable === 1 && /GEMINI_API_KEY/.test(missing.shortfallReport() || ""));
+
+    const blocked = createDim4ProbeGovernor({ testMode: true });
+    check("test mode never reaches a live engine unless a fake is injected", (await blocked.probe(input)) === null && /test mode/.test(blocked.stats.haltedReason || ""));
+
+    // Ledger: the default recorder writes to usage_costs under prospect-researcher
+    resetCostLedgerForTests();
+    const ledgerGov = createDim4ProbeGovernor({ testMode: true }, {
+      askEngine: async () => mkAnswer(ANSWER_COMPETITORS_ONLY, 0.0123),
+      loadEngineConfig: () => ({ config: CFG, missing: [] }),
+      getSpendUsd: async () => 0,
+      getCapUsd: async () => 2,
+    });
+    await ledgerGov.probe(input);
+    const entry = usageCostsLedger.find((e) => e.agent === "prospect-researcher" && e.apiName === "gemini-dim4-probe");
+    check("probe cost lands in usage_costs under prospect-researcher", !!entry && entry.costType === "api" && entry.totalCostUsd === 0.0123, JSON.stringify(entry));
+    resetCostLedgerForTests();
+  }
+
+  // 7. Rotation: benched candidates are re-scored under v2
+  console.log("\n[7] Benched candidates re-scored under v2");
+  {
+    const probe = fixedProbe(ANSWER_COMPETITORS_ONLY);
+    const alreadyV2 = benchRow({ company: "Already Scored Clinic", website: "already.example.in", fit_reasons: [...benchRow().fit_reasons, `dim4_probe: ${JSON.stringify(mkProbe(ANSWER_COMPETITORS_ONLY))}`] });
+    const result = await rescoreBenchedProspects({
+      prospects: [
+        benchRow({ status: "bench" }),
+        benchRow({ company: "Nurture Clinic", website: "nurture.example.in", status: "nurture", fit_score: 52 }),
+        benchRow({ company: "New Clinic", website: "new.example.in", status: "new", fit_score: 75 }),
+        benchRow({ company: "Too Low Clinic", website: "low.example.in", status: "bench", fit_score: 40 }),
+        alreadyV2,
+      ],
+      probe: probe.fn,
+      now: () => new Date("2026-11-10T11:00:00.000Z"),
+    });
+    check("only nurture/bench rows scoring 50 to 69 without a v2 probe are eligible", result.eligible === 2 && probe.calls() === 2, `eligible ${result.eligible} calls ${probe.calls()}`);
+    check("a benched row that now scores 65 or above is promoted to new with the probe stored", result.promoted.length === 2 && result.promoted.every((p) => p.status === "new" && p.fit_score === 80 && parseDim4Probe(p.fit_reasons) !== null));
+    check("rescored_at is stamped", result.promoted[0].rescored_at === "2026-11-10T11:00:00.000Z");
+
+    const weak = await rescoreBenchedProspects({
+      prospects: [benchRow({ signals: clinicSignals({ meta_ads_active: false, meta_ad_count: 0, gbp_reviews: 30 }) })],
+      probe: fixedProbe(ANSWER_COMPETITORS_ONLY).fn,
+    });
+    check("a benched row scoring 50 to 64 under v2 stays benched", weak.stillBenched.length === 1 && weak.stillBenched[0].fit_score === 60 && weak.stillBenched[0].status === "bench");
+
+    const none = await rescoreBenchedProspects({ prospects: [benchRow()], probe: async () => null });
+    check("a row whose probe is unavailable is left untouched for the next run", none.notProbed.length === 1 && none.touched.length === 0);
+  }
+
+  console.log(failures === 0 ? "\nAll rubric v2 tests passed." : `\n${failures} rubric v2 test(s) FAILED.`);
+  process.exit(failures === 0 ? 0 : 1);
+}
+
+main().catch((err) => {
+  console.error("test-rubric-v2 crashed:", err);
+  process.exit(1);
+});
