@@ -128,3 +128,9 @@ export interface StatusEntry {
 }
 
 export type LedgerEntry = InvoiceEntry | PaymentEntry | ExpenseEntry | ReminderEntry | StatusEntry;
+
+/**
+ * Product line of a deal. It decides the SAC code (issue #141): "track" is the software subscription (Track),
+ * "services" is Managed AEO and AI Automation. Never inferred from the deal name.
+ */
+export type ProductLine = "track" | "services";
