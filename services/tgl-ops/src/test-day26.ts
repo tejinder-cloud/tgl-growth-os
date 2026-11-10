@@ -46,10 +46,10 @@ await t("trial clock: starts once, at the first completed run after verification
   assert.equal(await startTrialClock(unverified, "b1"), false);
 });
 
-await t("monthly deep run refreshes recommendations even within the week", () => {
+await t("recommendations run per completed run, skip if run already has recommendations", () => {
   const base = { verified: true, latestRunId: "r2", batchForRun: false, lastBatchAt: "2026-11-28T00:00:00Z", now: Date.parse("2026-12-01T01:00:00Z") };
-  assert.equal(shouldGenerate(base).go, false);
-  assert.equal(shouldGenerate({ ...base, force: true }).go, true);
+  assert.equal(shouldGenerate(base).go, true);
+  assert.equal(shouldGenerate({ ...base, batchForRun: true }).go, false);
 });
 
 await t("day-7 baseline: answers read, named in N, no trend claim, three fixes, two ways forward", () => {

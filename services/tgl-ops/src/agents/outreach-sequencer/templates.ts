@@ -75,7 +75,18 @@ export function templateDirCandidates(env: NodeJS.ProcessEnv = process.env, cwd:
   const override = (env.OUTREACH_TEMPLATES_DIR || "").trim();
   if (override) return [path.resolve(cwd, override)];
   const rel = path.join("agents", "outreach-sequencer", "templates");
-  return [path.resolve(cwd, rel), path.resolve(cwd, "..", rel), path.resolve(cwd, "..", "..", rel)];
+  return [
+    path.resolve(cwd, rel),
+    path.resolve(cwd, "..", rel),
+    path.resolve(cwd, "..", "..", rel),
+    path.resolve(cwd, "src/assets/outreach-templates"),
+    path.resolve(cwd, "dist/assets/outreach-templates"),
+    path.resolve(cwd, "assets/outreach-templates"),
+    path.resolve(__dirname, "../assets/outreach-templates"),
+    path.resolve(__dirname, "../../assets/outreach-templates"),
+    path.resolve(__dirname, "../../../assets/outreach-templates"),
+    path.resolve(__dirname, "./assets/outreach-templates"),
+  ];
 }
 
 export function resolveTemplatesDir(env: NodeJS.ProcessEnv = process.env, cwd: string = process.cwd()): string {
@@ -96,6 +107,148 @@ export function loadTemplates(dir: string): TemplateSet {
     set.set(n, t);
   }
   return set;
+}
+
+/**
+ * Reads touch templates from the GitHub Contents API on the main branch.
+ */
+export async function loadTemplatesFromGitHub(
+  octokitClient?: any,
+  repoConfig?: { owner: string; repo: string }
+): Promise<TemplateSet> {
+  const { octokit } = octokitClient ? { octokit: octokitClient } : await import("../../lib/github-client.js");
+  const { config } = await import("../../config.js");
+  const owner = repoConfig?.owner || config.githubOwner;
+  const repo = repoConfig?.repo || config.githubRepo;
+
+  const set: TemplateSet = new Map();
+  for (let n = 1; n <= TEMPLATE_TOUCH_COUNT; n++) {
+    const res = await octokit.repos.getContent({
+      owner,
+      repo,
+      path: `agents/outreach-sequencer/templates/touch-${n}.md`,
+      ref: "main",
+    });
+
+    if (!Array.isArray(res.data) && res.data.type === "file" && res.data.content) {
+      const content = Buffer.from(res.data.content, "base64").toString("utf8");
+      const t = parseTemplate(content, `touch-${n}.md`);
+      if (t.touch !== n) throw new Error(`touch-${n}.md declares touch ${t.touch}`);
+      set.set(n, t);
+    } else {
+      throw new Error(`Failed to read touch-${n}.md from GitHub Contents API`);
+    }
+  }
+  return set;
+}
+
+/**
+ * Loads outreach templates with local bundled file check and GitHub Contents API fallback.
+ */
+export async function loadOutreachTemplatesAsync(
+  env: NodeJS.ProcessEnv = process.env,
+  cwd: string = process.cwd()
+): Promise<TemplateSet> {
+  // 1. Try local candidate directories (including bundled copy in src/assets or dist/assets)
+  try {
+    const dir = resolveTemplatesDir(env, cwd);
+    const loaded = loadTemplates(dir);
+    console.log(`[Outreach] Loaded ${loaded.size} templates from local disk (${dir}).`);
+    return loaded;
+  } catch (localErr) {
+    console.warn(`[Outreach] Local template candidate lookup failed: ${(localErr as Error).message}. Falling back to GitHub Contents API...`);
+  }
+
+  // 2. Fall back to reading them from the repo via the Contents API
+  try {
+    const githubTemplates = await loadTemplatesFromGitHub();
+    console.log(`[Outreach] Loaded ${githubTemplates.size} outreach templates from GitHub Contents API.`);
+    return githubTemplates;
+  } catch (ghErr) {
+    console.error(`[Outreach] GitHub Contents API fallback failed:`, ghErr);
+    throw new Error(`Outreach templates could not be loaded from local bundle or GitHub Contents API.`);
+  }
+}
+
+/**
+ * Startup check verifying that the bundled copy matches the repo copy.
+ */
+export async function verifyBundledTemplatesMatchRepo(
+  env: NodeJS.ProcessEnv = process.env,
+  cwd: string = process.cwd()
+): Promise<{ matches: boolean; diffs: string[] }> {
+  const diffs: string[] = [];
+  let bundledDir: string | null = null;
+  const bundledCandidates = [
+    path.resolve(cwd, "src/assets/outreach-templates"),
+    path.resolve(cwd, "dist/assets/outreach-templates"),
+    path.resolve(__dirname, "../assets/outreach-templates"),
+    path.resolve(__dirname, "../../assets/outreach-templates"),
+  ];
+
+  for (const c of bundledCandidates) {
+    if (fs.existsSync(path.join(c, "touch-1.md"))) {
+      bundledDir = c;
+      break;
+    }
+  }
+
+  if (!bundledDir) {
+    return { matches: false, diffs: ["Bundled outreach-templates directory not found on disk"] };
+  }
+
+  // Check against repo root if present on disk
+  const repoDir = path.resolve(cwd, "agents/outreach-sequencer/templates");
+  const parentRepoDir = path.resolve(cwd, "../../agents/outreach-sequencer/templates");
+  const targetRepoDir = fs.existsSync(repoDir) ? repoDir : fs.existsSync(parentRepoDir) ? parentRepoDir : null;
+
+  if (targetRepoDir) {
+    for (let n = 1; n <= TEMPLATE_TOUCH_COUNT; n++) {
+      const repoFile = path.join(targetRepoDir, `touch-${n}.md`);
+      const bundleFile = path.join(bundledDir, `touch-${n}.md`);
+      if (!fs.existsSync(repoFile)) continue;
+      const repoContent = fs.readFileSync(repoFile, "utf8").trim();
+      const bundleContent = fs.existsSync(bundleFile) ? fs.readFileSync(bundleFile, "utf8").trim() : "";
+      if (repoContent !== bundleContent) {
+        diffs.push(`touch-${n}.md content differs between repo and bundle`);
+      }
+    }
+  } else {
+    // Running in container: compare bundled copy to GitHub main via Contents API if token is configured
+    try {
+      const { octokit } = await import("../../lib/github-client.js");
+      const { config } = await import("../../config.js");
+      if (config.githubToken) {
+        for (let n = 1; n <= TEMPLATE_TOUCH_COUNT; n++) {
+          const bundleFile = path.join(bundledDir, `touch-${n}.md`);
+          const bundleContent = fs.existsSync(bundleFile) ? fs.readFileSync(bundleFile, "utf8").trim() : "";
+          const res = await octokit.repos.getContent({
+            owner: config.githubOwner,
+            repo: config.githubRepo,
+            path: `agents/outreach-sequencer/templates/touch-${n}.md`,
+            ref: "main",
+          });
+          if (!Array.isArray(res.data) && res.data.type === "file" && res.data.content) {
+            const ghContent = Buffer.from(res.data.content, "base64").toString("utf8").trim();
+            if (ghContent !== bundleContent) {
+              diffs.push(`touch-${n}.md differs between GitHub main and bundled container copy`);
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      console.warn(`[Outreach] Startup check warning: unable to verify against GitHub API: ${err.message}`);
+    }
+  }
+
+  const matches = diffs.length === 0;
+  if (!matches) {
+    console.warn(`[Outreach Startup Check Mismatch] Bundled templates differ from repo: ${diffs.join("; ")}`);
+  } else {
+    console.log(`[Outreach Startup Check] Bundled outreach templates match repo exactly.`);
+  }
+
+  return { matches, diffs };
 }
 
 /** Variables available to templates. A variable is present only when its source data exists. */

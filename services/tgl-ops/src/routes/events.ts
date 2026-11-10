@@ -54,7 +54,14 @@ eventsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
           await handleArchitectStandupReply(event);
           return;
         }
-        if (event.channel === config.approvalsChannelId || event.channel.startsWith("C")) {
+        if (
+          event.channel === config.approvalsChannelId ||
+          event.channel === config.architectChannelId ||
+          event.channel === config.opsChannelId ||
+          event.channel.startsWith("C") ||
+          event.channel.startsWith("G") ||
+          event.channel.startsWith("D")
+        ) {
           await handleApprovalsThreadReply(event);
           return;
         }
@@ -174,7 +181,7 @@ export async function handleApprovalsThreadReply(event: any): Promise<void> {
     if (!clarifyRes || !clarifyRes.handled) {
       // If not handled as needs-brief clarification, treat as Discuss reply resuming the issue
       const { findIssueByThreadTs } = await import("../lib/issues-index.js");
-      const mapped = await findIssueByThreadTs(thread_ts);
+      const mapped = await findIssueByThreadTs(thread_ts, { channel: event.channel });
       if (mapped) {
         console.log(`[Card Thread Reply] Resuming issue #${mapped.issueNumber} on behalf of ${actor}...`);
         const { resumeIssueWithInstruction } = await import("../runner/resume.js");

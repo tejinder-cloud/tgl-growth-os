@@ -4,6 +4,7 @@ import { createIssue, octokit } from "../../lib/github-client.js";
 import { postCard, postLine } from "../../lib/post.js";
 import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
 import { getIntakeLastReadTime } from "./intake.js";
+import { getRevenueMetrics, formatRevenueLine } from "../../lib/revenue.js";
 import {
   loadPlanEntries,
   getCurrentPlanDay,
@@ -280,6 +281,7 @@ ${entry.depends_on.join(", ") || "None"}
     ],
     actions: ["approve", "reject", "discuss"],
     issue: issueNumber,
+    linkedIssue: issueNumber,
     extraMeta: {
       planDay: entry.day,
       agent: assignedAgent,
@@ -306,6 +308,12 @@ ${entry.depends_on.join(", ") || "None"}
           { label: "PROJECT-PLAN.md", url: `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/PROJECT-PLAN.md` },
         ],
         actions: ["discuss"],
+        issue: issueNumber,
+        linkedIssue: issueNumber,
+        extraMeta: {
+          planDay: entry.day,
+          agent: assignedAgent,
+        },
       }).catch(() => ({ ok: false, ts: undefined }));
       architectCardTs = cardRes?.ts;
     }
@@ -382,9 +390,12 @@ export async function execute0900PlanDispatch(options?: {
         : "\n• *Carried Items:* None";
 
     const intakeLastRead = getIntakeLastReadTime(options);
+    const revenueMetrics = await getRevenueMetrics();
+    const revenueLine = formatRevenueLine(revenueMetrics);
     const summaryText = `*Chief of Staff 09:00 IST Status Card*
 • *Current Day:* Day ${currentDay} (${currentEntry?.title || "Active"})
 • *Open Issues:* ${openIssuesCount} active in repo${carriedNotice}
+${revenueLine}
 • *Intake:* intake last read ${intakeLastRead}
 
 *Action:* Say *"go"* in #architect for Day ${currentDay + 1} (or *"day N"* for any specific day). Weekends allowed.`;
@@ -400,6 +411,11 @@ export async function execute0900PlanDispatch(options?: {
         { label: "config/plan.yaml", url: `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/config/plan.yaml` },
       ],
       actions: ["discuss"],
+      issue: currentDay,
+      linkedIssue: currentDay,
+      extraMeta: {
+        planDay: currentDay,
+      },
     }).catch(() => ({ ok: false, ts: undefined }));
 
     architectCardTs = cardRes?.ts;

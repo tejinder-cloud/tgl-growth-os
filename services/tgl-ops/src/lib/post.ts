@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import { slackClient } from "./slack-client.js";
 import { config, isTestMode, isRailwayEnvironment } from "../config.js";
+import { autoRecordCardFromPostCard } from "./issues-index.js";
 
 export interface PostCardLink {
   label: string;
@@ -236,7 +237,13 @@ export async function postCard(options: PostCardOptions): Promise<{ ok: boolean;
     if (isTestMode()) {
       console.log(`[postCard Dry Run] Channel: ${channel} | Title: ${title}`);
       console.log(JSON.stringify(blocks, null, 2));
-      return { ok: true, ts: `${Date.now() / 1000}`, channel, dryRun: true };
+      const simulatedTs = `${(Date.now() / 1000).toFixed(6)}`;
+      try {
+        await autoRecordCardFromPostCard(channel, simulatedTs, options, true);
+      } catch (recErr: any) {
+        console.warn("[autoRecordCardFromPostCard DryRun Notice]", recErr.message || recErr);
+      }
+      return { ok: true, ts: simulatedTs, channel, dryRun: true };
     }
     console.log(`[postCard Local] Channel: ${channel} | Title: ${title} (DRY RUN — not posted)`);
     return { ok: false, channel, dryRun: true };
@@ -254,6 +261,11 @@ export async function postCard(options: PostCardOptions): Promise<{ ok: boolean;
       if (!res.ok || !res.ts) {
         throw new Error(`Slack postCard failed: ${res.error || "no ts returned"}`);
       }
+      try {
+        await autoRecordCardFromPostCard(channel, res.ts, options, false);
+      } catch (recErr: any) {
+        console.warn("[autoRecordCardFromPostCard Notice]", recErr.message || recErr);
+      }
       return { ok: true, ts: res.ts, channel: res.channel };
     } else {
       let mainTs: string | undefined;
@@ -269,6 +281,13 @@ export async function postCard(options: PostCardOptions): Promise<{ ok: boolean;
           throw new Error(`Slack postCard batch failed: ${res.error || "no ts returned"}`);
         }
         if (!mainTs) mainTs = res.ts;
+      }
+      if (mainTs) {
+        try {
+          await autoRecordCardFromPostCard(channel, mainTs, options, false);
+        } catch (recErr: any) {
+          console.warn("[autoRecordCardFromPostCard Notice]", recErr.message || recErr);
+        }
       }
       return { ok: true, ts: mainTs, channel };
     }
