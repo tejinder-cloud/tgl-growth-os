@@ -41,3 +41,9 @@ Open questions for the Architect (answer on the card):
 1. Does TGL expect any non-India buyers in the next quarter? If not, this checklist stays dormant and no LUT needs filing yet.
 2. Which CA signs off the export conditions and files the LUT?
 3. In which currency would an export be invoiced, and which bank account receives it?
+
+## F. What the invoice generator does for an export (issue #141)
+
+- With `LUT_NUMBER` in the environment, the Won webhook renders a draft at 0% (no CGST, SGST or IGST, place of supply 96) carrying the line "Supply meant for export under LUT without payment of IGST" and the LUT number. Without `LUT_NUMBER` nothing is rendered and the deal is held as `EXPORT_REVIEW`.
+- Rendering is not approval. Work sections A to E before the Architect issues: the LUT must be in force for the financial year of the invoice, and the CA confirms the SAC (`SAC_TRACK` or `SAC_SERVICES`) and that the supply qualifies as an export of services.
+- The draft carries the rupee deal value. Converting to the client's currency and collecting the FIRC remain human steps.
