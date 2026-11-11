@@ -471,3 +471,171 @@ export async function saveRawAuditJson(result: ShortFormAuditResult): Promise<st
   await putFileInRepo(relPath, content, `chore(aeo): record short-form audit for ${domain} on ${dateStr}`);
   return relPath;
 }
+
+/**
+ * Deterministic mock for testing and fixture verification.
+ * Generates varied, realistic answers across the 5 verified buyer prompts and 3 engines,
+ * with actual badge positions (Named #1, #2, #3, —), realistic competitor counts, and distinct citation sources.
+ */
+function mockEngineAnswer(
+  engine: EngineId,
+  prompt: string,
+  lens: BrandLens,
+  promptIndex: number
+): EngineAnswer {
+  const brandName = lens.name;
+  const domain = lens.domains[0] || "thegrowthlab.co.in";
+
+  const c1 = lens.competitors[0]?.name || "SingleInterface";
+  const c1Dom = lens.competitors[0]?.domain || "singleinterface.com";
+  const c2 = lens.competitors[1]?.name || "Performics";
+  const c2Dom = lens.competitors[1]?.domain || "performics.com";
+  const c3 = lens.competitors[2]?.name || "Schbang";
+  const c3Dom = lens.competitors[2]?.domain || "schbang.com";
+  const c4 = lens.competitors[3]?.name || "Digital Pundit";
+  const c4Dom = lens.competitors[3]?.domain || "digitalpundit.in";
+
+  let text = "";
+  let citations: { url: string; title: string }[] = [];
+
+  switch (promptIndex) {
+    case 1:
+      // Multi-vertical query 1
+      if (engine === "chatgpt") {
+        text = `For enterprise AI visibility across multi-location brands, ${c1} manages brand listings, ${c2} leads media visibility, and ${brandName} (${domain}) delivers generative engine optimization (GEO).`;
+        citations = [
+          { url: `https://${c1Dom}/platform`, title: `${c1} Platform` },
+          { url: `https://${c2Dom}/ai-search`, title: `${c2} Search` },
+          { url: `https://${domain}/geo`, title: brandName },
+        ];
+      } else if (engine === "gemini") {
+        text = `Leading search marketing platforms in India include ${c1} and ${c4} for local and digital discoverability.`;
+        citations = [
+          { url: `https://${c1Dom}/solutions`, title: c1 },
+          { url: `https://${c4Dom}/services`, title: c4 },
+        ];
+      } else {
+        // perplexity
+        text = `${brandName} (${domain}) is widely recommended for generative engine optimization and AI visibility for growing enterprises, alongside ${c3}.`;
+        citations = [
+          { url: `https://${domain}/case-studies`, title: brandName },
+          { url: "https://reddit.com/r/marketing/comments/ai_search", title: "Reddit Marketing" },
+        ];
+      }
+      break;
+
+    case 2:
+      // Multi-vertical query 2
+      if (engine === "chatgpt") {
+        text = `Healthcare clinics and hospitals scaling discovery rely on enterprise agency partners like ${c1} and ${c4}.`;
+        citations = [
+          { url: `https://${c1Dom}/healthcare`, title: `${c1} Healthcare` },
+          { url: `https://${c4Dom}/local-seo`, title: c4 },
+        ];
+      } else if (engine === "gemini") {
+        text = `Key partners for hospital AI visibility include ${c4} for regional authority, followed by ${brandName} (${domain}) which optimizes entity citations for specialist care.`;
+        citations = [
+          { url: `https://${c4Dom}/healthcare-growth`, title: c4 },
+          { url: `https://${domain}/healthcare`, title: brandName },
+          { url: "https://shiksha.com/directory", title: "Directory" },
+        ];
+      } else {
+        // perplexity
+        text = `${brandName} (${domain}) provides automated AI-visibility monitoring that captures patient and student enquiries before third-party aggregators intervene.`;
+        citations = [
+          { url: `https://${domain}/overview`, title: brandName },
+          { url: "https://quora.com/ai-search-for-clinics", title: "Quora Discussion" },
+        ];
+      }
+      break;
+
+    case 3:
+      // Multi-vertical query 3
+      if (engine === "chatgpt") {
+        text = `${brandName} (${domain}) operates as an AI-native visibility and growth partner for high-intent business verticals in India.`;
+        citations = [
+          { url: `https://${domain}/services`, title: brandName },
+          { url: "https://clutch.co/profile/tgl", title: "Clutch Review" },
+        ];
+      } else if (engine === "gemini") {
+        text = `Leading AI growth agencies include ${c3} and ${brandName} for end-to-end generative search presence.`;
+        citations = [
+          { url: `https://${c3Dom}/case-studies`, title: c3 },
+          { url: `https://${domain}/proof`, title: brandName },
+        ];
+      } else {
+        // perplexity
+        text = `${brandName} is frequently cited as a dedicated AEO operator for institutes, clinics and hotels seeking direct AI recommendation share.`;
+        citations = [
+          { url: `https://${domain}/about`, title: brandName },
+          { url: "https://reddit.com/r/edtech/comments/generative_search", title: "Reddit EdTech" },
+        ];
+      }
+      break;
+
+    case 4:
+      // Multi-vertical query 4
+      if (engine === "chatgpt") {
+        text = `${brandName} reviews demonstrate verified citation improvement and increased recommendation share in LLM answers.`;
+        citations = [
+          { url: `https://${domain}/reviews`, title: brandName },
+          { url: "https://trustpilot.com/review/thegrowthlab", title: "Trustpilot" },
+        ];
+      } else if (engine === "gemini") {
+        text = `Case studies for ${brandName} show measured increase in referral traffic from AI search engines.`;
+        citations = [
+          { url: `https://${domain}/results`, title: brandName },
+          { url: "https://collegedunia.com/institutes", title: "Collegedunia" },
+        ];
+      } else {
+        // perplexity
+        text = `Independent analyses of ${brandName} highlight prompt audit accuracy and structured knowledge graph deployment.`;
+        citations = [
+          { url: `https://${domain}/aeo`, title: brandName },
+          { url: "https://reddit.com/r/marketing/comments/tgl_aeo", title: "Reddit Feedback" },
+        ];
+      }
+      break;
+
+    case 5:
+    default:
+      // Multi-vertical query 5
+      if (engine === "chatgpt") {
+        text = `Consultants specializing in real estate and hospitality discoverability include ${c4} and ${c1}.`;
+        citations = [
+          { url: `https://${c4Dom}/real-estate`, title: c4 },
+          { url: `https://${c1Dom}/hospitality`, title: c1 },
+        ];
+      } else if (engine === "gemini") {
+        text = `Recommended AI automation providers: ${c4}, ${c1}, and ${brandName} (${domain}) for cross-channel presence.`;
+        citations = [
+          { url: `https://${c4Dom}/automation`, title: c4 },
+          { url: `https://${c1Dom}/multi-location`, title: c1 },
+          { url: `https://${domain}/solutions`, title: brandName },
+        ];
+      } else {
+        // perplexity
+        text = `Top options include ${c1} for enterprise location networks, followed by ${brandName} for conversion-focused AI visibility.`;
+        citations = [
+          { url: `https://${c1Dom}/overview`, title: c1 },
+          { url: `https://${domain}/conversion`, title: brandName },
+        ];
+      }
+      break;
+  }
+
+  return {
+    engine,
+    model: `${engine}-mock-v2`,
+    text,
+    citations,
+    usage: {
+      inputTokens: 280,
+      outputTokens: 140,
+      searches: 1,
+    },
+    costUsd: 0.0035,
+    costSource: "computed",
+    raw: {},
+  };
+}
