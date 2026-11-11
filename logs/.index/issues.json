@@ -328,6 +328,19 @@
     "updatedAt": "2026-11-11T06:50:40.208Z",
     "prNumber": 175
   },
+  "177": {
+    "channel": "#site-build",
+    "ts": "1794380718.568139",
+    "agent": "web-builder",
+    "door": "core",
+    "title": "Save benched candidates. In services/tgl-ops/src/agents/prospect-researcher/work",
+    "cardType": "issue",
+    "linkedIssueNumber": 177,
+    "threadTimestamps": [
+      "1794380718.568139"
+    ],
+    "updatedAt": "2026-11-11T07:05:18.886Z"
+  },
   "thread:1794308956.168819": {
     "channel": "#doors-aeo",
     "ts": "1794308956.168819",
@@ -383,5 +396,16 @@
     "door": "aeo",
     "title": "[TASK]: Short-form audit fixes. (1) agents/aeo-audit-engine/short-form.ts: choose the fi",
     "updatedAt": "2026-11-11T06:50:40.208Z"
+  },
+  "thread:1794380718.568139": {
+    "channel": "#site-build",
+    "ts": "1794380718.568139",
+    "issueNumber": 177,
+    "linkedIssueNumber": 177,
+    "cardType": "issue",
+    "agent": "web-builder",
+    "door": "core",
+    "title": "Save benched candidates. In services/tgl-ops/src/agents/prospect-researcher/work",
+    "updatedAt": "2026-11-11T07:05:18.886Z"
   }
 }
