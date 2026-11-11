@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-11T06:50:42.167Z",
+  "updatedAt": "2026-11-11T07:05:22.989Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -196,6 +196,17 @@
       "preflightHash": "abce0ebd15a3a166",
       "preflightVerdict": "proceed",
       "preflightReason": "The brief has three concrete deliverables with specific file targets: agents/aeo-audit-engine/short-form.ts, pdf.ts, and a new test file, src/test-audit-prompt-selection.ts, which is also added to npm test. None of these paths are protected (`decisions/`, `logs/`, `logs/.state`).\n\nThe acceptance criteria can be verified:\n- Prompt selection order is decision/comparison first, then consideration, then the rest. Order within a phase is kept.\n- Branded prompts are excluded.\n- The \"Mechanistic next steps\" box is built from the matrix only. It names engines with zero mentions, the top competitor if one exists, and the two weakest queries. It says so plainly when there are no competitor mentions. It uses no fixed template phrases.\n- The tests cover selection order, branded exclusion, and no template phrases when counts are zero. They make no live engine calls.\n\nThe brief does not publish to production, touch DNS, install plugins or external scripts, change pricing or positioning, or delete content. It does not violate any §8 Never guardrail.\n\nTwo minor points are left to the implementer. The location of pdf.ts is not stated, so the implementer should find it, likely under agents/aeo-audit-engine/. The tie-breaking rule for the \"weakest queries\" is not defined. Neither makes the brief vague enough to block it."
+    },
+    "177": {
+      "agent": "web-builder",
+      "door": "core",
+      "title": "[TASK]: Save benched candidates. In services/tgl-ops/src/agents/prospect-researcher/work",
+      "status": "in-progress",
+      "runStartedAt": "2026-11-11T07:05:22.079372+00:00",
+      "recoveryAttempts": 0,
+      "ownerInstance": "inst_1794380186666_0c10aba7",
+      "heartbeatAt": "2026-11-11T07:05:22.079372+00:00",
+      "toolCallsCount": 0
     }
   }
 }
