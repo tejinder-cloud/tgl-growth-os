@@ -329,30 +329,32 @@
     "prNumber": 175
   },
   "177": {
-    "channel": "#site-build",
-    "ts": "1794380718.568139",
+    "channel": "C0BATS9F99B",
+    "ts": "1794381066.263469",
     "agent": "web-builder",
     "door": "core",
-    "title": "Save benched candidates. In services/tgl-ops/src/agents/prospect-researcher/work",
-    "cardType": "issue",
+    "title": "[TASK]: Save benched candidates. In services/tgl-ops/src/agents/prospect-researcher/work",
+    "cardType": "pr_review",
+    "linkedIssueNumber": 177,
+    "threadTimestamps": [
+      "1794380718.568139",
+      "1794381066.263469"
+    ],
+    "updatedAt": "2026-11-11T07:11:06.326Z"
+  },
+  "178": {
+    "channel": "C0BATS9F99B",
+    "ts": "1794381066.263469",
+    "agent": "web-builder",
+    "door": "core",
+    "title": "[TASK]: Save benched candidates. In services/tgl-ops/src/agents/prospect-researcher/work",
+    "cardType": "pr_review",
     "linkedIssueNumber": 177,
     "threadTimestamps": [
       "1794380718.568139"
     ],
-    "updatedAt": "2026-11-11T07:05:18.886Z"
-  },
-  "178": {
-    "channel": "#site-build",
-    "ts": "1794380718.568139",
-    "agent": "web-builder",
-    "door": "core",
-    "title": "Save benched candidates. In services/tgl-ops/src/agents/prospect-researcher/work",
-    "cardType": "issue",
-    "linkedIssueNumber": 178,
-    "threadTimestamps": [
-      "1794380718.568139"
-    ],
-    "updatedAt": "2026-11-11T07:10:13.254Z"
+    "updatedAt": "2026-11-11T07:11:06.326Z",
+    "prNumber": 178
   },
   "thread:1794308956.168819": {
     "channel": "#doors-aeo",
@@ -420,5 +422,17 @@
     "door": "core",
     "title": "Save benched candidates. In services/tgl-ops/src/agents/prospect-researcher/work",
     "updatedAt": "2026-11-11T07:10:13.254Z"
+  },
+  "thread:1794381066.263469": {
+    "channel": "C0BATS9F99B",
+    "ts": "1794381066.263469",
+    "issueNumber": 177,
+    "linkedIssueNumber": 177,
+    "cardType": "pr_review",
+    "prNumber": 178,
+    "agent": "web-builder",
+    "door": "core",
+    "title": "[TASK]: Save benched candidates. In services/tgl-ops/src/agents/prospect-researcher/work",
+    "updatedAt": "2026-11-11T07:11:06.326Z"
   }
 }
