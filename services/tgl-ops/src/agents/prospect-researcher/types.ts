@@ -91,6 +91,8 @@ export interface ResearchRunResult {
   category: string;
   discoveredCount: number;
   qualifiedCount: number;
+  /** Candidates scored 50 to below the qualified threshold this run and saved with status "bench". Not part of `prospects`. */
+  benchedCount?: number;
   dedupedCount: number;
   prospects: ProspectRecord[];
   placesCallsUsed: number;
