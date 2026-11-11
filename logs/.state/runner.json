@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-10T18:30:04.499Z",
+  "updatedAt": "2026-11-11T06:34:31.056Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -173,8 +173,8 @@
       "runCompletedAt": "2026-11-10T18:00:04.973+00:00",
       "error": "Daily cost cap exceeded for @web-builder ($12.52 >= $12.00). Execution stopped.",
       "recoveryAttempts": 0,
-      "ownerInstance": "inst_1794312482170_a1d20aac",
-      "heartbeatAt": "2026-11-10T18:30:03.415483+00:00",
+      "ownerInstance": "inst_1794378869330_3420ab03",
+      "heartbeatAt": "2026-11-11T06:34:30.680092+00:00",
       "toolCallsCount": 0
     }
   }
