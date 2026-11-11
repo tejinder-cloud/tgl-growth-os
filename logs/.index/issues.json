@@ -301,30 +301,32 @@
     "updatedAt": "2026-11-10T18:31:07.585Z"
   },
   "174": {
-    "channel": "#site-build",
-    "ts": "1794379438.082159",
+    "channel": "C0BATS9F99B",
+    "ts": "1794379840.135139",
     "agent": "web-builder",
     "door": "aeo",
-    "title": "Short-form audit fixes. (1) agents/aeo-audit-engine/short-form.ts: choose the fi",
-    "cardType": "issue",
+    "title": "[TASK]: Short-form audit fixes. (1) agents/aeo-audit-engine/short-form.ts: choose the fi",
+    "cardType": "pr_review",
+    "linkedIssueNumber": 174,
+    "threadTimestamps": [
+      "1794379438.082159",
+      "1794379840.135139"
+    ],
+    "updatedAt": "2026-11-11T06:50:40.208Z"
+  },
+  "175": {
+    "channel": "C0BATS9F99B",
+    "ts": "1794379840.135139",
+    "agent": "web-builder",
+    "door": "aeo",
+    "title": "[TASK]: Short-form audit fixes. (1) agents/aeo-audit-engine/short-form.ts: choose the fi",
+    "cardType": "pr_review",
     "linkedIssueNumber": 174,
     "threadTimestamps": [
       "1794379438.082159"
     ],
-    "updatedAt": "2026-11-11T06:43:58.333Z"
-  },
-  "175": {
-    "channel": "#site-build",
-    "ts": "1794379438.082159",
-    "agent": "web-builder",
-    "door": "aeo",
-    "title": "Short-form audit fixes. (1) agents/aeo-audit-engine/short-form.ts: choose the fi",
-    "cardType": "issue",
-    "linkedIssueNumber": 175,
-    "threadTimestamps": [
-      "1794379438.082159"
-    ],
-    "updatedAt": "2026-11-11T06:49:36.921Z"
+    "updatedAt": "2026-11-11T06:50:40.208Z",
+    "prNumber": 175
   },
   "thread:1794308956.168819": {
     "channel": "#doors-aeo",
@@ -369,5 +371,17 @@
     "door": "aeo",
     "title": "Short-form audit fixes. (1) agents/aeo-audit-engine/short-form.ts: choose the fi",
     "updatedAt": "2026-11-11T06:49:36.921Z"
+  },
+  "thread:1794379840.135139": {
+    "channel": "C0BATS9F99B",
+    "ts": "1794379840.135139",
+    "issueNumber": 174,
+    "linkedIssueNumber": 174,
+    "cardType": "pr_review",
+    "prNumber": 175,
+    "agent": "web-builder",
+    "door": "aeo",
+    "title": "[TASK]: Short-form audit fixes. (1) agents/aeo-audit-engine/short-form.ts: choose the fi",
+    "updatedAt": "2026-11-11T06:50:40.208Z"
   }
 }
