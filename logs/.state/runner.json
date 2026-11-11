@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-11T06:34:31.056Z",
+  "updatedAt": "2026-11-11T06:44:02.691Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -168,13 +168,26 @@
       "agent": "web-builder",
       "door": "core",
       "title": "[TASK]: Prospect fit rubric v2 per decisions/2026-11-10.md. (1) services/tgl-ops/src/age",
-      "status": "in-progress",
+      "status": "completed",
+      "prNumber": 172,
+      "prUrl": "https://github.com/tejinder-cloud/tgl-growth-os/pull/172",
       "runStartedAt": "2026-11-10T13:59:47.718473+00:00",
-      "runCompletedAt": "2026-11-10T18:00:04.973+00:00",
+      "runCompletedAt": "2026-11-11T06:34:31.456+00:00",
       "error": "Daily cost cap exceeded for @web-builder ($12.52 >= $12.00). Execution stopped.",
       "recoveryAttempts": 0,
-      "ownerInstance": "inst_1794378869330_3420ab03",
-      "heartbeatAt": "2026-11-11T06:34:30.680092+00:00",
+      "ownerInstance": null,
+      "heartbeatAt": null,
+      "toolCallsCount": 0
+    },
+    "174": {
+      "agent": "web-builder",
+      "door": "aeo",
+      "title": "[TASK]: Short-form audit fixes. (1) agents/aeo-audit-engine/short-form.ts: choose the fi",
+      "status": "in-progress",
+      "runStartedAt": "2026-11-11T06:44:01.81971+00:00",
+      "recoveryAttempts": 0,
+      "ownerInstance": "inst_1794379428002_3edfd08e",
+      "heartbeatAt": "2026-11-11T06:44:01.81971+00:00",
       "toolCallsCount": 0
     }
   }
