@@ -11,7 +11,7 @@ import path from "node:path";
 import type { AddressInfo } from "node:net";
 import { parse as parseYaml } from "yaml";
 import { createApp } from "./app.js";
-import { setAeoLeadDeps, resetAeoRateLimit } from "./routes/aeo.js";
+import { setSiteLeadDeps as setAeoLeadDeps, resetSiteLeadRateLimit as resetAeoRateLimit } from "./routes/site-leads.js";
 import { setHomeStatsProvider } from "./routes/home-stats.js";
 
 let passed = 0;
@@ -41,8 +41,12 @@ async function main(): Promise<void> {
     else if (url.endsWith("/opportunities/")) payload = { opportunity: { id: "o_1" } };
     return { ok: true, status: 200, json: async () => payload, text: async () => "" };
   };
+  // 11 Nov 2026: save-first store (fake here), then GHL.
+  const savedRows: any[] = [];
   setAeoLeadDeps({
-    ghl: { apiKey: "k", locationId: "loc", pipelineId: "pipe", stageNewId: "stage" },
+    store: { insert: async (lead: any) => { savedRows.push(lead); return `row-${savedRows.length}`; }, markGhl: async () => {} },
+    postLeadCard: async () => {},
+    ghl: { apiKey: "k", locationId: "loc", aeoPipelineId: "pipe", aeoStageNewId: "stage" },
     fetchFn: fakeFetch,
     notify: async () => undefined,
     now: () => 1_700_000_000_000,
@@ -64,30 +68,35 @@ async function main(): Promise<void> {
   try {
     // 1. The endpoint keeps requiring the full /aeo fields, even when a caller claims source=home_hero.
     const heroShape = await post({ source: "home_hero", business: "sharmaclinic.in", website: "sharmaclinic.in", phone: "9876543210" });
-    assert.equal(heroShape.status, 422);
+    assert.equal(heroShape.status, 400);
     const heroJson: any = await heroShape.json();
     assert.equal(heroJson.ok, false);
-    for (const k of ["name", "institute", "email", "consent"]) assert.ok(heroJson.errors[k], `${k} still required`);
+    for (const k of ["name", "business_name", "email", "consent", "industry"]) assert.ok(heroJson.errors[k], `${k} still required`);
     assert.equal(calls.length, 0, "nothing reaches GHL from a two-field payload");
-    ok("two-field home_hero payload is rejected with 422 and writes nothing");
+    assert.equal(savedRows.length, 0, "nothing is saved from a two-field payload");
+    ok("two-field home_hero payload is rejected with 400 and writes nothing");
 
     // 2. The full /aeo payload (with the website the Home hero passes along) is accepted.
     const full = await post({
       name: "Asha Sharma",
-      institute: "Sharma Dental Care",
+      business_name: "Sharma Dental Care",
       website: "https://www.sharmaclinic.in/about",
+      industry: "healthcare",
+      city: "Chandigarh",
       phone: "98765 43210",
       email: "asha@sharmaclinic.in",
       consent: true,
-      pagePath: "/aeo",
+      source: "home_hero",
+      page: "/aeo",
     });
     assert.equal(full.status, 200);
     assert.deepEqual(await full.json(), { ok: true });
     assert.equal(calls.length, 3, "contact upsert, note, opportunity");
     assert.equal(calls[0].body.phone, "+919876543210");
     assert.equal(calls[0].body.website, "sharmaclinic.in");
-    assert.deepEqual(calls[0].body.tags, ["aeo-audit-request", "source:aeo-page"]);
-    ok("full /aeo payload returns ok:true and writes contact, note and opportunity");
+    assert.deepEqual(calls[0].body.tags, ["aeo-audit-request", "industry:healthcare"]);
+    assert.equal(savedRows.length, 1, "the row is written before GHL");
+    ok("full /aeo payload returns ok:true, saves the row, and writes contact, note and opportunity");
 
     // 3. Read-only stats route: fails closed with no provider.
     setHomeStatsProvider(null);
