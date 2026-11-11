@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-11T07:05:22.989Z",
+  "updatedAt": "2026-11-11T07:11:08.671Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -201,12 +201,19 @@
       "agent": "web-builder",
       "door": "core",
       "title": "[TASK]: Save benched candidates. In services/tgl-ops/src/agents/prospect-researcher/work",
-      "status": "in-progress",
+      "status": "completed",
+      "branch": "task/177-save-benched-candidates-in-ser",
+      "prNumber": 178,
+      "prUrl": "https://github.com/tejinder-cloud/tgl-growth-os/pull/178",
       "runStartedAt": "2026-11-11T07:05:22.079372+00:00",
+      "runCompletedAt": "2026-11-11T07:11:07.649+00:00",
       "recoveryAttempts": 0,
-      "ownerInstance": "inst_1794380186666_0c10aba7",
-      "heartbeatAt": "2026-11-11T07:05:22.079372+00:00",
-      "toolCallsCount": 0
+      "ownerInstance": null,
+      "heartbeatAt": null,
+      "toolCallsCount": 22,
+      "preflightHash": "ddf70990c635b7c5",
+      "preflightVerdict": "proceed",
+      "preflightReason": "The brief has a concrete, verifiable deliverable. It targets specific files: services/tgl-ops/src/agents/prospect-researcher/worker.ts, bench-rescore.ts, and a new src/test-bench-save.ts, plus the npm test script. Services paths are allowed on a task branch and are covered by the CI gate. The brief explicitly excludes decisions/ and logs/ edits and live Slack posts from tests.\n\nThe behavior is precisely specified:\n- Candidates scoring 50–65 under rubric v2 are saved with status \"bench\".\n- The brief lists the exact fields to save and limits decision_maker to name, role, work email and work phone.\n- Benched rows are never notified and never handed to outreach.\n- Rejected rows (below 50, or disqualified) are unchanged.\n- The batch report shortfall line gains \"N benched\".\n\nIt also gives three test cases with expected outcomes: 58 points is saved as bench and is not in the qualified list, 45 points is not saved, and a disqualified candidate is never saved as bench.\n\nNothing in it violates the §8 Never list. It doesn't publish, touch DNS, install plugins or scripts, change pricing, or delete content. The brief also says to limit stored contact data to work contact fields, which is a sensible privacy constraint.\n\nMinor points for the implementer to handle: the exact boundary at 50 and 65 (the brief says \"between\", so inclusive at 50 and exclusive at 65 is the natural reading, since 65 qualifies), and confirming the prospects table accepts the \"bench\" status. Neither of these makes the brief ambiguous enough to block it."
     }
   }
 }
