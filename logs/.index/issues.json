@@ -369,6 +369,19 @@
     ],
     "updatedAt": "2026-11-11T10:59:40.073Z"
   },
+  "181": {
+    "channel": "#site-build",
+    "ts": "1794394779.733529",
+    "agent": "web-builder",
+    "door": "core",
+    "title": "Plain-English 09:00 card. Rewrite the Chief of Staff status card in services/tgl",
+    "cardType": "issue",
+    "linkedIssueNumber": 181,
+    "threadTimestamps": [
+      "1794394779.733529"
+    ],
+    "updatedAt": "2026-11-11T11:07:03.803Z"
+  },
   "thread:1794308956.168819": {
     "channel": "#doors-aeo",
     "ts": "1794308956.168819",
@@ -451,12 +464,12 @@
   "thread:1794394779.733529": {
     "channel": "#site-build",
     "ts": "1794394779.733529",
-    "issueNumber": 180,
-    "linkedIssueNumber": 180,
+    "issueNumber": 181,
+    "linkedIssueNumber": 181,
     "cardType": "issue",
     "agent": "web-builder",
     "door": "core",
     "title": "Plain-English 09:00 card. Rewrite the Chief of Staff status card in services/tgl",
-    "updatedAt": "2026-11-11T10:59:40.073Z"
+    "updatedAt": "2026-11-11T11:07:03.803Z"
   }
 }
