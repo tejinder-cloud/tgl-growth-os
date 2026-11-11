@@ -513,7 +513,7 @@ async function runTaskP07VerificationSuite(): Promise<void> {
   const synthesis = await synthesizeStandupDigest(gathered, { testMode: true });
   const digest = synthesis.digestText;
 
-  if (!digest.includes("Open Proposals") || !digest.includes("#101")) {
+  if (!/open proposal/i.test(digest) || !digest.includes("#101")) {
     throw new Error(`Test 8 Failed: Digest missing open proposal #101:\n${digest}`);
   }
   if (!digest.includes("84%") || !digest.includes("chief-of-staff")) {

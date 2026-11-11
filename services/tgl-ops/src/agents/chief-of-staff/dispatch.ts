@@ -1,10 +1,9 @@
 import { config, isTestMode } from "../../config.js";
 import { loadAgents } from "../../lib/agents.js";
 import { createIssue, octokit } from "../../lib/github-client.js";
-import { postCard, postLine } from "../../lib/post.js";
-import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
-import { getIntakeLastReadTime } from "./intake.js";
-import { getRevenueMetrics, formatRevenueLine } from "../../lib/revenue.js";
+import { postCard } from "../../lib/post.js";
+import { getTodayDateString } from "../../lib/standup.js";
+import { buildPlainCardText } from "./plain-card-data.js";
 import {
   loadPlanEntries,
   getCurrentPlanDay,
@@ -334,9 +333,11 @@ ${entry.depends_on.join(", ") || "None"}
 }
 
 /**
- * 09:00 IST Morning Plan Status Card.
- * Per Architect Decision 2:
- * The 09:00 card becomes a status card: current day, open issues, carried items, "say go for Day N+1".
+ * 09:00 IST Morning Status Card, in plain English.
+ * Shape: "Good morning. Day N of 90 — on track / X days behind / X days ahead (next gate and date)",
+ * then Yesterday, Today, Money and a numbered Needs-you list (action → outcome).
+ * No Open Issues count, no Carried/Blocked line, no reference links; the only links are the
+ * ones a Needs-you action requires.
  */
 export async function execute0900PlanDispatch(options?: {
   dateStr?: string;
@@ -355,23 +356,8 @@ export async function execute0900PlanDispatch(options?: {
   console.log(`=======================================================`);
 
   const allEntries = await loadPlanEntries(options);
-  const currentEntry = allEntries.find((e) => e.day === currentDay);
 
-  // Gather open issues count
-  let openIssuesCount = 0;
-  if (!isTest && config.githubToken) {
-    try {
-      const res = await octokit.issues.listForRepo({
-        owner: config.githubOwner,
-        repo: config.githubRepo,
-        state: "open",
-        per_page: 50,
-      });
-      openIssuesCount = res.data.length;
-    } catch {}
-  }
-
-  // Carried items: past days not done or parked
+  // Carried items: past days not done or parked (reported in the result, not on the card)
   const carriedForwardEntries: PlanEntry[] = [];
   const pastEntries = allEntries.filter((e) => e.day < currentDay);
   for (const past of pastEntries) {
@@ -384,21 +370,13 @@ export async function execute0900PlanDispatch(options?: {
   let architectCardTs: string | undefined;
 
   if (architectChannel) {
-    const carriedNotice =
-      carriedForwardEntries.length > 0
-        ? `\n• *Carried / Blocked:* ${carriedForwardEntries.map((c) => `Day ${c.day} (@${c.agent})`).join(", ")}`
-        : "\n• *Carried Items:* None";
-
-    const intakeLastRead = getIntakeLastReadTime(options);
-    const revenueMetrics = await getRevenueMetrics();
-    const revenueLine = formatRevenueLine(revenueMetrics);
-    const summaryText = `*Chief of Staff 09:00 IST Status Card*
-• *Current Day:* Day ${currentDay} (${currentEntry?.title || "Active"})
-• *Open Issues:* ${openIssuesCount} active in repo${carriedNotice}
-${revenueLine}
-• *Intake:* intake last read ${intakeLastRead}
-
-*Action:* Say *"go"* in #architect for Day ${currentDay + 1} (or *"day N"* for any specific day). Weekends allowed.`;
+    const summaryText = await buildPlainCardText({
+      mode: "morning",
+      dateStr,
+      testMode: isTest,
+      currentDay,
+      planEntries: allEntries,
+    });
 
     const cardRes = await postCard({
       channel: architectChannel,
@@ -406,10 +384,6 @@ ${revenueLine}
       door: "core",
       title: `Plan Status Card — Day ${currentDay}`,
       summary: summaryText,
-      links: [
-        { label: "PROJECT-PLAN.md", url: `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/PROJECT-PLAN.md` },
-        { label: "config/plan.yaml", url: `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/config/plan.yaml` },
-      ],
       actions: ["discuss"],
       issue: currentDay,
       linkedIssue: currentDay,
@@ -447,4 +421,3 @@ ${revenueLine}
     architectHourCardTs: architectCardTs,
   };
 }
-
