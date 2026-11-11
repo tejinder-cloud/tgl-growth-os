@@ -217,3 +217,271 @@ export async function runProspectResearch(
   // never on the review card or CSV, never notified, never handed to outreach.
   const benchedProspects: ProspectRecord[] = [];
   let playwrightSearchesUsed = 0;
+
+  // Filter candidates through Stage 1-3 (Place ID, Initial Playbook C, and DNS)
+  const dnsPassedCandidates: RawPlaceCandidate[] = [];
+  for (const cand of rawCandidates) {
+    // Gate 1: Places place_id existence
+    if (!cand.placeId || !cand.placeIdVerified) {
+      console.log(`  • [Gate 1 Dropped] '${cand.name}': Missing verified Places place_id`);
+      continue;
+    }
+
+    // Gate 2: Playbook C Enterprise Chain Disqualification (by initial signal)
+    const initialSignals = {
+      meta_ads_active: false,
+      meta_ad_count: 0,
+      gbp_reviews: cand.userRatingsTotal || 0,
+      gbp_owner_replies: false,
+      hiring_marketing: false,
+      review_surge: false,
+      branch_count: cand.placesBrandCount || 1,
+      places_brand_count: cand.placesBrandCount,
+      brand_prefix: cand.brandPrefix,
+    };
+    const chainCheck = checkPlaybookCDisqualification(cand.name, cand.website || "", initialSignals, city);
+    if (chainCheck.disqualified) {
+      funnel.playbookCDisqualified++;
+      console.log(`  • [Gate 2 Disqualified] '${cand.name}': ${chainCheck.reason}`);
+      continue;
+    }
+
+    // Gate 3: Live DNS check
+    let website = cand.website || "";
+    if (website) {
+      const dnsRes = await verifyDomainDns(website);
+      if (!dnsRes.valid) {
+        funnel.dnsFailed++;
+        console.log(`  • [Gate 3 Dropped] '${cand.name}': domain '${website}' failed DNS (${dnsRes.reason})`);
+        continue;
+      }
+      funnel.dnsPassed++;
+      cand.dnsVerified = true;
+      cand.dnsIp = dnsRes.ip;
+      dnsPassedCandidates.push(cand);
+    } else {
+      // If website not in searchText, fetch Place Details to retrieve website
+      const detailed = await enrichPlaceDetails(cand, options);
+      cand.website = detailed.website;
+      cand.phone = detailed.phone;
+      cand.rating = detailed.rating;
+      cand.userRatingsTotal = detailed.userRatingsTotal;
+      cand.googleMapsUrl = detailed.googleMapsUrl;
+      cand.placeDetailsEnriched = detailed.placeDetailsEnriched;
+
+      if (detailed.placeDetailsEnriched) {
+        funnel.placeDetailsEnriched++;
+      } else {
+        funnel.placeDetailsFailed++;
+      }
+
+      if (!cand.website) {
+        funnel.dnsFailed++;
+        console.log(`  • [Gate 3 Dropped] '${cand.name}': No website published on Google Maps`);
+        continue;
+      }
+
+      const dnsRes = await verifyDomainDns(cand.website);
+      if (!dnsRes.valid) {
+        funnel.dnsFailed++;
+        console.log(`  • [Gate 3 Dropped] '${cand.name}': domain '${cand.website}' failed DNS (${dnsRes.reason})`);
+        continue;
+      }
+      funnel.dnsPassed++;
+      cand.dnsVerified = true;
+      cand.dnsIp = dnsRes.ip;
+      dnsPassedCandidates.push(cand);
+    }
+  }
+
+  // Gate 4: Place Details Enrichment on ALL candidates that passed DNS
+  let enrichmentAttempts = 0;
+  let enrichmentFailures = 0;
+
+  for (const cand of dnsPassedCandidates) {
+    if (!cand.placeDetailsEnriched) {
+      enrichmentAttempts++;
+      const detailed = await enrichPlaceDetails(cand, options);
+      cand.name = detailed.name;
+      cand.address = detailed.address;
+      cand.website = detailed.website || cand.website;
+      cand.phone = detailed.phone || cand.phone;
+      cand.rating = detailed.rating !== undefined ? detailed.rating : cand.rating;
+      cand.userRatingsTotal = detailed.userRatingsTotal !== undefined ? detailed.userRatingsTotal : cand.userRatingsTotal;
+      cand.googleMapsUrl = detailed.googleMapsUrl || cand.googleMapsUrl;
+      cand.placeDetailsEnriched = detailed.placeDetailsEnriched;
+
+      if (detailed.placeDetailsEnriched) {
+        funnel.placeDetailsEnriched++;
+      } else {
+        enrichmentFailures++;
+        funnel.placeDetailsFailed++;
+        console.warn(`  • [Gate 4 Enrichment Failed] '${cand.name}': ${detailed.placeDetailsError || "Unknown API error"}`);
+      }
+    }
+  }
+
+  // Circuit Breaker:
+  // "a run where enrichment fails for more than half the candidates must stop and alert rather than score blind."
+  if (enrichmentAttempts > 0 && enrichmentFailures > Math.floor(enrichmentAttempts / 2) && !isTest) {
+    const alertMsg = `*[Prospect Researcher Circuit Breaker]* Place Details enrichment failed for ${enrichmentFailures} of ${enrichmentAttempts} candidates (>50% failure rate). Halting run to prevent blind scoring. Places API error or quota ceiling reached.`;
+    console.error(alertMsg);
+    const alertsChannel = getAlertsChannel();
+    await postLine({ channel: alertsChannel, text: alertMsg }).catch(() => {});
+    return {
+      city,
+      category,
+      discoveredCount: rawCandidates.length,
+      qualifiedCount: 0,
+      benchedCount: 0,
+      dedupedCount: 0,
+      prospects: [],
+      placesCallsUsed: getPlacesQuotaState(options).count,
+      playwrightSearches: 0,
+      tokens: { input: 0, output: 0, costUsd: 0 },
+      cardTs: undefined,
+      csvPath: "",
+      rejectionPatternProposal: undefined,
+      standupLines: {
+        did: `Discovered ${rawCandidates.length} candidates in ${city} (${category}), but Place Details enrichment failed for ${enrichmentFailures}/${enrichmentAttempts} candidates.`,
+        blocked: `Place Details enrichment failed for >50% candidates: halted by circuit breaker to avoid blind scoring.`,
+        need: "Places API investigation (quota, billing, or field mask).",
+        tomorrow: `Resume next scheduled metro upon resolving Places enrichment.`,
+      },
+    };
+  }
+
+  // 5. Processing Loop: Website Scraping, Meta Ads, Contact Resolution, Deduplication, Rubric v2 Scoring
+  for (const cand of dnsPassedCandidates) {
+    if (qualifiedProspects.length >= targetCount) {
+      break;
+    }
+
+    const website = cand.website || "";
+
+    // Gate 5: Meta Ad Library check via Playwright & Apollo/Hunter Contact Resolution
+    // Signals from Places, website scrape and Meta Ad Library populate BEFORE scoring
+    const enrichedDetails = await enrichCandidateSignals(cand, category, options);
+    playwrightSearchesUsed++;
+
+    // Gate 6: Contact Verification Gate
+    // - For large organisations (>=50 staff, e.g. hospitals): MUST have Hunter-verified work email
+    // - For owner-run clinics (<50 staff): Places verified business phone is accepted
+    const dm = enrichedDetails.decisionMaker;
+    const isHunterEmail = Boolean(
+      dm.verified &&
+      dm.email &&
+      dm.email.includes("@") &&
+      dm.source &&
+      dm.source.includes("hunter:")
+    );
+    const isOwnerPhone = Boolean(
+      dm.verified &&
+      dm.phone &&
+      String(dm.phone).trim().length >= 8 &&
+      dm.source &&
+      dm.source.includes("places:phone") &&
+      !enrichedDetails.signals.is_large_org
+    );
+
+    if (isHunterEmail) {
+      funnel.emailVerified++;
+    } else if (isOwnerPhone) {
+      funnel.phoneVerified++;
+    } else {
+      funnel.contactUnverified++;
+      console.log(
+        `  • [Gate 6 Dropped] '${cand.name}': No verified contact (requires Hunter work email for large orgs or Places phone for owner-run clinics) (${dm.source})`
+      );
+      continue;
+    }
+
+    // Gate 7: Deduplication against Supabase, GHL, and rejections/ (Playbook E: before scoring, so a duplicate never costs a probe)
+    // Candidates benched earlier in this run are included so the same business is never benched twice.
+    const dedupeCheck = await isProspectDuplicate(
+      {
+        company: cand.name,
+        website,
+        email: enrichedDetails.decisionMaker.email,
+        phone: enrichedDetails.decisionMaker.phone,
+      },
+      [...existingProspects, ...qualifiedProspects, ...benchedProspects],
+      options
+    );
+
+    if (dedupeCheck.isDuplicate) {
+      funnel.dedupedOut++;
+      console.log(`  • [Gate 7 Deduplicated] '${cand.name}': ${dedupeCheck.reason}`);
+      continue;
+    }
+
+    // Gate 8: Rubric v2 Fit Scoring (>= 65 qualifies, 50 to 64 is benched, below 50 or disqualified is rejected).
+    // The Dimension 4 probe runs only for a candidate that survived Playbook C and Dimension 5, once, under the daily cap.
+    const rubricResult = await evaluateProspectRubricWithProbe({
+      company: cand.name,
+      domain: website,
+      category,
+      city,
+      signals: enrichedDetails.signals,
+      decisionMaker: enrichedDetails.decisionMaker,
+      probe: probeGovernor.probe,
+    });
+
+    if (rubricResult.probeUnavailable) {
+      funnel.probeSkipped++;
+      console.log(`  • [Gate 8 Not Scored] '${cand.name}': Dimension 4 probe unavailable (${probeGovernor.stats.haltedReason || "engine call failed"}); retried on a later run`);
+      continue;
+    }
+
+    // Gate 8 routing + Gate 9 hard write validation (bench-save.ts). Assembles the authoritative ProspectRecord:
+    // status "new" when qualified, status "bench" (decision maker minimised) when scored 50 to 64.
+    const routed = routeScoredCandidate(
+      {
+        company: cand.name,
+        category,
+        city,
+        website,
+        evaluation: rubricResult,
+        decisionMaker: enrichedDetails.decisionMaker,
+        signals: enrichedDetails.signals,
+        sourceRefs: enrichedDetails.sourceRefs,
+      },
+      { qualified: qualifiedProspects, benched: benchedProspects }
+    );
+
+    if (routed.route === "rejected") {
+      funnel.scoredBelow70++;
+      console.log(
+        `  • [Gate 8 Dropped] '${cand.name}': ${rubricResult.disqualified ? "disqualified" : `fit score ${rubricResult.fitScore} below bench floor (${FIT_BENCH_FLOOR})`}`
+      );
+      continue;
+    }
+
+    if (routed.route === "qualified") {
+      funnel.scoredGe70++;
+    } else {
+      funnel.scoredBelow70++;
+    }
+
+    if (!routed.placed) {
+      funnel.writeGateFailed++;
+      console.log(`  • [Gate 9 Dropped] '${cand.name}': Write gate rejected (${routed.writeRejectedReason})`);
+      continue;
+    }
+
+    if (routed.route === "bench") {
+      funnel.benched++;
+      console.log(`  [BENCHED] '${routed.record!.company}' (Score: ${routed.record!.fit_score}): saved with status bench, no notification, no outreach hand-off`);
+      continue;
+    }
+
+    funnel.writeGatePassed++;
+    newQualifiedProspects.push(routed.record!);
+    funnel.finalQualified = qualifiedProspects.length;
+    console.log(`  [QUALIFIED] [${qualifiedProspects.length}/${targetCount}]: '${routed.record!.company}' (Score: ${routed.record!.fit_score})`);
+  }
+
+  const probeShortfall = probeGovernor.shortfallReport();
+  if (probeShortfall) {
+    console.warn(`[Dim 4 Probe] ${probeShortfall}`);
+  }
