@@ -1,3 +1,4 @@
+import fs from "node:fs";
 // services/tgl-ops/src/test-fixes.ts
 process.env.TGL_TEST_MODE = "1";
 process.env.NODE_ENV = "test";
@@ -9,7 +10,7 @@ import { FIT_QUALIFIED_THRESHOLD } from "./agents/prospect-researcher/threshold.
 import { gatherStandupMaterial } from "./agents/chief-of-staff/gather.js";
 import { doesCronRunOnDate, isAgentScheduledOnDate, findAgentByName, getAgentRunnerLimits, type AgentRecord } from "./lib/agents.js";
 import { execute1815SilenceCheck } from "./agents/chief-of-staff/worker.js";
-import { getCurrentPlanDay } from "./lib/plan.js";
+import { getCurrentPlanDay, getPlanProgressPath } from "./lib/plan.js";
 import { getRunnerState, saveRunnerState, recordRunnerIssue, resetRunnerIssue, releaseRunnerClaim, assertValidRunnerStatusAndPr, clearMockRunnerStateDbForTests } from "./runner/state.js";
 import { catchUpRunnerIssues, recoverInterruptedRunnerIssues } from "./runner/catch-up.js";
 import { runPreflightCheck } from "./runner/preflight.js";
@@ -276,6 +277,9 @@ async function runFixesVerificationSuite(): Promise<void> {
   // Test 3: Day counter reconciliation with dispatched issues
   // -------------------------------------------------------------------------
   console.log("[Test 3] Testing day counter reconciliation with dispatched issues...");
+
+  // Independent of earlier suites: an earlier test dispatch may have written logs/.test/plan-progress.json.
+  try { fs.unlinkSync(getPlanProgressPath(true)); } catch {}
 
   const dayResult1 = await getCurrentPlanDay({
     testMode: true,
