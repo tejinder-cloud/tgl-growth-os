@@ -34,7 +34,7 @@ export async function runSiteHealth(now = Date.now()): Promise<number> {
     const fresh = r.issues.filter((i) => i.severity === "critical" && !before.has(i.code));
     if (!fresh.length) continue;
     const channel = (await resolveChannelId("#doors-aeo")) || config.approvalsChannelId;
-    if (config.slackBotToken && channel) await slackClient.chat.postMessage({ channel, text: `🚨 *${b.name}* (${b.primary_domain}) — ${fresh.map((i) => i.text).join(" ")}` }).catch(() => {});
+    if (config.slackBotToken && channel) await slackClient.chat.postMessage({ channel, text: `Site health: *${b.name}* (${b.primary_domain}) — ${fresh.map((i) => i.text).join(" ")}` }).catch(() => {});
     const { data: t } = await sb.from("tenants").select("kind").eq("id", b.tenant_id).maybeSingle();
     const appUrl = process.env.TRUEVISIBLE_APP_URL?.trim().replace(/\/$/, "");
     if (t?.kind === "agency_client" || !appUrl) continue;   // white-label: never email an agency's client
