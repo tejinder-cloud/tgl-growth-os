@@ -648,3 +648,159 @@ export async function generateAuditPdf(
     doc.font(fontSerif).fontSize(13.5).fillColor("#1F2421").text(kpi.val, x + 7, y + 15);
     doc.font(fontSans).fontSize(6.8).fillColor("#63615C").text(kpi.sub, x + 7, y + 32);
   });
+
+  // 5. Query Visibility Matrix Table
+  doc.font(fontSerif).fontSize(11).fillColor("#1F2421").text("Query Visibility Matrix", 42, 142);
+
+  const tableY = 156;
+  const tableW = 508;
+  doc.rect(42, tableY, tableW, 17).fillColor("#E8EDE6").fill();
+  doc.rect(42, tableY, tableW, 17).lineWidth(1).strokeColor("#1F2421").stroke();
+
+  doc.font(fontSansBold).fontSize(7).fillColor("#1F2421");
+  doc.text("BUYER QUERY (VERIFIED SETUP PROFILE)", 50, tableY + 5);
+  doc.text("CHATGPT", 340, tableY + 5, { width: 70, align: "center" });
+  doc.text("GEMINI", 410, tableY + 5, { width: 70, align: "center" });
+  doc.text("PERPLEXITY", 480, tableY + 5, { width: 70, align: "center" });
+
+  const rowHeight = 25;
+  result.results.forEach((r, idx) => {
+    const rowY = tableY + 17 + idx * rowHeight;
+    doc.rect(42, rowY, tableW, rowHeight).fillColor("#FFFFFF").fill();
+    doc.rect(42, rowY, tableW, rowHeight).lineWidth(0.8).strokeColor("#1F2421").stroke();
+
+    // Vertical column borders
+    doc.moveTo(340, rowY).lineTo(340, rowY + rowHeight).stroke();
+    doc.moveTo(410, rowY).lineTo(410, rowY + rowHeight).stroke();
+    doc.moveTo(480, rowY).lineTo(480, rowY + rowHeight).stroke();
+
+    // Query text
+    doc.font(fontSansBold).fontSize(7.5).fillColor("#C85A32").text(`${r.promptIndex}. `, 48, rowY + 7, { continued: true });
+    doc.font(fontSans).fontSize(7.5).fillColor("#1F2421").text(r.prompt, { width: 282, ellipsis: true });
+
+    // Engine badges
+    const drawBadge = (colX: number, engine: "chatgpt" | "gemini" | "perplexity") => {
+      const res = r.engineResults[engine];
+      const badge = res ? res.badge : "—";
+
+      if (badge === "—") {
+        doc.font(fontSans).fontSize(9).fillColor("#99948D").text("—", colX, rowY + 7, { width: 70, align: "center" });
+      } else {
+        const isNamed1 = badge === "Named #1";
+        const bgCol = isNamed1 ? "#FBECE8" : "#FAF0ED";
+        const strokeCol = isNamed1 ? "#C85A32" : "#E07A5F";
+
+        doc.rect(colX + 9, rowY + 5, 52, 14).fillColor(bgCol).fill();
+        doc.rect(colX + 9, rowY + 5, 52, 14).lineWidth(0.8).strokeColor(strokeCol).stroke();
+        doc.font(fontSansBold).fontSize(6.8).fillColor(strokeCol).text(badge, colX + 9, rowY + 8, { width: 52, align: "center" });
+      }
+    };
+
+    drawBadge(340, "chatgpt");
+    drawBadge(410, "gemini");
+    drawBadge(480, "perplexity");
+  });
+
+  // 6. Insight Split Panels
+  const panelY = tableY + 17 + result.results.length * rowHeight + 8;
+  const panelW = 248;
+  const panelH = 50;
+
+  // Panel 1: Competitors
+  doc.rect(42, panelY, panelW, panelH).fillColor("#FFFFFF").fill();
+  doc.rect(42, panelY, panelW, panelH).lineWidth(1.1).strokeColor("#1F2421").stroke();
+  doc.font(fontSerif).fontSize(8.8).fillColor("#1F2421").text("Competitors Named in Answers", 50, panelY + 6);
+  doc.font(fontSans).fontSize(7.5).fillColor("#4A4843").text(competitors, 50, panelY + 18, { width: panelW - 16, ellipsis: true });
+  doc.font(fontSans).fontSize(6.8).fillColor("#63615C").text(`Exact competitor appearance counts across all ${queries} answers.`, 50, panelY + 36);
+
+  // Panel 2: Cited Authority Channels
+  doc.rect(302, panelY, panelW, panelH).fillColor("#FFFFFF").fill();
+  doc.rect(302, panelY, panelW, panelH).lineWidth(1.1).strokeColor("#1F2421").stroke();
+  doc.font(fontSerif).fontSize(8.8).fillColor("#1F2421").text("Cited Authority Channels", 310, panelY + 6);
+  doc.font(fontSans).fontSize(7.5).fillColor("#4A4843").text(topCitations, 310, panelY + 18, { width: panelW - 16, ellipsis: true });
+  doc.font(fontSans).fontSize(6.8).fillColor("#63615C").text(`Primary web sources cited in the ${queries} model answers.`, 310, panelY + 36);
+
+  // 7. Matrix-driven Next Steps Box (text regenerated from the matrix; box height fits the text)
+  const actionY = panelY + panelH + 7;
+  const actionTextOptions = { width: 492, lineGap: 1 };
+  doc.font(fontSans).fontSize(7.2);
+  const actionTextH = doc.heightOfString(nextStepsText, actionTextOptions);
+  const actionH = Math.max(46, Math.ceil(18 + actionTextH + 8));
+  doc.rect(42, actionY, tableW, actionH).fillColor("#FBECE8").fill();
+  doc.rect(42, actionY, tableW, actionH).lineWidth(1.1).strokeColor("#C85A32").stroke();
+
+  doc.font(fontSansBold).fontSize(7.5).fillColor("#C85A32").text("MECHANISTIC NEXT STEPS", 50, actionY + 6);
+  doc.font(fontSans).fontSize(7.2).fillColor("#1F2421").text(nextStepsText, 50, actionY + 18, actionTextOptions);
+
+  // 8. Lower 40%: Query Evidence & Answer Excerpts
+  const evidenceY = actionY + actionH + 8;
+  doc.font(fontSerif).fontSize(10.5).fillColor("#1F2421").text("Query Evidence & Answer Excerpts", 42, evidenceY);
+  doc.font(fontSans).fontSize(6.8).fillColor("#63615C").text(
+    "Verifiable 1-line excerpts establishing cell rankings and competitor mentions",
+    230,
+    evidenceY + 3,
+    { width: 320, align: "right" }
+  );
+
+  const excerptStartY = evidenceY + 15;
+  const excerptCardH = 48;
+  const excerptGap = 4;
+
+  result.results.forEach((r, idx) => {
+    const cardY = excerptStartY + idx * (excerptCardH + excerptGap);
+    doc.rect(42, cardY, tableW, excerptCardH).fillColor("#FFFFFF").fill();
+    doc.rect(42, cardY, tableW, excerptCardH).lineWidth(0.8).strokeColor("#1F2421").stroke();
+
+    // Query badge pill
+    doc.rect(48, cardY + 5, 20, 11).fillColor("#1F2421").fill();
+    doc.font(fontSansBold).fontSize(6.5).fillColor("#F7F4EE").text(`Q${r.promptIndex}`, 48, cardY + 7, { width: 20, align: "center" });
+
+    // Query text
+    doc.font(fontSansBold).fontSize(7.2).fillColor("#1F2421").text(r.prompt, 73, cardY + 6, { width: 330, ellipsis: true });
+
+    // Source engine and badge pill
+    const badgeLabel = `${r.excerpt.engine.toUpperCase()}: ${r.excerpt.badge}`;
+    const isNamed1 = r.excerpt.badge === "Named #1";
+    const pillBg = isNamed1 ? "#FBECE8" : "#FAF0ED";
+    const pillColor = isNamed1 ? "#C85A32" : "#E07A5F";
+
+    doc.rect(415, cardY + 5, 128, 12).fillColor(pillBg).fill();
+    doc.rect(415, cardY + 5, 128, 12).lineWidth(0.7).strokeColor(pillColor).stroke();
+    doc.font(fontSansBold).fontSize(6.5).fillColor(pillColor).text(badgeLabel, 415, cardY + 7, { width: 128, align: "center" });
+
+    // Verbatim 1-line excerpt
+    doc.font(fontSans).fontSize(6.8).fillColor("#4A4843").text(
+      `"${r.excerpt.text}"`,
+      48,
+      cardY + 22,
+      { width: 495, lineGap: 0.5, ellipsis: true }
+    );
+  });
+
+  // 9. Footer Section
+  const footerY = 776;
+  doc.moveTo(42, footerY).lineTo(550, footerY).lineWidth(1).strokeColor("#1F2421").stroke();
+  doc.font(fontSans).fontSize(7).fillColor("#63615C").text("The Growth Lab · TrueVisible Engine · Chandigarh & Pan-India", 42, footerY + 6);
+  doc.font(fontSans).fontSize(7).fillColor("#63615C").text(`${domain} · Confidential`, 42, footerY + 6, { width: 508, align: "right" });
+
+  doc.end();
+
+  const buffer = await pdfPromise;
+  const sizeBytes = buffer.length;
+  const MAX_BYTES = 2 * 1024 * 1024; // 2MB
+
+  if (sizeBytes > MAX_BYTES) {
+    throw new Error(`Generated PDF size (${(sizeBytes / 1024 / 1024).toFixed(2)} MB) exceeds 2MB limit.`);
+  }
+
+  if (outputPath) {
+    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+    fs.writeFileSync(outputPath, buffer);
+  }
+
+  return {
+    buffer,
+    sizeBytes,
+    outputPath,
+  };
+}
