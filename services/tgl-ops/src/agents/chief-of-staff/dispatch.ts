@@ -147,3 +147,277 @@ export async function isEntryAlreadyIssued(
   }
 }
 
+/**
+ * Dispatches a specific plan day on the Architect's word ("go" or "day N").
+ * Weekends allowed. Evaluates dependencies (including "architect-unpark").
+ */
+export async function dispatchPlanDay(
+  targetDay: number,
+  options?: {
+    testMode?: boolean;
+    dateStr?: string;
+    mockCompletedDays?: (number | string)[];
+    mockIssuedDays?: number[];
+  }
+): Promise<PlanDayDispatchResult> {
+  const isTest = options?.testMode === true || isTestMode();
+  const allEntries = await loadPlanEntries(options);
+  const entry = allEntries.find((e) => e.day === targetDay);
+
+  if (!entry) {
+    return {
+      success: false,
+      status: "not-found",
+      reason: `Plan Day ${targetDay} not found in config/plan.yaml.`,
+    };
+  }
+
+  // 1. Check if already completed in plan.yaml
+  if (entry.status === "completed") {
+    return {
+      success: false,
+      status: "already-issued",
+      reason: `Plan Day ${targetDay} ("${entry.title}") is already completed (${entry.evidence || "DoD met by merged code"}).`,
+      entry,
+    };
+  }
+
+  // 2. Check if already issued
+  const alreadyIssued = await isEntryAlreadyIssued(entry, options);
+  if (alreadyIssued) {
+    return {
+      success: false,
+      status: "already-issued",
+      reason: `Plan Day ${targetDay} ("${entry.title}") has already been issued.`,
+      entry,
+      issueNumber: entry.day,
+      issueUrl: `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/${entry.day}`,
+    };
+  }
+
+  // 2. Check dependencies
+  for (const dep of entry.depends_on) {
+    const done = await isDependencyDone(dep, options);
+    if (!done) {
+      const depMsg =
+        dep === "architect-unpark"
+          ? `Day ${targetDay} is parked until TrueVisible ships (depends on architect-unpark).`
+          : `Day ${targetDay} is blocked: Dependency Day ${dep} is not done.`;
+      return {
+        success: false,
+        status: "blocked",
+        reason: depMsg,
+        entry,
+      };
+    }
+  }
+
+  // 3. Assign agent
+  const createsAgentSkillOrService =
+    entry.definition_of_done.some(
+      (d) =>
+        /agents\/[^/]+\/SKILL\.md/i.test(d) ||
+        /services\//i.test(d) ||
+        /service code/i.test(d) ||
+        /SKILL\.md/i.test(d)
+    ) ||
+    /agents\/[^/]+\/SKILL\.md/i.test(entry.brief) ||
+    /new service code/i.test(entry.brief);
+
+  const assignedAgent = createsAgentSkillOrService ? "web-builder" : entry.agent;
+  const registeredAgents = await loadAgents();
+  const agentRecord = registeredAgents.find((a) => a.name === assignedAgent);
+  const targetChannel = isTest
+    ? (config.opsChannelId || "#ops")
+    : (agentRecord?.channel || config.standupChannelId);
+
+  const issueBody = `### for-agent
+${assignedAgent}
+
+### door
+${entry.door || "core"}
+
+### brief
+${entry.brief}
+
+### definition-of-done
+${entry.definition_of_done.map((d) => `- [ ] ${d}`).join("\n")}
+
+### plan-day
+Day ${entry.day}
+
+### depends-on
+${entry.depends_on.join(", ") || "None"}
+`;
+
+  let issueNumber = entry.day;
+  let issueUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/issues/${entry.day}`;
+
+  if (!isTest && config.githubToken) {
+    try {
+      const ghIssue = await createIssue({
+        title: `[PLAN-D${entry.day}]: ${entry.title}`,
+        body: issueBody,
+        labels: [`for:${assignedAgent}`, `door:${entry.door || "core"}`, "type:build", "status:in-progress"],
+      });
+      issueNumber = ghIssue.number;
+      issueUrl = ghIssue.html_url;
+    } catch (err: any) {
+      console.error(`[Plan Dispatch Issue Error] Day ${entry.day}:`, err.message);
+    }
+  }
+
+  // Post card to agent channel
+  await postCard({
+    channel: targetChannel,
+    agent: assignedAgent,
+    door: entry.door || "core",
+    title: `Plan Day ${entry.day}: ${entry.title}`,
+    summary: `*Brief:* ${entry.brief}\n\n*Definition of Done:*\n${entry.definition_of_done.map((d) => `• ${d}`).join("\n")}`,
+    links: [
+      { label: `Issue #${issueNumber}`, url: issueUrl },
+      { label: "Plan", url: `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/config/plan.yaml` },
+    ],
+    actions: ["approve", "reject", "discuss"],
+    issue: issueNumber,
+    linkedIssue: issueNumber,
+    extraMeta: {
+      planDay: entry.day,
+      agent: assignedAgent,
+    },
+  }).catch((err) => console.warn("[Plan Dispatch Card Post Warning]", err));
+
+  issuedDaysCache.add(entry.day);
+
+  // If entry has architect_hour, post morning card to #architect
+  let architectCardTs: string | undefined;
+  if (entry.architect_hour) {
+    const architectChannel = isTest
+      ? (config.opsChannelId || "#ops")
+      : config.architectChannelId;
+    if (architectChannel) {
+      const cardRes = await postCard({
+        channel: architectChannel,
+        agent: "chief-of-staff",
+        door: entry.door || "core",
+        title: `Your hour today: Day ${entry.day}`,
+        summary: `*Your hour today (Day ${entry.day} — @${assignedAgent}):*\n• ${entry.architect_hour}`,
+        links: [
+          { label: `Issue #${issueNumber}`, url: issueUrl },
+          { label: "PROJECT-PLAN.md", url: `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/PROJECT-PLAN.md` },
+        ],
+        actions: ["discuss"],
+        issue: issueNumber,
+        linkedIssue: issueNumber,
+        extraMeta: {
+          planDay: entry.day,
+          agent: assignedAgent,
+        },
+      }).catch(() => ({ ok: false, ts: undefined }));
+      architectCardTs = cardRes?.ts;
+    }
+  }
+
+  // Advance current day
+  await setCurrentPlanDay(targetDay, options);
+
+  return {
+    success: true,
+    status: "dispatched",
+    entry,
+    assignedAgent,
+    issueNumber,
+    issueUrl,
+    architectCardTs,
+  };
+}
+
+/**
+ * 09:00 IST Morning Status Card, in plain English.
+ * Shape: "Good morning. Day N of 90 — on track / X days behind / X days ahead (next gate and date)",
+ * then Yesterday, Today, Money and a numbered Needs-you list (action → outcome).
+ * No Open Issues count, no Carried/Blocked line, no reference links; the only links are the
+ * ones a Needs-you action requires.
+ */
+export async function execute0900PlanDispatch(options?: {
+  dateStr?: string;
+  testMode?: boolean;
+  day?: number;
+  autoDispatch?: boolean;
+  mockCompletedDays?: (number | string)[];
+  mockIssuedDays?: number[];
+}): Promise<DispatchResult> {
+  const isTest = options?.testMode === true || isTestMode();
+  const dateStr = options?.dateStr || getTodayDateString();
+  const currentDay = options?.day || (await getCurrentPlanDay(options));
+
+  console.log(`\n=======================================================`);
+  console.log(`Chief of Staff: 09:00 IST Morning Status Card (Day ${currentDay})`);
+  console.log(`=======================================================`);
+
+  const allEntries = await loadPlanEntries(options);
+
+  // Carried items: past days not done or parked (reported in the result, not on the card)
+  const carriedForwardEntries: PlanEntry[] = [];
+  const pastEntries = allEntries.filter((e) => e.day < currentDay);
+  for (const past of pastEntries) {
+    const isDone = await isDependencyDone(past.day, options);
+    if (!isDone) carriedForwardEntries.push(past);
+  }
+
+  // Post 09:00 Status Card to #architect
+  const architectChannel = isTest ? (config.opsChannelId || "#ops") : config.architectChannelId;
+  let architectCardTs: string | undefined;
+
+  if (architectChannel) {
+    const summaryText = await buildPlainCardText({
+      mode: "morning",
+      dateStr,
+      testMode: isTest,
+      currentDay,
+      planEntries: allEntries,
+    });
+
+    const cardRes = await postCard({
+      channel: architectChannel,
+      agent: "chief-of-staff",
+      door: "core",
+      title: `Plan Status Card — Day ${currentDay}`,
+      summary: summaryText,
+      actions: ["discuss"],
+      issue: currentDay,
+      linkedIssue: currentDay,
+      extraMeta: {
+        planDay: currentDay,
+      },
+    }).catch(() => ({ ok: false, ts: undefined }));
+
+    architectCardTs = cardRes?.ts;
+  }
+
+  // When autoDispatch is explicitly requested, execute dispatchPlanDay for currentDay
+  const dispatchedEntries: PlanEntry[] = [];
+  let skippedCount = 0;
+
+  if (options?.autoDispatch) {
+    const res = await dispatchPlanDay(currentDay, options);
+    if (res.success && res.entry) {
+      dispatchedEntries.push(res.entry);
+    } else if (res.status === "already-issued") {
+      skippedCount++;
+    }
+  }
+
+  console.log(`[Plan Status Complete] Current Day: ${currentDay} | Dispatched: ${dispatchedEntries.length} | Skipped: ${skippedCount} | Carried: ${carriedForwardEntries.length}`);
+
+  return {
+    date: dateStr,
+    status: "status-card",
+    dispatchedCount: dispatchedEntries.length,
+    skippedCount,
+    carriedForwardCount: carriedForwardEntries.length,
+    dispatchedEntries,
+    carriedForwardEntries,
+    architectHourCardTs: architectCardTs,
+  };
+}
