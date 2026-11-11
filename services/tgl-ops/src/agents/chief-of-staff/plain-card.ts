@@ -172,3 +172,215 @@ export function humanizeAgent(name: string): string {
   return name.replace(/[-_]+/g, " ").trim();
 }
 
+export function buildActivitySentences(params: {
+  logs: LogLike[];
+  mergedPrTitles: string[];
+  cardsApproved: number;
+}): string {
+  const tracker = parseTrackerSummary(params.logs);
+  const researcher = parseResearcherSummary(params.logs);
+  const out: string[] = [];
+
+  out.push(
+    tracker.ran
+      ? `The citation tracker collected ${plural(tracker.answers, "answer", "answers")} and our brand was named in ${tracker.named} of them.`
+      : "The citation tracker did not report a run."
+  );
+
+  out.push(
+    researcher.ran
+      ? `The prospect researcher looked at ${plural(researcher.candidates, "candidate", "candidates")} and ${researcher.qualified} qualified.`
+      : "The prospect researcher did not report a run."
+  );
+
+  const titles = params.mergedPrTitles;
+  const shown = titles.slice(0, 3).map((t) => `"${t.replace(/"/g, "'")}"`);
+  const more = titles.length > 3 ? ` and ${titles.length - 3} more` : "";
+  const prPart =
+    titles.length === 0
+      ? "No pull requests were merged"
+      : `${plural(titles.length, "pull request was", "pull requests were")} merged (${shown.join(", ")}${more})`;
+  const cardPart =
+    params.cardsApproved === 0
+      ? "no cards were approved"
+      : `${plural(params.cardsApproved, "card was", "cards were")} approved`;
+  out.push(`${prPart}, and ${cardPart}.`);
+
+  return out.join(" ");
+}
+
+export interface RoutineLike {
+  agent: string;
+  schedule: string;
+}
+
+function cronTime(schedule: string): string | null {
+  const parts = (schedule || "").trim().split(/\s+/);
+  if (parts.length < 2 || !/^\d+$/.test(parts[0]) || !/^\d+$/.test(parts[1])) return null;
+  return `${parts[1].padStart(2, "0")}:${parts[0].padStart(2, "0")}`;
+}
+
+export function buildScheduleSentence(routines: RoutineLike[], activeIssues: { number: number; title: string }[]): string {
+  const seen = new Set<string>();
+  const phrases: string[] = [];
+  for (const r of routines) {
+    const t = cronTime(r.schedule);
+    const phrase = `the ${humanizeAgent(r.agent)}${t ? ` at ${t}` : ""}`;
+    if (!seen.has(phrase)) {
+      seen.add(phrase);
+      phrases.push(phrase);
+    }
+  }
+  const parts: string[] = [];
+  if (phrases.length === 0) {
+    parts.push("No scheduled runs are due.");
+  } else {
+    const shown = phrases.slice(0, 6);
+    const more = phrases.length > 6 ? `, and ${phrases.length - 6} more` : "";
+    parts.push(`These runs are scheduled: ${shown.join(", ")}${more}.`);
+  }
+  if (activeIssues.length === 0) {
+    parts.push("No issue is in progress.");
+  } else {
+    const shown = activeIssues.slice(0, 2).map((i) => `#${i.number} "${i.title.replace(/"/g, "'")}"`);
+    const more = activeIssues.length > 2 ? ` and ${activeIssues.length - 2} more` : "";
+    parts.push(`${activeIssues.length === 1 ? "The active issue is" : "The active issues are"} ${shown.join(" and ")}${more}.`);
+  }
+  return parts.join(" ");
+}
+
+export interface MoneyInput {
+  revenue: RevenueMetrics;
+  spendRupees: number;
+}
+
+export function buildMoneySentence(m: MoneyInput, mode: CardMode): string {
+  const r = m.revenue;
+  const spendLabel = mode === "morning" ? "Yesterday's spend was" : "Today's spend was";
+  return (
+    `${plural(r.auditRequests, "audit request", "audit requests")}, ` +
+    `${plural(r.diagnosticCallsBooked, "call booked", "calls booked")}, ` +
+    `${plural(r.proposalsSent, "proposal", "proposals")}, ` +
+    `${plural(r.retainersWon, "retainer", "retainers")}, ` +
+    `${formatRupees(r.rupeesInvoiced)} invoiced. ${spendLabel} ${formatRupees(m.spendRupees)}.`
+  );
+}
+
+export interface NeedItem {
+  /** The action, in plain words. May contain one Slack link: <url|text>. */
+  action: string;
+  /** The expected outcome, one sentence, no trailing full stop needed. */
+  outcome: string;
+}
+
+function link(url: string | undefined, text: string): string {
+  return url ? `<${url}|${text}>` : text;
+}
+
+export interface NeedsSource {
+  openApprovals: { title: string; permalink?: string }[];
+  blockedIssues?: { number: number; title: string; label: string; url: string }[];
+  /** Plan entries, the current plan day and the day due today, used for the "go" item. */
+  planEntries?: PlanEntry[];
+  currentDay?: number;
+  dueDay?: number;
+}
+
+const MAX_NEEDS = 6;
+
+export function buildNeedsItems(src: NeedsSource): NeedItem[] {
+  const items: NeedItem[] = [];
+
+  for (const a of src.openApprovals || []) {
+    items.push({
+      action: `Approve or reject ${link(a.permalink, `"${a.title.replace(/"/g, "'")}"`)} in #approvals`,
+      outcome: "the work is released and the agent moves on to its next task",
+    });
+  }
+
+  for (const b of src.blockedIssues || []) {
+    const ref = link(b.url, `#${b.number} "${b.title.replace(/"/g, "'")}"`);
+    if (b.label === "status:needs-brief") {
+      items.push({
+        action: `Write the missing brief on ${ref}`,
+        outcome: "the agent can start building it",
+      });
+    } else {
+      items.push({
+        action: `Clear the blocker on ${ref}`,
+        outcome: "the agent restarts the stalled work",
+      });
+    }
+  }
+
+  if (src.planEntries && src.currentDay !== undefined && src.dueDay !== undefined) {
+    const next = [...src.planEntries]
+      .sort((a, b) => a.day - b.day)
+      .find(
+        (e) =>
+          e.day > src.currentDay! &&
+          e.status !== "completed" &&
+          !(e.depends_on || []).includes("architect-unpark")
+      );
+    if (next && next.day <= src.dueDay) {
+      items.push({
+        action: `Reply "go" in #architect to start Day ${next.day} (${next.title.replace(/"/g, "'")})`,
+        outcome: "the agent receives its brief and the plan starts catching up",
+      });
+    }
+  }
+
+  return items.slice(0, MAX_NEEDS);
+}
+
+export function renderNeedsSection(items: NeedItem[]): string {
+  if (items.length === 0) {
+    return "*Needs you:*\nNothing else needs you.";
+  }
+  const lines = items.map((it, i) => `${i + 1}. ${it.action} → ${it.outcome.replace(/\.$/, "")}.`);
+  return ["*Needs you:*", ...lines].join("\n");
+}
+
+export interface PlainCardInput {
+  mode: CardMode;
+  /** IST date of the card, YYYY-MM-DD */
+  dateStr: string;
+  currentDay: number;
+  planEntries: PlanEntry[];
+  activityLogs: LogLike[];
+  mergedPrTitles: string[];
+  cardsApproved: number;
+  scheduledRoutines: RoutineLike[];
+  activeIssues: { number: number; title: string }[];
+  revenue: RevenueMetrics;
+  spendRupees: number;
+  needs: NeedItem[];
+}
+
+export function renderGreetingLine(input: Pick<PlainCardInput, "mode" | "dateStr" | "currentDay" | "planEntries">): string {
+  const due = planDayDueOn(input.dateStr);
+  const pace = computePace(due, input.currentDay);
+  const gate = findNextGate(input.planEntries);
+  const gateText = gate ? ` (Next gate: ${gate.name}, expected ${formatShortDate(gate.date)})` : "";
+  const hello = input.mode === "morning" ? "Good morning." : "Good evening.";
+  return `${hello} Day ${input.currentDay} of ${PROGRAMME_DAYS} — ${pace.phrase}${gateText}.`;
+}
+
+/** Renders the full card. Plain text and bold only; no emojis. */
+export function renderPlainCard(input: PlainCardInput): string {
+  const activityLabel = input.mode === "morning" ? "Yesterday" : "Today";
+  const scheduleLabel = input.mode === "morning" ? "Today" : "Tomorrow";
+  const lines: string[] = [];
+  lines.push(renderGreetingLine(input));
+  lines.push(
+    `*${activityLabel}:* ${buildActivitySentences({
+      logs: input.activityLogs,
+      mergedPrTitles: input.mergedPrTitles,
+      cardsApproved: input.cardsApproved,
+    })}`
+  );
+  lines.push(`*${scheduleLabel}:* ${buildScheduleSentence(input.scheduledRoutines, input.activeIssues)}`);
+  lines.push(`*Money:* ${buildMoneySentence({ revenue: input.revenue, spendRupees: input.spendRupees }, input.mode)}`);
+  lines.push(renderNeedsSection(input.needs));
+  return lines.join("\n");
+}
