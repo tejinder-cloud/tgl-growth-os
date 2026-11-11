@@ -199,3 +199,97 @@ async function main(): Promise<void> {
   assertEqual(formatRupees(255.6), "₹256", "larger amounts show whole rupees");
   passed++;
   console.log("[6] Yesterday sentences, money formatting: passed");
+
+  // ---- 7. No emojis in any rendered card ----
+  const variants: PlainCardInput[] = [
+    baseInput(),
+    baseInput({ needs: items }),
+    baseInput({ currentDay: 12 }),
+    baseInput({ currentDay: 17, activityLogs: [], mergedPrTitles: [], cardsApproved: 0, scheduledRoutines: [], activeIssues: [] }),
+    baseInput({ mode: "evening", needs: items }),
+    baseInput({ mode: "evening", needs: [], spendRupees: 0 }),
+  ];
+  for (const v of variants) {
+    const text = renderPlainCard(v);
+    assert(!EMOJI_REGEX.test(text), `emoji found in ${v.mode} card:\n${text}`);
+    assert(isPlainShape(text, v.mode), `${v.mode} card lost the plain-English shape:\n${text}`);
+    assert(text.split("\n")[0].includes(" of 90 — "), "line 1 carries the day and pace");
+  }
+  passed++;
+  console.log("[7] No emojis in 09:00 or 21:00 cards: passed");
+
+  // ---- 8. Full 09:00 card from gathered material (no network, no Slack) ----
+  const material: GatheredData = {
+    date: "2026-11-12",
+    compileTime: "21:00",
+    logs,
+    openApprovals: [{ title: "Day 20 dashboard", agent: "web-builder", ts: "1.1", permalink: "https://itsthegrowthlab.slack.com/archives/C1/p11" }],
+    inProgressIssues: [{ number: 180, title: "Plain-English 09:00 card", agent: "web-builder", door: "core", ageDays: 0, url: "https://github.com/x/y/issues/180" }],
+    openPrs: [],
+    doors: [],
+    openProposals: [],
+    agentCostStatuses: [],
+    carriedForwardPlanEntries: [],
+    revenueMetrics: { auditRequests: 3, diagnosticCallsBooked: 1, proposalsSent: 1, retainersWon: 0, rupeesInvoiced: 0 },
+    blockedIssues: [],
+    olderReviewCards: [],
+    rawSummaryText: "",
+  };
+  const morning = await buildPlainCardText({
+    mode: "morning",
+    dateStr: "2026-11-12",
+    testMode: true,
+    material,
+    currentDay: 15,
+    planEntries,
+    overrides: {
+      activityLogs: logs,
+      mergedPrTitles: ["Plain-English 09:00 card"],
+      cardsApproved: 2,
+      scheduledRoutines: [{ agent: "aeo-audit-engine", schedule: "0 6 * * *" }],
+      spendRupees: 34.4,
+    },
+  });
+  console.log("\n" + morning + "\n");
+  const mLines = morning.split("\n");
+  assert(mLines[0].startsWith("Good morning. Day 15 of 90 — on track (Next gate: Gate 1, expected 11 Nov)"), "line 1");
+  assert(morning.includes("*Yesterday:* The citation tracker collected 48 answers"), "Yesterday section");
+  assert(morning.includes('"Plain-English 09:00 card"'), "merged PR title named");
+  assert(morning.includes("2 cards were approved"), "cards approved counted");
+  assert(morning.includes("*Today:* These runs are scheduled: the aeo audit engine at 06:00."), "Today lists scheduled runs");
+  assert(morning.includes('The active issue is #180 "Plain-English 09:00 card".'), "Today names the active issue");
+  assert(morning.includes("*Money:* 3 audit requests, 1 call booked, 1 proposal, 0 retainers, ₹0 invoiced. Yesterday's spend was ₹34.40."), "Money line");
+  assert(/^1\. Approve or reject <https:\/\/itsthegrowthlab\.slack\.com\/archives\/C1\/p11\|"Day 20 dashboard"> in #approvals → .+\.$/m.test(morning), "Needs you item");
+  assert(!/Open Issues|Carried|Intake|PROJECT-PLAN|plan\.yaml/i.test(morning), "removed lines stay removed");
+  assert(!EMOJI_REGEX.test(morning), "no emojis in the gathered card");
+  passed++;
+  console.log("[8] Gathered 09:00 card: passed");
+
+  // ---- 9. 21:00 standup uses the same shape ----
+  const standup = await buildPlainStandupText({ ...material, openApprovals: [], blockedIssues: [] }, { testMode: true });
+  assert(standup.startsWith("Good evening. Day "), "standup greeting");
+  assert(isPlainShape(standup, "evening"), `standup shape:\n${standup}`);
+  assert(standup.includes("Daily Standup Digest"), "standup keeps the sign-off line the catch-up logic searches for");
+  assert(standup.split("\n").length <= 25, "standup stays within 25 lines");
+  assert(!EMOJI_REGEX.test(standup), "no emojis in the standup");
+  passed++;
+  console.log("[9] 21:00 standup shape: passed");
+
+  // ---- 10. Static guards on the 09:00 card source ----
+  const dispatchSrc = fs.readFileSync(
+    path.join(config.repoRoot, "services/tgl-ops/src/agents/chief-of-staff/dispatch.ts"),
+    "utf8"
+  );
+  assert(!dispatchSrc.includes("Open Issues:"), "09:00 card no longer prints an Open Issues count");
+  assert(!dispatchSrc.includes("Carried / Blocked"), "09:00 card no longer prints a Carried/Blocked line");
+  assert(dispatchSrc.includes("buildPlainCardText"), "09:00 card is built by the plain-English builder");
+  passed++;
+  console.log("[10] Source guards: passed");
+
+  console.log(`\nALL ${passed} PLAIN-CARD SUITES PASSED`);
+}
+
+main().catch((err) => {
+  console.error("\nPlain card tests failed:", err);
+  process.exit(1);
+});
