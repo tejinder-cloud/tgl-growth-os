@@ -356,6 +356,19 @@
     "updatedAt": "2026-11-11T07:11:06.326Z",
     "prNumber": 178
   },
+  "180": {
+    "channel": "#site-build",
+    "ts": "1794394779.733529",
+    "agent": "web-builder",
+    "door": "core",
+    "title": "Plain-English 09:00 card. Rewrite the Chief of Staff status card in services/tgl",
+    "cardType": "issue",
+    "linkedIssueNumber": 180,
+    "threadTimestamps": [
+      "1794394779.733529"
+    ],
+    "updatedAt": "2026-11-11T10:59:40.073Z"
+  },
   "thread:1794308956.168819": {
     "channel": "#doors-aeo",
     "ts": "1794308956.168819",
@@ -434,5 +447,16 @@
     "door": "core",
     "title": "[TASK]: Save benched candidates. In services/tgl-ops/src/agents/prospect-researcher/work",
     "updatedAt": "2026-11-11T07:11:06.326Z"
+  },
+  "thread:1794394779.733529": {
+    "channel": "#site-build",
+    "ts": "1794394779.733529",
+    "issueNumber": 180,
+    "linkedIssueNumber": 180,
+    "cardType": "issue",
+    "agent": "web-builder",
+    "door": "core",
+    "title": "Plain-English 09:00 card. Rewrite the Chief of Staff status card in services/tgl",
+    "updatedAt": "2026-11-11T10:59:40.073Z"
   }
 }
