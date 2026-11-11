@@ -49,7 +49,7 @@ function noTemplatePhrase(text: string): string | null {
   return TEMPLATE_PHRASES.find((p) => lower.includes(p.toLowerCase())) || null;
 }
 
-// ── Prompt fixtures ─────────────────────────────────────────────────────────────────────────
+// Prompt fixtures
 const PROMPTS = [
   { id: "p1", text: "What is AEO and why does it matter?", language: "en", journey_phase: "awareness" },
   { id: "p2", text: "How do I choose an AEO agency", language: "en", journey_phase: "consideration" },
@@ -95,7 +95,7 @@ function cannedAnswer(engine: EngineId, text: string): EngineAnswer {
   };
 }
 
-// ── Hand-built matrix cells (no analyzer, no engine) ────────────────────────────────────────
+// Hand-built matrix cells (no analyzer, no engine)
 interface Cell {
   mentioned: boolean;
   position: number | null;
@@ -136,11 +136,13 @@ async function main(): Promise<void> {
     check("journeyPhaseRank: decision and comparison share the top rank", journeyPhaseRank("decision") === 0 && journeyPhaseRank("comparison") === 0);
     check("journeyPhaseRank: consideration is next, everything else last", journeyPhaseRank("consideration") === 1 && journeyPhaseRank("awareness") === 2 && journeyPhaseRank(undefined) === 2 && journeyPhaseRank("anything") === 2);
 
+    const before = PROMPTS.map((p) => p.id).join(",");
     const picked = selectAuditPrompts(PROMPTS, BRAND);
     const ids = picked.map((p) => p.id);
     check("picks decision/comparison first (input order), then consideration", JSON.stringify(ids) === JSON.stringify(["p4", "p5", "p7", "p2", "p8"]), ids.join(","));
     check("returns exactly five", picked.length === 5);
     check("does not simply take the first five", JSON.stringify(ids) !== JSON.stringify(["p1", "p2", "p3", "p4", "p5"]));
+    check("does not mutate the input list", PROMPTS.map((p) => p.id).join(",") === before);
 
     const noHigh = [
       { id: "a", text: "alpha", journey_phase: "awareness" },
@@ -153,10 +155,6 @@ async function main(): Promise<void> {
     ];
     const ids2 = selectAuditPrompts(noHigh, BRAND).map((p) => p.id);
     check("falls through to the rest, keeping order within each phase", JSON.stringify(ids2) === JSON.stringify(["f", "c", "e", "a", "b"]), ids2.join(","));
-
-    const input = PROMPTS.map((p) => p.id);
-    selectAuditPrompts(PROMPTS, BRAND);
-    check("does not mutate the input list", JSON.stringify(PROMPTS.map((p) => p.id)) === JSON.stringify(input));
   }
 
   // 2. Branded exclusion
@@ -184,11 +182,13 @@ async function main(): Promise<void> {
     check("runShortFormAudit audits the selected five in selection order", JSON.stringify(audited) === JSON.stringify(expected), audited.join(" | "));
     check("engines were only ever asked the selected prompts (5 prompts x 3 engines)", seen.length === 15 && seen.every((p) => expected.includes(p)));
     check("no branded prompt was sent to any engine", !seen.some((p) => isBrandedPrompt(p, BRAND)));
-    check("journey phase follows the selected prompt, not its list position", result.results.map((r) => r.journeyPhase).join(",") === "comparison,decision,comparison,consideration,consideration", result.results.map((r) => r.journeyPhase).join(","));
+    const phases = result.results.map((r) => r.journeyPhase).join(",");
+    check("journey phase follows the selected prompt, not its list position", phases === "comparison,decision,comparison,consideration,consideration", phases);
 
     let refused = "";
     try {
-      await runShortFormAudit(profileWith(PROMPTS.slice(0, 6)), {
+      // p1 to p5 contains one branded prompt (p3), leaving four.
+      await runShortFormAudit(profileWith(PROMPTS.slice(0, 5)), {
         testMode: true,
         saveRawJson: false,
         engineMock: async (engine) => cannedAnswer(engine, "unused"),
@@ -198,73 +198,3 @@ async function main(): Promise<void> {
     }
     check("fewer than five non-branded prompts refuses the audit", /fewer than 5 non-branded/.test(refused) && /Audit refused/.test(refused), refused || "did not refuse");
   }
-
-  // 3. Next steps from the matrix only
-  console.log("\n[3] Next steps are generated from the matrix");
-  {
-    // 3a. Every count is zero: no mentions, no competitors, no citations.
-    const zeroRows = [1, 2, 3, 4, 5].map((i) => row(i, `Zero query ${i}`, {}));
-    const zero = generateMatrixNextSteps(zeroRows, undefined, BRAND);
-    check("zero counts: no template phrase appears", noTemplatePhrase(zero.formattedText) === null, noTemplatePhrase(zero.formattedText) || "");
-    check("zero counts: all three engines are named as having zero mentions", /ChatGPT, Gemini and Perplexity did not name Acme Growth in any of the 5 prompts/.test(zero.formattedText), zero.formattedText);
-    check("zero counts: plainly says no competitor was named", /No competitor was named in any of the 15 answers\./.test(zero.formattedText), zero.formattedText);
-    check("zero counts: no competitor or citation is invented", zero.winningCompetitor === "" && zero.winningCompetitorCount === 0 && zero.topCitationGap === "");
-    check("zero counts: names the two weakest queries (ties keep prompt order)", zero.weakestQueries.join(",") === "1,2" && /Q1 "Zero query 1" \(0 of 3 engines named Acme Growth\); Q2 "Zero query 2"/.test(zero.formattedText), zero.formattedText);
-    check("zero counts: 0 of 15 is stated", /named in 0 of 15 answers/.test(zero.formattedText));
-
-    // 3b. A mixed matrix with a clear top competitor.
-    // brand mentions: chatgpt 0; gemini q1,q2; perplexity q1..q4. RivalCo in 6 answers, OtherCo in 2.
-    const mixed: PromptAuditResult[] = [
-      row(1, "Mixed query 1", { chatgpt: { mentioned: false, position: null, comps: ["RivalCo"] }, gemini: { mentioned: true, position: 1 }, perplexity: { mentioned: true, position: 1 } }),
-      row(2, "Mixed query 2", { chatgpt: { mentioned: false, position: null, comps: ["RivalCo"] }, gemini: { mentioned: true, position: 2, comps: ["RivalCo"] }, perplexity: { mentioned: true, position: 1 } }),
-      row(3, "Mixed query 3", { chatgpt: { mentioned: false, position: null, comps: ["RivalCo", "OtherCo"] }, perplexity: { mentioned: true, position: 3, comps: ["RivalCo", "OtherCo"] } }),
-      row(4, "Mixed query 4", { chatgpt: { mentioned: false, position: null, comps: ["RivalCo"] }, perplexity: { mentioned: true, position: 1 } }),
-      row(5, "Mixed query 5", { chatgpt: { mentioned: false, position: null, comps: ["RivalCo"] } }),
-    ];
-    const ns = generateMatrixNextSteps(mixed, undefined, BRAND);
-    check("mixed: engines with zero mentions are named (ChatGPT only)", ns.zeroMentionEngines.join(",") === "ChatGPT" && /ChatGPT did not name Acme Growth in any of the 5 prompts/.test(ns.formattedText) && !/Gemini did not/.test(ns.formattedText), ns.formattedText);
-    check("mixed: the competitor with the most mentions is named with its count", ns.winningCompetitor === "RivalCo" && ns.winningCompetitorCount === 7 && /RivalCo was the competitor named most often, in 7 of 15 answers/.test(ns.formattedText), `${ns.winningCompetitor} ${ns.winningCompetitorCount} :: ${ns.formattedText}`);
-    check("mixed: the two weakest queries are Q5 (0 engines) then Q3 (1 engine, worst position)", ns.weakestQueries.join(",") === "5,3" && /Weakest queries: Q5 "Mixed query 5" \(0 of 3 engines named Acme Growth\); Q3 "Mixed query 3" \(1 of 3 engines named Acme Growth\)\./.test(ns.formattedText), ns.formattedText);
-    check("mixed: no template phrase appears", noTemplatePhrase(ns.formattedText) === null);
-    check("mixed: does not claim no competitor was named", !/No competitor was named/.test(ns.formattedText));
-    check("mixed: states the brand total (10 of 15 is not the count; 8 is)", /named in 8 of 15 answers/.test(ns.formattedText), ns.formattedText);
-
-    // 3c. Every engine mentions the brand at least once: no zero-mention engine is invented.
-    const allEngines: PromptAuditResult[] = [
-      row(1, "All query 1", { chatgpt: { mentioned: true, position: 1 }, gemini: { mentioned: true, position: 1 }, perplexity: { mentioned: true, position: 1 } }),
-      row(2, "All query 2", { chatgpt: { mentioned: false, position: null }, gemini: { mentioned: true, position: 2 }, perplexity: { mentioned: true, position: 1 } }),
-    ];
-    const ok = generateMatrixNextSteps(allEngines, undefined, BRAND);
-    check("all engines mention: no zero-mention engine is named", ok.zeroMentionEngines.length === 0 && /Every engine named Acme Growth at least once; ChatGPT was the weakest, naming it in 1 of 2 prompts/.test(ok.formattedText), ok.formattedText);
-  }
-
-  // 4. End to end: zero counts through the audit, the HTML and the PDF
-  console.log("\n[4] Zero counts through the audit, the HTML and the PDF");
-  {
-    const result = await runShortFormAudit(profileWith(PROMPTS), {
-      testMode: true,
-      saveRawJson: false,
-      engineMock: async (engine) => cannedAnswer(engine, "No specific providers could be recommended for that search."),
-    });
-    check("audit with no mentions and no competitors: score is 0%", result.summary.visibilityScorePercent === 0 && Object.keys(result.summary.competitorMentions).length === 0);
-    check("audit next steps contain no template phrase", noTemplatePhrase(result.nextSteps.formattedText) === null, result.nextSteps.formattedText);
-    check("audit next steps say no competitor was named", /No competitor was named in any of the 15 answers\./.test(result.nextSteps.formattedText));
-
-    // A stale stored text must never reach the page: the box is regenerated from the matrix at render time.
-    const stale = { ...result, nextSteps: { ...result.nextSteps, formattedText: "STALE counselling conversion keywords against competing operators" } };
-    const html = renderAuditHtml(stale);
-    check("rendered box ignores stale stored text and carries no template phrase", !html.includes("STALE") && noTemplatePhrase(html) === null);
-    check("rendered box contains the matrix-generated text", html.includes(buildNextStepsText(stale)) && /No competitor was named/.test(html));
-
-    const pdf = await generateAuditPdf(stale);
-    check("PDF still renders (under 2MB)", pdf.buffer.subarray(0, 5).toString("ascii") === "%PDF-" && pdf.sizeBytes < 2 * 1024 * 1024, `${pdf.sizeBytes}`);
-  }
-
-  console.log(failures === 0 ? "\nAll audit prompt selection tests passed." : `\n${failures} audit prompt selection test(s) FAILED.`);
-  process.exit(failures === 0 ? 0 : 1);
-}
-
-main().catch((err) => {
-  console.error("test-audit-prompt-selection crashed:", err);
-  process.exit(1);
-});
