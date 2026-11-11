@@ -2,5 +2,15 @@
   "date": "2026-11-11",
   "posted": false,
   "standupTs": "1794313801.367499",
-  "channel": "C0ASF13879Q"
+  "channel": "C0ASF13879Q",
+  "compiledAt": "2026-11-11T12:20:23.716Z",
+  "digestText": "*The Growth Lab — Daily Standup Digest | 2026-11-11 17:50 IST*\n──────────────────────────────────────────\n*Product Doors:*\n• *AEO:* no data yet | *AI:* no data yet | *TrueLead:* no data yet | *Core:* operational\n• *Revenue:* 0 audit requests · 0 diagnostic calls booked · 0 proposals sent · 0 retainers won · ₹0 invoiced\n\n*Blockers:*\n• #180 ([TASK]: Plain-English 09:00 card. Rewrite the Chief of Staff status card in services/tgl, 1h): status:blocked\n• #163 ([TASK]: Generate the TGL audit PDF from today’s verified run and post it to #doors-aeo, 1d): status:blocked\n• #163 ([TASK]: Generate the TGL audit PDF from today’s verified run and post it to #doors-aeo, 1d): status:needs-brief\n• #60 ([PLAN-D9]: TrueVisible MVP sprint kick-off & Full audit engine (10 prompts × 5 engines), 11d): status:needs-brief\n\n*Approvals Pending:*\n• _None pending._\n• *@web-builder* at 121% of daily cost cap ($14.54 / $12.00)\n\n*Agent Reports:*\n• *`@aeo-audit-engine`*: 06:06 IST — Citation Tracker: 1 brand(s) · ChatGPT 16/16, Ge\n• *`@chief-of-staff`*: 12:32 IST — Intake classification [decision]: 1037 input, 14\n• *`@prospect-researcher`*: Run — 09:30 IST (Hyderabad · high_ticket_coaching)\n• *`@web-builder`*: 00:00 IST — Issue #171 pre-flight (proceed): 4722 input, 535\n• *Intake:* intake last read 17:50 IST\n\n_Active agents: reply in-thread with your 4 lines: Did · Blocked · Need · Tomorrow._",
+  "synthesis": {
+    "model": "claude-sonnet-5-5",
+    "inputTokens": 4070,
+    "outputTokens": 2000,
+    "totalCostUsd": 0.0422,
+    "costLine": "Standup compilation: 4070 input, 2000 output (claude-sonnet-5-5) · Cost: $0.0422 USD"
+  },
+  "source": "cron"
 }
