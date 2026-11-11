@@ -736,3 +736,112 @@ ${params.probeShortfall ? `- **Dim 4 Shortfall:** ${params.probeShortfall}\n` : 
     });
   }
 }
+
+/**
+ * Re-scores existing prospects with updated root domain chain detection,
+ * enterprise chain rule enforcement (moving chain HQs like Max Saket to rejected),
+ * and organisation size DM role rules (<50 staff vs ≥50 staff).
+ *
+ * Rubric v2: this weekly re-score never calls an engine. Dimension 4 is taken from the dim4_probe already stored
+ * on the row. A row with no stored probe (scored under v1, not yet probed) keeps its score and status unless it is
+ * disqualified; it is probed through the benched-candidate rotation or on its next discovery run, never here.
+ *
+ * Benched rows (issue #177, status nurture or bench) are read here too: a bench row that still scores from
+ * FIT_BENCH_FLOOR up to below the qualified threshold stays "bench"; one that now qualifies moves to "new" for
+ * Architect review (never straight to "reviewed" or outreach); one below the floor, or disqualified, is rejected.
+ */
+export async function rescoreProspects(options?: { testMode?: boolean }): Promise<{
+  totalRescored: number;
+  disqualifiedChains: string[];
+  qualifiedCount: number;
+  records: ProspectRecord[];
+}> {
+  const isTest = options?.testMode === true || isTestMode();
+  const all = await loadAllProspects(options);
+
+  if (all.length === 0) {
+    console.log(`[Rescore Notice] No existing prospects loaded to re-score.`);
+    return { totalRescored: 0, disqualifiedChains: [], qualifiedCount: 0, records: [] };
+  }
+
+  const disqualifiedChains: string[] = [];
+  const updatedRecords: ProspectRecord[] = [];
+
+  for (const p of all) {
+    // 1. Re-evaluate brand token and root domain
+    const { brand, rootDomain } = extractBrandToken(p.company, p.website);
+    p.signals.brand_prefix = brand;
+
+    // Apply Generic Chain Rule (Playbook C):
+    // 1. Brand appears at 3 or more Places locations
+    // 2. Or the root domain hosts other branches
+    // 3. Or the registered HQ is in another metro
+    const chainCheck = checkPlaybookCDisqualification(p.company, p.website, p.signals, p.city);
+    if (chainCheck.disqualified && chainCheck.reason) {
+      p.signals.chain_evidence = p.signals.chain_evidence || [];
+      if (!p.signals.chain_evidence.includes(chainCheck.reason)) {
+        p.signals.chain_evidence.push(chainCheck.reason);
+      }
+    }
+
+    // 2. Re-evaluate organisation size and DM role
+    const isLargeOrg = isCandidateOrgSizeGe50({ name: p.company }, p.category, p.signals);
+    p.signals.is_large_org = isLargeOrg;
+
+    // 3. Re-evaluate rubric (v2). Dimension 4 comes from the stored probe, if any.
+    const storedProbe = parseDim4Probe(p.fit_reasons);
+    const evalRes = evaluateProspectRubric({
+      company: p.company,
+      domain: p.website,
+      category: p.category,
+      city: p.city,
+      signals: p.signals,
+      decisionMaker: p.decision_maker,
+      dim4Probe: storedProbe,
+    });
+
+    const wasBenched = p.status === "bench" || p.status === "nurture";
+
+    if (evalRes.disqualified) {
+      p.fit_score = 0;
+      p.status = "rejected";
+      p.fit_reasons = evalRes.fitReasons;
+      disqualifiedChains.push(`${p.company} (${evalRes.disqualificationReason || "Chain disqualified"})`);
+    } else if (!storedProbe) {
+      console.log(`[Rescore Notice] '${p.company}' has no Dimension 4 probe yet: score and status unchanged (${p.fit_score}, ${p.status}).`);
+    } else {
+      p.fit_score = evalRes.fitScore;
+      p.fit_reasons = evalRes.fitReasons;
+      if (evalRes.qualified) {
+        if (wasBenched) {
+          p.status = "new";
+        } else {
+          p.status = p.status === "handed_to_outreach" ? "handed_to_outreach" : "reviewed";
+        }
+      } else if (wasBenched && evalRes.fitScore >= FIT_BENCH_FLOOR) {
+        p.status = "bench";
+      } else {
+        p.status = "rejected";
+      }
+    }
+
+    p.rescored_at = new Date().toISOString();
+    updatedRecords.push(p);
+  }
+
+  // Write updated records back to Supabase
+  if (!isTest && updatedRecords.length > 0) {
+    await upsertProspectRecords(updatedRecords, options);
+  }
+
+  const qualifiedCount = updatedRecords.filter((r) => r.fit_score >= FIT_QUALIFIED_THRESHOLD && r.status !== "rejected").length;
+
+  console.log(`[Rescore Complete] Re-scored ${updatedRecords.length} records: ${disqualifiedChains.length} disqualified as chains, ${qualifiedCount} qualified.`);
+
+  return {
+    totalRescored: updatedRecords.length,
+    disqualifiedChains,
+    qualifiedCount,
+    records: updatedRecords,
+  };
+}
