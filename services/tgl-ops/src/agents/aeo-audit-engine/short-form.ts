@@ -3,6 +3,8 @@
 // for a target brand, reading answers and citations deterministically.
 // Enforces the Iron Law of Honesty: refuses unverified setups, displays exact cell ranks,
 // counts actual answer frequencies, generates matrix-driven next steps, and records excerpts.
+// The five audited prompts are chosen by buyer intent (decision/comparison first, then consideration,
+// then the rest), and branded prompts (containing the brand name) are never audited.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -21,8 +23,11 @@ import {
   type VerifiedBrandProfile,
   type SetupStatus,
 } from "./setup-profile.js";
+import { generateMatrixNextSteps } from "./next-steps.js";
 import { putFileInRepo } from "../../lib/github-client.js";
 import { isTestMode } from "../../config.js";
+
+export { generateMatrixNextSteps };
 
 export type MatrixBadge = "Named #1" | "Named #2" | "Named #3" | "Mentioned" | "—";
 
@@ -32,6 +37,59 @@ export function getCellBadge(analysis: AnswerAnalysis): MatrixBadge {
   if (analysis.position === 2) return "Named #2";
   if (analysis.position === 3) return "Named #3";
   return "Mentioned";
+}
+
+/** Number of prompts audited in a short-form audit. */
+export const AUDIT_PROMPT_COUNT = 5;
+
+/** Minimal prompt shape needed for selection (VerifiedPrompt satisfies it). */
+export interface SelectablePrompt {
+  text: string;
+  journey_phase?: string;
+}
+
+function normaliseForMatch(s: string): string {
+  return s.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+/**
+ * A prompt is branded when its text contains the brand name (case-insensitive, whitespace-normalised).
+ */
+export function isBrandedPrompt(promptText: string, brandName: string): boolean {
+  const brand = normaliseForMatch(brandName || "");
+  if (!brand) return false;
+  return normaliseForMatch(promptText).includes(brand);
+}
+
+/**
+ * Buyer-intent rank of a journey phase: lower is audited first.
+ * 0 = decision or comparison, 1 = consideration, 2 = everything else (awareness, unknown, missing).
+ */
+export function journeyPhaseRank(phase?: string | null): number {
+  const p = (phase || "").trim().toLowerCase();
+  if (p === "decision" || p === "comparison") return 0;
+  if (p === "consideration") return 1;
+  return 2;
+}
+
+/**
+ * Chooses the prompts to audit by buyer intent instead of taking the first five:
+ * 1. Branded prompts (containing the brand name) are excluded.
+ * 2. Remaining prompts are ordered decision/comparison, then consideration, then the rest.
+ * 3. Order within a phase is the input order (stable).
+ * Returns up to `count` prompts; callers decide what to do when fewer are available.
+ */
+export function selectAuditPrompts<T extends SelectablePrompt>(
+  prompts: T[],
+  brandName: string,
+  count: number = AUDIT_PROMPT_COUNT
+): T[] {
+  return prompts
+    .filter((p) => !isBrandedPrompt(p.text, brandName))
+    .map((p, order) => ({ p, order, rank: journeyPhaseRank(p.journey_phase) }))
+    .sort((a, b) => a.rank - b.rank || a.order - b.order)
+    .slice(0, count)
+    .map((x) => x.p);
 }
 
 export interface PromptEngineResult {
@@ -59,11 +117,18 @@ export interface PromptAuditResult {
 }
 
 export interface MatrixNextSteps {
+  /** Engine with the fewest mentions of the brand (empty when the matrix has no engines). */
   weakestEngine: string;
   weakestEngineMentions: number;
+  /** Engines that named the brand in none of the prompts. */
+  zeroMentionEngines: string[];
   queriesLost: number[];
+  /** Prompt indexes of the two weakest queries. */
+  weakestQueries: number[];
+  /** Competitor named in the most answers; empty string when no competitor was named. */
   winningCompetitor: string;
   winningCompetitorCount: number;
+  /** Most-cited non-brand domain; empty string when nothing was cited. */
   topCitationGap: string;
   formattedText: string;
 }
@@ -151,69 +216,6 @@ export function extractPromptExcerpt(
 }
 
 /**
- * Generates dynamic, matrix-driven next steps based strictly on matrix outcomes.
- * Identifies weakest engine, lost/outranked queries, winning competitor, and top citation gaps.
- */
-export function generateMatrixNextSteps(
-  results: PromptAuditResult[],
-  summary: ShortFormAuditResult["summary"],
-  brandName: string
-): MatrixNextSteps {
-  // 1. Weakest engine
-  const engineEntries = (Object.entries(summary.mentionsByEngine) as [EngineId, number][]).sort(
-    (a, b) => a[1] - b[1]
-  );
-  const weakest = engineEntries[0] || ["chatgpt", 0];
-  const engineNameMap: Record<EngineId, string> = {
-    chatgpt: "ChatGPT",
-    gemini: "Gemini",
-    perplexity: "Perplexity",
-  };
-  const weakestEngineName = engineNameMap[weakest[0]] || weakest[0];
-
-  // 2. Lost or outranked queries (brand absent or ranked > 1)
-  const queriesLost: number[] = [];
-  for (const r of results) {
-    const isLostOrOutranked = Object.values(r.engineResults).some(
-      (er) => !er.analysis.mentioned || (er.analysis.position !== null && er.analysis.position > 1)
-    );
-    if (isLostOrOutranked) {
-      queriesLost.push(r.promptIndex);
-    }
-  }
-
-  // 3. Winning competitor
-  const sortedComps = Object.entries(summary.competitorMentions).sort((a, b) => b[1] - a[1]);
-  const winningCompetitor = sortedComps[0] ? sortedComps[0][0] : "competing operators";
-  const winningCompetitorCount = sortedComps[0] ? sortedComps[0][1] : 0;
-
-  // 4. Citation gap
-  const topCitations = Object.entries(summary.citationDomains)
-    .filter(([dom]) => !dom.includes("thegrowthlab"))
-    .sort((a, b) => b[1] - a[1]);
-  const topCitationGap = topCitations[0] ? topCitations[0][0] : "directory listings";
-
-  // 5. Dynamic text
-  const lostQueriesLabel = queriesLost.length > 0 ? `Queries ${queriesLost.join(", ")}` : "evaluated queries";
-  const formattedText =
-    `Visibility score is ${summary.visibilityScorePercent}% across ${results.length * 3} model answers. ` +
-    `Primary gap is ${weakestEngineName} (${weakest[1]}/${results.length} mentions), where ${winningCompetitor} ` +
-    `captured top placement across ${lostQueriesLabel} with ${winningCompetitorCount} answer mentions. ` +
-    `To advance visibility toward 90%+, deploy comparison entity schemas targeting ${winningCompetitor}, ` +
-    `seed verified citations on ${topCitationGap}, and optimize structured data for counselling conversion keywords.`;
-
-  return {
-    weakestEngine: weakestEngineName,
-    weakestEngineMentions: weakest[1],
-    queriesLost,
-    winningCompetitor,
-    winningCompetitorCount,
-    topCitationGap,
-    formattedText,
-  };
-}
-
-/**
  * Executes a 5-prompt × 3-engine short-form AEO audit for a given brand.
  * Refuses to run if the brand's setup profile is unverified.
  */
@@ -249,15 +251,23 @@ export async function runShortFormAudit(
     })),
   };
 
-  // Buyer prompts strictly from verified setup profile
-  const prompts =
-    options?.prompts && options.prompts.length === 5
-      ? options.prompts
-      : verifiedProfile.prompts.slice(0, 5).map((p) => p.text);
+  // Buyer prompts strictly from the verified setup profile, chosen by buyer intent:
+  // decision/comparison, then consideration, then the rest; branded prompts excluded.
+  let prompts: string[];
+  let phases: Array<string | undefined>;
+  if (options?.prompts && options.prompts.length === AUDIT_PROMPT_COUNT) {
+    prompts = options.prompts;
+    phases = prompts.map((text) => verifiedProfile.prompts.find((p) => p.text === text)?.journey_phase);
+  } else {
+    const selected = selectAuditPrompts(verifiedProfile.prompts, verifiedProfile.name, AUDIT_PROMPT_COUNT);
+    prompts = selected.map((p) => p.text);
+    phases = selected.map((p) => p.journey_phase);
+  }
 
-  if (prompts.length < 5) {
+  if (prompts.length < AUDIT_PROMPT_COUNT) {
+    const brandedCount = verifiedProfile.prompts.filter((p) => isBrandedPrompt(p.text, verifiedProfile.name)).length;
     throw new Error(
-      `Verified setup profile for "${verifiedProfile.name}" has fewer than 5 buyer prompts (${prompts.length}/5). Audit refused.`
+      `Verified setup profile for "${verifiedProfile.name}" has fewer than 5 non-branded buyer prompts (${prompts.length}/5; ${brandedCount} branded prompt(s) excluded). Audit refused.`
     );
   }
 
@@ -337,7 +347,7 @@ export async function runShortFormAudit(
     results.push({
       promptIndex,
       prompt,
-      journeyPhase: verifiedProfile.prompts[i]?.journey_phase,
+      journeyPhase: phases[i],
       engineResults,
       excerpt,
     });

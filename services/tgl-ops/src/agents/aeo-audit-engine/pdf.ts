@@ -4,13 +4,22 @@
 // Strictly enforces the Iron Law of Honesty:
 // - Shows actual model positions (Named #1/#2/#3, Mentioned, —)
 // - Shows actual answer frequencies for competitors and citations
-// - Dynamic next steps derived from the matrix (weakest engine, lost queries, winning competitor)
+// - "Mechanistic next steps" is regenerated from the matrix at render time (engines with zero mentions,
+//   top competitor if any, two weakest queries); it never reuses stored or fixed phrases
 // - Lower 40% dedicated to per-query 1-line answer excerpts proving each cell
 
 import fs from "node:fs";
 import path from "node:path";
 import PDFDocument from "pdfkit";
 import type { ShortFormAuditResult, MatrixBadge } from "./short-form.js";
+import { generateMatrixNextSteps } from "./next-steps.js";
+
+/**
+ * The text of the "Mechanistic next steps" box, generated from the audit matrix only.
+ */
+export function buildNextStepsText(result: ShortFormAuditResult): string {
+  return generateMatrixNextSteps(result.results, result.summary, result.brand.name).formattedText;
+}
 
 /**
  * Resolves font file path from various candidate locations in source or compiled dist.
@@ -43,6 +52,7 @@ export function renderAuditHtml(result: ShortFormAuditResult): string {
   const score = result.summary.visibilityScorePercent;
   const mentions = result.summary.totalMentions;
   const queries = result.totalQueries;
+  const nextStepsText = buildNextStepsText(result);
 
   const competitors =
     Object.entries(result.summary.competitorMentions)
@@ -484,7 +494,7 @@ export function renderAuditHtml(result: ShortFormAuditResult): string {
       <div class="panel">
         <div class="panel-title">Competitors Named in Answers</div>
         <p>${escapeHtml(competitors)}</p>
-        <p><em>Exact frequency of competitor appearances across all 15 model answers.</em></p>
+        <p><em>Exact frequency of competitor appearances across all ${queries} model answers.</em></p>
       </div>
       <div class="panel">
         <div class="panel-title">Cited Authority Channels</div>
@@ -496,7 +506,7 @@ export function renderAuditHtml(result: ShortFormAuditResult): string {
     <div class="action-box">
       <div class="action-title">Mechanistic Next Steps</div>
       <div class="action-text">
-        ${escapeHtml(result.nextSteps.formattedText)}
+        ${escapeHtml(nextStepsText)}
       </div>
     </div>
 
@@ -546,6 +556,7 @@ export async function generateAuditPdf(
   const score = result.summary.visibilityScorePercent;
   const mentions = result.summary.totalMentions;
   const queries = result.totalQueries;
+  const nextStepsText = buildNextStepsText(result);
 
   const competitors =
     Object.entries(result.summary.competitorMentions)
@@ -700,28 +711,26 @@ export async function generateAuditPdf(
   doc.rect(42, panelY, panelW, panelH).lineWidth(1.1).strokeColor("#1F2421").stroke();
   doc.font(fontSerif).fontSize(8.8).fillColor("#1F2421").text("Competitors Named in Answers", 50, panelY + 6);
   doc.font(fontSans).fontSize(7.5).fillColor("#4A4843").text(competitors, 50, panelY + 18, { width: panelW - 16, ellipsis: true });
-  doc.font(fontSans).fontSize(6.8).fillColor("#63615C").text("Exact competitor appearance counts across all 15 answers.", 50, panelY + 36);
+  doc.font(fontSans).fontSize(6.8).fillColor("#63615C").text(`Exact competitor appearance counts across all ${queries} answers.`, 50, panelY + 36);
 
   // Panel 2: Cited Authority Channels
   doc.rect(302, panelY, panelW, panelH).fillColor("#FFFFFF").fill();
   doc.rect(302, panelY, panelW, panelH).lineWidth(1.1).strokeColor("#1F2421").stroke();
   doc.font(fontSerif).fontSize(8.8).fillColor("#1F2421").text("Cited Authority Channels", 310, panelY + 6);
   doc.font(fontSans).fontSize(7.5).fillColor("#4A4843").text(topCitations, 310, panelY + 18, { width: panelW - 16, ellipsis: true });
-  doc.font(fontSans).fontSize(6.8).fillColor("#63615C").text("Primary web sources cited in the 15 model answers.", 310, panelY + 36);
+  doc.font(fontSans).fontSize(6.8).fillColor("#63615C").text(`Primary web sources cited in the ${queries} model answers.`, 310, panelY + 36);
 
-  // 7. Dynamic Matrix-Driven Next Steps Box
+  // 7. Matrix-driven Next Steps Box (text regenerated from the matrix; box height fits the text)
   const actionY = panelY + panelH + 7;
-  const actionH = 46;
+  const actionTextOptions = { width: 492, lineGap: 1 };
+  doc.font(fontSans).fontSize(7.2);
+  const actionTextH = doc.heightOfString(nextStepsText, actionTextOptions);
+  const actionH = Math.max(46, Math.ceil(18 + actionTextH + 8));
   doc.rect(42, actionY, tableW, actionH).fillColor("#FBECE8").fill();
   doc.rect(42, actionY, tableW, actionH).lineWidth(1.1).strokeColor("#C85A32").stroke();
 
   doc.font(fontSansBold).fontSize(7.5).fillColor("#C85A32").text("MECHANISTIC NEXT STEPS", 50, actionY + 6);
-  doc.font(fontSans).fontSize(7.2).fillColor("#1F2421").text(
-    result.nextSteps.formattedText,
-    50,
-    actionY + 18,
-    { width: 492, lineGap: 1 }
-  );
+  doc.font(fontSans).fontSize(7.2).fillColor("#1F2421").text(nextStepsText, 50, actionY + 18, actionTextOptions);
 
   // 8. Lower 40%: Query Evidence & Answer Excerpts
   const evidenceY = actionY + actionH + 8;
