@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import type { AddressInfo } from "node:net";
 import { createApp } from "./app.js";
-import { setAeoLeadDeps, resetAeoRateLimit } from "./routes/aeo.js";
+import { setSiteLeadDeps as setAeoLeadDeps, resetSiteLeadRateLimit as resetAeoRateLimit } from "./routes/site-leads.js";
 
 let passed = 0;
 function ok(name: string): void {
@@ -13,7 +13,9 @@ function ok(name: string): void {
 
 async function main(): Promise<void> {
   const notices: string[] = [];
+  // 11 Nov 2026: the route saves to site_leads first. With no store and no GHL it must fail closed (503).
   setAeoLeadDeps({
+    store: null,
     ghl: null,
     fetchFn: (async () => {
       throw new Error("fetch must not be called when GHL is unconfigured");
@@ -21,6 +23,7 @@ async function main(): Promise<void> {
     notify: async (t: string) => {
       notices.push(t);
     },
+    postLeadCard: async () => {},
     now: () => 1_700_000_000_000,
   });
   resetAeoRateLimit();
@@ -30,15 +33,18 @@ async function main(): Promise<void> {
   const origin = "https://thegrowthlab.co.in";
   const validBody = {
     name: "Rohit Sharma",
-    institute: "Sharma Academy",
+    business_name: "Sharma Academy",
     website: "sharmaacademy.com",
+    industry: "education",
+    city: "Chandigarh",
     phone: "9876543210",
     email: "rohit@sharmaacademy.com",
-    question: "",
     consent: true,
     hp: "",
-    utm: { utm_source: "meta", utm_medium: "paid", utm_campaign: "aeo-audit" },
-    pagePath: "/aeo",
+    utm_source: "meta",
+    utm_medium: "paid",
+    utm_campaign: "aeo-audit",
+    page: "/aeo",
   };
 
   try {
@@ -70,19 +76,19 @@ async function main(): Promise<void> {
     assert.equal(notices.length, 0);
     ok("honeypot returns 200 and sends no alert");
 
-    // 4. Invalid payload gets 422 with field errors
+    // 4. Invalid payload gets 400 with field errors (the launch package expects 400)
     const inv = await fetch(`${base}/aeo/lead`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Origin: origin },
-      body: JSON.stringify({ name: "", institute: "", website: "", phone: "1", email: "x", consent: false }),
+      body: JSON.stringify({ name: "", business_name: "", website: "", industry: "", phone: "1", email: "x", consent: false }),
     });
-    assert.equal(inv.status, 422);
+    assert.equal(inv.status, 400);
     const invJson: any = await inv.json();
     assert.equal(invJson.ok, false);
     assert.ok(invJson.errors && Object.keys(invJson.errors).length > 0);
-    ok("invalid payload returns 422 with field errors");
+    ok("invalid payload returns 400 with field errors");
 
-    // 5. Valid payload with GHL unconfigured fails closed: 503, never ok:true
+    // 5. Valid payload with no database fails closed: 503, never ok:true
     const closed = await fetch(`${base}/aeo/lead`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Origin: origin },
@@ -91,7 +97,7 @@ async function main(): Promise<void> {
     assert.equal(closed.status, 503);
     const closedJson: any = await closed.json();
     assert.equal(closedJson.ok, false);
-    ok("valid payload with GHL unconfigured returns 503 and ok:false (no false success)");
+    ok("valid payload with no database returns 503 and ok:false (no false success)");
   } finally {
     setAeoLeadDeps(null);
     resetAeoRateLimit();
