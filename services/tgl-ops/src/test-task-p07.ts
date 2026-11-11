@@ -128,8 +128,11 @@ async function runTaskP07VerificationSuite(): Promise<void> {
   // Test 2: Chief of Staff 09:00 IST Morning Status Card & Word Dispatch
   // -------------------------------------------------------------------------
   console.log("[Test 2] Testing Chief of Staff 09:00 status card & Architect word dispatch...");
+  // Dispatch the first day the plan still lists as open (completed days are correctly refused as already-issued).
+  const firstOpenDay = (planEntries as Array<{ day: number; status?: string }>).find((e) => e.status !== "completed")?.day;
+  if (!firstOpenDay) throw new Error("Test 2 Failed: plan has no open day to dispatch");
   const statusCardResult = await execute0900PlanDispatch({
-    day: 8,
+    day: firstOpenDay,
     testMode: true,
   });
 
@@ -141,13 +144,18 @@ async function runTaskP07VerificationSuite(): Promise<void> {
   }
 
   // Test Architect word dispatch: dispatchPlanDay
-  const dispatchDay8 = await dispatchPlanDay(8, { testMode: true });
-  if (dispatchDay8.status !== "dispatched" || dispatchDay8.issueNumber !== 8) {
-    throw new Error(`Test 2 Failed: Expected Day 8 dispatched, got ${JSON.stringify(dispatchDay8)}`);
+  const dispatchDay8 = await dispatchPlanDay(firstOpenDay, { testMode: true });
+  if (dispatchDay8.status !== "dispatched" || dispatchDay8.issueNumber !== firstOpenDay) {
+    throw new Error(`Test 2 Failed: Expected Day ${firstOpenDay} dispatched, got ${JSON.stringify(dispatchDay8)}`);
+  }
+  // A completed day must be refused.
+  const completedDispatch = await dispatchPlanDay(8, { testMode: true });
+  if (completedDispatch.status !== "already-issued") {
+    throw new Error(`Test 2 Failed: completed Day 8 must be refused as already-issued, got ${JSON.stringify(completedDispatch)}`);
   }
 
   // Test re-dispatch on same day: should skip already issued
-  const secondDispatch = await dispatchPlanDay(8, { testMode: true });
+  const secondDispatch = await dispatchPlanDay(firstOpenDay, { testMode: true });
   if (secondDispatch.status !== "already-issued") {
     throw new Error(`Test 2 Failed: Expected idempotency (already-issued), got ${JSON.stringify(secondDispatch)}`);
   }
@@ -159,7 +167,7 @@ async function runTaskP07VerificationSuite(): Promise<void> {
   }
 
   console.log(`  ✓ 09:00 IST morning status card posted with current day and 'say go for Day N+1'`);
-  console.log(`  ✓ Word dispatch: 'day 8' dispatched Day 8 issue and posted agent card`);
+  console.log(`  ✓ Word dispatch: 'day ${firstOpenDay}' dispatched its issue and posted agent card; completed Day 8 refused`);
   console.log(`  ✓ Idempotent re-run correctly flagged already-issued`);
   console.log(`  ✓ TrueLead parked entry (Day 47) strictly blocked by architect-unpark`);
   console.log("✅ [Test 2 Passed] 09:00 IST status card & word dispatch verified.\n");
