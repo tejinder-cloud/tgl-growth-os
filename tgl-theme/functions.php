@@ -39,6 +39,12 @@ function tgl_theme_setup() {
 add_action( 'after_setup_theme', 'tgl_theme_setup' );
 
 /**
+ * Website launch package (11 Nov 2026): the ten pages in launch/ served whole by inc/launch.php.
+ */
+require_once get_theme_file_path( 'inc/launch.php' );
+
+
+/**
  * Enqueue scripts and styles.
  */
 function tgl_theme_scripts() {

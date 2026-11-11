@@ -1,0 +1,169 @@
+[
+  {
+    "slug": "home",
+    "url": "/",
+    "title": "The Growth Lab | AI visibility and AI automation for Indian businesses",
+    "description": "Prototype A3, Paper and Ink. Does ChatGPT recommend your business? The Growth Lab tracks what AI says about you, fixes it, and runs the busywork on AI agents.",
+    "noindex": false,
+    "css": [
+      "site.css"
+    ],
+    "js": [
+      "site.js",
+      "home.js"
+    ],
+    "footer_note": "",
+    "source": "tgl-home-a2-the-press.html"
+  },
+  {
+    "slug": "aeo",
+    "url": "/aeo",
+    "title": "Managed AEO: get named in AI answers | The Growth Lab",
+    "description": "We do the work to get your business named in AI answers, and your dashboard shows if it is working. Start with a free one-page AI visibility audit, by email within 24 hours.",
+    "noindex": false,
+    "css": [
+      "site.css",
+      "aeo.css"
+    ],
+    "js": [
+      "site.js",
+      "forms.js",
+      "aeo.js"
+    ],
+    "footer_note": "HubSpot AEO as seen in its product tour, November 2026. The agency column describes what is typical; individual agencies differ. Nobody, including us, can promise that an AI assistant will name your business. HubSpot is a trademark of HubSpot, Inc.; The Growth Lab is not affiliated with HubSpot.",
+    "source": "tgl-aeo.html"
+  },
+  {
+    "slug": "thank-you",
+    "url": "/thank-you",
+    "title": "Thank you | The Growth Lab",
+    "description": "",
+    "noindex": true,
+    "css": [
+      "site.css",
+      "thank-you.css"
+    ],
+    "js": [
+      "site.js",
+      "thank-you.js"
+    ],
+    "footer_note": "",
+    "source": "tgl-thank-you.html"
+  },
+  {
+    "slug": "truevisible",
+    "url": "/truevisible",
+    "title": "TrueVisible: AI visibility tracking | The Growth Lab",
+    "description": "TrueVisible is the dashboard that shows what ChatGPT, Gemini and Perplexity say about your business every week, and what to fix first. Early access: start with a free AI visibility audit.",
+    "noindex": false,
+    "css": [
+      "site.css",
+      "truevisible.css"
+    ],
+    "js": [
+      "site.js",
+      "truevisible.js"
+    ],
+    "footer_note": "",
+    "source": "tgl-truevisible.html"
+  },
+  {
+    "slug": "ai-automation",
+    "url": "/ai-automation",
+    "title": "AI automation for your business | The Growth Lab",
+    "description": "AI agents that handle the leads you already get: reply to every enquiry, follow up on WhatsApp and email, qualify and book, with a person in charge. Built the way The Growth Lab runs its own company.",
+    "noindex": false,
+    "css": [
+      "site.css",
+      "ai-automation.css"
+    ],
+    "js": [
+      "site.js",
+      "forms.js",
+      "ai-automation.js"
+    ],
+    "footer_note": "",
+    "source": "tgl-ai-automation.html"
+  },
+  {
+    "slug": "agent-team",
+    "url": "/agent-team",
+    "title": "Our agent team | The Growth Lab",
+    "description": "Prototype of the agent team page: the AI agents that run The Growth Lab, their day and their roster.",
+    "noindex": false,
+    "css": [
+      "site.css"
+    ],
+    "js": [
+      "site.js"
+    ],
+    "footer_note": "",
+    "source": "tgl-agent-team.html"
+  },
+  {
+    "slug": "about",
+    "url": "/about",
+    "title": "About The Growth Lab",
+    "description": "The Growth Lab is a small company run by AI agents and signed off by a person. Meet founder Tejinder Singh, the rules we work by, and what we do for businesses across India.",
+    "noindex": false,
+    "css": [
+      "site.css",
+      "about.css"
+    ],
+    "js": [
+      "site.js"
+    ],
+    "footer_note": "",
+    "source": "tgl-about.html"
+  },
+  {
+    "slug": "blog",
+    "url": "/blog",
+    "title": "Blog | The Growth Lab",
+    "description": "Plain-language notes on getting named in AI answers and putting AI agents to work, from The Growth Lab.",
+    "noindex": false,
+    "css": [
+      "site.css",
+      "blog.css"
+    ],
+    "js": [
+      "site.js",
+      "blog.js"
+    ],
+    "footer_note": "",
+    "source": "tgl-blog.html"
+  },
+  {
+    "slug": "blog-article",
+    "url": "/blog/what-is-aeo",
+    "title": "What is AEO? | The Growth Lab",
+    "description": "SEO decides where you rank on a page of search results. AEO is about whether an AI assistant names your business at all, and what it says.",
+    "noindex": false,
+    "css": [
+      "site.css",
+      "blog-article.css"
+    ],
+    "js": [
+      "site.js",
+      "blog-article.js"
+    ],
+    "footer_note": "",
+    "source": "tgl-blog-article.html"
+  },
+  {
+    "slug": "privacy",
+    "url": "/privacy",
+    "title": "Privacy policy | The Growth Lab",
+    "description": "What The Growth Lab collects when you use this website, why, who it is shared with, and how to ask us to correct or delete it.",
+    "noindex": false,
+    "css": [
+      "site.css",
+      "privacy.css"
+    ],
+    "js": [
+      "site.js"
+    ],
+    "footer_note": "",
+    "source": "tgl-privacy.html"
+  }
+]

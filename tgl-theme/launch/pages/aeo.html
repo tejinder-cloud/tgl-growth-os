@@ -1,0 +1,336 @@
+<main id="top">
+
+<!-- 1 hero: positioning -->
+<section class="hero ahero">
+  <div class="wrap grid">
+    <div>
+      <span class="pill">AEO, with the TrueVisible dashboard</span>
+      <h1>We do the work to get you named in AI answers. Your dashboard shows if it's <span class="acc">working</span>.</h1>
+      <p class="sub">We find out what AI assistants say when your buyers ask, fix what they read about you, and show you every answer, every week.</p>
+      <p class="engs"><span class="e"><img src="%ASSETS%/img/logo-chatgpt.png" alt="" width="20" height="20">ChatGPT</span><span class="e"><img src="%ASSETS%/img/logo-gemini.png" alt="" width="20" height="20">Gemini</span><span class="e"><img src="%ASSETS%/img/logo-perplexity.png" alt="" width="20" height="20">Perplexity</span></p>
+      <div class="act">
+        <a class="btn print" href="#audit" data-tgl-event="aeo_cta_click" data-tgl-position="hero">Get your free AI visibility audit</a>
+        <small>Free. One-page report by email within 24 hours.</small>
+      </div>
+    </div>
+    <div class="duo">
+      <div class="kboard" role="img" aria-label="A sample of what the dashboard shows: a visibility score, its weekly trend, results by assistant, share of voice, the sources AI quotes, and the list of fixes.">
+        <span class="stp red">SAMPLE</span>
+        <div class="kb k1"><small>Visibility</small>
+          <svg viewBox="0 0 200 112" aria-hidden="true"><path class="g0" d="M22 100 A78 78 0 0 1 178 100"/><path class="g1" pathLength="100" d="M22 100 A78 78 0 0 1 178 100"/><text x="100" y="98" text-anchor="middle">38%</text></svg></div>
+        <div class="kb k2"><small>Trend</small>
+          <svg viewBox="0 0 160 84" aria-hidden="true"><line class="ax" x1="6" y1="76" x2="154" y2="76"/><path class="sp" pathLength="1" d="M12 60 L57 50 L102 34 L148 18"/><circle class="dot" cx="12" cy="60" r="4.5"/><circle class="dot" cx="57" cy="50" r="4.5"/><circle class="dot" cx="102" cy="34" r="4.5"/><circle class="dot" cx="148" cy="18" r="4.5"/></svg></div>
+        <div class="kb k3"><small>By assistant</small>
+          <div class="cols3" aria-hidden="true"><span style="--h:80%"><i></i><img src="%ASSETS%/img/logo-chatgpt.png" alt="" width="20" height="20"></span><span style="--h:60%"><i></i><img src="%ASSETS%/img/logo-gemini.png" alt="" width="20" height="20"></span><span style="--h:92%"><i></i><img src="%ASSETS%/img/logo-perplexity.png" alt="" width="20" height="20"></span></div></div>
+        <div class="kb k4"><small>Share of voice</small>
+          <svg viewBox="0 0 100 100" aria-hidden="true"><g transform="rotate(-90 50 50)" fill="none" stroke-width="16"><circle class="d1" cx="50" cy="50" r="32" pathLength="100" stroke-dasharray="30 100" stroke-dashoffset="0"/><circle class="d2" cx="50" cy="50" r="32" pathLength="100" stroke-dasharray="29 100" stroke-dashoffset="-31"/><circle class="d3" cx="50" cy="50" r="32" pathLength="100" stroke-dasharray="21 100" stroke-dashoffset="-61"/><circle class="d4" cx="50" cy="50" r="32" pathLength="100" stroke-dasharray="16 100" stroke-dashoffset="-83"/></g><text x="50" y="55" text-anchor="middle">You</text></svg></div>
+        <div class="kb k5"><small>Sources</small>
+          <div class="rows" aria-hidden="true"><span><i style="width:78%"></i><b>13</b></span><span><i style="width:60%"></i><b>10</b></span><span><i style="width:44%"></i><b>8</b></span></div></div>
+        <div class="kb k6"><small>Fixes</small>
+          <div class="chk" aria-hidden="true"><span class="on"><b></b><i style="width:80%"></i></span><span class="on"><b></b><i style="width:62%"></i></span><span><b></b><i style="width:74%"></i></span><span><b></b><i style="width:50%"></i></span></div></div>
+      </div>
+      <p class="cap">What your dashboard shows, drawn with sample data. No result is promised.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 2 try it -->
+<section class="try" id="try">
+  <div class="wrap">
+    <div class="panel">
+      <div class="ctr">
+        <span class="pill">Try it</span>
+        <h2>What would your buyers ask <span class="acc">AI</span>?</h2>
+        <p class="lede">Pick your kind of business and type your city or market. These are the kind of questions we put to the AI assistants in your audit.</p>
+      </div>
+      <div class="cols">
+        <div>
+          <span class="q" id="q-ind">1. Your kind of business</span>
+          <div class="ichips" role="group" aria-labelledby="q-ind">
+            <button class="ichip" type="button" data-for="healthcare" aria-pressed="true">Healthcare</button>
+            <button class="ichip" type="button" data-for="education" aria-pressed="false">Education and edtech</button>
+            <button class="ichip" type="button" data-for="hospitality" aria-pressed="false">Hospitality</button>
+            <button class="ichip" type="button" data-for="realestate" aria-pressed="false">Real estate</button>
+            <button class="ichip" type="button" data-for="ecommerce" aria-pressed="false">Ecommerce and D2C</button>
+            <button class="ichip" type="button" data-for="other" aria-pressed="false">Any other business</button>
+          </div>
+          <label class="q gap" for="t-city">2. Your city or market</label>
+          <input type="text" id="t-city" maxlength="40" placeholder="Pune, or India" autocomplete="off">
+        </div>
+        <div>
+          <span class="q">Your <span id="t-who">patients</span> ask</span>
+          <ul class="qs" id="qs" aria-live="polite"></ul>
+          <p class="cap">Each question goes to ChatGPT, Gemini and Perplexity. The three circles are filled in on your report: named, or not named. For your audit we write the questions for your business, in English and Hinglish, and check each one before it runs.</p>
+        </div>
+      </div>
+      <div class="after"><a class="btn print" href="#audit" id="t-go" data-tgl-event="aeo_try_cta_click">See if AI names my business</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 KPIs -->
+<section class="kpi" id="measure">
+  <div class="wrap">
+    <div class="ctr">
+      <span class="pill">What you can measure</span>
+      <h2>Seven numbers you can <span class="acc">check</span> every week.</h2>
+      <p class="lede">Tap each one. The figures are sample data for a fictional clinic.</p>
+    </div>
+    <div class="box">
+      <div class="kts" role="tablist" aria-label="What the dashboard measures">
+        <button class="kt" role="tab" type="button" aria-selected="true" data-k="0">Visibility<small>How often AI names you</small></button>
+        <button class="kt" role="tab" type="button" aria-selected="false" data-k="1">Trend<small>Week by week</small></button>
+        <button class="kt" role="tab" type="button" aria-selected="false" data-k="2">By assistant<small>ChatGPT, Gemini, Perplexity</small></button>
+        <button class="kt" role="tab" type="button" aria-selected="false" data-k="3">Share of voice<small>You against competitors</small></button>
+        <button class="kt" role="tab" type="button" aria-selected="false" data-k="4">The honest split<small>With and without your name</small></button>
+        <button class="kt" role="tab" type="button" aria-selected="false" data-k="5">Sources<small>What AI reads</small></button>
+        <button class="kt" role="tab" type="button" aria-selected="false" data-k="6">Fixes<small>Open and done</small></button>
+      </div>
+      <div class="kp" role="tabpanel" id="kp" aria-live="polite">
+        <span class="stp red">SAMPLE DATA</span>
+        <div data-p="0">
+          <h3>Visibility</h3><p class="say">Out of every answer the assistants gave to your buyers' questions, how many named your business.</p>
+          <div class="viz"><div class="big">38%</div><p class="of">23 of 60 answers name you</p></div>
+        </div>
+        <div data-p="1" hidden>
+          <h3>Trend</h3><p class="say">The same number at every weekly check, so you can see which way it is moving.</p>
+          <div class="viz"><svg viewBox="0 0 320 150" role="img" aria-label="Answers naming the clinic: 14 of 60 on 5 Oct, 16 on 12 Oct, 20 on 19 Oct, 23 on 26 Oct.">
+            <line class="ax" x1="14" y1="124" x2="306" y2="124"/>
+            <path class="ln" d="M30 79 L115 71 L200 57 L285 46"/>
+            <circle class="pt" cx="30" cy="79" r="5"/><circle class="pt" cx="115" cy="71" r="5"/><circle class="pt" cx="200" cy="57" r="5"/><circle class="pt" cx="285" cy="46" r="5"/>
+            <text x="30" y="62" text-anchor="middle">23%</text><text x="115" y="54" text-anchor="middle">27%</text><text x="200" y="40" text-anchor="middle">33%</text><text x="285" y="29" text-anchor="middle">38%</text>
+            <text class="m" x="30" y="142" text-anchor="middle">5 Oct</text><text class="m" x="115" y="142" text-anchor="middle">12 Oct</text><text class="m" x="200" y="142" text-anchor="middle">19 Oct</text><text class="m" x="285" y="142" text-anchor="middle">26 Oct</text>
+          </svg></div>
+        </div>
+        <div data-p="2" hidden>
+          <h3>By assistant</h3><p class="say">Each assistant reads different sources, so you can be named by one and missing from another.</p>
+          <div class="viz bars">
+            <div class="b you" style="--w:100%"><span>Perplexity</span><i></i><em>9 of 20</em></div>
+            <div class="b you" style="--w:89%"><span>ChatGPT</span><i></i><em>8 of 20</em></div>
+            <div class="b you" style="--w:67%"><span>Gemini</span><i></i><em>6 of 20</em></div>
+          </div>
+        </div>
+        <div data-p="3" hidden>
+          <h3>Share of voice</h3><p class="say">Of all the times any business was named, how much went to you and how much to each competitor.</p>
+          <div class="viz bars">
+            <div class="b you" style="--w:100%"><span>You</span><i></i><em>31%</em></div>
+            <div class="b" style="--w:97%"><span>Competitor A</span><i></i><em>30%</em></div>
+            <div class="b" style="--w:71%"><span>Competitor C</span><i></i><em>22%</em></div>
+            <div class="b" style="--w:58%"><span>Competitor B</span><i></i><em>18%</em></div>
+          </div>
+        </div>
+        <div data-p="4" hidden>
+          <h3>The honest split</h3><p class="say">A question with your name in it almost always gets your name back. The other number is the one that shows whether AI recommends you.</p>
+          <div class="viz split">
+            <div><b>29%</b><span>Questions without your name</span><small>15 of 51 answers name you</small></div>
+            <div><b>89%</b><span>Questions with your name</span><small>8 of 9 answers name you</small></div>
+          </div>
+        </div>
+        <div data-p="5" hidden>
+          <h3>Sources</h3><p class="say">The websites the assistants quote, and where they name a competitor but not you. That gap is where the fixes start.</p>
+          <div class="viz"><table>
+            <thead><tr><th>Website AI quotes</th><th class="c">Answers</th><th class="c">Names a rival, not you</th></tr></thead>
+            <tbody>
+              <tr><td>clinic-reviews.example</td><td class="c">30</td><td class="c gapc">13</td></tr>
+              <tr><td>health-directory.example</td><td class="c">24</td><td class="c gapc">10</td></tr>
+              <tr><td>local-listings.example</td><td class="c">17</td><td class="c gapc">8</td></tr>
+            </tbody></table></div>
+        </div>
+        <div data-p="6" hidden>
+          <h3>Fixes</h3><p class="say">A ranked list of what to change, each tied to the answers and sources behind it. You see what is open and what is done.</p>
+          <ul class="viz fx">
+            <li><span class="stp grey">OPEN</span>Complete your profile on the health directory AI reads most</li>
+            <li><span class="stp grey">OPEN</span>Publish a clear dental implant cost page</li>
+            <li><span class="stp grey">OPEN</span>Add a children's dentistry page with a short FAQ</li>
+            <li><span class="stp grey">OPEN</span>Add structured data with your services and Sunday hours</li>
+            <li><span class="stp">DONE</span>Publish a root canal treatment page</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 monthly work -->
+<section class="mw" id="work">
+  <div class="wrap">
+    <div class="ctr">
+      <span class="pill">What we do</span>
+      <h2>The work, <span class="acc">counted</span>, every month.</h2>
+      <p class="lede">On the Managed plan we do the fixes for you. This is the monthly scope, and it is written into your plan.</p>
+    </div>
+    <ul class="cnt" data-reveal>
+      <li><b data-count="600">600</b><span>AI answers read about your business</span><small>Up to 50 questions, 3 assistants, every week</small></li>
+      <li><b data-count="4">4</b><span>pages improved</span><small>On your website</small></li>
+      <li><b data-count="10">10</b><span>listings and citations fixed</span><small>Where AI reads about you</small></li>
+      <li><b data-count="1">1</b><span>Google Business Profile managed</span></li>
+      <li><b data-count="1">1</b><span>report of what changed</span></li>
+    </ul>
+    <ul class="notes">
+      <li><span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><rect x="3" y="9" width="14" height="12" rx="3"/><path d="M10 9V5M7.5 14.5v1M12.5 14.5v1"/><circle cx="24" cy="12" r="3.5"/><path d="M18.5 25c.6-3.4 2.8-5 5.5-5s4.900 1.600 5.5 5"/></svg></span><h3>Agents draft. People check.</h3><p>Pages are drafted by our AI agents and published only after approval. Listings and your Google profile are handled by people.</p></li>
+      <li><span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11"/><path d="M5 16h22M16 5c4 3.2 4 18.8 0 22M16 5c-4 3.2-4 18.8 0 22"/></svg></span><h3>Online-only business?</h3><p>The Google profile line becomes the review or comparison site AI quotes most for you. We confirm which one after the audit.</p></li>
+      <li><span class="ic" aria-hidden="true"><svg viewBox="0 0 32 32"><rect x="6" y="4" width="20" height="24" rx="3"/><path d="M11 11l2 2 3.5-4M11 19l2 2 3.5-4M20 12h2M20 20h2"/></svg></span><h3>Prefer to do it yourself?</h3><p>On Track you get the same ranked list of fixes, and your team acts on it.</p></li>
+    </ul>
+  </div>
+  </div>
+</section>
+
+<!-- 5 how we're different -->
+<section id="different">
+  <div class="wrap">
+    <div class="ctr">
+      <span class="pill">How we're different</span>
+      <h2>How we compare with HubSpot AEO, and with an <span class="acc">agency</span>.</h2>
+      <p class="lede">HubSpot's tool is the one you may have seen. Here is the same list for all of us, including where they are ahead.</p>
+    </div>
+    <div class="cmp">
+      <table>
+        <thead><tr><th scope="col"><span class="sr">What you get</span></th><th scope="col">HubSpot AEO</th><th scope="col">A typical SEO agency</th><th scope="col" class="us lg"><img src="%ASSETS%/img/logo.png" alt="The Growth Lab" width="240" height="138"></th></tr></thead>
+        <tbody>
+          <tr class="grp"><td colspan="4">The same on both</td></tr>
+          <tr><td>ChatGPT, Gemini and Perplexity tracked</td><td><span class="y" aria-label="Yes">&#10003;</span></td><td><span class="n" aria-label="Not applicable">&ndash;</span></td><td class="us"><span class="y" aria-label="Yes">&#10003;</span></td></tr>
+          <tr><td>Weekly tracking</td><td><span class="y" aria-label="Yes">&#10003;</span></td><td><span class="n" aria-label="Not applicable">&ndash;</span></td><td class="us"><span class="y" aria-label="Yes">&#10003;</span></td></tr>
+          <tr><td>Visibility score and trend by assistant</td><td><span class="y" aria-label="Yes">&#10003;</span></td><td><span class="n" aria-label="Not applicable">&ndash;</span></td><td class="us"><span class="y" aria-label="Yes">&#10003;</span></td></tr>
+          <tr><td>Share of voice against competitors</td><td><span class="y" aria-label="Yes">&#10003;</span></td><td><span class="s">Rarely</span></td><td class="us"><span class="y" aria-label="Yes">&#10003;</span></td></tr>
+          <tr><td>The sources AI quotes</td><td><span class="y" aria-label="Yes">&#10003;</span></td><td><span class="s">Rarely</span></td><td class="us"><span class="y" aria-label="Yes">&#10003;</span></td></tr>
+          <tr class="grp"><td colspan="4">Where we go further</td></tr>
+          <tr><td>Questions tracked</td><td><span class="nb">25</span></td><td><span class="n" aria-label="Not applicable">&ndash;</span></td><td class="us"><span class="nb">50</span></td></tr>
+          <tr><td>What the AI said, in its own words</td><td><span class="s">Not shown</span></td><td><span class="s">Rarely</span></td><td class="us"><span class="y" aria-label="Yes">&#10003;</span></td></tr>
+          <tr><td>Questions with your name separated from ones without</td><td><span class="s">Not shown</span></td><td><span class="s">Rarely</span></td><td class="us"><span class="y" aria-label="Yes">&#10003;</span></td></tr>
+          <tr><td>Does the fixes for you</td><td><span class="n" aria-label="No">&#10005;</span></td><td><span class="y" aria-label="Yes">&#10003;</span></td><td class="us"><span class="y" aria-label="Yes">&#10003;</span><br><span class="s">Managed</span></td></tr>
+          <tr><td>Google Business Profile and listings</td><td><span class="n" aria-label="No">&#10005;</span></td><td><span class="s">Varies</span></td><td class="us"><span class="y" aria-label="Yes">&#10003;</span><br><span class="s">Managed</span></td></tr>
+          <tr><td>Questions in Hindi and Hinglish</td><td><span class="s">Not shown</span></td><td><span class="s">Varies</span></td><td class="us"><span class="y" aria-label="Yes">&#10003;</span></td></tr>
+          <tr><td>How you start</td><td><span class="s">Software trial</span></td><td><span class="s">A proposal</span></td><td class="us"><span class="s">Free audit, yours to keep</span></td></tr>
+          <tr class="grp"><td colspan="4">Where HubSpot is ahead</td></tr>
+          <tr><td>Sentiment score</td><td><span class="y" aria-label="Yes">&#10003;</span></td><td><span class="n" aria-label="Not applicable">&ndash;</span></td><td class="us"><span class="n" aria-label="No">&#10005;</span><br><span class="s">Not yet</span></td></tr>
+          <tr><td>Tracks each published page for pickup by AI</td><td><span class="y" aria-label="Yes">&#10003;</span></td><td><span class="n" aria-label="Not applicable">&ndash;</span></td><td class="us"><span class="n" aria-label="No">&#10005;</span><br><span class="s">Not yet</span></td></tr>
+          <tr><td>Works inside a CRM you may already use</td><td><span class="y" aria-label="Yes">&#10003;</span></td><td><span class="n" aria-label="Not applicable">&ndash;</span></td><td class="us"><span class="n" aria-label="No">&#10005;</span></td></tr>
+          <tr><td>Sign up and start on your own today</td><td><span class="y" aria-label="Yes">&#10003;</span></td><td><span class="n" aria-label="Not applicable">&ndash;</span></td><td class="us"><span class="n" aria-label="No">&#10005;</span><br><span class="s">From Dec</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="cmp-fit"><span class="stp red">THE SHORT VERSION</span>If your team already runs on HubSpot and writes its own content, their tool is a good fit. If you want the work <mark>done and counted</mark>, that is us.</p>
+  </div>
+</section>
+
+<!-- 6 plans -->
+<section class="pl mw" id="pricing">
+  <div class="wrap">
+    <div class="ctr">
+      <span class="pill">Plans</span>
+      <h2>Three ways to go further after the <span class="acc">audit</span>.</h2>
+    </div>
+    <div class="pcs">
+      <div class="pc">
+        <h3>Track</h3><p class="who">For a business with a marketing person who will act on it.</p>
+        <p class="amt">&#8377;3,999 <small>/ month, ex-GST</small></p>
+        <ul>
+          <li><span><b>600</b> AI answers read about your business every month</span></li>
+          <li><span>Up to <b>50</b> questions, <b>3</b> assistants, checked weekly</span></li>
+          <li><span>Your dashboard and a weekly report</span></li>
+          <li><span>A ranked list of fixes. Your team does them.</span></li>
+        </ul>
+        <a class="btn ghost" href="#audit" data-tgl-event="aeo_plan_cta_click" data-tgl-value="track">Start with the free audit</a>
+      </div>
+      <div class="pc rec">
+        <span class="stp red">RECOMMENDED</span>
+        <h3>Managed</h3><p class="who">For a clinic, institute, hotel or brand that wants it done.</p>
+        <p class="amt">&#8377;13,999 <small>/ month, ex-GST</small></p>
+        <ul>
+          <li><span>Everything in Track</span></li>
+          <li><span><b>4</b> pages improved every month</span></li>
+          <li><span><b>10</b> listings and citations fixed</span></li>
+          <li><span><b>1</b> Google Business Profile managed</span></li>
+          <li><span><b>1</b> report of what changed</span></li>
+        </ul>
+        <a class="btn print" href="#audit" data-tgl-event="aeo_plan_cta_click" data-tgl-value="managed">Start with the free audit</a>
+      </div>
+      <div class="pc">
+        <h3>Managed Plus</h3><p class="who">For hospital groups, developers and chains with more than one location.</p>
+        <p class="amt">&#8377;24,999 <small>/ month, ex-GST</small></p>
+        <ul>
+          <li><span>Everything in Managed</span></li>
+          <li><span><b>8</b> pages improved every month</span></li>
+          <li><span><b>20</b> listings and citations fixed</span></li>
+          <li><span>Up to <b>5</b> Google Business Profiles managed</span></li>
+          <li><span>More questions tracked, a monthly call, priority</span></li>
+        </ul>
+        <a class="btn ghost" href="#audit" data-tgl-event="aeo_plan_cta_click" data-tgl-value="managed_plus">Start with the free audit</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 form -->
+<section class="af" id="audit">
+  <div class="wrap">
+    <div class="panel">
+      <span class="stp red free">FREE</span>
+      <div class="cols">
+        <div class="intro">
+          <span class="pill">Get the audit</span>
+          <h2>Tell us which business to <span class="acc">check</span>.</h2>
+          <p style="margin-top:12px;color:var(--ink-2)">Seven short fields. We need your website because the audit runs on it, and your email because that is where the report goes.</p>
+          <div class="mini" aria-label="What the one-page report contains"><div class="band">One page, in your inbox</div><div class="in"><b>Your AI visibility audit</b><ol><li>The questions we asked</li><li>Which assistants named you</li><li>What they said</li><li>Who they named instead</li><li>The first three fixes</li></ol></div></div>
+          <p class="trust" style="margin-top:26px"><img src="%ASSETS%/img/founder.webp" alt="" width="84" height="84"><span>Built by <b>Tejinder Singh</b>, AI Automation Expert, Consultant with Corporate for AI Integration, Visiting Faculty for teaching AI in Universities.</span></p>
+        </div>
+        <form class="ff" id="leadForm" novalidate>
+          <div class="two">
+            <label data-f>Business name<input type="text" id="f-biz" name="business_name" autocomplete="organization" required><span class="err">Please enter your business name.</span></label>
+            <label data-f>Website<input type="text" id="f-site" name="website" inputmode="url" autocomplete="url" placeholder="yourbusiness.com" required><small>The audit runs on your website. If you only have a Google profile, paste its link.</small><span class="err">Please enter your website or Google profile link.</span></label>
+          </div>
+          <div class="two">
+            <label data-f>Industry<select id="f-ind" name="industry" required><option value="">Choose one</option><option value="healthcare">Healthcare</option><option value="education">Education and edtech</option><option value="hospitality">Hospitality</option><option value="realestate">Real estate</option><option value="ecommerce">Ecommerce and D2C</option><option value="saas">SaaS</option><option value="other">Other</option></select><span class="err">Please choose your industry.</span></label>
+            <label data-f>City or market<input type="text" id="f-city" name="city" placeholder="Pune, or India" required><small>Where your buyers are.</small><span class="err">Please enter your city or market.</span></label>
+          </div>
+          <div class="two">
+            <label data-f>Your name<input type="text" id="f-name" name="name" autocomplete="name" required><span class="err">Please enter your name.</span></label>
+            <label data-f>Email<input type="email" id="f-email" name="email" autocomplete="email" required><small>Your report is sent here.</small><span class="err">Please enter a valid email address.</span></label>
+          </div>
+          <label data-f>WhatsApp number <input type="tel" id="f-wa" name="phone" autocomplete="tel" inputmode="tel"><small>Optional, for a copy on WhatsApp later.</small><span class="err">Please enter a 10-digit mobile number, or include the country code.</span></label>
+          <label class="consent" data-f><input type="checkbox" id="f-ok" name="consent" required><span>You may email me about this audit, and message me on WhatsApp if I gave a number.<span class="err">Please tick this box so we can send your report.</span></span></label>
+          <input type="hidden" name="source" id="f-src" value="aeo_page"><input type="hidden" name="for" id="f-for" value="">
+          <input type="text" name="hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0"><button class="btn print" type="submit">Get my free audit</button>
+          <p class="micro">Free. No card. Report by email within 24 hours.</p>
+        </form>
+        <div class="thanks" role="status" aria-live="polite">
+          <span class="bigr">RECEIVED</span>
+          <h3>Your audit is on its way.</h3>
+          <p>Your report will reach <b id="t-email">your email</b> within 24 hours.</p>
+          <ol><li>We ask the AI assistants the questions your buyers ask.</li><li>We send you one page, from real answers.</li><li>No call unless you ask for one.</li></ol>
+          <p class="cap" style="margin:18px auto 0">On the live site this is the thank-you page, shown only after your request has been saved.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 FAQ and close -->
+<section class="faq">
+  <div class="wrap">
+    <span class="pill">Questions</span>
+    <h2 class="measure">Questions, answered.</h2>
+    <div style="margin-top:24px">
+      <details><summary>What is AEO, and is it the same as SEO?</summary><p>Related, not the same. SEO decides where you rank on a page of search results. AEO, answer engine optimisation, is about whether an AI assistant names your business at all, and what it says when it does.</p></details>
+      <details><summary>Which AI assistants do you check?</summary><p>ChatGPT, Gemini and Perplexity today. More will follow; we will say so here when they do.</p></details>
+      <details><summary>My industry is not on your list. Can you still help?</summary><p>Yes. Choose "Other" in the form. If your buyers ask an AI assistant before they choose, the audit works the same way. We write the questions for your business and check them before the audit runs.</p></details>
+      <details><summary>We sell online across India and have no city. Does this work for us?</summary><p>Yes. Type "India", or the market you sell in, in the city or market field. Your questions are then about your category, not about a city. On Managed, the Google profile line is replaced by the review or comparison site AI quotes most for you.</p></details>
+      <details><summary>Can you guarantee an AI will recommend us?</summary><p>No. Nobody controls those answers, and anyone who promises it is guessing. We change what the assistants read about you, and your dashboard shows every week whether the answers are changing.</p></details>
+      <details><summary>How soon will the answers change?</summary><p>We do not promise a date. You see the same numbers every week, so you know whether the work is having an effect, and you can stop whenever you choose.</p></details>
+      <details><summary>Do you need access to my website or accounts?</summary><p>Not for the audit; it uses only what is public. On Managed we need access to publish the page changes, and each one is published only after you approve it.</p></details>
+      <details><summary>Is the audit really free?</summary><p>Yes. No payment and no card. The report reaches your email within 24 hours and is yours even if you never speak to us again.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap">
+    <div class="panel">
+      <h2>Find out what AI says about your business.</h2>
+      <a class="btn mustard" href="#audit" data-tgl-event="aeo_cta_click" data-tgl-position="close">Get your free AI visibility audit</a>
+      <p class="contact"><span>Email <b>sales@thegrowthlab.co.in</b></span><span>WhatsApp <b>+91 98720 09997</b></span></p>
+    </div>
+  </div>
+</section>
+</main>
+<div class="sticky" id="sticky"><a class="btn print" href="#audit" data-tgl-event="aeo_cta_click" data-tgl-position="sticky">Get your free AI visibility audit</a></div>
