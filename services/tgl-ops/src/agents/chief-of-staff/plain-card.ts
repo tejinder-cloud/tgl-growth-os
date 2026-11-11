@@ -5,9 +5,9 @@
 import type { PlanEntry } from "../../lib/plan.js";
 import type { RevenueMetrics } from "../../lib/revenue.js";
 
-/** Calendar day 1 of the 90-day plan. */
-export const PLAN_START_DATE = "2026-10-29";
-export const PROGRAMME_DAYS = 90;
+/** Calendar day 1 of the plan: PROJECT-PLAN.md is dated 23 October 2026 and runs 68 days. */
+export const PLAN_START_DATE = "2026-10-23";
+export const PROGRAMME_DAYS = 68;
 
 export type CardMode = "morning" | "evening";
 
@@ -35,8 +35,8 @@ export function formatShortDate(dateStr: string): string {
 }
 
 /**
- * The plan day that is due on a calendar date: 29 Oct 2026 is day 1, so
- * the due day is (calendar days since 29 Oct 2026) + 1. Never below 0.
+ * The plan day that is due on a calendar date: 23 Oct 2026 is day 1, so
+ * the due day is (calendar days since 23 Oct 2026) + 1. Never below 0.
  */
 export function planDayDueOn(dateStr: string, startDate: string = PLAN_START_DATE): number {
   return Math.max(0, daysBetween(startDate, dateStr) + 1);
@@ -75,7 +75,7 @@ function findExplicitDate(text: string): string | null {
 /**
  * Next gate on the plan: the first entry (by day) not yet completed whose title names a Gate.
  * Expected date: an explicit date written in the entry (e.g. "11 Nov 2026"), otherwise the
- * calendar date on which that plan day falls (29 Oct 2026 is day 1).
+ * calendar date on which that plan day falls (23 Oct 2026 is day 1).
  */
 export function findNextGate(entries: PlanEntry[], startDate: string = PLAN_START_DATE): NextGate | null {
   const sorted = [...entries].sort((a, b) => a.day - b.day);
@@ -280,6 +280,14 @@ function link(url: string | undefined, text: string): string {
 export interface NeedsSource {
   openApprovals: { title: string; permalink?: string }[];
   blockedIssues?: { number: number; title: string; label: string; url: string }[];
+  /** Open proposals from agents (issues labelled as proposals) awaiting the Architect's decision. */
+  openProposals?: { number: number; title: string; agent?: string; url?: string }[];
+  /** Agents at or over 80% of their daily cost cap. */
+  agentCostStatuses?: { agent: string; percentage: number; isOverCap?: boolean; isOver80Percent?: boolean }[];
+  /** Plan entries carried forward (not done on their day). */
+  carriedForwardPlanEntries?: { day: number; title: string; agent?: string }[];
+  /** Review cards that have waited more than two hours. */
+  olderReviewCards?: { title: string; agent?: string; ageHours?: number; permalink?: string }[];
   /** Plan entries, the current plan day and the day due today, used for the "go" item. */
   planEntries?: PlanEntry[];
   currentDay?: number;
@@ -298,6 +306,14 @@ export function buildNeedsItems(src: NeedsSource): NeedItem[] {
     });
   }
 
+  for (const r of src.olderReviewCards || []) {
+    const wait = r.ageHours !== undefined ? `, waiting ${Math.round(r.ageHours)}h` : "";
+    items.push({
+      action: `Approve or reject the review card ${link(r.permalink, `"${r.title.replace(/"/g, "'")}"`)}${r.agent ? ` from @${r.agent}` : ""}${wait}`,
+      outcome: "the agent's work is released",
+    });
+  }
+
   for (const b of src.blockedIssues || []) {
     const ref = link(b.url, `#${b.number} "${b.title.replace(/"/g, "'")}"`);
     if (b.label === "status:needs-brief") {
@@ -311,6 +327,31 @@ export function buildNeedsItems(src: NeedsSource): NeedItem[] {
         outcome: "the agent restarts the stalled work",
       });
     }
+  }
+
+  for (const p of src.openProposals || []) {
+    const ref = link(p.url, `#${p.number} "${p.title.replace(/"/g, "'")}"`);
+    items.push({
+      action: `Decide on open proposal ${ref}${p.agent ? ` from @${p.agent}` : ""}`,
+      outcome: "the agent either builds it or records it as rejected so nobody re-proposes it",
+    });
+  }
+
+  for (const c of src.agentCostStatuses || []) {
+    if (!(c.isOverCap || c.isOver80Percent || c.percentage >= 80)) continue;
+    items.push({
+      action: c.isOverCap
+        ? `@${c.agent} has stopped at ${Math.round(c.percentage)}% of its daily cost cap; raise the cap in config/agents.yaml or let it resume tomorrow`
+        : `@${c.agent} is at ${Math.round(c.percentage)}% of its daily cost cap; decide whether to raise it before it stops`,
+      outcome: c.isOverCap ? "its paused work restarts" : "today's remaining runs finish without a stop",
+    });
+  }
+
+  for (const e of src.carriedForwardPlanEntries || []) {
+    items.push({
+      action: `Day ${e.day} (${e.title.replace(/"/g, "'")}) was carried forward${e.agent ? ` by @${e.agent}` : ""}; say "day ${e.day}" in #architect to re-run it or "skip" to drop it`,
+      outcome: "the plan stops carrying it",
+    });
   }
 
   if (src.planEntries && src.currentDay !== undefined && src.dueDay !== undefined) {
@@ -361,7 +402,7 @@ export function renderGreetingLine(input: Pick<PlainCardInput, "mode" | "dateStr
   const due = planDayDueOn(input.dateStr);
   const pace = computePace(due, input.currentDay);
   const gate = findNextGate(input.planEntries);
-  const gateText = gate ? ` (Next gate: ${gate.name}, expected ${formatShortDate(gate.date)})` : "";
+  const gateText = gate ? ` (Next gate: ${gate.name} at Day ${gate.day}, originally due ${formatShortDate(gate.date)})` : "";
   const hello = input.mode === "morning" ? "Good morning." : "Good evening.";
   return `${hello} Day ${input.currentDay} of ${PROGRAMME_DAYS} — ${pace.phrase}${gateText}.`;
 }

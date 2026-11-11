@@ -222,6 +222,10 @@ export async function buildPlainCardInput(options: PlainCardOptions): Promise<Pl
   const needs = buildNeedsItems({
     openApprovals: material.openApprovals || [],
     blockedIssues: material.blockedIssues || [],
+    openProposals: (material.openProposals || []).map((p: any) => ({ number: p.number, title: p.title, agent: p.agent, url: p.url })),
+    agentCostStatuses: material.agentCostStatuses || [],
+    carriedForwardPlanEntries: material.carriedForwardPlanEntries || [],
+    olderReviewCards: (material.olderReviewCards || []).map((r: any) => ({ title: r.title, agent: r.agent, ageHours: r.ageHours, permalink: r.permalink })),
     planEntries,
     currentDay,
     dueDay: planDayDueOn(date),

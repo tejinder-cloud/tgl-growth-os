@@ -105,9 +105,9 @@ async function main(): Promise<void> {
   let passed = 0;
 
   // ---- 1. Calendar arithmetic ----
-  assertEqual(PLAN_START_DATE, "2026-10-29", "plan starts 29 Oct 2026");
-  assertEqual(planDayDueOn("2026-10-29"), 1, "29 Oct 2026 is plan day 1");
-  assertEqual(planDayDueOn("2026-11-12"), 15, "12 Nov 2026 is plan day 15");
+  assertEqual(PLAN_START_DATE, "2026-10-23", "plan starts 23 Oct 2026 (PROJECT-PLAN.md header)");
+  assertEqual(planDayDueOn("2026-10-23"), 1, "23 Oct 2026 is plan day 1");
+  assertEqual(planDayDueOn("2026-11-12"), 21, "12 Nov 2026 is plan day 21");
   assertEqual(planDayDueOn("2026-10-01"), 0, "dates before the start never go negative");
   assertEqual(addDays("2026-10-29", 32), "2026-11-30", "addDays crosses a month end");
   assertEqual(istDateOf("2026-11-11T20:00:00Z"), "2026-11-12", "20:00 UTC is already the next day in IST");
@@ -124,16 +124,16 @@ async function main(): Promise<void> {
   assertEqual(computePace(15, 17).delta, -2, "ahead delta is negative");
   assertEqual(computePace(15, 16).phrase, "1 day ahead", "singular day when 1 ahead");
 
-  const onTrack = renderGreetingLine({ mode: "morning", dateStr: "2026-11-12", currentDay: 15, planEntries });
+  const onTrack = renderGreetingLine({ mode: "morning", dateStr: "2026-11-12", currentDay: 21, planEntries });
   assertEqual(
     onTrack,
-    "Good morning. Day 15 of 90 — on track (Next gate: Gate 1, expected 11 Nov).",
+    "Good morning. Day 21 of 68 — on track (Next gate: Gate 1 at Day 15, originally due 11 Nov).",
     "line 1 on track, gate date taken from plan.yaml text"
   );
-  const behind = renderGreetingLine({ mode: "morning", dateStr: "2026-11-12", currentDay: 12, planEntries });
-  assert(behind.startsWith("Good morning. Day 12 of 90 — 3 days behind"), `line 1 behind: ${behind}`);
-  const ahead = renderGreetingLine({ mode: "morning", dateStr: "2026-11-12", currentDay: 17, planEntries });
-  assert(ahead.startsWith("Good morning. Day 17 of 90 — 2 days ahead"), `line 1 ahead: ${ahead}`);
+  const behind = renderGreetingLine({ mode: "morning", dateStr: "2026-11-12", currentDay: 18, planEntries });
+  assert(behind.startsWith("Good morning. Day 18 of 68 — 3 days behind"), `line 1 behind: ${behind}`);
+  const ahead = renderGreetingLine({ mode: "morning", dateStr: "2026-11-12", currentDay: 23, planEntries });
+  assert(ahead.startsWith("Good morning. Day 23 of 68 — 2 days ahead"), `line 1 ahead: ${ahead}`);
   passed++;
   console.log("[2] On-track arithmetic (on track, behind, ahead): passed");
 
@@ -141,7 +141,7 @@ async function main(): Promise<void> {
   const gate = findNextGate(planEntries);
   assert(gate && gate.name === "Gate 1" && gate.date === "2026-11-11", "next gate is Gate 1 on 11 Nov 2026");
   const gateAfter = findNextGate(planEntries.map((e) => (e.day === 15 ? { ...e, status: "completed" } : e)));
-  assert(gateAfter && gateAfter.name === "Gate 2" && gateAfter.date === "2026-11-30", "completed gates are skipped; date falls back to the calendar day");
+  assert(gateAfter && gateAfter.name === "Gate 2" && gateAfter.date === "2026-11-24", "completed gates are skipped; date falls back to the calendar day (Day 33 from 23 Oct)");
   assertEqual(findNextGate([entry(16)]), null, "no gate on the plan gives null");
   passed++;
   console.log("[3] Next gate and expected date: passed");
@@ -213,7 +213,7 @@ async function main(): Promise<void> {
     const text = renderPlainCard(v);
     assert(!EMOJI_REGEX.test(text), `emoji found in ${v.mode} card:\n${text}`);
     assert(isPlainShape(text, v.mode), `${v.mode} card lost the plain-English shape:\n${text}`);
-    assert(text.split("\n")[0].includes(" of 90 — "), "line 1 carries the day and pace");
+    assert(text.split("\n")[0].includes(" of 68 — "), "line 1 carries the day and pace");
   }
   passed++;
   console.log("[7] No emojis in 09:00 or 21:00 cards: passed");
@@ -252,7 +252,7 @@ async function main(): Promise<void> {
   });
   console.log("\n" + morning + "\n");
   const mLines = morning.split("\n");
-  assert(mLines[0].startsWith("Good morning. Day 15 of 90 — on track (Next gate: Gate 1, expected 11 Nov)"), "line 1");
+  assert(mLines[0].startsWith("Good morning. Day 15 of 68 — 6 days behind (Next gate: Gate 1 at Day 15, originally due 11 Nov)"), "line 1");
   assert(morning.includes("*Yesterday:* The citation tracker collected 48 answers"), "Yesterday section");
   assert(morning.includes('"Plain-English 09:00 card"'), "merged PR title named");
   assert(morning.includes("2 cards were approved"), "cards approved counted");

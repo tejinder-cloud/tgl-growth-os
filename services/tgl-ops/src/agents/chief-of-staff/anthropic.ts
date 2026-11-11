@@ -9,6 +9,7 @@ import { getAnthropicModel, getAnthropicPricing } from "../../lib/anthropic-pric
 export { getAnthropicModel, getAnthropicPricing };
 import type { GatheredData } from "./gather.js";
 import { buildPlainCardText } from "./plain-card-data.js";
+import { PROGRAMME_DAYS } from "./plain-card.js";
 
 export interface SynthesisResult {
   digestText: string;
@@ -218,7 +219,7 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (plain-English standup):
 export function isPlainShape(text: string, mode: "morning" | "evening"): boolean {
   const hello = mode === "morning" ? "Good morning." : "Good evening.";
   const first = text.split("\n")[0] || "";
-  if (!first.startsWith(`${hello} Day `) || !/ of 90 — /.test(first)) return false;
+  if (!first.startsWith(`${hello} Day `) || !new RegExp(` of ${PROGRAMME_DAYS} — `).test(first)) return false;
   const activity = mode === "morning" ? "Yesterday:" : "Today:";
   const schedule = mode === "morning" ? "Today:" : "Tomorrow:";
   const order = [activity, schedule, "Money:", "Needs you:"];
@@ -228,7 +229,8 @@ export function isPlainShape(text: string, mode: "morning" | "evening"): boolean
     if (idx < 0) return false;
     from = idx + label.length;
   }
-  if (/Open Issues|Carried|Blocked:/i.test(text)) return false;
+  // The old card's labels must be gone; a Needs-you sentence may still say a day "was carried forward".
+  if (/Open Issues:|Carried \/ Blocked:|Carried Items:/i.test(text)) return false;
   return true;
 }
 

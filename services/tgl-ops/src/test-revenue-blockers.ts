@@ -60,11 +60,8 @@ async function runRevenueAndBlockersSuite(): Promise<void> {
   if (!statusCard) {
     throw new Error("Test 31.2 Failed: Plan Status Card not posted");
   }
-  if (
-    !statusCard.summary.includes(
-      "• *Revenue:* 0 audit requests · 0 diagnostic calls booked · 0 proposals sent · 0 retainers won · ₹0 invoiced"
-    )
-  ) {
+  // Plain-English card (issue #180): the revenue facts live on the Money line, strictly zeros, never dashes.
+  if (!statusCard.summary.includes("*Money:* 0 audit requests, 0 calls booked, 0 proposals, 0 retainers, ₹0 invoiced")) {
     throw new Error(`Test 31.2 Failed: Status card summary missing Revenue line: ${statusCard.summary}`);
   }
   console.log("  ✓ 09:00 Plan Status Card includes verified Revenue line");
@@ -88,18 +85,16 @@ async function runRevenueAndBlockersSuite(): Promise<void> {
     rawSummaryText: "",
   };
   const digestRes = await synthesizeStandupDigest(mockGathered, { testMode: true });
-  if (
-    !digestRes.digestText.includes(
-      "• *Revenue:* 0 audit requests · 0 diagnostic calls booked · 0 proposals sent · 0 retainers won · ₹0 invoiced"
-    )
-  ) {
+  // Plain-English standup (issue #180): revenue facts on the Money line, strictly zeros.
+  if (!digestRes.digestText.includes("*Money:* 0 audit requests, 0 calls booked, 0 proposals, 0 retainers, ₹0 invoiced")) {
     throw new Error(`Test 31.3 Failed: Standup digest missing Revenue line: ${digestRes.digestText}`);
   }
   console.log("  ✓ Standup digest includes verified Revenue line");
 
   // 31.4 Standup Digest Blockers: "None reported" when empty
-  if (!digestRes.digestText.includes("• None reported")) {
-    throw new Error(`Test 31.4 Failed: Empty blockers must output "• None reported": ${digestRes.digestText}`);
+  // With no blockers, no review cards and no proposals, Needs-you carries nothing but the plan's own "go" item.
+  if (/Clear the blocker|Write the missing brief|review card|open proposal/i.test(digestRes.digestText)) {
+    throw new Error(`Test 31.4 Failed: Empty blockers must add no blocker items: ${digestRes.digestText}`);
   }
   console.log("  ✓ Standup digest Blockers outputs '• None reported' when queries return nothing");
 
@@ -134,17 +129,13 @@ async function runRevenueAndBlockersSuite(): Promise<void> {
     ],
   };
   const digestWithBlockers = await synthesizeStandupDigest(mockWithBlockers, { testMode: true });
-  if (!digestWithBlockers.digestText.includes("#117 (Sales Desk SKILL.md, 1d): status:blocked")) {
+  if (!/Clear the blocker on .*#117 "Sales Desk SKILL.md"/.test(digestWithBlockers.digestText)) {
     throw new Error(`Test 31.5 Failed: Blocked issue #117 missing from digest: ${digestWithBlockers.digestText}`);
   }
-  if (!digestWithBlockers.digestText.includes("#142 (Outreach Sequencer Templates, 4h): status:needs-brief")) {
+  if (!/Write the missing brief on .*#142 "Outreach Sequencer Templates"/.test(digestWithBlockers.digestText)) {
     throw new Error(`Test 31.5 Failed: Needs-brief issue #142 missing from digest: ${digestWithBlockers.digestText}`);
   }
-  if (
-    !digestWithBlockers.digestText.includes(
-      "Review card: *Review 25 Accounts (Mumbai)* (@prospect-researcher, 3h)"
-    )
-  ) {
+  if (!/review card "Review 25 Accounts \(Mumbai\)" from @prospect-researcher, waiting 3h/.test(digestWithBlockers.digestText)) {
     throw new Error(`Test 31.5 Failed: Older review card (>2h) missing from digest: ${digestWithBlockers.digestText}`);
   }
   console.log("  ✓ Standup digest Blockers lists status:blocked, status:needs-brief, and older review cards");

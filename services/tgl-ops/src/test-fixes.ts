@@ -2421,12 +2421,13 @@ async function runFixesVerificationSuite(): Promise<void> {
     throw new Error(`Test 23.1 Failed: Expected '16:38 IST', got '${readTime23}'`);
   }
 
-  // 2. Verify 09:00 status card includes "intake last read 16:38 IST"
+  // 2. The plain-English 09:00 card (issue #180) no longer carries the intake diagnostic line; intake
+  //    health is reported by the 10-minute stall alert instead. The card must still post, without that line.
   resetMockPostedCards();
   const dispatch23 = await execute0900PlanDispatch({ testMode: true, day: 8 });
   const morningCard23 = mockPostedCards.find((c) => c.title.includes("Plan Status Card"));
-  if (!morningCard23 || !morningCard23.summary.includes("intake last read 16:38 IST")) {
-    throw new Error(`Test 23.2 Failed: 09:00 card missing intake health line: ${morningCard23?.summary}`);
+  if (!morningCard23 || morningCard23.summary.includes("intake last read")) {
+    throw new Error(`Test 23.2 Failed: 09:00 card should post without the intake diagnostic line: ${morningCard23?.summary}`);
   }
 
   // 3. Verify standup gather material includes intakeLastReadTime
@@ -2435,10 +2436,10 @@ async function runFixesVerificationSuite(): Promise<void> {
     throw new Error(`Test 23.3 Failed: Gathered material missing intakeLastReadTime: ${gathered23.intakeLastReadTime}`);
   }
 
-  // 4. Verify standup digest includes "intake last read 16:38 IST"
+  // 4. The plain-English standup (issue #180) carries no intake diagnostic line either; it must still render.
   const digest23 = await synthesizeStandupDigest(gathered23, { testMode: true });
-  if (!digest23.digestText.includes("intake last read 16:38 IST")) {
-    throw new Error(`Test 23.4 Failed: Standup digest missing intake health line: ${digest23.digestText}`);
+  if (!digest23.digestText.startsWith("Good evening.") || digest23.digestText.includes("intake last read")) {
+    throw new Error(`Test 23.4 Failed: Standup should be the plain card without the intake diagnostic line: ${digest23.digestText}`);
   }
 
   // 5. Test checkIntakeHealth: healthy when elapsed time < 10m
