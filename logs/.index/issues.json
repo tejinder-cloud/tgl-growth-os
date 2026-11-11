@@ -1,11 +1,17 @@
 {
   "13": {
-    "channel": "#marketing",
-    "ts": "1792833586.528000",
-    "agent": "web-builder",
+    "channel": "C073SJJ22P9",
+    "ts": "1794367809.011469",
+    "agent": "chief-of-staff",
     "door": "core",
-    "title": "Fix footer CTA spacing on mobile",
-    "updatedAt": "2026-10-24T09:19:46.983Z"
+    "title": "Plan Status Card — Day 13",
+    "updatedAt": "2026-11-11T03:30:09.087Z",
+    "cardType": "plan",
+    "linkedIssueNumber": 13,
+    "threadTimestamps": [
+      "1792833586.528000",
+      "1794367809.011469"
+    ]
   },
   "14": {
     "channel": "#marketing",
@@ -268,6 +274,60 @@
     ],
     "updatedAt": "2026-11-10T11:09:16.233Z"
   },
+  "171": {
+    "channel": "#site-build",
+    "ts": "1794319183.801329",
+    "agent": "web-builder",
+    "door": "core",
+    "title": "Prospect fit rubric v2 per decisions/2026-11-10.md. (1) services/tgl-ops/src/age",
+    "cardType": "issue",
+    "linkedIssueNumber": 171,
+    "threadTimestamps": [
+      "1794319183.801329"
+    ],
+    "updatedAt": "2026-11-10T13:59:44.164Z"
+  },
+  "172": {
+    "channel": "#site-build",
+    "ts": "1794319183.801329",
+    "agent": "web-builder",
+    "door": "core",
+    "title": "Prospect fit rubric v2 per decisions/2026-11-10.md. (1) services/tgl-ops/src/age",
+    "cardType": "issue",
+    "linkedIssueNumber": 172,
+    "threadTimestamps": [
+      "1794319183.801329"
+    ],
+    "updatedAt": "2026-11-10T18:31:07.585Z"
+  },
+  "174": {
+    "channel": "C0BATS9F99B",
+    "ts": "1794379840.135139",
+    "agent": "web-builder",
+    "door": "aeo",
+    "title": "[TASK]: Short-form audit fixes. (1) agents/aeo-audit-engine/short-form.ts: choose the fi",
+    "cardType": "pr_review",
+    "linkedIssueNumber": 174,
+    "threadTimestamps": [
+      "1794379438.082159",
+      "1794379840.135139"
+    ],
+    "updatedAt": "2026-11-11T06:50:40.208Z"
+  },
+  "175": {
+    "channel": "C0BATS9F99B",
+    "ts": "1794379840.135139",
+    "agent": "web-builder",
+    "door": "aeo",
+    "title": "[TASK]: Short-form audit fixes. (1) agents/aeo-audit-engine/short-form.ts: choose the fi",
+    "cardType": "pr_review",
+    "linkedIssueNumber": 174,
+    "threadTimestamps": [
+      "1794379438.082159"
+    ],
+    "updatedAt": "2026-11-11T06:50:40.208Z",
+    "prNumber": 175
+  },
   "thread:1794308956.168819": {
     "channel": "#doors-aeo",
     "ts": "1794308956.168819",
@@ -278,5 +338,50 @@
     "door": "aeo",
     "title": "Generate the TGL audit PDF from today’s verified run and post it to #doors-aeo",
     "updatedAt": "2026-11-10T11:09:16.233Z"
+  },
+  "thread:1794319183.801329": {
+    "channel": "#site-build",
+    "ts": "1794319183.801329",
+    "issueNumber": 172,
+    "linkedIssueNumber": 172,
+    "cardType": "issue",
+    "agent": "web-builder",
+    "door": "core",
+    "title": "Prospect fit rubric v2 per decisions/2026-11-10.md. (1) services/tgl-ops/src/age",
+    "updatedAt": "2026-11-10T18:31:07.585Z"
+  },
+  "thread:1794367809.011469": {
+    "channel": "C073SJJ22P9",
+    "ts": "1794367809.011469",
+    "issueNumber": 13,
+    "linkedIssueNumber": 13,
+    "cardType": "plan",
+    "agent": "chief-of-staff",
+    "door": "core",
+    "title": "Plan Status Card — Day 13",
+    "updatedAt": "2026-11-11T03:30:09.087Z"
+  },
+  "thread:1794379438.082159": {
+    "channel": "#site-build",
+    "ts": "1794379438.082159",
+    "issueNumber": 175,
+    "linkedIssueNumber": 175,
+    "cardType": "issue",
+    "agent": "web-builder",
+    "door": "aeo",
+    "title": "Short-form audit fixes. (1) agents/aeo-audit-engine/short-form.ts: choose the fi",
+    "updatedAt": "2026-11-11T06:49:36.921Z"
+  },
+  "thread:1794379840.135139": {
+    "channel": "C0BATS9F99B",
+    "ts": "1794379840.135139",
+    "issueNumber": 174,
+    "linkedIssueNumber": 174,
+    "cardType": "pr_review",
+    "prNumber": 175,
+    "agent": "web-builder",
+    "door": "aeo",
+    "title": "[TASK]: Short-form audit fixes. (1) agents/aeo-audit-engine/short-form.ts: choose the fi",
+    "updatedAt": "2026-11-11T06:50:40.208Z"
   }
 }

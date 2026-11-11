@@ -5,6 +5,7 @@ process.env.ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-
 process.env.ANTHROPIC_PRICE_IN = process.env.ANTHROPIC_PRICE_IN || "3.00";
 process.env.ANTHROPIC_PRICE_OUT = process.env.ANTHROPIC_PRICE_OUT || "15.00";
 
+import { FIT_QUALIFIED_THRESHOLD } from "./agents/prospect-researcher/threshold.js";
 import { gatherStandupMaterial } from "./agents/chief-of-staff/gather.js";
 import { doesCronRunOnDate, isAgentScheduledOnDate, findAgentByName, getAgentRunnerLimits, type AgentRecord } from "./lib/agents.js";
 import { execute1815SilenceCheck } from "./agents/chief-of-staff/worker.js";
@@ -3232,7 +3233,9 @@ async function runFixesVerificationSuite(): Promise<void> {
     signals: clinicSignals,
     decisionMaker: clinicDMWithPhone,
   });
-  if (clinicEval.fitScore < 70) {
+  // Rubric v2 (decisions/2026-11-10.md): qualified at FIT_QUALIFIED_THRESHOLD (65), not 70. This fixture has no
+  // Dimension 4 probe, so it lands exactly on the threshold; the v2 suite covers the probed cases.
+  if (!clinicEval.qualified || clinicEval.fitScore < FIT_QUALIFIED_THRESHOLD) {
     throw new Error(`Test 28.4 Failed: Owner-run clinic with Places phone should qualify, got score=${clinicEval.fitScore}`);
   }
   console.log(`  ✓ Owner-run clinic (<50 staff) accepts Places business phone and qualifies (score: ${clinicEval.fitScore})`);

@@ -111,15 +111,15 @@ plan:
     door: core
     title: Gate 1 Review & Cross-Door Scorecard v1
     brief: "Review; scorecard v1. Gate 1 verification: 100 prospects, ≥50 touched,
-      ≥5 audits delivered, 0 QA failures."
+      ≥5 audits delivered, ≥1 conversation booked, 0 QA failures (Architect, 11 Nov 2026)."
     definition_of_done:
       - Cross-door scorecard compiled with live metrics
-      - "Gate 1 verified: 100 prospects, >=50 touched, >=5 audits delivered, 0
-        QA failures"
+      - "Gate 1 verified: 100 prospects, >=50 touched, >=5 audits delivered, >=1
+        conversation booked, 0 QA failures"
       - Decision recorded and standup summary posted
     depends_on:
       - 14
-    architect_hour: "Gate 1: 100 prospects, ≥50 touched, ≥5 audits delivered, 0 QA failures."
+    architect_hour: "Gate 1: 100 prospects, ≥50 touched, ≥5 audits delivered, ≥1 conversation booked, 0 QA failures."
   - day: 16
     status: completed
     evidence: truevisible-app

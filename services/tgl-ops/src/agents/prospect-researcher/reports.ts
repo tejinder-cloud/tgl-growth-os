@@ -5,6 +5,8 @@ import { config, isTestMode } from "../../config.js";
 import { postCard, postFile, postLine } from "../../lib/post.js";
 import type { ProspectRecord } from "./types.js";
 import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
+import { FIT_QUALIFIED_THRESHOLD } from "./threshold.js";
+import { parseDim4Probe, summariseDim4Probe } from "./dim4.js";
 
 /**
  * Builds CSV string formatted for revenue exports and GHL bulk ingestion.
@@ -99,7 +101,9 @@ export async function postTop25ReviewCard(params: {
 
   const lines = top25.map((p, idx) => {
     const phoneTag = p.decision_maker.phone ? " · [phone]" : "";
-    return `*${idx + 1}. <${p.website}|${p.company}>* (Score: *${p.fit_score}*) · ${p.city}\n   ↳ *${p.decision_maker.name}* (${p.decision_maker.role}) · \`${p.decision_maker.email}\`${phoneTag}\n   ↳ _${p.fit_reasons[0] || "Qualified"}_`;
+    const probe = parseDim4Probe(p.fit_reasons);
+    const probeLine = probe ? `\n   ↳ _AI visibility: ${summariseDim4Probe(probe)}_` : "";
+    return `*${idx + 1}. <${p.website}|${p.company}>* (Score: *${p.fit_score}*) · ${p.city}\n   ↳ *${p.decision_maker.name}* (${p.decision_maker.role}) · \`${p.decision_maker.email}\`${phoneTag}\n   ↳ _${p.fit_reasons[0] || "Qualified"}_${probeLine}`;
   });
 
   const writtenToSupabase =
@@ -109,8 +113,8 @@ export async function postTop25ReviewCard(params: {
 
   const summary =
     prospects.length > 0
-      ? `*Top 25 Prospects — ${city} (${category})*\n*Total Qualified Batch:* ${prospects.length} accounts (Fit score ≥ 70)\n${writtenToSupabase}\n\n${lines.slice(0, 8).join("\n\n")}\n\n_(+${Math.max(0, top25.length - 8)} more in attached CSV below)_`
-      : `*Prospect Researcher Batch — ${city} (${category})*\n*Total Qualified Batch:* 0 accounts (Fit score ≥ 70)\n${writtenToSupabase}\n\n*Shortfall:* Sourced accounts did not meet the fit score ≥ 70 qualification threshold or lacked verified corporate contact.`;
+      ? `*Top 25 Prospects — ${city} (${category})*\n*Total Qualified Batch:* ${prospects.length} accounts (Fit score ≥ ${FIT_QUALIFIED_THRESHOLD})\n${writtenToSupabase}\n\n${lines.slice(0, 8).join("\n\n")}\n\n_(+${Math.max(0, top25.length - 8)} more in attached CSV below)_`
+      : `*Prospect Researcher Batch — ${city} (${category})*\n*Total Qualified Batch:* 0 accounts (Fit score ≥ ${FIT_QUALIFIED_THRESHOLD})\n${writtenToSupabase}\n\n*Shortfall:* Sourced accounts did not meet the fit score ≥ ${FIT_QUALIFIED_THRESHOLD} qualification threshold or lacked verified corporate contact.`;
 
   const runLogUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/logs/${dateStr}/prospect-researcher.md`;
 
