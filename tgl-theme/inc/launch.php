@@ -125,8 +125,8 @@ function tgl_launch_strip_block_assets(): void {
 	wp_dequeue_style( 'wp-block-library-theme' );
 	wp_dequeue_style( 'global-styles' );
 	wp_dequeue_style( 'classic-theme-styles' );
-	wp_dequeue_style( 'tgl-theme-style' );
-	wp_dequeue_style( 'tgl-styles' );
+	wp_dequeue_style( 'tgl-core-styles' );
+	wp_dequeue_script( 'tgl-client-js' );
 }
 add_action( 'wp_enqueue_scripts', 'tgl_launch_strip_block_assets', 100 );
 
