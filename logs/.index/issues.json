@@ -300,6 +300,19 @@
     ],
     "updatedAt": "2026-11-10T18:31:07.585Z"
   },
+  "174": {
+    "channel": "#site-build",
+    "ts": "1794379438.082159",
+    "agent": "web-builder",
+    "door": "aeo",
+    "title": "Short-form audit fixes. (1) agents/aeo-audit-engine/short-form.ts: choose the fi",
+    "cardType": "issue",
+    "linkedIssueNumber": 174,
+    "threadTimestamps": [
+      "1794379438.082159"
+    ],
+    "updatedAt": "2026-11-11T06:43:58.333Z"
+  },
   "thread:1794308956.168819": {
     "channel": "#doors-aeo",
     "ts": "1794308956.168819",
@@ -332,5 +345,16 @@
     "door": "core",
     "title": "Plan Status Card — Day 13",
     "updatedAt": "2026-11-11T03:30:09.087Z"
+  },
+  "thread:1794379438.082159": {
+    "channel": "#site-build",
+    "ts": "1794379438.082159",
+    "issueNumber": 174,
+    "linkedIssueNumber": 174,
+    "cardType": "issue",
+    "agent": "web-builder",
+    "door": "aeo",
+    "title": "Short-form audit fixes. (1) agents/aeo-audit-engine/short-form.ts: choose the fi",
+    "updatedAt": "2026-11-11T06:43:58.333Z"
   }
 }
