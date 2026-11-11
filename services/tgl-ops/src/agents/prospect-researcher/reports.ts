@@ -177,6 +177,7 @@ export async function postTop25ReviewCard(params: {
 
 /**
  * Exports full weekly prospects CSV and posts it to #revenue.
+ * Benched rows (status bench or nurture) are never exported: a benched candidate is never notified.
  */
 export async function exportWeeklyProspectsCsv(options?: { testMode?: boolean }): Promise<string> {
   const { loadAllProspects } = await import("./db.js");
@@ -184,7 +185,7 @@ export async function exportWeeklyProspectsCsv(options?: { testMode?: boolean })
   const targetChannel = isTest ? (config.opsChannelId || "#ops") : "#revenue";
   const dateStr = getTodayDateString();
 
-  const allProspects = await loadAllProspects(options);
+  const allProspects = (await loadAllProspects(options)).filter((p) => p.status !== "bench" && p.status !== "nurture");
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const weeklyProspects = allProspects.filter((p) => p.created_at >= sevenDaysAgo || p.status === "new" || p.status === "reviewed");
 
