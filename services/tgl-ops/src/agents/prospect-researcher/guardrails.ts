@@ -4,6 +4,7 @@ import path from "node:path";
 import { config, isTestMode } from "../../config.js";
 import type { DecisionMaker } from "./types.js";
 import { getTodayDateString } from "../../lib/standup.js";
+import { FIT_QUALIFIED_THRESHOLD } from "./threshold.js";
 
 const PLACES_QUOTA_FILE = "logs/.state/places-quota.json";
 const PLACES_TEST_QUOTA_FILE = "logs/.test/.state/places-quota.json";
@@ -164,7 +165,8 @@ export function isRolePlaceholderName(name: string, isOwnerRun?: boolean): boole
  * (c) a contact verification result:
  *     - a Hunter-verified website email (status: deliverable|risky), OR
  *     - for owner-run businesses (<50 staff), the business phone from Google Places
- * (d) a per-dimension score breakdown in fit_reasons (exactly five entries, one per rubric dimension, each with its evidence)
+ * (d) a per-dimension score breakdown in fit_reasons (at least five entries, one per rubric dimension, each with its evidence;
+ *     rubric v2 adds a sixth `dim4_probe` entry carrying the Dimension 4 probe record)
  * (e) verified non-placeholder human name or "Owner / Lead Doctor" for owner-run clinics
  * (f) non-disqualified under Playbook C
  *
@@ -242,7 +244,7 @@ export function validateProspectRecord(p: any): { valid: boolean; reason?: strin
   }
   const requiredDimensions = ["Dim 1", "Dim 2", "Dim 3", "Dim 4", "Dim 5"];
   for (const dim of requiredDimensions) {
-    if (!fitReasons.some((r) => r.startsWith(dim))) {
+    if (!fitReasons.some((r) => typeof r === "string" && r.startsWith(dim))) {
       return {
         valid: false,
         reason: `Missing rubric dimension entry '${dim}' in fit_reasons`,
@@ -250,12 +252,14 @@ export function validateProspectRecord(p: any): { valid: boolean; reason?: strin
     }
   }
 
-  // 6. Fit score threshold (only enforced for active/qualified candidates; rejected rows carry fit_score = 0)
-  if (p.status !== "rejected") {
-    if (typeof p.fit_score !== "number" || p.fit_score < 70) {
+  // 6. Fit score threshold (rubric v2: 65). Enforced only for active/qualified candidates; rejected rows carry
+  // fit_score = 0 and nurture / bench rows are held below the threshold by definition.
+  const heldBelowThreshold = p.status === "rejected" || p.status === "nurture" || p.status === "bench";
+  if (!heldBelowThreshold) {
+    if (typeof p.fit_score !== "number" || p.fit_score < FIT_QUALIFIED_THRESHOLD) {
       return {
         valid: false,
-        reason: `Fit score (${p.fit_score}) is below qualification threshold of 70`,
+        reason: `Fit score (${p.fit_score}) is below qualification threshold of ${FIT_QUALIFIED_THRESHOLD}`,
       };
     }
   }
@@ -331,4 +335,3 @@ export function assertNoOutreachTooling(): void {
     }
   }
 }
-
