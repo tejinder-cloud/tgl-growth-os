@@ -73,6 +73,8 @@ function defaultStartAudit(lead: SiteLead, rowId: string): void {
         city: lead.city,
         source: "site_lead",
         leadId: rowId,
+        contactName: lead.name,
+        contactEmail: lead.email,
       });
     } catch (err: any) {
       console.error("[Site Leads] prospect audit crashed:", err?.message || err);
