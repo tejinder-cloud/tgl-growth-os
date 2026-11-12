@@ -1,16 +1,17 @@
 {
   "13": {
     "channel": "C073SJJ22P9",
-    "ts": "1794367809.011469",
+    "ts": "1794454209.517219",
     "agent": "chief-of-staff",
     "door": "core",
     "title": "Plan Status Card — Day 13",
-    "updatedAt": "2026-11-11T03:30:09.087Z",
+    "updatedAt": "2026-11-12T03:30:09.765Z",
     "cardType": "plan",
     "linkedIssueNumber": 13,
     "threadTimestamps": [
       "1792833586.528000",
-      "1794367809.011469"
+      "1794367809.011469",
+      "1794454209.517219"
     ]
   },
   "14": {
@@ -471,5 +472,16 @@
     "door": "core",
     "title": "Plain-English 09:00 card. Rewrite the Chief of Staff status card in services/tgl",
     "updatedAt": "2026-11-11T11:07:03.803Z"
+  },
+  "thread:1794454209.517219": {
+    "channel": "C073SJJ22P9",
+    "ts": "1794454209.517219",
+    "issueNumber": 13,
+    "linkedIssueNumber": 13,
+    "cardType": "plan",
+    "agent": "chief-of-staff",
+    "door": "core",
+    "title": "Plan Status Card — Day 13",
+    "updatedAt": "2026-11-12T03:30:09.765Z"
   }
 }
