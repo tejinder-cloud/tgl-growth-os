@@ -10,7 +10,9 @@ import { generateAuditPdf } from "./agents/aeo-audit-engine/pdf.js";
 import { resetProspectAuditMemoryForTests, runProspectAudit, type ProspectAuditDeps, type ProspectAuditRequest } from "./agents/aeo-audit-engine/prospect-audit.js";
 import { memoryProspectAuditStore } from "./agents/aeo-audit-engine/prospect-audit-store.js";
 import {
+  DEFAULT_BOOKING_LINK,
   DEFAULT_REPLY_TO,
+  bookingLink,
   EMAIL_MODAL,
   REFINE_ACTION,
   REFINE_MODAL,
@@ -156,7 +158,7 @@ async function main(): Promise<void> {
 
   // ---- the email: the approved wording and nothing else ----
   {
-    const e = buildProspectAuditEmail({ business_name: "Sunrise Dental", category_phrase: "dental clinic", city: "Mohali", contact_name: "Dr Neha Kapoor" });
+    const e = buildProspectAuditEmail({ business_name: "Sunrise Dental", category_phrase: "dental clinic", city: "Mohali", contact_name: "Dr Neha Kapoor" }, { PROSPECT_AUDIT_BOOKING_LINK: "off" });
     assert.equal(e.subject, "Your AI visibility check: Sunrise Dental");
     assert.equal(
       e.text,
@@ -169,6 +171,14 @@ async function main(): Promise<void> {
       ].join("\n\n")
     );
     assert.ok(e.html.includes("Tejinder Singh<br>The Growth Lab") && !e.html.includes("<script"));
+    // With the booking page (the default since 12 Nov): the sentence the Architect approved, with the link.
+    const withLink = buildProspectAuditEmail({ business_name: "Sunrise Dental", category_phrase: "dental clinic", city: "Mohali", contact_name: "Dr Neha Kapoor" }, {});
+    assert.ok(withLink.text.includes(`If you'd like to know what to fix first, reply to this email or pick a time here: ${DEFAULT_BOOKING_LINK}`));
+    assert.ok(!withLink.text.includes("we'll set up a 20-minute call"));
+    assert.ok(withLink.html.includes(`<a href="${DEFAULT_BOOKING_LINK}"`) && withLink.html.includes("pick a time here</a>."));
+    assert.equal(bookingLink({ PROSPECT_AUDIT_BOOKING_LINK: "https://cal.example.in/tgl" }), "https://cal.example.in/tgl");
+    assert.equal(bookingLink({ PROSPECT_AUDIT_BOOKING_LINK: "OFF" }), null);
+    assert.equal(bookingLink({ PROSPECT_AUDIT_BOOKING_LINK: "javascript:alert(1)" }), DEFAULT_BOOKING_LINK, "anything that is not an https link is ignored");
     assert.ok(buildProspectAuditEmail({ business_name: "Lotus", category_phrase: "IVF clinic", city: null, contact_name: null }).text.includes("Hi,\n\n") );
     assert.ok(buildProspectAuditEmail({ business_name: "Lotus", category_phrase: "IVF clinic", city: null, contact_name: null }).text.includes("about an IVF clinic in India."));
     assert.ok(buildProspectAuditEmail({ business_name: "A <b>B</b>", category_phrase: "hotel", city: "Goa", contact_name: "Arjun Mehta" }).html.includes("A &lt;b&gt;B&lt;/b&gt;"));

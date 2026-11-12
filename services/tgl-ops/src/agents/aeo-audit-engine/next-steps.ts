@@ -36,7 +36,9 @@ function shortenPrompt(text: string, max = 70): string {
 export function generateMatrixNextSteps(
   results: PromptAuditResult[],
   _summary: ShortFormAuditResult["summary"] | undefined,
-  brandName: string
+  brandName: string,
+  /** Plain wording for a prospect's PDF: "questions" and "assistants", no analyst terms. Same counts either way. */
+  plain = false
 ): MatrixNextSteps {
   // Engines actually present in the matrix.
   const engines: string[] = [];
@@ -135,32 +137,38 @@ export function generateMatrixNextSteps(
   const sentences: string[] = [];
   sentences.push(`${brandName} was named in ${totalMentions} of ${totalAnswers} answers (${scorePct}%).`);
 
+  const promptWord = plain ? "questions" : "prompts";
   if (promptCount > 0) {
     if (zeroMentionEngines.length > 0) {
       sentences.push(
-        `${joinList(zeroMentionEngines)} did not name ${brandName} in any of the ${promptCount} prompts.`
+        `${joinList(zeroMentionEngines)} did not name ${brandName} in any of the ${promptCount} ${promptWord}.`
       );
     } else if (weakestEngineName) {
       sentences.push(
-        `Every engine named ${brandName} at least once; ${weakestEngineName} was the weakest, naming it in ${weakest[1]} of ${promptCount} prompts.`
+        plain
+          ? `Every assistant named ${brandName} at least once; ${weakestEngineName} did so least, in ${weakest[1]} of ${promptCount} questions.`
+          : `Every engine named ${brandName} at least once; ${weakestEngineName} was the weakest, naming it in ${weakest[1]} of ${promptCount} prompts.`
       );
     }
   }
 
   if (winningCompetitor) {
     sentences.push(
-      `${winningCompetitor} was the competitor named most often, in ${winningCompetitorCount} of ${totalAnswers} answers.`
+      plain
+        ? `${winningCompetitor} was named most often instead, in ${winningCompetitorCount} of ${totalAnswers} answers.`
+        : `${winningCompetitor} was the competitor named most often, in ${winningCompetitorCount} of ${totalAnswers} answers.`
     );
   } else {
-    sentences.push(`No competitor was named in any of the ${totalAnswers} answers.`);
+    sentences.push(plain ? `No other business was named in any of the ${totalAnswers} answers.` : `No competitor was named in any of the ${totalAnswers} answers.`);
   }
 
   if (weakestQueryStats.length > 0) {
-    const parts = weakestQueryStats.map(
-      (q) =>
-        `Q${q.promptIndex} "${shortenPrompt(q.prompt)}" (${q.namedBy} of ${q.engineCount} engines named ${brandName})`
+    const parts = weakestQueryStats.map((q) =>
+      plain
+        ? `"${shortenPrompt(q.prompt)}" (${q.namedBy} of ${q.engineCount} assistants named ${brandName})`
+        : `Q${q.promptIndex} "${shortenPrompt(q.prompt)}" (${q.namedBy} of ${q.engineCount} engines named ${brandName})`
     );
-    sentences.push(`Weakest queries: ${parts.join("; ")}.`);
+    sentences.push(plain ? `The questions where ${brandName} did worst: ${parts.join("; ")}.` : `Weakest queries: ${parts.join("; ")}.`);
   }
 
   return {

@@ -15,6 +15,14 @@ export const REFINE_ACTION = "prospect_audit_refine";
 export const EMAIL_MODAL = "prospect_audit_email_modal";
 export const REFINE_MODAL = "prospect_audit_refine_modal";
 export const DEFAULT_REPLY_TO = "aeoaudits@thegrowthlab.co.in";
+/** The Architect's 20-minute call calendar (public booking page). PROSPECT_AUDIT_BOOKING_LINK overrides; "off" removes it. */
+export const DEFAULT_BOOKING_LINK = "https://api.leadconnectorhq.com/widget/booking/liUlrrRvDQmCUmUnudID";
+
+export function bookingLink(env: Record<string, string | undefined> = process.env): string | null {
+  const v = (env.PROSPECT_AUDIT_BOOKING_LINK || "").trim();
+  if (/^off$/i.test(v)) return null;
+  return /^https:\/\/\S+$/.test(v) ? v : DEFAULT_BOOKING_LINK;
+}
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -71,20 +79,29 @@ function article(phrase: string): string {
 }
 
 /** The one email a prospect receives. Wording approved by the Architect on 12 Nov 2026; nothing else is added. */
-export function buildProspectAuditEmail(row: Pick<ProspectAuditRow, "business_name" | "category_phrase" | "city" | "contact_name">): { subject: string; text: string; html: string } {
+export function buildProspectAuditEmail(row: Pick<ProspectAuditRow, "business_name" | "category_phrase" | "city" | "contact_name">, env: Record<string, string | undefined> = process.env): { subject: string; text: string; html: string } {
+  const link = bookingLink(env);
   const first = greetingName(row.contact_name);
   const where = (row.city || "").trim() || "India";
   const paragraphs = [
     first ? `Hi ${first},` : "Hi,",
     "Thank you for asking. Your one-page AI visibility check is attached.",
     `We asked ChatGPT, Gemini and Perplexity five questions a customer would ask about ${article(row.category_phrase)} ${row.category_phrase} in ${where}. The report shows where they named ${row.business_name}, who they named instead, and which websites they took their answers from.`,
-    "If you'd like to know what to fix first, reply to this email and we'll set up a 20-minute call.",
+    link
+      ? `If you'd like to know what to fix first, reply to this email or pick a time here: ${link}`
+      : "If you'd like to know what to fix first, reply to this email and we'll set up a 20-minute call.",
     "Tejinder Singh\nThe Growth Lab",
   ];
   return {
     subject: `Your AI visibility check: ${row.business_name}`,
     text: paragraphs.join("\n\n"),
-    html: paragraphs.map((p) => `<p style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#1F2421;margin:0 0 14px">${escapeHtml(p).replace(/\n/g, "<br>")}</p>`).join(""),
+    html: paragraphs
+      .map((p) => {
+        let h = escapeHtml(p).replace(/\n/g, "<br>");
+        if (link && p.includes(link)) h = h.replace(`pick a time here: ${escapeHtml(link)}`, `<a href="${escapeHtml(link)}" style="color:#C85A32">pick a time here</a>.`);
+        return `<p style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#1F2421;margin:0 0 14px">${h}</p>`;
+      })
+      .join(""),
   };
 }
 
@@ -106,7 +123,7 @@ export async function sendProspectAuditEmail(row: ProspectAuditRow, to: string, 
   const from = prospectAuditFrom(env);
   if (!key || !from) return { ok: false, error: "email is not configured (RESEND_API_KEY and PROSPECT_AUDIT_FROM or REPORTS_FROM)" };
   if (!row.pdf_base64) return { ok: false, error: "the stored PDF is empty" };
-  const email = buildProspectAuditEmail(row);
+  const email = buildProspectAuditEmail(row, env);
   try {
     const res = await fetchFn("https://api.resend.com/emails", {
       method: "POST",
