@@ -16,8 +16,10 @@ import {
   buildNeedsItems,
   planDayDueOn,
   renderPlainCard,
+  REVENUE_TARGET,
   type CardMode,
   type PlainCardInput,
+  type RevenueProgress,
   type RoutineLike,
 } from "./plain-card.js";
 
@@ -178,10 +180,57 @@ export interface PlainCardOptions {
   currentDay?: number;
   planEntries?: PlanEntry[];
   /** Test hooks: bypass IO for any field. */
-  overrides?: Partial<Pick<PlainCardInput, "activityLogs" | "mergedPrTitles" | "cardsApproved" | "scheduledRoutines" | "spendRupees" | "revenue" | "activeIssues">>;
+  overrides?: Partial<Pick<PlainCardInput, "activityLogs" | "mergedPrTitles" | "cardsApproved" | "scheduledRoutines" | "spendRupees" | "revenue" | "activeIssues" | "revenueProgress">>;
 }
 
 /** Collects every fact the card needs. */
+/** One row of the prospect-audit record, as far as the count needs it. */
+export interface ProspectAuditCountRow {
+  business_name: string | null;
+  domain: string | null;
+  status: string | null;
+}
+
+/**
+ * Counts toward the revenue target, per business: a business audited three times while its questions were being
+ * refined is one request, and it is "sent" when any of its audits was sent. Rows whose business name starts
+ * with "test" are the Architect's own trial runs and are left out.
+ */
+export function countRevenueProgress(rows: ProspectAuditCountRow[]): RevenueProgress {
+  const requested = new Set<string>();
+  const sent = new Set<string>();
+  for (const r of rows) {
+    const name = (r.business_name || "").trim();
+    if (!name || /^test\b/i.test(name)) continue;
+    const key = (r.domain || name).trim().toLowerCase();
+    requested.add(key);
+    if (r.status === "sent") sent.add(key);
+  }
+  return { auditsRequested: requested.size, auditsSent: sent.size };
+}
+
+/** Reads the prospect-audit record since the target was set. Null when the database is not configured or the read fails. */
+export async function readRevenueProgress(): Promise<RevenueProgress | null> {
+  try {
+    const { getSupabase } = await import("../prospect-researcher/db.js");
+    const sb = getSupabase();
+    if (!sb) return null;
+    const { data, error } = await sb
+      .from("prospect_audits")
+      .select("business_name, domain, status")
+      .gte("created_at", `${REVENUE_TARGET.since}T00:00:00+05:30`)
+      .limit(2000);
+    if (error) {
+      console.warn("[Plain Card] prospect_audits not read:", error.message);
+      return null;
+    }
+    return countRevenueProgress((data || []) as ProspectAuditCountRow[]);
+  } catch (err: any) {
+    console.warn("[Plain Card] prospect_audits not read:", err?.message || err);
+    return null;
+  }
+}
+
 export async function buildPlainCardInput(options: PlainCardOptions): Promise<PlainCardInput> {
   const isTest = options.testMode === true || isTestMode();
   const date = options.dateStr || getTodayDateString();
@@ -215,6 +264,10 @@ export async function buildPlainCardInput(options: PlainCardOptions): Promise<Pl
     spendRupees = usd * getUsdInrRate();
   }
 
+  // Never read from a test process: tests pass the counts they want to see.
+  const revenueProgress: RevenueProgress | null =
+    ov.revenueProgress !== undefined ? ov.revenueProgress : isTest ? null : await readRevenueProgress();
+
   const scheduledRoutines = ov.scheduledRoutines || (await scheduledRoutinesOn(scheduleDate));
   const activeIssues =
     ov.activeIssues || (material.inProgressIssues || []).map((i) => ({ number: i.number, title: i.title }));
@@ -244,6 +297,7 @@ export async function buildPlainCardInput(options: PlainCardOptions): Promise<Pl
     revenue,
     spendRupees,
     needs,
+    revenueProgress,
   };
 }
 

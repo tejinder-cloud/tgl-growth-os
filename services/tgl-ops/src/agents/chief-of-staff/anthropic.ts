@@ -90,6 +90,7 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (plain-English standup):
 - You are given a DRAFT CARD that already holds every fact. Return it with light smoothing only.
 - Keep this exact shape, in this order:
   1. Line 1: "Good evening. Day N of 90 — on track / X days behind / X days ahead (Next gate: <gate>, expected <date>)." Do not change N, the pace or the gate.
+  1b. The "*Revenue target" line from the draft, word for word. Never reword it or change a number in it.
   2. "*Today:*" two or three plain sentences: tracker answers and how often our brand was named, researcher candidates and how many qualified, merged pull requests by title, cards approved.
   3. "*Tomorrow:*" the scheduled runs and any active issue.
   4. "*Money:*" audit requests, calls booked, proposals, retainers, rupees invoiced, and today's spend in rupees.
@@ -165,7 +166,9 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (plain-English standup):
   }
 
   // Guard the shape: fall back to the deterministic card if the model drifted or used an emoji.
-  if (!isPlainShape(digestText, "evening") || EMOJI_REGEX.test(digestText)) {
+  // The revenue-target line must survive the smoothing exactly: it is the number the company is being run on.
+  const targetLine = draftCard.split("\n").find((l) => l.startsWith("*Revenue target")) || "";
+  if (!isPlainShape(digestText, "evening") || EMOJI_REGEX.test(digestText) || (targetLine && !digestText.includes(targetLine))) {
     console.warn("[Chief of Staff] Model output left the plain-English shape; using the deterministic card.");
     digestText = draftCard;
   }
