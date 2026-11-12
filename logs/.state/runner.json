@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-12T07:09:22.942Z",
+  "updatedAt": "2026-11-12T07:30:02.302Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -232,13 +232,13 @@
       "agent": "web-builder",
       "door": "core",
       "title": "[TASK]: Prospect researcher rubric v2 fixes. 1) Dim 4 probe question must be specialty-s",
-      "status": "failed",
+      "status": "in-progress",
       "runStartedAt": "2026-11-12T06:28:59.733649+00:00",
       "runCompletedAt": "2026-11-12T07:09:21.798+00:00",
       "error": "Agent @web-builder exceeded daily cost cap ($12.37 / $12.00 limit). LLM call blocked.",
-      "recoveryAttempts": 1,
-      "ownerInstance": null,
-      "heartbeatAt": null,
+      "recoveryAttempts": 0,
+      "ownerInstance": "inst_1794412520593_fce4c1c6",
+      "heartbeatAt": "2026-11-12T07:30:01.973518+00:00",
       "toolCallsCount": 0
     }
   }
