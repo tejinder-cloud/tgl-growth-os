@@ -8,10 +8,13 @@
 // - Every completed probe is recorded with recordApiSpend under agent "prospect-researcher".
 // - The cap is checked before each call. The first refusal halts probing for the rest of the run; every
 //   candidate not probed is counted and reported as a shortfall. The cap can be overshot by at most one probe.
+//
+// Issue #184: the question is built from the prospect's primary Google Places type and name (specialty-specific),
+// and the answer is read for the prospect's distinctive brand tokens as well as its full name.
 import { askEngine, loadEngineConfig } from "../aeo-audit-engine/engines.js";
 import type { AskOptions, EngineAnswer, EngineConfig } from "../aeo-audit-engine/types.js";
 import { getAgentCostCap, getAgentTodaySpend, recordApiSpend } from "../../lib/cost-cap.js";
-import { analyseDim4Answer, buildDim4Question, type Dim4Probe, type Dim4ProbeFn } from "./dim4.js";
+import { analyseDim4Answer, buildSpecialtyDim4Question, type Dim4Probe, type Dim4ProbeFn } from "./dim4.js";
 import { RUBRIC_VERSION } from "./threshold.js";
 
 export const PROBE_AGENT = "prospect-researcher";
@@ -73,7 +76,7 @@ export function createDim4ProbeGovernor(
   let capHalted = false;
   let unavailable = false;
 
-  const probe: Dim4ProbeFn = async ({ company, domain, category, city }) => {
+  const probe: Dim4ProbeFn = async ({ company, domain, category, city, brandPrefix, primaryType, primaryTypeLabel }) => {
     stats.requested++;
 
     if (capHalted) {
@@ -114,7 +117,9 @@ export function createDim4ProbeGovernor(
       return null;
     }
 
-    const question = buildDim4Question(category, city || "");
+    // Specialty-specific question from the Places primary type and the prospect's name; generic category only as fallback.
+    const built = buildSpecialtyDim4Question(category, city || "", { primaryType, primaryTypeLabel, company });
+    const question = built.question;
     let answer: EngineAnswer;
     try {
       answer = await d.askEngine(engineConfig, question, { country: "IN" });
@@ -128,12 +133,13 @@ export function createDim4ProbeGovernor(
     stats.costUsd = Number((stats.costUsd + answer.costUsd).toFixed(6));
     d.recordSpend(answer.costUsd, `Dim 4 probe (${answer.engine} ${answer.model}): "${question}" for ${company}`);
 
-    const analysis = analyseDim4Answer({ company, domain, answer: answer.text });
+    const analysis = analyseDim4Answer({ company, domain, answer: answer.text, brandPrefix });
     const record: Dim4Probe = {
       rubric_version: RUBRIC_VERSION as "v2",
       engine: answer.engine,
       model: answer.model,
       question,
+      question_basis: built.basis,
       answer: answer.text,
       names_found: analysis.namesFound,
       prospect_named: analysis.prospectNamed,
