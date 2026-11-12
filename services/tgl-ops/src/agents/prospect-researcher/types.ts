@@ -10,6 +10,11 @@ export interface DecisionMaker {
   email: string;
   phone?: string;
   source: string;
+  /**
+   * Rubric v2 (issue #184): false when the email failed the Dimension 5 check (free-mail domain, generic local part,
+   * or a domain that does not match the prospect's website root domain). Absent on rows stored before the check.
+   */
+  verified?: boolean;
 }
 
 export interface ProspectSignals {
@@ -32,7 +37,15 @@ export interface ProspectSignals {
   chain_evidence?: string[];
   places_brand_count?: number;
   is_large_org?: boolean;
+  /** Issue #184: why is_large_org is true (category, name hint, review volume, or a real multi-branch signal). */
+  is_large_org_reason?: string;
+  /** Issue #184: set when a real multi-branch signal capped the fit score below the qualified threshold. */
+  large_org_cap_reason?: string;
   brand_prefix?: string;
+  /** Issue #184: Google Places primaryType of the prospect (e.g. "hospital", "maternity_hospital"). */
+  primary_place_type?: string;
+  /** Issue #184: Google Places primaryTypeDisplayName (e.g. "Maternity hospital"). */
+  primary_place_type_label?: string;
   root_domain_hosts_other_branches?: boolean;
   registered_hq_metro?: string;
   raw_signals?: Record<string, any>;
