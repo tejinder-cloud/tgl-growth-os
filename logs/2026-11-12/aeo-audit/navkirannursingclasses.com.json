@@ -1,0 +1,1321 @@
+{
+  "brand": {
+    "name": "Navkiran Nursing Classes",
+    "primaryDomain": "navkirannursingclasses.com",
+    "domains": [
+      "navkirannursingclasses.com"
+    ],
+    "variants": [
+      "Navkiran Nursing Classes"
+    ],
+    "setupStatus": "prospect_unverified"
+  },
+  "auditedAt": "2026-11-12T08:51:03.910Z",
+  "promptsCount": 5,
+  "enginesCount": 3,
+  "totalQueries": 15,
+  "summary": {
+    "totalMentions": 0,
+    "visibilityScorePercent": 0,
+    "mentionsByEngine": {
+      "chatgpt": 0,
+      "gemini": 0,
+      "perplexity": 0
+    },
+    "competitorMentions": {
+      "JEE/NEET": 3,
+      "ALLEN": 1,
+      "Aakash Institute": 5,
+      "Allen Career Institute": 2,
+      "The Pillars Coaching Classes & Helix Institute": 1,
+      "Grey Matters": 4,
+      "Spearhead IELTS": 2,
+      "British Career Group": 3,
+      "ThinkEnglish": 3,
+      "AAA Bright Academy": 3,
+      "IBT Institute": 2,
+      "Raj Malhotra’s IAS / O2 IAS Academy": 1,
+      "ThinkNEXT Technologies": 5,
+      "Techedo Technologies & Netmax Technologies": 1,
+      "Primary Hubs": 1,
+      "Phase 7": 3,
+      "Next Steps": 1,
+      "Shrivik Academy": 1,
+      "Comet AI Institute": 1,
+      "Eduzphere": 1,
+      "New Careers Academy": 1,
+      "Spearhead": 1,
+      "Minerva Academy": 2,
+      "Sleepy Classes": 1,
+      "ALLEN Career Institute": 3,
+      "Helix Institute": 2,
+      "Abhimanu IAS": 1,
+      "Phase 3B2": 2,
+      "Grey Matters / Touchstone": 1,
+      "JEE / NEET": 1,
+      "ALLEN Mohali": 2,
+      "Defence / SSB": 1,
+      "Youthbaba Academy": 1,
+      "Narayan Gurukul Academy": 1,
+      "Mohali and nearby Greater Mohali": 1,
+      "GOEL Institute": 3,
+      "Shree Saraswati Institute": 2,
+      "Popel’s IELTS Academy": 1,
+      "Landmark Immigration Consultants": 1,
+      "Sector 66/118": 1,
+      "NEET-UG/Medical": 1,
+      "GP’s Gurukul / Topper's Choice": 2,
+      "AAA-Bright Academy": 1,
+      "Competition Guru": 1,
+      "Touchstone Educationals": 3,
+      "IELTS": 1,
+      "Spearhead Education": 1,
+      "Hatchway Overseas": 1,
+      "IELTS Made Easy": 1,
+      "Sector 34 in Chandigarh": 1,
+      "Spearhead IELTS / British Career Group": 1,
+      "Dolphin Head Hunter": 1,
+      "Abhimanu’s IAS / Chanakya IAS": 1,
+      "Edu Mohali / Local Competition Academies": 1,
+      "Webtech Learning": 1,
+      "Shortlist 2–3 institutes": 1,
+      "Request a trial seat": 1,
+      "JEE/NEET or school subjects": 1,
+      "NDA/defence exams": 1,
+      "IELTS/PTE": 1,
+      "JEE or NEET": 1,
+      "ALLEN’s Mohali centre": 1,
+      "Aakash’s Sector 118 centre": 1,
+      "Physics Wallah": 1,
+      "British Counsel": 1,
+      "Bright Academy / IBT Institute": 1,
+      "Ojaank / Chanakya IAS": 1,
+      "Ask who the actual teacher is": 1,
+      "Batch sizes": 1,
+      "Written demo & refund terms": 1,
+      "Faculty": 1,
+      "Results": 1,
+      "Fit": 1,
+      "Terms": 1,
+      "Independent feedback": 1
+    },
+    "citationDomains": {
+      "allen.ac.in": 7,
+      "aakash.ac.in": 3,
+      "sulekha.com": 1,
+      "yocket.com": 5,
+      "britishcareergroup.in": 3,
+      "topperchoice.in": 4,
+      "justdial.com": 9,
+      "urbanpro.com": 2,
+      "ncaacademy.com": 2,
+      "eduzphere.com": 1,
+      "abroadgateway.com": 3,
+      "amitbookdepot.com": 3,
+      "collegedunia.com": 2,
+      "academycheck.com": 1,
+      "classapna.com": 1,
+      "addressguru.in": 4,
+      "mysarkarinaukri.com": 1,
+      "goelinstitute.in": 1,
+      "saraswatiinstitue.com": 1,
+      "tuition.in": 1,
+      "allen.in": 2,
+      "gpsgurukul.com": 2,
+      "aaabrightacademy.in": 1,
+      "ibtindia.com": 1,
+      "insightrobmedia.com": 1,
+      "medium.com": 2,
+      "edumohali.com": 1,
+      "blog.shikshacoach.com": 1,
+      "britishcounsel.org.in": 1,
+      "leapscholar.com": 1
+    },
+    "totalCostUsd": 0.3007,
+    "totalCostInr": 28.54
+  },
+  "nextSteps": {
+    "weakestEngine": "ChatGPT",
+    "weakestEngineMentions": 0,
+    "zeroMentionEngines": [
+      "ChatGPT",
+      "Gemini",
+      "Perplexity"
+    ],
+    "queriesLost": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "weakestQueries": [
+      1,
+      2
+    ],
+    "winningCompetitor": "Aakash Institute",
+    "winningCompetitorCount": 5,
+    "topCitationGap": "justdial.com",
+    "formattedText": "Navkiran Nursing Classes was named in 0 of 15 answers (0%). ChatGPT, Gemini and Perplexity did not name Navkiran Nursing Classes in any of the 5 prompts. Aakash Institute was the competitor named most often, in 5 of 15 answers. Weakest queries: Q1 \"best coaching institute in mohali\" (0 of 3 engines named Navkiran Nursing Classes); Q2 \"which coaching institute in mohali has the best reviews\" (0 of 3 engines named Navkiran Nursing Classes)."
+  },
+  "matrix": [
+    {
+      "promptIndex": 1,
+      "prompt": "best coaching institute in mohali",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one best coaching institute for every student—it depends on the course. For a general starting point, Shrivik Acade..."
+      }
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "which coaching institute in mohali has the best reviews",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "“Best” depends on the subject, but Youthbaba Academy looks like a strong general option in Mohali: it has a 4.8/5 rating from 2..."
+      }
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "top rated coaching institute in mohali and what each is known for",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "“Top-rated” depends on the course —Mohali has different coaching options for IELTS, defence exams, and other subjects. If you m..."
+      }
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "how do I choose a coaching institute in mohali, and which ones do you recommend",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "The right coaching institute depends on what you’re preparing for —JEE/NEET, school exams, NDA, IELTS, or something else. Befor..."
+      }
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "coaching institute in mohali: which one should I trust and why",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one coaching institute in Mohali that can be recommended for every student—the right choice depends on which exam o..."
+      }
+    }
+  ],
+  "rawAnswers": [
+    {
+      "promptIndex": 1,
+      "prompt": "best coaching institute in mohali",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "“Best” depends on what you’re preparing for. For **JEE/NEET**, you could compare **ALLEN, Aakash, and GOEL Institute** in the Mohali area; they list JEE/NEET coaching, but the right choice depends on the specific branch, faculty, and batch. ([allen.ac.in](https://www.allen.ac.in/chandigarh/?utm_source=openai))\n\nWhat do you need coaching for—**JEE, NEET, IELTS, UPSC, government exams, or school subjects**?",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "JEE/NEET",
+          "ALLEN"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "allen.ac.in",
+          "url": "https://www.allen.ac.in/chandigarh/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011056
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "best coaching institute in mohali",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because Mohali (SAS Nagar) has different hubs of specialized institutes, the “best” coaching institute depends on the exam or field you are preparing for:\n\n---\n\n### 1. IIT-JEE & NEET (Medical / Engineering Entrance)\n* **Aakash Institute (Sector 118 / Mohali branches):** One of the most reputed national brands for NEET and JEE preparation, known for structured test series, study materials, and experienced faculty.\n* **Allen Career Institute (Tricity / Sector 34 & Mohali access):** While its flagship Tricity campus is in Chandigarh Sector 34 (10–15 minutes from Mohali), it remains the top choice for Tricity students aiming for top ranks in JEE Advanced and NEET-UG.\n* **The Pillars Coaching Classes & Helix Institute:** Strong regional reputations for biology, medical entrance, and school board + competitive exam integration.\n\n---\n\n### 2. IELTS / PTE & Study Abroad\n* **Grey Matters (Phase 7 / Phase 3B2):** One of Punjab’s oldest and most established networks for IELTS, Spoken English, and visa preparation.\n* **Spearhead IELTS (Phase 3B2):** Popular for small batch sizes, regular mock tests, and personalized feedback.\n* **British Career Group (Phase 7):** IDP-affiliated training focusing on rapid score improvement across reading, writing, and speaking modules.\n* **ThinkEnglish (Sector 68):** Highly rated for general spoken English, IELTS, and PTE preparation.\n\n---\n\n### 3. Banking, SSC, State PCS & Govt. Job Exams\n* **AAA Bright Academy (Phase 7 / Tricity):** A household name across Punjab and Chandigarh for Bank PO/Clerk, SSC CGL, and Punjab State exams.\n* **IBT Institute (Phase 7):** Known for structured test batches, shortcut tricks, and consistent past results in competitive government tests.\n* **Raj Malhotra’s IAS / O2 IAS Academy (Mohali/Chandigarh border):** The go-to choices for UPSC Civil Services and Punjab Civil Services (PCS) preparation in the Tricity area.\n\n---\n\n### 4. IT, Software & Industrial Training\n* **ThinkNEXT Technologies (Sector 65, Phase 11):** One of the largest and most awarded IT training institutes in Mohali, offering courses in Full Stack Web Development, Python, Data Science, AI, and Digital Marketing with live project support.\n* **Techedo Technologies & Netmax Technologies:** Notable alternatives for software engineering, networking, and technical certifications.\n\n---\n\n### Summary Advice:\n* **Primary Hubs:** Most top institutes in Mohali are clustered around **Phase 7, Phase 3B2, and Sector 70**. \n* **Next Steps:** Always ask for **1–2 free demo classes**, verify recent student results (from the past year), and inquire about average batch sizes before paying admission fees.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Aakash Institute",
+          "Allen Career Institute",
+          "The Pillars Coaching Classes & Helix Institute",
+          "Grey Matters",
+          "Spearhead IELTS",
+          "British Career Group",
+          "ThinkEnglish",
+          "AAA Bright Academy",
+          "IBT Institute",
+          "Raj Malhotra’s IAS / O2 IAS Academy",
+          "ThinkNEXT Technologies",
+          "Techedo Technologies & Netmax Technologies",
+          "Primary Hubs",
+          "Phase 7",
+          "Next Steps"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "aakash.ac.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "allen.ac.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "sulekha.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "yocket.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "britishcareergroup.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.019247
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "best coaching institute in mohali",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one best coaching institute for every student—it depends on the course. For a general starting point, **Shrivik Academy** and **Comet AI Institute** are among the highly rated options listed in Mohali, but ratings alone don’t establish teaching quality[2].\n\nFor specific goals, consider **Eduzphere** for banking/SSC and government exams[7], **New Careers Academy** for NDA/CAPF[5], or **Spearhead** and **ThinkEnglish** for IELTS[8]. If you share the exam or subject, I can narrow it down. Before enrolling, compare a demo class, faculty experience, batch size, fees, and independently verifiable results.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Shrivik Academy",
+          "Comet AI Institute",
+          "Eduzphere",
+          "New Careers Academy",
+          "Spearhead",
+          "ThinkEnglish"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "topperchoice.in",
+          "url": "https://topperchoice.in/best-coaching-near-mohali/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Institutes/nct-10268288",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "urbanpro.com",
+          "url": "https://www.urbanpro.com/mohali/iit-jee-coaching",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ncaacademy.com",
+          "url": "https://ncaacademy.com/capf-coaching-in-mohali/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ncaacademy.com",
+          "url": "https://ncaacademy.com/nda-coaching-in-mohali/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/UGC-Net-Institutes-in-Mohali-Sector-56-Phase-6/nct-11266710",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "eduzphere.com",
+          "url": "https://www.eduzphere.com/ielts-govt-exam-coaching-mohali",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "abroadgateway.com",
+          "url": "https://abroadgateway.com/blog/top-10-ielts-coaching-institutes-in-chandigarh-and-mohali/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "amitbookdepot.com",
+          "url": "https://www.amitbookdepot.com/post/best-nda-coaching-in-mohali-2025-top-10-institutes-to-launch-your-defence-career",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Institutes-in-Mote-Majra/nct-10268288",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00167
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "which coaching institute in mohali has the best reviews",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "It depends on the subject—there isn’t one “best” Mohali coaching institute for every course. **Minerva Academy** shows strong reviews (4.7/5 from 788 verified reviewers), but it’s mainly known for defence/SSB coaching. **Sleepy Classes** is listed at 4.8/5 for UPSC coaching, based on a different review listing, so the ratings aren’t directly comparable. ([collegedunia.com](https://collegedunia.com/institute/659-minerva-academy-mohali/google-reviews?utm_source=openai))\n\nWhat are you looking for—**JEE/NEET, IELTS/PTE, UPSC, or something else**? I can compare institutes for that specific course.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Minerva Academy",
+          "Sleepy Classes",
+          "JEE/NEET"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/institute/659-minerva-academy-mohali/google-reviews?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011124
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "which coaching institute in mohali has the best reviews",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because “coaching” spans multiple fields—from competitive exams to English proficiency and technical training—the best-reviewed institute in Mohali depends on what you plan to study. \n\nThe top-rated coaching institutes in Mohali, categorized by exam type and specialization, include:\n\n---\n\n### 1. Banking, SSC, & State Government Exams (PPSC, Punjab Police, Patwari)\n* **AAA Bright Academy (Phase 7, Mohali)**\n  * **Rating:** ~4.7–4.9 / 5 across hundreds of reviews.\n  * **Known for:** Bank PO/Clerk, SSC CGL/CHSL, and Punjab state recruitment exams.\n  * **Why it’s reviewed well:** Experienced faculty, extensive library of test series, regular speed tests, and a strong track record of government exam selections in the Tricity region.\n\n---\n\n### 2. Engineering & Medical Entrance (IIT-JEE & NEET)\n* **ALLEN Career Institute (Mohali Campus)**\n  * **Rating:** ~4.5–4.8 / 5.\n  * **Known for:** JEE Main/Advanced, NEET-UG, and Class 9–12 foundation batches.\n  * **Why it’s reviewed well:** Highly structured curriculum, competitive all-India mock tests, national-level faculty, and proven results. \n  * *(Alternative nearby: Many Mohali students also commute a short distance to **Aakash Institute** or **Helix Institute** on the Chandigarh border for medical prep.)*\n\n---\n\n### 3. Defence Exams & SSB Interviews\n* **Minerva Academy (Daon, Mohali)**\n  * **Rating:** Highly acclaimed nationwide (~4.6 / 5).\n  * **Known for:** NDA, CDS, AFCAT, and SSB Interview training.\n  * **Why it’s reviewed well:** One of India’s oldest and most prestigious defence preparation academies, featuring dedicated outdoor obstacle grounds, retired armed forces officers as assessors, and top selection ratios.\n\n---\n\n### 4. Civil Services (UPSC / Punjab PCS)\n* **Abhimanu IAS (Phase 8, Industrial Area, Mohali)**\n  * **Rating:** ~4.8 / 5.\n  * **Known for:** UPSC Civil Services and State Civil Services (Punjab PCS, HPAS, HCS).\n  * **Why it’s reviewed well:** Strong local focus for Punjab state civil services alongside UPSC, comprehensive general studies coverage, and experienced mentorship.\n\n---\n\n### 5. IELTS, PTE & Spoken English\nThe main hubs for IELTS/PTE coaching in Mohali are **Phase 7** and **Phase 3B2**.\n* **Spearhead IELTS (Phase 3B2, Mohali)**\n  * **Rating:** ~4.7 / 5.\n  * **Known for:** Small batch sizes, personalized speaking/writing feedback, and high band score conversion.\n* **Grey Matters / Touchstone (Phase 7 / Phase 3B2 area)**\n  * **Rating:** High overall volume of positive reviews.\n  * **Known for:** Standardized study material, daily mock exams, and structured computer labs for PTE.\n\n---\n\n### 6. IT, Coding & Industrial Training\n* **ThinkNEXT Technologies (Phase 11, Mohali)**\n  * **Rating:** ~4.9 / 5 (with thousands of reviews on Google).\n  * **Known for:** Full-stack development, Python/AI, Data Science, Digital Marketing, and 6-month/6-week industrial training.\n  * **Why it’s reviewed well:** Practical live project exposure, placement assistance, and recognized industry certifications.\n\n---\n\n### Recommendation\n* If you are preparing for **Government jobs / Banking**, **AAA Bright Academy** is widely considered the safest bet.\n* If you are preparing for **JEE / NEET**, **ALLEN Mohali** has the strongest academic backing.\n* If you are preparing for **Defence / SSB**, **Minerva Academy** is a top choice nationwide.\n\n*Tip: Before enrolling, visit the center in person (most are concentrated along Phase 7, Phase 3B2, or Phase 11) to ask for a free **demo lecture** and confirm the current batch size.*",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "AAA Bright Academy",
+          "ALLEN Career Institute",
+          "Aakash Institute",
+          "Helix Institute",
+          "Minerva Academy",
+          "Abhimanu IAS",
+          "Phase 7",
+          "Phase 3B2",
+          "Spearhead IELTS",
+          "Grey Matters / Touchstone",
+          "ThinkNEXT Technologies",
+          "JEE / NEET",
+          "ALLEN Mohali",
+          "Defence / SSB"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "academycheck.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "yocket.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.035356
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "which coaching institute in mohali has the best reviews",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "“Best” depends on the subject, but **Youthbaba Academy** looks like a strong general option in Mohali: it has a 4.8/5 rating from 247 reviews on Justdial[8]. For CBSE, JEE, or NEET coaching, **Narayan Gurukul Academy** lists 4.5/5, but that score is based on only 8 reviews[1].\n\nTell me what you’re preparing for—such as JEE, NEET, UPSC, school tuition, or banking—and I can narrow it down. Ratings and review counts can change, so check recent reviews and visit before enrolling.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Youthbaba Academy",
+          "Narayan Gurukul Academy"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "classapna.com",
+          "url": "https://www.classapna.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/UGC-Net-Institutes-in-Mohali-Sector-56-Phase-6/nct-11266710",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Institutes-in-Chandigarh-Sector-61-Phase-7/nct-10268288",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/SBI-Po-Clerk-Coaching-Institute-in-Mohali-Sector-80/nct-11242005",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "addressguru.in",
+          "url": "https://www.addressguru.in/Coaching-Institute/Mohali/MQ==",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Institutes-in-Mote-Majra/nct-10268288",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mysarkarinaukri.com",
+          "url": "https://www.mysarkarinaukri.com/study/gk/ias-coaching-in-mohali/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Educational-Institutes-in-Mohali-Sector-91/nct-10180445",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Neet-Tutorials-in-Industrial-Area-Phase-2/nct-11037560",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Tutorials-For-NIOS-Class-XII/nct-10961964",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00168
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "top rated coaching institute in mohali and what each is known for",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "“Top-rated” depends on the subject, and online directory ratings aren’t a reliable apples-to-apples ranking. For **Mohali and nearby Greater Mohali**, these are worth shortlisting by goal:\n\n| Institute | Best known for |\n|---|---|\n| **GOEL Institute** | JEE, NEET and NDA coaching; it describes itself as serving Greater Mohali and says it has operated since 2007. ([goelinstitute.in](https://www.goelinstitute.in/?utm_source=openai)) |\n| **Shree Saraswati Institute** | School classes (8–12), board exams, and JEE/NEET preparation in Mohali. ([saraswatiinstitue.com](https://saraswatiinstitue.com/?utm_source=openai)) |\n| **Popel’s IELTS Academy** | IELTS preparation. Its Justdial listing shows a large review count, but check the current star rating and recent reviews directly before relying on it. ([justdial.com](https://www.justdial.com/Mohali/Popels-Ielts-Academy-Near-Ptl-Chowk-Mohali-Sas-Nagar/0172PX172-X172-090330085841-E8H2_BZDET/reviews?utm_source=openai)) |\n| **Landmark Immigration Consultants** | IELTS and language training alongside immigration services. A directory listing shows a 3.9 rating from 2,924 ratings—use that as a signal to read recent reviews, not as a definitive ranking. ([tuition.in](https://www.tuition.in/coaching-centers/chandigarh/index.html?utm_source=openai)) |\n\n**Quick pick:** for JEE/NEET, compare GOEL and Shree Saraswati; for IELTS, compare Popel’s and Landmark. Ask each for a demo class, the actual teacher for your batch, batch size, and recent results for students at a similar starting level. If you tell me the exam or subject, I can narrow this to the best-fit options.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Mohali and nearby Greater Mohali",
+          "GOEL Institute",
+          "Shree Saraswati Institute",
+          "Popel’s IELTS Academy",
+          "Landmark Immigration Consultants"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "goelinstitute.in",
+          "url": "https://www.goelinstitute.in/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "saraswatiinstitue.com",
+          "url": "https://saraswatiinstitue.com/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Popels-Ielts-Academy-Near-Ptl-Chowk-Mohali-Sas-Nagar/0172PX172-X172-090330085841-E8H2_BZDET/reviews?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "tuition.in",
+          "url": "https://www.tuition.in/coaching-centers/chandigarh/index.html?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021792
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "top rated coaching institute in mohali and what each is known for",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Mohali (part of the Chandigarh Tricity) has a concentration of coaching centers in hubs like **Phase 7 (Sector 61)**, **Phase 3B2**, and **Sector 66/118**. Because students prepare for various goals—from entrance exams to studying abroad—the top-rated institutes are categorized below by their domain and what they are known for:\n\n---\n\n### 1. Medical & Engineering Entrance (NEET & JEE)\n\n* **ALLEN Career Institute** *(Sector 66)*\n  * **Known for:** Rigorous IIT-JEE (Main & Advanced) and NEET-UG preparation.\n  * **Strengths:** Implements Kota-style classroom pedagogy, strict academic discipline, national-level benchmarking tests (ALLEN Test Series), and strong Pre-Nurture & Foundation batches (classes 8–10).\n* **Aakash Institute** *(Sector 118 / Phase 3B2)*\n  * **Known for:** Premier coaching for **NEET-UG/Medical**, as well as JEE coaching.\n  * **Strengths:** Highly structured biology and chemistry study materials, standardized test series (AIATS), and recorded video solutions with performance analytics.\n* **GP’s Gurukul / Topper's Choice** *(Local Boutique Academies)*\n  * **Known for:** Small-batch tutoring for Classes 9–12 along with JEE/NEET.\n  * **Strengths:** Ideal for students who struggle with the crowded batches of big corporate coaching centers and prefer personalized attention and tailored doubt resolution.\n\n---\n\n### 2. Government Jobs, Banking & SSC Exams\n\n* **AAA-Bright Academy** *(Phase 7 / Sector 61)*\n  * **Known for:** Punjab State Recruitment Exams (Patwari, Punjab Police, Excise Inspector) and Bank PO/Clerk (SBI, IBPS).\n  * **Strengths:** One of the most recognized local brands in the Tricity for government exams. Renowned for shortcut math/aptitude techniques, updated Punjab General Knowledge materials, and dedicated self-study library spaces.\n* **IBT Institute** *(Phase 7)*\n  * **Known for:** Banking (PO/Clerk), SSC (CGL, CHSL), and Railway recruitment exams.\n  * **Strengths:** Comprehensive test-taking software that mimics actual exam interfaces, weekly current affairs capsules, and lifetime course validity until you pass.\n* **Competition Guru** *(Phase 7)*\n  * **Known for:** Teaching entrance exams (CTET, PSTET, UGC NET) along with state-level police and defence tests.\n  * **Strengths:** Specialized subject faculty for humanities/teaching exams and flexible weekend batches for working aspirants.\n\n---\n\n### 3. IELTS, PTE & Study Abroad Preparation\n\n* **Grey Matters** *(Phase 7)*\n  * **Known for:** One of the longest-standing and most recognized IELTS and Spoken English brands in Punjab.\n  * **Strengths:** Strict daily mock speaking tests, one-on-one feedback sessions, and intensive essay-writing workshops aimed at getting 7+ bands.\n* **British Career Group** *(Phase 3B2 / Phase 7)*\n  * **Known for:** Band 8+ target training, Pearson PTE lab coaching, and spoken fluency.\n  * **Strengths:** Certified IDP/British Council trainers, updated modern computer labs for computer-delivered IELTS/PTE, and small batch sizes.\n* **Touchstone Educationals** *(Phase 7)*\n  * **Known for:** Large-scale training paired with overseas education and visa consultation.\n  * **Strengths:** Official knowledge partner with major international testing bodies, extensive digital library of practice modules, and structured grammar-foundation classes.\n\n---\n\n### 4. Civil Services (UPSC & Punjab PCS)\n\n* **AAA-Bright Academy & Raj Malhotra’s IAS** *(Serving Mohali / Tricity)*\n  * **Known for:** Punjab Civil Services (PPSC) and UPSC Civil Services examination prep.\n  * **Strengths:** In-depth coverage of regional Punjab governance, state history, and Punjabi language modules, alongside standard General Studies and Mains answer-writing mentorship.\n\n---\n\n### 5. Technical Training & Coding / IT Courses\n\n* **ThinkNEXT Technologies** *(Sector 65 / Phase 11)*\n  * **Known for:** 6-week and 6-month industrial IT training for engineering and polytechnic students.\n  * **Strengths:** ISO-certified courses in Python, Full-Stack Web Development, Data Science, AI/ML, and digital marketing, complete with live capstone projects and placement assistance.\n\n---\n\n### Tips for Choosing:\n* **For JEE/NEET:** Consider whether you perform better under high competition (ALLEN/Aakash) or individualized attention (boutique centers like GP's Gurukul).\n* **For Govt Exams / IELTS:** The primary hub is **Phase 7 (Sector 61)**; walking through the market allows you to attend multiple **free demo classes** before paying fees.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Phase 7",
+          "Phase 3B2",
+          "Sector 66/118",
+          "ALLEN Career Institute",
+          "Aakash Institute",
+          "NEET-UG/Medical",
+          "GP’s Gurukul / Topper's Choice",
+          "AAA-Bright Academy",
+          "IBT Institute",
+          "Competition Guru",
+          "Grey Matters",
+          "British Career Group",
+          "Touchstone Educationals",
+          "ThinkNEXT Technologies"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "allen.ac.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "allen.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "allen.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "aakash.ac.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "aakash.ac.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "gpsgurukul.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "topperchoice.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "aaabrightacademy.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "aaabrightacademy.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ibtindia.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "urbanpro.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "yocket.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "britishcareergroup.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "insightrobmedia.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.095336
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "top rated coaching institute in mohali and what each is known for",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "“Top-rated” depends on the **course**—Mohali has different coaching options for IELTS, defence exams, and other subjects. If you mean **IELTS**, a recent local roundup lists these highly rated options:\n\n| Institute | Known for |\n|---|---|\n| **ThinkEnglish** | Individual speaking practice, manageable batches, and technology-supported classes.[1] |\n| **Spearhead Education** | Small batches, regular mock tests, and focused feedback.[1] |\n| **British Career Group** | Speaking practice that simulates the test, plus study-abroad guidance.[1] |\n| **Hatchway Overseas** | IELTS and PTE preparation, personalised support, and French classes.[1] |\n| **IELTS Made Easy** | Practical test strategies across all four IELTS modules.[1] |\n\nThe same roundup reports ratings from **4.7 to 4.9 stars** for these institutes, but ratings and fees can change, so confirm them directly before enrolling.[1] If you meant **JEE/NEET, NDA, UPSC, banking, or school tuition**, share the subject and I can narrow the list.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "IELTS",
+          "ThinkEnglish",
+          "Spearhead Education",
+          "British Career Group",
+          "Hatchway Overseas",
+          "IELTS Made Easy",
+          "JEE/NEET"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "abroadgateway.com",
+          "url": "https://abroadgateway.com/blog/top-10-ielts-coaching-institutes-in-chandigarh-and-mohali/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Institutes/nct-10268288",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "amitbookdepot.com",
+          "url": "https://www.amitbookdepot.com/post/best-nda-coaching-in-mohali-2025-top-10-institutes-to-launch-your-defence-career",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "addressguru.in",
+          "url": "https://www.addressguru.in/Coaching-Institute/Mohali/MQ==",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Institutes-in-Chandigarh-Sector-61-Phase-7/nct-10268288",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Institutes-in-Jhanjeri/nct-10268288",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Institutes-in-Samgoli/nct-10268288",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/UGC-Net-Institutes-in-Mohali-Sector-56-Phase-6/nct-11266710",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Educational-Institutes-in-Mohali-Sector-91/nct-10180445",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Kharar/Institutes-in-Mohali-Sector-123/nct-10268288",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00172
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "how do I choose a coaching institute in mohali, and which ones do you recommend",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "The right choice depends a lot on **what you’re preparing for**—JEE/NEET, IELTS/PTE, UPSC, school subjects, or something else.\n\nIf you mean **school, JEE or NEET coaching**, I’d use these as a **starting shortlist to compare**, not a ranking: **ALLEN Mohali**, **GOEL Institute**, and **Shree Saraswati Institute**. Their own websites list relevant courses or a Mohali presence; that doesn’t, by itself, prove which centre or batch is best. ([allen.ac.in](https://www.allen.ac.in/chandigarh/?utm_source=openai))\n\nBefore enrolling:\n\n- Attend a **demo with the teacher who would actually teach your batch**.\n- Ask the centre for the **batch size**, weekly schedule, test plan, doubt-support arrangements, and how it handles missed classes.\n- Ask for **results from your specific branch and recent batches**—including how many students enrolled, not just a few top ranks.\n- Get the **full fee, refund/transfer terms, and what materials or tests cost extra** in writing.\n- Compare the commute and timetable too; consistency matters more than a famous name.\n\nTell me **which exam/subject, your class or level, and whether you prefer Mohali proper or nearby Chandigarh/Kharar**, and I can narrow the recommendations to options that fit.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "ALLEN Mohali",
+          "GOEL Institute",
+          "Shree Saraswati Institute"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "allen.ac.in",
+          "url": "https://www.allen.ac.in/chandigarh/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011683
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "how do I choose a coaching institute in mohali, and which ones do you recommend",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "To choose the right coaching institute in Mohali, you need to evaluate options carefully based on your target exam, as Mohali (SAS Nagar) and the adjoining Chandigarh area (especially Sector 34) form a major education hub in North India.\n\n---\n\n### Part 1: How to Choose a Coaching Institute in Mohali\n\n#### 1. Factor in the \"Tricity Advantage\" (Mohali vs. Sector 34, Chandigarh)\n* Mohali has prominent coaching hubs of its own (notably **Phase 7, Phase 3B2, Sector 70, and Sector 66**). \n* However, **Sector 34 in Chandigarh** is just 15–20 minutes away and serves as the primary regional coaching hub. Determine whether you prefer a center within Mohali to save travel time or are willing to commute to Sector 34 for a flagship branch.\n\n#### 2. Faculty Stability over Brand Name\n* National chains often rotate teachers between centers. Ask: *“Will the teachers taking the demo classes continue for our batch throughout the year?”*\n* Inquire about the experience and qualifications of the permanent faculty rather than relying solely on visiting guest lecturers.\n\n#### 3. Batch Size and Doubt Clearance\n* Many large centers accommodate 70–100+ students per batch, where average students often get overlooked. \n* Ask about the **student-to-mentor ratio** and how daily doubt resolution works (e.g., dedicated doubt counters, post-class teacher availability, or online portals).\n\n#### 4. Audit Recent Results (Beware of \"Bought\" Ranks)\n* Many institutes publish results of distance-learning or test-series candidates under classroom achievements. Ask for verifiable contact details or testimonials of **regular classroom students** from the Mohali branch specifically.\n\n#### 5. Take Demo Classes Before Paying\n* Never pay full fees upfront based on marketing brochures. Attend 2 to 3 days of trial/demo classes to evaluate the pace, communication style, and classroom discipline.\n* Check the refund/cancellation policy in writing before enrolling.\n\n---\n\n### Part 2: Recommended Coaching Institutes in & around Mohali\n\nBecause \"coaching\" covers multiple domains, here are the top-rated institutes categorized by stream:\n\n---\n\n#### A. Engineering & Medical (IIT-JEE / NEET / Foundation)\n1. **ALLEN Career Institute** *(Sector 66, Mohali / Sector 34, Chandigarh)*\n   * **Best for:** Rigorous, national-level preparation for JEE (Main + Advanced) and NEET.\n   * **Strengths:** Structured curriculum, extensive study materials, and regular national-level test rankings.\n2. **Aakash Institute** *(Mohali branch / Sector 34, Chandigarh)*\n   * **Best for:** Pre-Medical (NEET-UG).\n   * **Strengths:** Strong legacy in medical entrance preparation, well-curated biology and chemistry study modules.\n3. **Helix Institute** *(Sector 34, Chandigarh — 15 min from Mohali)*\n   * **Best for:** NEET (Medical).\n   * **Strengths:** Historically one of the most trusted regional names in the Tricity for medical entrance results.\n4. **GP’s Gurukul / Topper's Choice** *(Mohali)*\n   * **Best for:** Smaller batches, personalized board + foundation/NEET/JEE mentoring.\n\n---\n\n#### B. Study Abroad & English Proficiency (IELTS / PTE / OET)\nMohali is one of Punjab's largest hubs for English testing and overseas prep:\n1. **Grey Matters** *(Phase 7, Mohali)*\n   * **Best for:** General and Academic IELTS preparation.\n   * **Strengths:** Established brand with extensive mock-testing setups and grammar modules.\n2. **Spearhead IELTS / British Career Group** *(Phase 3B2 & Phase 7, Mohali)*\n   * **Best for:** One-on-one speaking practice and targeted band-score improvement.\n3. **Touchstone Educationals** *(Phase 7 / Mohali borders)*\n   * **Best for:** High-volume practice, computer-delivered IELTS, and PTE software labs.\n4. **Dolphin Head Hunter** *(Sector 34 / Mohali area)*\n   * **Best for:** Small batches and intensive personal feedback on writing and speaking modules.\n\n---\n\n#### C. Government Exams (Punjab PCS, UPSC, SSC, Banking, Patwari, Police)\n1. **AAA Bright Academy** *(Phase 7, Mohali & Sector 34, Chandigarh)*\n   * **Best for:** Bank PO/Clerk, SSC CGL/CHSL, and Punjab State competitive exams.\n   * **Strengths:** High frequency of test batches, bilingual teaching (English/Punjabi), and exam-oriented shortcut methods.\n2. **Abhimanu’s IAS / Chanakya IAS** *(Sector 34, Chandigarh / Mohali access)*\n   * **Best for:** UPSC Civil Services and Punjab Civil Services (PCS).\n   * **Strengths:** Deep domain experience in state civil services and regular answer-writing feedback.\n3. **Edu Mohali / Local Competition Academies** *(Mohali)*\n   * **Best for:** State-level government openings (Punjab Police, Patwari, Excise Inspector).\n\n---\n\n#### D. IT, Coding & Industrial Training (Software & Digital Skills)\nMohali has a thriving IT park (Phase 8/8B/Industrial Area), making it ideal for technical skills:\n1. **ThinkNEXT Technologies** *(Sector 65 / Phase 11, Mohali)*\n   * **Best for:** 6-month/6-week industrial training, Python, Full Stack Development, and AI.\n2. **Webtech Learning** *(Sector 34 / Mohali perimeter)*\n   * **Best for:** Web Development, UI/UX, and Digital Marketing.\n\n---\n\n### Next Step Checklist\n1. **Shortlist 2–3 institutes** from the relevant category above.\n2. **Visit in person between 3:00 PM and 6:00 PM** (this is usually when batches are wrapping up, allowing you to speak to exiting students outside the reception desk for honest feedback).\n3. **Request a trial seat** in an ongoing regular batch rather than a curated demo class.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Sector 34 in Chandigarh",
+          "ALLEN Career Institute",
+          "Aakash Institute",
+          "Helix Institute",
+          "GP’s Gurukul / Topper's Choice",
+          "Grey Matters",
+          "Spearhead IELTS / British Career Group",
+          "Touchstone Educationals",
+          "Dolphin Head Hunter",
+          "AAA Bright Academy",
+          "Abhimanu’s IAS / Chanakya IAS",
+          "Edu Mohali / Local Competition Academies",
+          "ThinkNEXT Technologies",
+          "Webtech Learning",
+          "Shortlist 2–3 institutes",
+          "Request a trial seat"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "allen.ac.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "allen.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "topperchoice.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "gpsgurukul.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "yocket.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "britishcareergroup.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "medium.com",
+          "url": null,
+          "channelType": "social",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "edumohali.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.038798
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "how do I choose a coaching institute in mohali, and which ones do you recommend",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "The right coaching institute depends on **what you’re preparing for**—JEE/NEET, school exams, NDA, IELTS, or something else. Before enrolling, compare a few options in person: attend a demo, meet the actual teacher, check batch size and doubt support, and ask for a written breakdown of fees, schedule, tests, and refund or makeup-class policies. For advertised results, ask how many students were enrolled and how many achieved the claimed outcome—not just for a few success stories.\n\nFor an initial shortlist:\n\n- **JEE/NEET or school subjects:** Topper’s Choice Institute, in Sector 40C, Chandigarh, is one nearby option listed for Classes 9–12, JEE, NEET, and board preparation. Visit and verify the current faculty, batch, and course details before deciding.[1]\n- **NDA/defence exams:** Minerva Academy is listed in the Mohali area for NDA, CDS, and AFCAT preparation.[2]\n- **IELTS/PTE:** Spearhead and British Career Group are listed as Mohali options; compare their trainers, individual speaking practice, mock-test frequency, and recent student results.[9]\n\nThese are **starting points, not a definitive ranking**: public directories and institute lists don’t establish which centre will be best for your needs. Tell me the exam or subject, your area in Mohali, and your budget, and I can narrow down the shortlist.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "JEE/NEET or school subjects",
+          "NDA/defence exams",
+          "IELTS/PTE"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "topperchoice.in",
+          "url": "https://topperchoice.in/best-coaching-near-mohali/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/punjab-institutes",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "addressguru.in",
+          "url": "https://www.addressguru.in/Coaching-Institute/Mohali/MQ==",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Institutes/nct-10268288",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "topperchoice.in",
+          "url": "https://topperchoice.in/best-coaching-in-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "amitbookdepot.com",
+          "url": "https://www.amitbookdepot.com/post/best-nda-coaching-in-mohali-2025-top-10-institutes-to-launch-your-defence-career",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Neet-Tutorials-in-Industrial-Area-Phase-2/nct-11037560",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "amitbookdepot.com",
+          "url": "https://www.amitbookdepot.com/public/index.php/post/best-nda-coaching-in-mohali-2025-top-10-institutes-to-launch-your-defence-career",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "abroadgateway.com",
+          "url": "https://abroadgateway.com/blog/top-10-ielts-coaching-institutes-in-chandigarh-and-mohali/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "blog.shikshacoach.com",
+          "url": "https://blog.shikshacoach.com/ielts-coaching-in-mohali/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00176
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "coaching institute in mohali: which one should I trust and why",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one Mohali institute I’d recommend for every goal—the right choice depends on **what you’re preparing for**.\n\nIf you mean **JEE or NEET**, I’d start by comparing **ALLEN’s Mohali centre** and **Aakash’s Sector 118 centre**; both list local centres on their official websites. **GOEL Institute** is another local option, but its claims about years operating and student selections are self-published, so ask to see results you can verify. ([allen.ac.in](https://www.allen.ac.in/chandigarh/?utm_source=openai))\n\nBefore paying, visit at least two places and:\n- Attend a demo with the **actual teacher** who would teach your batch.\n- Ask for recent results with exam, year, and rank—not just a “selections” headline.\n- Check batch size, doubt support, test schedule, and the **written refund policy**.\n- Speak privately with current students, not only the ones the institute refers you to.\n\nTell me the **exam or course**—for example, NEET, JEE, IELTS, UPSC, or banking—and your preferred area in Mohali, and I can narrow it down.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "JEE or NEET",
+          "ALLEN’s Mohali centre",
+          "Aakash’s Sector 118 centre",
+          "GOEL Institute"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "allen.ac.in",
+          "url": "https://www.allen.ac.in/chandigarh/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011714
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "coaching institute in mohali: which one should I trust and why",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because \"coaching institute\" covers many different exam goals, the right institute to trust depends on what you are preparing for. \n\nMohali is closely integrated with the Chandigarh Tricity education hub. The most trusted coaching institutes across the major academic and competitive categories—and the reasons to choose them—include:\n\n---\n\n### 1. For Medical & Engineering Entrances (NEET / JEE / Foundation)\n\nIf you are aiming for IIT-JEE, NEET-UG, or CBSE Board foundation:\n\n*   **Aakash Institute (Sector 118 / Phase 7 & nearby Sector 34)**\n    *   **Why trust them:** Aakash has one of the most established standardized curriculums and high-frequency testing modules in the country. Their biology test series and NCERT-aligned modules for NEET are widely regarded as top tier.\n    *   **Best for:** Students who need structured weekly targets, error-analysis reports, and strong testing infrastructure.\n*   **Allen Career Institute (Mohali & Central Chandigarh Campus)**\n    *   **Why trust them:** While many Mohali students commute to the large Allen campuses in Chandigarh (Sector 34), Allen maintains the deepest question banks and highest national rank count for both JEE Advanced and NEET.\n    *   **Best for:** Competitive students targeting top 1,000 national ranks who thrive in high-intensity batch environments.\n*   **Physics Wallah (PW Vidyapeeth Mohali)**\n    *   **Why trust them:** They offer a balance of quality faculty, regular offline support, and significantly lower fees compared to legacy institutes.\n    *   **Best for:** Value-for-money, tech-enabled classroom learning with access to recorded backup lectures.\n\n---\n\n### 2. For Study Abroad & English Proficiency (IELTS / PTE / Spoken English)\n\nMohali (especially Phase 7, Phase 3B2, and Sector 70) is crowded with hundreds of IELTS centers, but many are aggressive visa agents rather than genuine teaching academies. The most reliable options include:\n\n*   **Touchstone Educationals (Phase 7 / Chandigarh)**\n    *   **Why trust them:** An official IDP platinum partner with certified trainers, high trainer-retention, and an organized daily routine (separate speaking cabins, daily listening labs, and weekly mock exams).\n    *   **Best for:** Structured module-by-module preparation without pushy visa-sales pitches upfront.\n*   **British Counsel (Sector 70 / Phase 7)**\n    *   **Why trust them:** They focus heavily on grammar foundation and one-on-one speaking slots. Their internal mock assessments align closely with real Cambridge exam grading.\n*   **Grey Matters (Phase 7 / Phase 5)**\n    *   **Why trust them:** One of the oldest test-prep chains in Punjab, known for rigorous classroom drills and abundant library material.\n\n---\n\n### 3. For Government & Civil Services (PPSC, UPSC, Banking, SSC)\n\n*   **Bright Academy / IBT Institute (Phase 7 / Mohali border & Sector 34)**\n    *   **Why trust them:** For Punjab State exams (Patwari, Sub-Inspector, Excise, Naib Tehsildar) and Banking (SBI/IBPS PO), they have dedicated Punjabi-medium/English-medium material, static GK capsules, and shortcut-heavy quantitative aptitude trainers.\n*   **Ojaank / Chanakya IAS (for UPSC/PPSC)**\n    *   **Why trust them:** If civil services is your target, select an institute where current-affairs analysis and answer-writing evaluation happen regularly, rather than one relying on recorded video playlists.\n\n---\n\n### 4. For IT, Coding & Industrial Training (Tech Hub Mohali)\n\n*   **ThinkNEXT Technologies (Phase 11 / Sector 65)**\n    *   **Why trust them:** Mohali is a major IT corridor. ThinkNEXT is widely recognized for Python, Data Science, Full-Stack Development, and Digital Marketing training. They provide real-project internships rather than just classroom theory, helping with local company placements in QuarkCity and Bestech.\n\n---\n\n### Red Flags & How to Verify Before Paying\n\nRegardless of which institute you visit, check these three factors before depositing non-refundable fees:\n\n1. **Ask who the actual teacher is (not the franchise brand):** High teacher turnover is common in Mohali. Clarify if the teacher taking your demo class will be teaching the entire 6-month or 1-year syllabus.\n2. **Batch sizes:** For IELTS or coding, if the batch size exceeds 20–25 students, you will receive minimal personal feedback (especially for speaking and essay evaluations).\n3. **Written demo & refund terms:** Reputable institutes always offer **2 to 3 days of trial/demo classes** before taking full upfront payment. Walk away from any center that demands a full non-refundable installment on day one without a demo.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Aakash Institute",
+          "Allen Career Institute",
+          "Physics Wallah",
+          "Touchstone Educationals",
+          "British Counsel",
+          "Grey Matters",
+          "Bright Academy / IBT Institute",
+          "Ojaank / Chanakya IAS",
+          "ThinkNEXT Technologies",
+          "Ask who the actual teacher is",
+          "Batch sizes",
+          "Written demo & refund terms"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "aakash.ac.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "allen.ac.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "medium.com",
+          "url": null,
+          "channelType": "social",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "britishcounsel.org.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "yocket.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.036054
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "coaching institute in mohali: which one should I trust and why",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one coaching institute in Mohali that can be recommended for every student—the right choice depends on **which exam or subject** you’re preparing for. The available listings cover unrelated options, and rankings or institutes’ own “success rate” claims aren’t enough to establish trustworthiness.[1][2][7]\n\nBefore paying, visit a class and verify:\n- **Faculty:** Ask who will teach your batch, their relevant experience, and whether you can attend a demo.\n- **Results:** Request recent, verifiable results for your specific course—not just a headline selection count.\n- **Fit:** Check batch size, doubt-clearing access, test schedule, and whether the actual class matches the demo.\n- **Terms:** Get the full fee, refund policy, course duration, and promised services in writing.\n- **Independent feedback:** Speak privately with current and former students; don’t rely only on testimonials shown by the institute.\n\nIf you share the **exam or subject** (for example, NEET, JEE, IELTS, UPSC, NDA, or school tuition) and your area in Mohali, I can narrow down suitable options.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Faculty",
+          "Results",
+          "Fit",
+          "Terms",
+          "Independent feedback"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Institutes/nct-10268288",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ncaacademy.com",
+          "url": "https://ncaacademy.com/capf-coaching-in-mohali/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "addressguru.in",
+          "url": "https://www.addressguru.in/Coaching-Institute/Mohali/MQ==",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ncaacademy.com",
+          "url": "https://ncaacademy.com/nda-coaching-in-mohali/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Tutorials-in-Khizrabad-West/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/UGC-Net-Institutes-in-Mohali-Sector-56-Phase-6/nct-11266710",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Educational-Institutes/nct-10180445?stype=category_list",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Pte-Coaching-Centres/nct-10930578",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Tuition-Centres/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "leapscholar.com",
+          "url": "https://leapscholar.com/exams/ielts/coaching-centres-in-mohali-punjab",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00172
+    }
+  ]
+}
