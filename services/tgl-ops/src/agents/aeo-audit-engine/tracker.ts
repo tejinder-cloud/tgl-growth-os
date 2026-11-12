@@ -7,7 +7,7 @@ import type { RunKind, TrackerStore } from "./store.js";
 import { API_ENGINES, type EngineConfig, type EngineId } from "./types.js";
 
 export const AGENT = "aeo-audit-engine";
-const LABEL: Record<EngineId, string> = { chatgpt: "ChatGPT", gemini: "Gemini", perplexity: "Perplexity" };
+const LABEL: Record<EngineId, string> = { chatgpt: "ChatGPT", gemini: "Gemini", perplexity: "Perplexity", claude: "Claude" };
 
 export interface TrackerDeps {
   store: TrackerStore;

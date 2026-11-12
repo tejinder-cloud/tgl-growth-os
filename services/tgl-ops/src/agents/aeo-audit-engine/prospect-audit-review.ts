@@ -70,6 +70,16 @@ export function greetingName(contactName: string | null | undefined): string {
   return /^[\p{L}][\p{L}'.-]*$/u.test(parts[0]) ? parts[0] : "";
 }
 
+const ASSISTANT_NAMES: Record<string, string> = { chatgpt: "ChatGPT", gemini: "Gemini", perplexity: "Perplexity", claude: "Claude" };
+
+/** The assistants this audit actually asked, as the email names them. The email never names one that was not asked. */
+export function assistantsAsked(summary: Record<string, unknown> | undefined | null): string {
+  const listed = Array.isArray(summary?.engines) ? (summary!.engines as unknown[]).map(String) : [];
+  const names = ["chatgpt", "gemini", "perplexity", "claude"].filter((e) => listed.includes(e)).map((e) => ASSISTANT_NAMES[e]);
+  if (names.length < 2) return "ChatGPT, Gemini and Perplexity";
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
@@ -79,14 +89,15 @@ function article(phrase: string): string {
 }
 
 /** The one email a prospect receives. Wording approved by the Architect on 12 Nov 2026; nothing else is added. */
-export function buildProspectAuditEmail(row: Pick<ProspectAuditRow, "business_name" | "category_phrase" | "city" | "contact_name">, env: Record<string, string | undefined> = process.env): { subject: string; text: string; html: string } {
+export function buildProspectAuditEmail(row: Pick<ProspectAuditRow, "business_name" | "category_phrase" | "city" | "contact_name"> & { summary?: Record<string, unknown> }, env: Record<string, string | undefined> = process.env): { subject: string; text: string; html: string } {
   const link = bookingLink(env);
+  const asked = assistantsAsked(row.summary);
   const first = greetingName(row.contact_name);
   const where = (row.city || "").trim() || "India";
   const paragraphs = [
     first ? `Hi ${first},` : "Hi,",
     "Thank you for asking. Your one-page AI visibility check is attached.",
-    `We asked ChatGPT, Gemini and Perplexity five questions a customer would ask about ${article(row.category_phrase)} ${row.category_phrase} in ${where}. The report shows where they named ${row.business_name}, who they named instead, and which websites they took their answers from.`,
+    `We asked ${asked} five questions a customer would ask about ${article(row.category_phrase)} ${row.category_phrase} in ${where}. The report shows where they named ${row.business_name}, who they named instead, and which websites they took their answers from.`,
     link
       ? `If you'd like to know what to fix first, reply to this email or pick a time here: ${link}`
       : "If you'd like to know what to fix first, reply to this email and we'll set up a 20-minute call.",

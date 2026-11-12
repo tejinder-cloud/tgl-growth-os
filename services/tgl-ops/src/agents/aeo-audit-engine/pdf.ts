@@ -13,6 +13,7 @@ import path from "node:path";
 import PDFDocument from "pdfkit";
 import type { ShortFormAuditResult, MatrixBadge } from "./short-form.js";
 import { generateMatrixNextSteps } from "./next-steps.js";
+import { ENGINE_LABELS, type EngineId } from "./types.js";
 
 /**
  * The text of the "Mechanistic next steps" box, generated from the audit matrix only.
@@ -86,6 +87,25 @@ export function auditWording(result: ShortFormAuditResult) {
   };
 }
 
+/**
+ * The engine columns of one audit, left to right. Three engines keep the original layout exactly; a fourth
+ * (prospect audits with Claude) narrows the question column to make room.
+ */
+export function engineColumns(result: ShortFormAuditResult): { engines: EngineId[]; firstX: number; width: number } {
+  const order: EngineId[] = ["chatgpt", "gemini", "perplexity", "claude"];
+  const present = result.engines && result.engines.length > 0 ? result.engines : (["chatgpt", "gemini", "perplexity"] as EngineId[]);
+  const engines = order.filter((e) => present.includes(e));
+  const width = engines.length <= 3 ? 70 : 58;
+  return { engines, firstX: 550 - engines.length * width, width };
+}
+
+/** "Perplexity, Gemini, ChatGPT" for the classic three; otherwise the engines asked, in column order. */
+export function enginesLine(result: ShortFormAuditResult): string {
+  const { engines } = engineColumns(result);
+  if (engines.length === 3 && !engines.includes("claude")) return "Perplexity, Gemini, ChatGPT";
+  return engines.map((e) => ENGINE_LABELS[e]).join(", ");
+}
+
 /** Label under the prompt count. A prospect audit has no verified setup profile and must not claim one. */
 export function promptsLabel(result: ShortFormAuditResult): string {
   return result.auditKind === "prospect" ? "Buyer Questions for Your Category" : "Verified Buyer Prompts";
@@ -143,9 +163,9 @@ export function renderAuditHtml(result: ShortFormAuditResult): string {
         return `<span class="badge mentioned">Mentioned</span>`;
       };
 
-      const chatgptBadge = r.engineResults.chatgpt ? r.engineResults.chatgpt.badge : "—";
-      const geminiBadge = r.engineResults.gemini ? r.engineResults.gemini.badge : "—";
-      const perplexityBadge = r.engineResults.perplexity ? r.engineResults.perplexity.badge : "—";
+      const cells = engineColumns(result)
+        .engines.map((e) => `<td class="engine-col">${getBadgeHtml(r.engineResults[e] ? r.engineResults[e].badge : "—")}</td>`)
+        .join("\n          ");
 
       return `
         <tr>
@@ -153,9 +173,7 @@ export function renderAuditHtml(result: ShortFormAuditResult): string {
             <span class="prompt-num">${r.promptIndex}.</span>
             <span class="prompt-text">${escapeHtml(r.prompt)}</span>
           </td>
-          <td class="engine-col">${getBadgeHtml(chatgptBadge)}</td>
-          <td class="engine-col">${getBadgeHtml(geminiBadge)}</td>
-          <td class="engine-col">${getBadgeHtml(perplexityBadge)}</td>
+          ${cells}
         </tr>
       `;
     })
@@ -521,7 +539,7 @@ export function renderAuditHtml(result: ShortFormAuditResult): string {
       <div class="kpi-card">
         <div class="kpi-label">${w.kpiEngines}</div>
         <div class="kpi-val">${result.enginesCount}</div>
-        <div class="kpi-sub">Perplexity, Gemini, ChatGPT</div>
+        <div class="kpi-sub">${enginesLine(result)}</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">${w.kpiPrompts}</div>
@@ -536,9 +554,7 @@ export function renderAuditHtml(result: ShortFormAuditResult): string {
         <thead>
           <tr>
             <th class="prompt-col">${queryColumnLabel(result)}</th>
-            <th class="engine-col">ChatGPT</th>
-            <th class="engine-col">Gemini</th>
-            <th class="engine-col">Perplexity</th>
+            ${engineColumns(result).engines.map((e) => `<th class="engine-col">${ENGINE_LABELS[e]}</th>`).join("\n            ")}
           </tr>
         </thead>
         <tbody>
@@ -688,7 +704,7 @@ export async function generateAuditPdf(
   const kpis = [
     { label: w.kpiScore, val: `${score}%`, sub: w.kpiScoreSub },
     { label: w.kpiMentions, val: `${mentions} / ${queries}`, sub: w.kpiMentionsSub },
-    { label: w.kpiEngines, val: `${result.enginesCount}`, sub: "Perplexity, Gemini, ChatGPT" },
+    { label: w.kpiEngines, val: `${result.enginesCount}`, sub: enginesLine(result) },
     { label: w.kpiPrompts, val: `${result.promptsCount}`, sub: promptsLabel(result) },
   ];
 
@@ -717,9 +733,10 @@ export async function generateAuditPdf(
 
   doc.font(fontSansBold).fontSize(7).fillColor("#1F2421");
   doc.text(queryColumnLabel(result).toUpperCase(), 50, tableY + 5);
-  doc.text("CHATGPT", 340, tableY + 5, { width: 70, align: "center" });
-  doc.text("GEMINI", 410, tableY + 5, { width: 70, align: "center" });
-  doc.text("PERPLEXITY", 480, tableY + 5, { width: 70, align: "center" });
+  const cols = engineColumns(result);
+  cols.engines.forEach((e, i) => {
+    doc.text(ENGINE_LABELS[e].toUpperCase(), cols.firstX + i * cols.width, tableY + 5, { width: cols.width, align: "center" });
+  });
 
   const rowHeight = 25;
   result.results.forEach((r, idx) => {
@@ -728,37 +745,37 @@ export async function generateAuditPdf(
     doc.rect(42, rowY, tableW, rowHeight).lineWidth(0.8).strokeColor("#1F2421").stroke();
 
     // Vertical column borders
-    doc.moveTo(340, rowY).lineTo(340, rowY + rowHeight).stroke();
-    doc.moveTo(410, rowY).lineTo(410, rowY + rowHeight).stroke();
-    doc.moveTo(480, rowY).lineTo(480, rowY + rowHeight).stroke();
+    cols.engines.forEach((_e, i) => {
+      const x = cols.firstX + i * cols.width;
+      doc.moveTo(x, rowY).lineTo(x, rowY + rowHeight).stroke();
+    });
 
     // Query text
     // Number and question are drawn separately so the question has its own box: one line, cut with an
     // ellipsis when it is too long, never running under the engine columns.
     doc.font(fontSansBold).fontSize(7.5).fillColor("#C85A32").text(`${r.promptIndex}.`, 48, rowY + 7, { width: 10, lineBreak: false });
-    doc.font(fontSans).fontSize(7.5).fillColor("#1F2421").text(r.prompt, 58, rowY + 7, { width: 276, height: 10, ellipsis: true });
+    doc.font(fontSans).fontSize(7.5).fillColor("#1F2421").text(r.prompt, 58, rowY + 7, { width: cols.firstX - 64, height: 10, ellipsis: true });
 
     // Engine badges
-    const drawBadge = (colX: number, engine: "chatgpt" | "gemini" | "perplexity") => {
+    const pad = (cols.width - 52) / 2;
+    const drawBadge = (colX: number, engine: EngineId) => {
       const res = r.engineResults[engine];
       const badge = res ? res.badge : "—";
 
       if (badge === "—") {
-        doc.font(fontSans).fontSize(9).fillColor("#99948D").text("—", colX, rowY + 7, { width: 70, align: "center" });
+        doc.font(fontSans).fontSize(9).fillColor("#99948D").text("—", colX, rowY + 7, { width: cols.width, align: "center" });
       } else {
         const isNamed1 = badge === "Named #1";
         const bgCol = isNamed1 ? "#FBECE8" : "#FAF0ED";
         const strokeCol = isNamed1 ? "#C85A32" : "#E07A5F";
 
-        doc.rect(colX + 9, rowY + 5, 52, 14).fillColor(bgCol).fill();
-        doc.rect(colX + 9, rowY + 5, 52, 14).lineWidth(0.8).strokeColor(strokeCol).stroke();
-        doc.font(fontSansBold).fontSize(6.8).fillColor(strokeCol).text(badge, colX + 9, rowY + 8, { width: 52, align: "center" });
+        doc.rect(colX + pad, rowY + 5, 52, 14).fillColor(bgCol).fill();
+        doc.rect(colX + pad, rowY + 5, 52, 14).lineWidth(0.8).strokeColor(strokeCol).stroke();
+        doc.font(fontSansBold).fontSize(6.8).fillColor(strokeCol).text(badge, colX + pad, rowY + 8, { width: 52, align: "center" });
       }
     };
 
-    drawBadge(340, "chatgpt");
-    drawBadge(410, "gemini");
-    drawBadge(480, "perplexity");
+    cols.engines.forEach((e, i) => drawBadge(cols.firstX + i * cols.width, e));
   });
 
   // 6. Insight Split Panels

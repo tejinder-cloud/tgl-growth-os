@@ -164,6 +164,10 @@ export interface ShortFormAuditResult {
   rawAnswersJsonPath?: string;
   /** "prospect" for a free first audit run without a verified setup profile; absent or "client" otherwise. */
   auditKind?: "client" | "prospect";
+  /** The engines whose answers are in this result, in column order. */
+  engines?: EngineId[];
+  /** Optional engines that could not be asked. Their column is left out; nothing is reported for them. */
+  skippedEngines?: { engine: EngineId; reason: string }[];
 }
 
 /** A prospect with no setup profile: the business as it would like to be named, and its website. */
@@ -183,6 +187,11 @@ export interface ProspectAuditTarget {
 export interface ShortFormOptions {
   prompts?: string[];
   engines?: EngineId[];
+  /**
+   * Engines in `engines` that the audit can do without. If one cannot be configured or fails, it is dropped from
+   * this audit (no column, no counts) and the audit goes on; any other engine failing stops the audit as before.
+   */
+  optionalEngines?: EngineId[];
   usdInrRate?: number;
   testMode?: boolean;
   engineMock?: (engine: EngineId, prompt: string) => Promise<EngineAnswer>;
@@ -206,7 +215,7 @@ export function extractPromptExcerpt(
   brandName: string
 ): PromptExcerpt {
   // Prefer Perplexity or Gemini as primary excerpt source, or ChatGPT if others absent
-  const preferredEngines: EngineId[] = ["perplexity", "gemini", "chatgpt"];
+  const preferredEngines: EngineId[] = ["perplexity", "gemini", "chatgpt", "claude"];
   let pickedEngine: EngineId = "perplexity";
   let pickedResult = engineResults.perplexity;
 
@@ -394,16 +403,14 @@ export async function runShortFormAudit(
     );
   }
 
-  const engines = options?.engines || API_ENGINES;
+  let engines: EngineId[] = [...(options?.engines || API_ENGINES)];
+  const optional = new Set<EngineId>(options?.optionalEngines || []);
+  const skipped = new Map<EngineId, string>();
   const auditedAt = new Date().toISOString();
   const rate = options?.usdInrRate || Number(process.env.USD_INR_RATE || "85");
 
   const results: PromptAuditResult[] = [];
-  const mentionsByEngine: Record<EngineId, number> = {
-    chatgpt: 0,
-    gemini: 0,
-    perplexity: 0,
-  };
+  const mentionsByEngine = Object.fromEntries(engines.map((e) => [e, 0])) as Record<EngineId, number>;
   const competitorMentions: Record<string, number> = {};
   const citationDomains: Record<string, number> = {};
   let totalMentions = 0;
@@ -415,20 +422,29 @@ export async function runShortFormAudit(
     const engineResults: Record<EngineId, PromptEngineResult> = {} as any;
 
     for (const engine of engines) {
+      if (skipped.has(engine)) continue;
       let answer: EngineAnswer;
 
-      if (options?.engineMock) {
-        answer = await options.engineMock(engine, prompt);
-      } else if (options?.testMode) {
-        answer = mockEngineAnswer(engine, prompt, lens, promptIndex);
-      } else {
-        const { config: engineCfg, missing } = loadEngineConfig(engine);
-        if (!engineCfg) {
-          throw new Error(
-            `Engine ${engine} cannot run: missing environment variables [${missing.join(", ")}]`
-          );
+      try {
+        if (options?.engineMock) {
+          answer = await options.engineMock(engine, prompt);
+        } else if (options?.testMode) {
+          answer = mockEngineAnswer(engine, prompt, lens, promptIndex);
+        } else {
+          const { config: engineCfg, missing } = loadEngineConfig(engine);
+          if (!engineCfg) {
+            throw new Error(
+              `Engine ${engine} cannot run: missing environment variables [${missing.join(", ")}]`
+            );
+          }
+          answer = await askEngine(engineCfg, prompt);
         }
-        answer = await askEngine(engineCfg, prompt);
+      } catch (err: any) {
+        if (!optional.has(engine)) throw err;
+        // An optional engine that fails once is not asked again in this audit, and is left out of it entirely.
+        skipped.set(engine, String(err?.message || err).slice(0, 200));
+        console.warn(`[Audit] optional engine ${engine} dropped from this audit: ${skipped.get(engine)}`);
+        continue;
       }
 
       // A prospect has no tracked competitor list, so position and "who was named instead" are read from the
@@ -476,6 +492,29 @@ export async function runShortFormAudit(
       engineResults,
       excerpt,
     });
+  }
+
+  // An optional engine that dropped out part-way leaves no trace in the figures: its earlier answers are removed
+  // and every count is taken again from what remains. What it cost before failing stays in the total.
+  if (skipped.size > 0) {
+    engines = engines.filter((e) => !skipped.has(e));
+    for (const key of Object.keys(mentionsByEngine)) delete (mentionsByEngine as Record<string, number>)[key];
+    for (const e of engines) mentionsByEngine[e] = 0;
+    for (const key of Object.keys(competitorMentions)) delete competitorMentions[key];
+    for (const key of Object.keys(citationDomains)) delete citationDomains[key];
+    totalMentions = 0;
+    for (const r of results) {
+      for (const e of skipped.keys()) delete (r.engineResults as Partial<Record<EngineId, PromptEngineResult>>)[e];
+      for (const er of Object.values(r.engineResults)) {
+        if (er.analysis.mentioned) {
+          totalMentions++;
+          mentionsByEngine[er.engine] = (mentionsByEngine[er.engine] || 0) + 1;
+        }
+        for (const comp of new Set(er.analysis.competitorsMentioned)) competitorMentions[comp] = (competitorMentions[comp] || 0) + 1;
+        for (const dom of new Set(er.citations.map((c) => c.domain))) citationDomains[dom] = (citationDomains[dom] || 0) + 1;
+      }
+      r.excerpt = extractPromptExcerpt(r.promptIndex, r.engineResults, lens.name);
+    }
   }
 
   // Prospect audits, second pass. The first pass read each answer on its own and only saw names an answer put in
@@ -544,6 +583,8 @@ export async function runShortFormAudit(
     summary,
     nextSteps,
     auditKind: prospect ? "prospect" : "client",
+    engines,
+    ...(skipped.size > 0 ? { skippedEngines: [...skipped.entries()].map(([engine, reason]) => ({ engine, reason })) } : {}),
   };
 
   // Store raw answers under logs/<date>/aeo-audit/<domain>.json so every number is traceable
@@ -603,6 +644,9 @@ export async function saveRawAuditJson(result: ShortFormAuditResult): Promise<st
         position: r.engineResults.perplexity?.analysis.position,
         mentioned: r.engineResults.perplexity?.analysis.mentioned,
       },
+      ...(r.engineResults.claude
+        ? { claude: { badge: r.engineResults.claude.badge, position: r.engineResults.claude.analysis.position, mentioned: r.engineResults.claude.analysis.mentioned } }
+        : {}),
       excerpt: r.excerpt,
     })),
     rawAnswers: result.results.flatMap((r) =>
