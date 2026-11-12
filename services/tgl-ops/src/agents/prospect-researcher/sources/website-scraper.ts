@@ -5,6 +5,7 @@
  * and detects chain signals (5+ cities, locations/centres pages, funding).
  * Uses Apify cheerio-scraper when APIFY_API_TOKEN is present, falling back to direct fetch.
  */
+import { isIndividualPractitionerName, stripHonorific } from "../contact-rules.js";
 
 export interface ChainSignals {
   citiesFound: string[];
@@ -535,6 +536,17 @@ export function extractBrandToken(name: string, website?: string): { brand: stri
     } catch {
       // ignore
     }
+  }
+
+  // A person's own practice: the brand is the person's name, never the honorific ("dr." is not a brand, #184).
+  if (isIndividualPractitionerName(name)) {
+    const person = stripHonorific(name)
+      .split(/[|,(\-–:]/)[0]
+      .toLowerCase()
+      .replace(/[^a-z\s]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (person.length >= 3) return { brand: person, rootDomain };
   }
 
   // Normalize name by removing commas, punctuation, branch locations

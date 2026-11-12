@@ -218,7 +218,11 @@ export function validateProspectRecord(p: any): { valid: boolean; reason?: strin
     dmSource.includes("places:phone") &&
     hasPlacesId;
 
-  if (!hasHunterEmail && !hasPlacesPhone && !isDMUnknown) {
+  // A rejection of an existing row must always be writable: when a re-score finds the stored contact was never the
+  // prospect's own (issue #184), the row has to leave the qualified list, and the missing contact is the reason.
+  const isRejection = p.status === "rejected";
+
+  if (!isRejection && !hasHunterEmail && !hasPlacesPhone && !isDMUnknown) {
     return {
       valid: false,
       reason: `Contact not verified: requires Hunter-verified website email or Places business phone for owner-run business (source: '${dm.source || "none"}')`,
@@ -227,7 +231,7 @@ export function validateProspectRecord(p: any): { valid: boolean; reason?: strin
 
   // 4. Placeholder name check
   const isOwnerRun = (p.signals?.branch_count ?? 1) < 5;
-  if (isRolePlaceholderName(dm.name, isOwnerRun)) {
+  if (!isRejection && isRolePlaceholderName(dm.name, isOwnerRun)) {
     return {
       valid: false,
       reason: `Placeholder role name rejected: '${dm.name}' contains title/role words instead of a verified person name`,

@@ -73,7 +73,7 @@ export function createDim4ProbeGovernor(
   let capHalted = false;
   let unavailable = false;
 
-  const probe: Dim4ProbeFn = async ({ company, domain, category, city }) => {
+  const probe: Dim4ProbeFn = async ({ company, domain, category, city, brand, placeType, placeTypeLabel }) => {
     stats.requested++;
 
     if (capHalted) {
@@ -114,7 +114,7 @@ export function createDim4ProbeGovernor(
       return null;
     }
 
-    const question = buildDim4Question(category, city || "");
+    const question = buildDim4Question(category, city || "", { company, placeType, placeTypeLabel });
     let answer: EngineAnswer;
     try {
       answer = await d.askEngine(engineConfig, question, { country: "IN" });
@@ -128,7 +128,7 @@ export function createDim4ProbeGovernor(
     stats.costUsd = Number((stats.costUsd + answer.costUsd).toFixed(6));
     d.recordSpend(answer.costUsd, `Dim 4 probe (${answer.engine} ${answer.model}): "${question}" for ${company}`);
 
-    const analysis = analyseDim4Answer({ company, domain, answer: answer.text });
+    const analysis = analyseDim4Answer({ company, domain, answer: answer.text, brand });
     const record: Dim4Probe = {
       rubric_version: RUBRIC_VERSION as "v2",
       engine: answer.engine,

@@ -20,6 +20,9 @@ export interface RawPlaceCandidate {
   brandPrefix?: string;
   placeDetailsEnriched?: boolean;
   placeDetailsError?: string;
+  /** Google Places primary type ("dental_clinic") and its display name ("Dental clinic"). */
+  primaryType?: string;
+  primaryTypeLabel?: string;
 }
 
 const PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || "";
@@ -28,7 +31,7 @@ const PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_M
  * Searches for institutions via Google Places API (New) — searchText.
  * Endpoint: POST https://places.googleapis.com/v1/places:searchText
  * Header Authentication: X-Goog-Api-Key
- * FieldMask: places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri,places.nationalPhoneNumber,places.googleMapsUri
+ * FieldMask: places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri,places.nationalPhoneNumber,places.googleMapsUri,places.primaryType,places.primaryTypeDisplayName
  * Strictly consumes from the 95 calls/day quota.
  * Zero stubs or mock data: returns empty array if no live API key or results.
  */
@@ -45,7 +48,7 @@ export async function searchPlacesCandidates(
   const query = `${categoryQuery} in ${city}`;
   const endpoint = "https://places.googleapis.com/v1/places:searchText";
   const fieldMask =
-    "places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri,places.nationalPhoneNumber,places.googleMapsUri";
+    "places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri,places.nationalPhoneNumber,places.googleMapsUri,places.primaryType,places.primaryTypeDisplayName";
 
   // 1. If key is missing, log real attempt and return empty array without stubs
   if (!PLACES_API_KEY) {
@@ -95,6 +98,8 @@ export async function searchPlacesCandidates(
         phone: p.nationalPhoneNumber,
         googleMapsUrl: p.googleMapsUri || `https://www.google.com/maps/place/?q=place_id:${p.id}`,
         placeIdVerified: true,
+        primaryType: typeof p.primaryType === "string" ? p.primaryType : undefined,
+        primaryTypeLabel: typeof p.primaryTypeDisplayName?.text === "string" ? p.primaryTypeDisplayName.text : undefined,
         rawApiResponseExcerpt: JSON.stringify(p).slice(0, 200),
       }));
     }

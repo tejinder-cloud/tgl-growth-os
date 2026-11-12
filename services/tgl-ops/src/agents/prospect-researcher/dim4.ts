@@ -1,6 +1,7 @@
 // services/tgl-ops/src/agents/prospect-researcher/dim4.ts
 // Rubric v2 · Dimension 4: AI visibility gap (decisions/2026-11-10.md)
-// One engine, one buyer question built from the prospect's category and city.
+// One engine, one buyer question built from the prospect's specialty (name, Places primary type) and city;
+// the rotation category is the fallback (issue #184).
 //   competitor named and prospect absent  -> 25
 //   prospect named but not first          -> 10
 //   prospect named first                  ->  0
@@ -28,11 +29,95 @@ export const DIM4_QUESTION_TEMPLATES: Record<string, string> = {
   law_ca: "best chartered accountant in {city}",
 };
 
-/** Builds the single buyer question for a category and city. Unknown categories fall back to "best <category> in <city>". */
-export function buildDim4Question(category: string, city: string): string {
+/** What the probe may know about the prospect beyond its rotation category. All optional. */
+export interface Dim4QuestionHint {
+  /** The prospect's name as Google Places shows it. */
+  company?: string;
+  /** Google Places primary type, e.g. "dental_clinic". */
+  placeType?: string;
+  /** Google Places primary type display name, e.g. "Dental clinic". */
+  placeTypeLabel?: string;
+}
+
+// Specialty read from the prospect's own name. First match wins, so narrower specialties come first.
+// The phrase is what a buyer would type: "best <phrase> in <city>".
+const NAME_SPECIALTIES: Array<{ pattern: RegExp; phrase: string; person?: string }> = [
+  { pattern: /\b(?:ivf|fertility|test tube)\b/i, phrase: "IVF clinic", person: "IVF specialist" },
+  { pattern: /\b(?:laparoscop\w*|bariatric|gall\s*bladder|hernia)\b/i, phrase: "laparoscopic surgery hospital", person: "laparoscopic surgeon" },
+  { pattern: /\b(?:matern\w*|motherhood|mother\s*(?:and|&)\s*child|gynae\w*|gyne\w*|obstetric\w*|women'?s?)\b/i, phrase: "maternity hospital", person: "gynaecologist" },
+  { pattern: /\b(?:paediatric\w*|pediatric\w*|children'?s?|child|kids|neonat\w*)\b/i, phrase: "children's hospital", person: "paediatrician" },
+  { pattern: /\b(?:eye|ophthal\w*|lasik|retina|cataract)\b/i, phrase: "eye hospital", person: "eye specialist" },
+  { pattern: /\b(?:implant\w*|orthodont\w*|smile|dental|dentist\w*)\b/i, phrase: "dental clinic", person: "dentist" },
+  { pattern: /\b(?:cardiac|cardio\w*|heart)\b/i, phrase: "heart hospital", person: "cardiologist" },
+  { pattern: /\b(?:cancer|onco\w*)\b/i, phrase: "cancer hospital", person: "oncologist" },
+  { pattern: /\b(?:ortho\w*|joint replacement|spine|bone)\b/i, phrase: "orthopaedic hospital", person: "orthopaedic surgeon" },
+  { pattern: /\b(?:neuro\w*|brain|stroke)\b/i, phrase: "neurology hospital", person: "neurologist" },
+  { pattern: /\b(?:kidney|nephro\w*|uro\w*|dialysis)\b/i, phrase: "kidney hospital", person: "urologist" },
+  { pattern: /\b(?:gastro\w*|liver|digestive)\b/i, phrase: "gastroenterology hospital", person: "gastroenterologist" },
+  { pattern: /\b(?:hair transplant|hair)\b/i, phrase: "hair transplant clinic", person: "hair transplant surgeon" },
+  { pattern: /\b(?:plastic|cosmetic surg\w*|aesthetic\w*)\b/i, phrase: "cosmetic surgery clinic", person: "plastic surgeon" },
+  { pattern: /\b(?:skin|derma\w*|laser)\b/i, phrase: "skin clinic", person: "dermatologist" },
+  { pattern: /\b(?:ent|ear nose|sinus)\b/i, phrase: "ENT hospital", person: "ENT specialist" },
+  { pattern: /\b(?:psychiatr\w*|mental health|de-?addiction|rehab\w*)\b/i, phrase: "psychiatry clinic", person: "psychiatrist" },
+  { pattern: /\b(?:physio\w*)\b/i, phrase: "physiotherapy clinic", person: "physiotherapist" },
+  { pattern: /\b(?:diabet\w*|endocrin\w*|thyroid)\b/i, phrase: "diabetes clinic", person: "diabetologist" },
+  { pattern: /\b(?:ayurved\w*|panchakarma)\b/i, phrase: "ayurvedic hospital", person: "ayurvedic doctor" },
+  { pattern: /\b(?:homeo\w*)\b/i, phrase: "homeopathy clinic", person: "homeopathic doctor" },
+  { pattern: /\b(?:ielts|pte|toefl)\b/i, phrase: "IELTS coaching institute" },
+  { pattern: /\b(?:upsc|ias|civil services?)\b/i, phrase: "UPSC coaching institute" },
+  { pattern: /\b(?:neet|medical entrance)\b/i, phrase: "NEET coaching institute" },
+  { pattern: /\b(?:jee|iit)\b/i, phrase: "IIT JEE coaching institute" },
+  { pattern: /\b(?:cat|mba entrance|gmat)\b/i, phrase: "CAT coaching institute" },
+  { pattern: /\b(?:clat|law entrance)\b/i, phrase: "CLAT coaching institute" },
+  { pattern: /\b(?:nursing|norcet)\b/i, phrase: "nursing exam coaching institute" },
+  { pattern: /\b(?:bank\w*|ssc)\b/i, phrase: "bank and SSC coaching institute" },
+];
+
+// Google Places primary types that say nothing a buyer would type. For these the name or the category decides.
+const GENERIC_PLACE_TYPES = new Set([
+  "", "hospital", "general_hospital", "doctor", "health", "medical_clinic", "establishment", "point_of_interest",
+  "school", "educational_institution", "store", "corporate_office", "consultant", "service", "medical_center",
+]);
+
+function opensWithHonorific(name: string): boolean {
+  return /^\s*(?:dr|doctor|prof|professor)\b\.?\s+/i.test(name || "");
+}
+
+/**
+ * The specialty phrase for a prospect, or null when nothing more specific than the category is known.
+ * Order: the prospect's own name (most specific), then its Google Places primary type when that type is not generic.
+ */
+export function dim4SpecialtyPhrase(hint?: Dim4QuestionHint): string | null {
+  const company = (hint?.company || "").trim();
+  if (company) {
+    for (const s of NAME_SPECIALTIES) {
+      if (s.pattern.test(company)) {
+        return opensWithHonorific(company) && s.person ? s.person : s.phrase;
+      }
+    }
+  }
+  const type = (hint?.placeType || "").toLowerCase().trim();
+  if (type && !GENERIC_PLACE_TYPES.has(type)) {
+    const label = (hint?.placeTypeLabel || "").trim() || type.replace(/_/g, " ");
+    return label.charAt(0).toLowerCase() + label.slice(1);
+  }
+  return null;
+}
+
+/**
+ * Builds the single buyer question for one prospect.
+ * A specialty read from the prospect's name or Places primary type wins ("best maternity hospital in <city>");
+ * otherwise the category template is used; unknown categories fall back to "best <category> in <city>".
+ * The generic category question is the last resort: a maternity hospital or a single surgeon is never the answer
+ * to "best hospital in <city>", so scoring them on it measures nothing.
+ */
+export function buildDim4Question(category: string, city: string, hint?: Dim4QuestionHint): string {
+  const where = (city || "").trim() || "India";
+  const specialty = dim4SpecialtyPhrase(hint);
+  if (specialty) return `best ${specialty} in ${where}`;
   const key = (category || "").toLowerCase().trim();
   const template = DIM4_QUESTION_TEMPLATES[key] || `best ${key.replace(/_/g, " ") || "service provider"} in {city}`;
-  return template.replace("{city}", (city || "").trim() || "India");
+  return template.replace("{city}", where);
 }
 
 /** The record stored under fit_reasons as `dim4_probe`. Every field is observed, none is inferred. */
@@ -60,6 +145,11 @@ export type Dim4ProbeFn = (input: {
   domain: string;
   category: string;
   city?: string;
+  /** Brand token of the prospect (signals.brand_prefix). Used to recognise the brand in the answer. */
+  brand?: string;
+  /** Google Places primary type and its display name, when known. */
+  placeType?: string;
+  placeTypeLabel?: string;
 }) => Promise<Dim4Probe | null>;
 
 const NAME_STOPWORDS = new Set([
@@ -100,6 +190,27 @@ export function nameMatchesProspect(foundName: string, company: string): boolean
   }
   const have = new Set(nameTokens(foundName));
   return want.every((t) => have.has(t));
+}
+
+// Words too common to identify a brand on their own. Kept local so this module stays dependency-free.
+const BRAND_GENERIC_WORDS = new Set([
+  ...NAME_STOPWORDS, "doctor", "prof", "professor", "new", "sri", "shri", "shree", "city", "best", "top", "life",
+  "medicare", "eye", "multi", "advanced", "modern", "global", "india", "indian", "national", "international",
+]);
+
+/**
+ * The words of a brand token that may be used to recognise the prospect in an answer.
+ * Empty when the brand is missing or generic ("dr", "hospital", "city"), so a generic word never counts as a mention.
+ */
+export function brandMatchWords(brand: string | undefined | null): string[] {
+  const words = nameTokens(brand || "").filter((t) => !BRAND_GENERIC_WORDS.has(t) && t.length >= 3);
+  return words.some((t) => t.length >= 4) ? words : [];
+}
+
+function nameCarriesBrand(foundName: string, brandWords: string[]): boolean {
+  if (brandWords.length === 0) return false;
+  const have = new Set(nameTokens(foundName));
+  return brandWords.every((t) => have.has(t));
 }
 
 function cleanFoundName(raw: string): string | null {
@@ -156,14 +267,21 @@ export interface Dim4Analysis {
  * Reads an engine answer for one prospect and scores Dimension 4.
  * An answer that names nobody at all scores 0: there is no observed gap to quote.
  */
-export function analyseDim4Answer(params: { company: string; domain: string; answer: string }): Dim4Analysis {
-  const { company, domain, answer } = params;
+export function analyseDim4Answer(params: { company: string; domain: string; answer: string; brand?: string }): Dim4Analysis {
+  const { company, domain, answer, brand } = params;
   const named = extractNamedBusinesses(answer);
   const lower = (answer || "").toLowerCase();
+  const brandWords = brandMatchWords(brand);
+  const isProspect = (name: string) => nameMatchesProspect(name, company) || nameCarriesBrand(name, brandWords);
 
-  // Where does the prospect first appear? Match extracted names, then the full company name, then the website host.
+  // Where does the prospect first appear? Match extracted names (full name or brand), then the brand as a whole
+  // word anywhere in the answer, then the full company name, then the website host.
   const indexes: number[] = [];
-  for (const n of named) if (nameMatchesProspect(n.name, company)) indexes.push(n.index);
+  for (const n of named) if (isProspect(n.name)) indexes.push(n.index);
+  if (brandWords.length === 1) {
+    const m = new RegExp(`(?:^|[^a-z0-9])${brandWords[0]}(?:[^a-z0-9]|$)`).exec(lower);
+    if (m) indexes.push(m.index);
+  }
   const companyLower = (company || "").toLowerCase().trim();
   if (companyLower.length >= 4) {
     const i = lower.indexOf(companyLower);
@@ -180,7 +298,7 @@ export function analyseDim4Answer(params: { company: string; domain: string; ans
   }
   const prospectIndex = indexes.length ? Math.min(...indexes) : null;
 
-  const competitors = named.filter((n) => !nameMatchesProspect(n.name, company));
+  const competitors = named.filter((n) => !isProspect(n.name));
   const prospectNamed = prospectIndex !== null;
   const prospectPosition = prospectNamed ? 1 + competitors.filter((c) => c.index < (prospectIndex as number)).length : null;
 
