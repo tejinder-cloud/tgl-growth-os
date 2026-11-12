@@ -242,3 +242,249 @@ export async function enrichCandidateSignals(
     sourceRefs,
   };
 }
+
+interface RankedCandidateEmail {
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  position?: string;
+  confidence: number;
+  priorityScore: number;
+  isDM: boolean;
+}
+
+/**
+ * Discovers and validates economic decision-maker via real Hunter API and website scraping.
+ * Enforces Playbook D roles by organisation size (<50 staff vs ≥50 staff).
+ * Non-DM contacts (Assistant, Consultant, etc.) are labeled "DM unknown" and marked "contact found, DM unknown".
+ * Issue #184: only an email whose domain matches the website root domain, and that is neither free-mail nor a
+ * generic local part, can enter the candidate pool. Anything else is dropped here and never reaches Dimension 5.
+ */
+async function findVerifiedDecisionMaker(
+  candidate: RawPlaceCandidate,
+  orgSizeGe50: boolean,
+  websiteDoctorName?: string,
+  websiteDoctorRole?: string,
+  websiteEmails: string[] = [],
+  options?: { testMode?: boolean }
+): Promise<DecisionMaker & { verified: boolean }> {
+  const domain = extractDomain(candidate.website || "");
+
+  let verifiedHunterEmail: string | undefined;
+  let verifiedHunterName: string | undefined;
+  let verifiedHunterRole: string | undefined;
+  let hunterVerifierStatus: string | undefined;
+  let hunterVerifierScore: number | undefined;
+  let isDM = false;
+
+  const emailCountsForProspect = (email: string): boolean => {
+    const check = assessDecisionMakerEmail(email, candidate.website || "");
+    if (!check.ok) {
+      console.log(`  • [Dim 5 Email Dropped] '${candidate.name}': ${check.reason}`);
+    }
+    return check.ok;
+  };
+
+  if (HUNTER_API_KEY && domain) {
+    const maskedKey = `${HUNTER_API_KEY.slice(0, 4)}...${HUNTER_API_KEY.slice(-4)}`;
+    console.log(
+      `[Hunter API Real Request] GET https://api.hunter.io/v2/domain-search?domain=${domain}&api_key=${maskedKey}`
+    );
+
+    const candidateEmailPool: RankedCandidateEmail[] = [];
+
+    // Add any emails scraped from clinic website to candidate pool
+    for (const wEmail of websiteEmails) {
+      if (!emailCountsForProspect(wEmail)) continue;
+      const isRoleDM = isDecisionMakerRole(websiteDoctorRole || "Owner / Lead Doctor", orgSizeGe50);
+      candidateEmailPool.push({
+        email: wEmail,
+        position: websiteDoctorRole || "Owner / Lead Doctor",
+        confidence: 80,
+        priorityScore: isRoleDM ? 80 : 30,
+        isDM: isRoleDM,
+      });
+    }
+
+    try {
+      const res = await fetch(
+        `https://api.hunter.io/v2/domain-search?domain=${domain}&api_key=${HUNTER_API_KEY}&limit=10`
+      );
+      const data = (await res.json()) as any;
+      console.log(
+        `[Hunter API Real Response] HTTP ${res.status}: emails=${data.data?.emails?.length || 0}`
+      );
+
+      if (res.status === 200 && data && data.data && Array.isArray(data.data.emails)) {
+        for (const e of data.data.emails) {
+          if (!e.value || typeof e.value !== "string") continue;
+          const emailVal = e.value.toLowerCase().trim();
+
+          // Generic never: discard generic emails
+          if (e.type === "generic" || isGenericEmail(emailVal)) {
+            continue;
+          }
+          if (!emailCountsForProspect(emailVal)) continue;
+
+          const position = String(e.position || "").trim();
+          const fullName = `${e.first_name || ""} ${e.last_name || ""}`.trim();
+          const roleIsDM = isDecisionMakerRole(position, orgSizeGe50);
+
+          let priority = 0;
+          if (roleIsDM) {
+            priority += 100;
+          }
+
+          if (e.type === "personal") {
+            priority += 40;
+          }
+
+          if (fullName && !isRolePlaceholderName(fullName, false)) {
+            priority += 20;
+          }
+
+          priority += Math.min(20, Math.floor((e.confidence || 0) / 5));
+
+          candidateEmailPool.push({
+            email: emailVal,
+            firstName: e.first_name,
+            lastName: e.last_name,
+            position: position || "Staff",
+            confidence: e.confidence || 50,
+            priorityScore: priority,
+            isDM: roleIsDM,
+          });
+        }
+      }
+    } catch (err: any) {
+      console.warn(`[Hunter Domain Search Error on ${domain}]:`, err.message || err);
+    }
+
+    // Sort candidate emails by priorityScore descending
+    candidateEmailPool.sort((a, b) => b.priorityScore - a.priorityScore);
+
+    // Pick top candidate and verify via /v2/email-verifier
+    if (candidateEmailPool.length > 0) {
+      const bestCandidate = candidateEmailPool[0];
+      const verifyUrl = `https://api.hunter.io/v2/email-verifier?email=${encodeURIComponent(
+        bestCandidate.email
+      )}&api_key=${HUNTER_API_KEY}`;
+
+      try {
+        const vRes = await fetch(verifyUrl);
+        const vData = (await vRes.json()) as any;
+        const result = vData.data?.result; // "deliverable" | "risky" | "undeliverable"
+        const score = vData.data?.score || 0;
+        console.log(
+          `[Hunter Verifier Response] HTTP ${vRes.status}: result=${result}, score=${score}`
+        );
+
+        if (result === "deliverable" || result === "risky") {
+          verifiedHunterEmail = bestCandidate.email;
+          hunterVerifierStatus = result;
+          hunterVerifierScore = score;
+          isDM = bestCandidate.isDM;
+
+          if (isDM) {
+            verifiedHunterName =
+              bestCandidate.firstName && bestCandidate.lastName
+                ? `${bestCandidate.firstName} ${bestCandidate.lastName}`
+                : websiteDoctorName || "Owner / Lead Doctor";
+            verifiedHunterRole = bestCandidate.position || websiteDoctorRole || "Owner / Lead Doctor";
+          } else {
+            // Non-DM contact found (e.g. Assistant or Consultant Gastroenterologist)
+            // Label as "DM unknown" per Playbook D role enforcement
+            verifiedHunterName = "DM unknown";
+            verifiedHunterRole = "DM unknown";
+          }
+        }
+      } catch (err: any) {
+        console.warn(`[Hunter Email Verifier Error on ${bestCandidate.email}]:`, err.message || err);
+      }
+    }
+  }
+
+  // Option A: Verified Hunter email (deliverable | risky)
+  if (verifiedHunterEmail && hunterVerifierStatus) {
+    if (!isDM) {
+      // Mark "contact found, DM unknown"
+      return {
+        name: "DM unknown",
+        role: "DM unknown",
+        email: verifiedHunterEmail,
+        phone: candidate.phone,
+        source: `contact found, DM unknown (hunter:status: ${hunterVerifierStatus}, score: ${hunterVerifierScore || 0})`,
+        verified: true,
+      };
+    }
+
+    const rawName = verifiedHunterName || websiteDoctorName || "Owner / Lead Doctor";
+    const sanitized = sanitizeDecisionMaker(
+      {
+        name: rawName,
+        role: verifiedHunterRole || "Owner / Lead Doctor",
+        email: verifiedHunterEmail,
+        phone: candidate.phone,
+        source: `hunter:verified (status: ${hunterVerifierStatus}, score: ${hunterVerifierScore || 0})`,
+      },
+      candidate.name
+    );
+    return {
+      ...sanitized,
+      verified: true,
+    };
+  }
+
+  // Option B: Architect Decision for Owner-Run Businesses (<50 staff) ONLY
+  // For owner-run clinics, an authoritative verified contact is the business phone from Google Places.
+  // Decision-maker = owner/doctor.
+  // CRITICAL: Large organisations / hospitals (>=50 staff) CANNOT use Places phone; Playbook D requires Hunter email.
+  if (!orgSizeGe50 && candidate.phone && candidate.phone.trim().length >= 8) {
+    const doctorName = websiteDoctorName || "Owner / Lead Doctor";
+    const doctorRole = websiteDoctorRole || "Owner / Lead Doctor";
+    const sanitized = sanitizeDecisionMaker(
+      {
+        name: doctorName,
+        role: doctorRole,
+        email: "",
+        phone: candidate.phone,
+        source: `places:phone (verified business line) + website:owner`,
+      },
+      candidate.name
+    );
+    return {
+      ...sanitized,
+      verified: true,
+    };
+  }
+
+  // Unverified contact
+  return {
+    name: "",
+    role: "",
+    email: "",
+    source: orgSizeGe50 ? "unverified:large_org_requires_hunter_email" : "unverified:no_contact_found",
+    verified: false,
+  };
+}
+
+function isGenericEmail(email: string): boolean {
+  const genericPrefixes = [
+    "info@", "contact@", "support@", "admin@", "sales@", "help@",
+    "billing@", "office@", "hello@", "enquiry@", "enquiries@", "mail@",
+    "care@", "reception@", "desk@", "feedback@"
+  ];
+  return genericPrefixes.some((p) => email.startsWith(p));
+}
+
+function extractDomain(url: string): string {
+  try {
+    let clean = url.trim();
+    if (!clean.startsWith("http://") && !clean.startsWith("https://")) {
+      clean = `https://${clean}`;
+    }
+    return new URL(clean).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
