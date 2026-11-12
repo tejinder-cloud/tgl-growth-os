@@ -10,65 +10,64 @@
     ],
     "setupStatus": "prospect_unverified"
   },
-  "auditedAt": "2026-11-12T10:50:47.039Z",
+  "auditedAt": "2026-11-12T11:07:03.182Z",
   "promptsCount": 5,
   "enginesCount": 3,
   "totalQueries": 15,
   "summary": {
-    "totalMentions": 5,
-    "visibilityScorePercent": 33.3,
+    "totalMentions": 4,
+    "visibilityScorePercent": 26.7,
     "mentionsByEngine": {
       "chatgpt": 0,
       "gemini": 4,
-      "perplexity": 1
+      "perplexity": 0
     },
     "competitorMentions": {
-      "NCLEX Chandigarh in Sector 35": 1,
-      "Mantram Nursing Academy": 5,
-      "Umrao NCLEX Coaching Centre": 4,
-      "Gurukul Career Group": 2,
-      "NCA / Believe Nursing Coaching": 1,
-      "Sanjivani Institute of NCLEX": 2,
-      "Elus Educational Services": 1,
-      "Believe Nursing Coaching / NCA-Nursing": 1,
-      "NCLEX Coaching Chandigarh": 1,
-      "NCA Academy": 4,
+      "NCA Academy": 10,
+      "NCLEX Chandigarh in Sector 35D": 1,
+      "NCLEX Chandigarh": 3,
+      "Mantram Nursing Academy": 6,
+      "Nursing Academy": 7,
+      "Umrao NCLEX Coaching Centre": 5,
+      "Believe Nursing Coaching / NCA-Nursing": 2,
+      "Gurukul Career Group": 3,
+      "UWorld": 5,
       "Mantram Study Group": 2,
-      "UWorld": 3,
-      "Believe Nursing Coaching Institute / NCA Academy": 1,
-      "Nclex Chandigarh": 1,
-      "NCA Nursing / Believe Nursing Coaching": 1,
-      "Archer Review": 1,
-      "Kaplan": 1
+      "Sanjivani / NCLEX Chandigarh": 1
     },
     "citationDomains": {
-      "ncaacademy.com": 7,
-      "nclexchandigarh.com": 8,
-      "staffnursecoaching.com": 7,
+      "ncaacademy.com": 8,
+      "nclexchandigarh.com": 3,
+      "staffnursecoaching.com": 6,
+      "justdial.com": 8,
+      "lyfskills.com": 3,
       "umraonclex.com": 4,
-      "gurukulcareergroup.com": 2,
+      "exportersindia.com": 1,
+      "writeupcafe.com": 2,
       "belnursingcoaching.com": 4,
-      "navkirannursingclasses.com": 5,
-      "justdial.com": 9,
-      "umraonclexcoaching.com": 1,
-      "magicpin.in": 1,
-      "grotal.com": 1,
-      "mantramstudygroup.com": 1,
-      "norcetcoaching.com": 1,
-      "bigappleacademy.in": 1,
-      "nclexclasses.com": 1,
       "medlinenclexrn.com": 1,
-      "thepharmainstitute.com": 1,
-      "elas.in": 1
+      "navkirannursingclasses.com": 3,
+      "gurukulcareergroup.com": 3,
+      "umraonclexcoaching.com": 1,
+      "scribd.com": 1,
+      "sulekha.com": 1,
+      "ncsbn.zendesk.com": 1,
+      "mantramstudygroup.com": 3,
+      "grotal.com": 1,
+      "cncrnreview.com": 1,
+      "drbkminstitutes.com": 1,
+      "nclexcoachinginstitute.com": 1,
+      "youtube.com": 1
     },
-    "totalCostUsd": 0.2224,
-    "totalCostInr": 21.1
+    "totalCostUsd": 0.3238,
+    "totalCostInr": 30.73
   },
   "nextSteps": {
     "weakestEngine": "ChatGPT",
     "weakestEngineMentions": 0,
     "zeroMentionEngines": [
-      "ChatGPT"
+      "ChatGPT",
+      "Perplexity"
     ],
     "queriesLost": [
       1,
@@ -79,12 +78,12 @@
     ],
     "weakestQueries": [
       3,
-      1
+      2
     ],
-    "winningCompetitor": "Mantram Nursing Academy",
-    "winningCompetitorCount": 5,
-    "topCitationGap": "justdial.com",
-    "formattedText": "Navkiran Nursing Classes was named in 5 of 15 answers (33.3%). ChatGPT did not name Navkiran Nursing Classes in any of the 5 questions. Mantram Nursing Academy was named most often instead, in 5 of 15 answers. The questions where Navkiran Nursing Classes did worst: \"How do I choose a good NCLEX coaching institute in Chandigarh?\" (0 of 3 assistants named Navkiran Nursing Classes); \"Which is the best NCLEX coaching institute in Chandigarh?\" (1 of 3 assistants named Navkiran Nursing Classes)."
+    "winningCompetitor": "NCA Academy",
+    "winningCompetitorCount": 10,
+    "topCitationGap": "ncaacademy.com",
+    "formattedText": "Navkiran Nursing Classes was named in 4 of 15 answers (26.7%). ChatGPT and Perplexity did not name Navkiran Nursing Classes in any of the 5 questions. NCA Academy was named most often instead, in 10 of 15 answers. The questions where Navkiran Nursing Classes did worst: \"How do I choose a good NCLEX coaching institute in Chandigarh?\" (0 of 3 assistants named Navkiran Nursing Classes); \"Top rated NCLEX coaching institute in Chandigarh for nurses\" (1 of 3 assistants named Navkiran Nursing Classes)."
   },
   "matrix": [
     {
@@ -109,12 +108,12 @@
       "excerpt": {
         "engine": "gemini",
         "badge": "Mentioned",
-        "text": "While the \"best\" coaching institute depends on your specific learning preferences and whether you need end-to-end credentialing..."
+        "text": "While the \"best\" institute depends on your learning style (classroom vs. online) and whether you need licensing documentation s..."
       }
     },
     {
       "promptIndex": 2,
-      "prompt": "Top rated NCLEX coaching institute in Chandigarh for nurses?",
+      "prompt": "Top rated NCLEX coaching institute in Chandigarh for nurses",
       "journeyPhase": "decision",
       "chatgpt": {
         "badge": "—",
@@ -123,7 +122,7 @@
       },
       "gemini": {
         "badge": "Mentioned",
-        "position": 4,
+        "position": 6,
         "mentioned": true
       },
       "perplexity": {
@@ -134,7 +133,7 @@
       "excerpt": {
         "engine": "gemini",
         "badge": "Mentioned",
-        "text": "Several institutes across Chandigarh and the Tricity area (Chandigarh and Mohali) have earned strong reputations for NCLEX-RN (..."
+        "text": "Chandigarh and the surrounding Tricity area (Mohali and Panchkula) are major hubs for healthcare professionals preparing for in..."
       }
     },
     {
@@ -159,12 +158,12 @@
       "excerpt": {
         "engine": "perplexity",
         "badge": "—",
-        "text": "Choose an institute by verifiable teaching quality and support , not its “best” or “highest pass rate” claims. Use this checkli..."
+        "text": "Choose a Chandigarh/Tricity NCLEX institute by checking what it actually teaches and supports—not by relying on “best institute..."
       }
     },
     {
       "promptIndex": 4,
-      "prompt": "Which NCLEX coaching institute in Chandigarh do you recommend?",
+      "prompt": "Which NCLEX coaching institute in Chandigarh do you recommend for RN?",
       "journeyPhase": "decision",
       "chatgpt": {
         "badge": "—",
@@ -173,32 +172,7 @@
       },
       "gemini": {
         "badge": "Mentioned",
-        "position": 4,
-        "mentioned": true
-      },
-      "perplexity": {
-        "badge": "Named #1",
-        "position": 1,
-        "mentioned": true
-      },
-      "excerpt": {
-        "engine": "perplexity",
-        "badge": "Named #1",
-        "text": "New Careers Academy (NCA Academy), in Mohali near Chandigarh, would be my first one to check. It offers a 16-week NCLEX-RN cour..."
-      }
-    },
-    {
-      "promptIndex": 5,
-      "prompt": "Who can I trust for NCLEX coaching institute in Chandigarh?",
-      "journeyPhase": "decision",
-      "chatgpt": {
-        "badge": "—",
-        "position": null,
-        "mentioned": false
-      },
-      "gemini": {
-        "badge": "Mentioned",
-        "position": 4,
+        "position": 5,
         "mentioned": true
       },
       "perplexity": {
@@ -209,7 +183,32 @@
       "excerpt": {
         "engine": "gemini",
         "badge": "Mentioned",
-        "text": "When choosing a trusted coaching institute for NCLEX-RN (Next Generation NCLEX / NGN) in Chandigarh and the Tricity area, sever..."
+        "text": "Several established institutes in Chandigarh and the Tricity area (Mohali/Panchkula) specialize in NCLEX-RN preparation. The mo..."
+      }
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Who can I trust for NCLEX coaching institute near Chandigarh and Tricity?",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "Named #3",
+        "position": 3,
+        "mentioned": true
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "gemini",
+        "badge": "Named #3",
+        "text": "When preparing for the NCLEX-RN / Next-Gen NCLEX (NGN) in Chandigarh and the Tricity (Chandigarh, Mohali, Panchkula), choosing..."
       }
     }
   ],
@@ -220,12 +219,14 @@
       "engine": "chatgpt",
       "model": "gpt-6-luna",
       "badge": "—",
-      "text": "**My practical first choice to investigate is NCA Academy in Mohali**, near Chandigarh. It publishes concrete course details—NGN-format preparation, mock tests, mentorship and a stated fee—making it easier to compare with other options. Those are the institute’s own claims, though, not independently verified results. ([ncaacademy.com](https://ncaacademy.com/nclex-coaching-chandigarh/?utm_source=openai))\n\nIf you want a **Chandigarh-city option**, compare it with **NCLEX Chandigarh in Sector 35** and **Modern Coaching Centre of Nursing in Sector 22**; the latter has a 4.7/5 Justdial rating from 72 ratings, which is useful but still only a directory rating—not proof of pass outcomes. ([nclexchandigarh.com](https://nclexchandigarh.com/?utm_source=openai))\n\nBefore enrolling, attend a demo and ask for the instructor’s nursing credentials, what the fee includes, and **recent NCLEX pass numbers with the total number of students**. Treat advertised pass-rate claims cautiously unless the institute can substantiate them.",
+      "text": "**My best-documented pick in the Chandigarh area is NCA Academy / Believe Nursing in Mohali**—especially if you want a structured course with live teaching and regular practice. Its published NCLEX course details list a 3–6 month batch, 30+ mock tests and in-person, online or hybrid options; the listed fee is ₹45,000, so confirm the current price and what’s included before enrolling. ([ncaacademy.com](https://ncaacademy.com/nclex-coaching-chandigarh/?utm_source=openai))\n\nIf you need an institute **within Chandigarh city**, **NCLEX Chandigarh in Sector 35D** is another option, but I found less public detail to compare its course with NCA’s. ([nclexchandigarh.com](https://nclexchandigarh.com/?utm_source=openai))\n\nI wouldn’t treat online star ratings or pass-rate claims as proof of quality. Before paying, ask for a demo class, the instructor’s NCLEX teaching experience, a sample NGN mock, batch size, and recent verifiable student references.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "NCLEX Chandigarh in Sector 35"
+          "NCA Academy",
+          "NCLEX Chandigarh in Sector 35D",
+          "NCLEX Chandigarh"
         ]
       },
       "citations": [
@@ -244,7 +245,7 @@
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.01157
+      "costUsd": 0.011613
     },
     {
       "promptIndex": 1,
@@ -252,20 +253,43 @@
       "engine": "gemini",
       "model": "gemini-3.8-flash",
       "badge": "Mentioned",
-      "text": "While the \"best\" coaching institute depends on your specific learning preferences and whether you need end-to-end credentialing help, several institutes in the Chandigarh–Mohali (Tricity) region are widely recognized for their NCLEX-RN preparation:\n\n---\n\n### 1. **Mantram Nursing Academy (Sector 34-A, Chandigarh)**\n* **Reputation:** One of the most established and prominent nursing coaching centers in Northern India.\n* **Strengths:** \n  * Experienced faculty with specialized subject-matter expertise.\n  * Structured mock tests, test-taking strategy sessions, and conceptual clarity.\n  * Offers both classroom (offline) and live online batches.\n\n---\n\n### 2. **Umrao NCLEX Coaching Centre (Mohali / Chandigarh)**\n* **Reputation:** A dedicated coaching center focused specifically on foreign licensure exams (NCLEX-RN, DHA, HAAD).\n* **Strengths:**\n  * Led by Dr. Ravinder Singh, known for personalized mentorship and high pass rates.\n  * Emphasis on clinical reasoning, prioritization, and Next Generation NCLEX (NGN) style case questions.\n  * Direct one-on-one doubt resolution and progress tracking.\n\n---\n\n### 3. **Gurukul Career Group (Sector 34-A, Chandigarh)**\n* **Reputation:** A well-known institute in Sector 34 offering comprehensive competitive exam preparation, including dedicated nursing batches.\n* **Strengths:**\n  * Regular diagnostic assessments, full-length computer-adaptive mock tests, and comprehensive study material.\n  * Focuses heavily on breaking down question stems and critical thinking strategies.\n  * Flexible weekend and regular weekday batches.\n\n---\n\n### 4. **NCA / Believe Nursing Coaching (Chandigarh / Mohali)**\n* **Reputation:** A specialized academy focused on international nurse migration (USA, Canada, Australia).\n* **Strengths:**\n  * Focuses not only on the exam syllabus but also provides guidance on OSCE, OET/IELTS, and credential evaluation.\n  * Provides computer-based practice questions simulating the official exam platform.\n\n---\n\n### 5. **Navkiran Nursing Classes (Chandigarh / Mohali)**\n* **Reputation:** Popular for online/hybrid NCLEX-RN prep in the Tricity area.\n* **Strengths:**\n  * Heavy focus on Next Generation NCLEX (NGN) patterns (Bow-tie questions, case studies, matrix items).\n  * Guidance on integrating standard Q-Banks (like UWorld, Archer, and Bootcamp) into daily practice.\n\n---\n\n### Key Factors to Check Before Enrolling:\n1. **Next Generation NCLEX (NGN) Updated Material:** Ensure the institute's test bank and lectures reflect the clinical judgment model and NGN question types.\n2. **Q-Bank Integration:** Ask whether they provide or train you on major international question banks like UWorld, Archer, or Kaplan.\n3. **Licensing & Documentation Support:** Confirm whether the institute assists with CGFNS evaluation, credentialing, and state nursing board applications.\n4. **Demo Lectures:** Most centers in Sector 34 and Mohali offer 1–2 demo classes; attend them first to evaluate the teaching style before paying fees.",
+      "text": "While the \"best\" institute depends on your learning style (classroom vs. online) and whether you need licensing documentation support, several institutes in Chandigarh and the Tricity area (Mohali/Panchkula) have earned strong reputations for **NCLEX-RN** preparation:\n\n---\n\n### 1. **Mantram Nursing Academy (Sector 15-D, Chandigarh)**\n* **Reputation:** Widely recognized as one of the premier nursing coaching academies in North India.\n* **Strengths:** \n  * Highly experienced faculty comprising senior nursing educators and subject specialists.\n  * Comprehensive coverage of nursing fundamentals, pharmacology, and critical thinking.\n  * Offers regular computerized mock tests, dedicated mobile app access, and hybrid (both classroom and online) learning options.\n\n---\n\n### 2. **Umrao NCLEX Coaching Centre (Mohali / Tricity)**\n* **Reputation:** One of the oldest and most dedicated centers solely focused on international nursing licensure (NCLEX-RN, DHA, HAAD).\n* **Strengths:**\n  * Led by experienced mentors with decades of focus on foreign licensure.\n  * High emphasis on scenario-based questions, prioritization, delegation, and safety protocols.\n  * Very popular among nurses aiming specifically for the USA, Canada, and Australia.\n\n---\n\n### 3. **Believe Nursing Coaching / NCA-Nursing (Sector 34, Chandigarh)**\n* **Reputation:** Well-regarded for preparing nursing students for abroad career pathways (NCLEX-RN, OSCE, CBT).\n* **Strengths:**\n  * Updated study curriculum tailored to the **Next Generation NCLEX (NGN)** exam model.\n  * Step-by-step guidance on clinical judgment, case studies, and rationales for multiple-response questions.\n  * Provides counseling support for foreign credential verification processes.\n\n---\n\n### 4. **Navkiran Nursing Classes (Mohali / Chandigarh)**\n* **Reputation:** A specialized center gaining strong positive feedback for modern NCLEX preparation.\n* **Strengths:**\n  * Focuses heavily on the NCSBN Clinical Judgment Measurement Model (unfolding case studies and matrix/grid questions).\n  * Flexible batch timings suitable for working hospital nurses doing shift work.\n  * Interactive online portal along with offline classroom sessions.\n\n---\n\n### 5. **Gurukul Career Group (Sector 34, Chandigarh)**\n* **Reputation:** A prominent coaching institution in Chandigarh's education hub (Sector 34).\n* **Strengths:**\n  * Structured classroom teaching covering both NCLEX-RN and NCLEX-PN syllabi.\n  * Regular computerized practice tests to acclimate candidates to the Computerized Adaptive Testing (CAT) environment.\n\n---\n\n### Checklist Before Enrolling\n\nBefore finalizing an institute, consider the following points:\n1. **NGN-Aligned Curriculum:** Ensure their syllabus explicitly trains you on the **Next Generation NCLEX (NGN)** format (extended multiple response, drop-down rationales, and clinical judgment case studies).\n2. **QBank Integration:** Ask whether they provide or train you using standard question banks (e.g., UWorld, Archer, Bootcamp).\n3. **Application & CGFNS Support:** Preparing for the exam is only half the battle; check if the institute offers administrative assistance with CGFNS credential evaluation, state board selection, and obtaining the Authorization to Test (ATT).\n4. **Demo Lectures:** Always request a **demo class** to check faculty communication clarity and question-rationale explanations before paying course fees.",
       "analysis": {
         "mentioned": true,
         "position": 5,
         "competitorsMentioned": [
           "Mantram Nursing Academy",
+          "Nursing Academy",
           "Umrao NCLEX Coaching Centre",
+          "Believe Nursing Coaching / NCA-Nursing",
           "Gurukul Career Group",
-          "NCA / Believe Nursing Coaching"
+          "UWorld"
         ]
       },
       "citations": [
         {
           "domain": "staffnursecoaching.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "staffnursecoaching.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "lyfskills.com",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
@@ -279,14 +303,7 @@
           "competitorsMentioned": []
         },
         {
-          "domain": "gurukulcareergroup.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "belnursingcoaching.com",
+          "domain": "exportersindia.com",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
@@ -300,7 +317,21 @@
           "competitorsMentioned": []
         },
         {
+          "domain": "writeupcafe.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
           "domain": "belnursingcoaching.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "medlinenclexrn.com",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
@@ -312,9 +343,23 @@
           "channelType": "owned",
           "brandMentioned": true,
           "competitorsMentioned": []
+        },
+        {
+          "domain": "navkirannursingclasses.com",
+          "url": null,
+          "channelType": "owned",
+          "brandMentioned": true,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "gurukulcareergroup.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.019622
+      "costUsd": 0.062537
     },
     {
       "promptIndex": 1,
@@ -322,12 +367,14 @@
       "engine": "perplexity",
       "model": "openai/gpt-6-luna",
       "badge": "—",
-      "text": "**New Careers Academy (NCA) in Mohali is a strong option to shortlist** if you want structured, in-person NCLEX coaching near Chandigarh. Its listed course is 16 weeks, with live classes six days a week and a stated fee of ₹45,000; the academy also offers online classes.[1][2]\n\nThere isn’t enough independent comparative evidence to call any institute definitively “the best.” **Mantram Nursing Academy** is another local option that advertises NCLEX coaching, so compare both by attending a demo and asking for recent NCLEX pass outcomes, instructor credentials, batch size, and what the fee includes.[8][9]",
+      "text": "**NCA Academy (New Careers Academy)** is a reasonable first institute to check: it offers a 16-week NCLEX-RN course at its Mohali campus near Chandigarh, as well as live online classes. Its listed fee is ₹45,000, though you should confirm current pricing and what’s included directly with the institute.[1][2]\n\n“Best” depends on your needs, and the available rankings are not independent proof of pass rates. Before enrolling, ask for recent NCLEX outcomes, a sample class, instructor credentials, class size, and refund terms; compare those with alternatives such as Mantram Nursing Academy.[8][9]",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "Mantram Nursing Academy"
+          "NCA Academy",
+          "Mantram Nursing Academy",
+          "Nursing Academy"
         ]
       },
       "citations": [
@@ -402,21 +449,21 @@
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.00167
+      "costUsd": 0.00113
     },
     {
       "promptIndex": 2,
-      "prompt": "Top rated NCLEX coaching institute in Chandigarh for nurses?",
+      "prompt": "Top rated NCLEX coaching institute in Chandigarh for nurses",
       "engine": "chatgpt",
       "model": "gpt-6-luna",
       "badge": "—",
-      "text": "**For Chandigarh proper, start with Nursing Academy in Sector 24C**: it’s listed at **4.8/5 from 238 ratings** and appears in NCLEX-RN coaching listings. ([justdial.com](https://www.justdial.com/Chandigarh/Tutorials-For-Nclex/nct-10943629?utm_source=openai))\n\nAlso compare **Sanjivani Institute of NCLEX, Sector 35** (**4.8/5 from 30 ratings** on one directory) and the **NCLEX Coaching Centre, Sector 22** (**4.7/5 from 72 ratings**). ([magicpin.in](https://magicpin.in/Chandigarh/Sector-35/Education/Sanjivani-Institute-Of-Nclex/store/20b0095?utm_source=openai)) If Mohali is convenient, **Elus Educational Services** is listed at **4.9/5 from 104 ratings**. ([justdial.com](https://www.justdial.com/Chandigarh/Tutorials-For-Nclex/nct-10943629?utm_source=openai))\n\nThese are directory ratings—not proof of NCLEX pass rates—so ask about a demo class, current NGN/CAT-style question practice, instructor experience, and recent student outcomes before enrolling.",
+      "text": "**Umrao NCLEX Coaching Centre (Mohali, Sector 91)** looks like a strong first option: it’s specifically listed for NCLEX coaching and has a **4.8/5 rating from 138 ratings** on Justdial. ([justdial.com](https://www.justdial.com/Chandigarh/Tutorials-For-Nclex/nct-10943629?utm_source=openai))\n\nAlso worth comparing:\n- **Nursing Academy, Sector 24C, Chandigarh** — **4.8/5 from 238 ratings**; confirm that its current batch is specifically for NCLEX-RN. ([justdial.com](https://www.justdial.com/Chandigarh/Tutorials-For-Nclex/nct-10943629?utm_source=openai))\n- **NCLEX Coaching Centre, Sector 22C, Chandigarh** — **4.7/5 from 72 ratings**. ([justdial.com](https://www.justdial.com/Chandigarh/Nclex-Coaching-Centre-Near-Dispensary-Chandigarh-Sector-22/0172PX172-X172-170608183039-H8R2_BZDET/reviews?utm_source=openai))\n\nThese are directory ratings, not independently verified pass rates. Before enrolling, ask to attend a demo and check the instructor’s NCLEX experience, NGN-style practice, mock-test feedback, batch size, and any recent student references.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "Sanjivani Institute of NCLEX",
-          "Elus Educational Services"
+          "Umrao NCLEX Coaching Centre",
+          "Nursing Academy"
         ]
       },
       "citations": [
@@ -428,42 +475,44 @@
           "competitorsMentioned": []
         },
         {
-          "domain": "magicpin.in",
-          "url": "https://magicpin.in/Chandigarh/Sector-35/Education/Sanjivani-Institute-Of-Nclex/store/20b0095?utm_source=openai",
-          "channelType": null,
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Nclex-Coaching-Centre-Near-Dispensary-Chandigarh-Sector-22/0172PX172-X172-170608183039-H8R2_BZDET/reviews?utm_source=openai",
+          "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.011561
+      "costUsd": 0.0215
     },
     {
       "promptIndex": 2,
-      "prompt": "Top rated NCLEX coaching institute in Chandigarh for nurses?",
+      "prompt": "Top rated NCLEX coaching institute in Chandigarh for nurses",
       "engine": "gemini",
       "model": "gemini-3.8-flash",
       "badge": "Mentioned",
-      "text": "Several institutes across Chandigarh and the Tricity area (Chandigarh and Mohali) have earned strong reputations for NCLEX-RN (Next Generation NCLEX / NGN) preparation. The top-rated centers known for their specialized faculty, question banks, and track records include:\n\n---\n\n### 1. **Mantram Nursing Academy (Sector 34, Chandigarh)**\n* **Highlights:** One of the most well-established and trusted nursing academies in North India.\n* **Offerings:** Dedicated NCLEX-RN batches covering core medical-surgical concepts, pharmacology, and Next-Gen NCLEX (NGN) clinical judgment scenarios.\n* **Format:** Offers both classroom coaching in Chandigarh and interactive online sessions, accompanied by full-length computer-based mock tests.\n\n### 2. **Umrao NCLEX Coaching Centre (Mohali / Tricity)**\n* **Highlights:** Highly rated specifically for international nursing licensing exams (NCLEX-RN, DHA, HAAD). \n* **Offerings:** Led by experienced trainers with an emphasis on critical-thinking strategies, rationales, and test-taking elimination techniques required for passing on the first attempt.\n* **Reputation:** Consistently high review ratings among nurses migrating to the US, Canada, and Australia.\n\n### 3. **Believe Nursing Coaching / NCA-Nursing (Chandigarh)**\n* **Highlights:** Focuses exclusively on global nursing transitions (NCLEX-RN, OSCE, OET).\n* **Offerings:** Emphasizes the NGN pattern (unfolding case studies, matrix questions, bow-tie questions). They also guide nurses through the licensing process and credential evaluation.\n\n### 4. **Navkiran Nursing Classes (Chandigarh & Mohali)**\n* **Highlights:** A popular option for nurses preparing for the US/Canadian licensing exams.\n* **Offerings:** Focuses heavily on question-bank solving (Saunders, UWorld, Archer style rationales) and time-management strategies. Flexible schedules cater to working bedside nurses.\n\n### 5. **Gurukul Career Group (Sector 34, Chandigarh)**\n* **Highlights:** A well-known competitive test-prep center in Chandigarh's education hub (Sector 34).\n* **Offerings:** Comprehensive syllabus coverage, study modules, and regular computer-based mock assessments modeled around NCSBN standards.\n\n---\n\n### What to Verify Before Enrolling:\n1. **NGN (Next Generation NCLEX) Focus:** Ensure the institute's mock tests reflect the new clinical judgment measurement model (CJMM) and item formats (extended drag-and-drop, case studies, bow-tie questions).\n2. **QBank Access:** Check whether they provide access to or teach through standard global question banks (e.g., UWorld, Archer, or Bootcamp).\n3. **Board of Nursing (BON) & CGFNS Guidance:** Some academies assist only with test preparation, whereas others also offer guidance on credential evaluation (CGFNS/WES) and State Board of Nursing applications.\n4. **Trial Class / Demo:** Most of these institutes offer 1–2 demo classes; take one to see whether the teacher’s rationale-explaining style matches your learning pace.",
+      "text": "Chandigarh and the surrounding Tricity area (Mohali and Panchkula) are major hubs for healthcare professionals preparing for international licensing exams. For nurses looking to clear the **NCLEX-RN (including the Next Generation NCLEX / NGN)**, several institutes stand out for their track records, faculty expertise, and exam simulation facilities:\n\n---\n\n### 1. **Mantram Nursing Academy** *(Sector 15 / Near PGIMER)*\n* **Overview:** Widely regarded as one of the premier nursing coaching centers in North India, Mantram has a strong reputation for competitive nursing officer exams as well as international licensing like NCLEX-RN and OET.\n* **Key Features:**\n  * Highly experienced faculty composed of seasoned nursing educators and doctors.\n  * Comprehensive curriculum aligned with the **Next Gen NCLEX (NGN)** clinical judgment model.\n  * Rigorous test series simulating CAT (Computerized Adaptive Testing) environments.\n  * Offers both classroom batches and interactive online/recorded modules.\n\n---\n\n### 2. **Umrao NCLEX Coaching Centre** *(Mohali / Tricity)*\n* **Overview:** A specialized center dedicated almost exclusively to overseas nursing licensing (NCLEX-RN, DHA, HAAD, Prometric). Led by Dr. Ravinder Singh, who brings over two decades of coaching experience.\n* **Key Features:**\n  * High focus on exam-taking strategies and critical thinking skills rather than just theory.\n  * Personalized study plans and one-on-one mentorship for nurses balancing shifts and prep.\n  * Extremely high ratings and positive feedback from nurses targeting Canada and the US.\n\n---\n\n### 3. **Believe Nursing Coaching / NCA-Nursing** *(Chandigarh)*\n* **Overview:** Specializes in international career pathways for nurses, focusing specifically on NCLEX-RN, OSCE, and UK CBT.\n* **Key Features:**\n  * Tailored coaching for NGN case studies, trend questions, and unfolding scenarios.\n  * Small batch sizes ensuring individual attention and doubt resolution.\n  * Guidance on the foreign credential evaluation process and state board requirements.\n\n---\n\n### 4. **Gurukul Career Group** *(Sector 34-A)*\n* **Overview:** Situated in the main coaching hub of Chandigarh (Sector 34), Gurukul Career Group runs dedicated training modules for NCLEX-RN.\n* **Key Features:**\n  * Structured coverage of fundamental nursing systems (Safe Effective Care Environment, Health Promotion, Psychosocial/Physiological Integrity).\n  * Regular mock exams reflecting varying question difficulty levels.\n  * Flexible weekend and evening batches suited for working staff nurses.\n\n---\n\n### 5. **Navkiran Nursing Classes** *(Chandigarh & Mohali)*\n* **Overview:** Known for personalized and hybrid coaching formats targeting NCLEX-RN candidates.\n* **Key Features:**\n  * High-yield question-solving sessions inspired by global question banks (such as UWorld and Saunders).\n  * Flexible online and classroom sessions designed for working professionals.\n\n---\n\n### Checklist Before Enrolling:\n1. **NGN Alignment:** Ensure the institute explicitly trains for the **Next Generation NCLEX (NGN)** format (extended multiple response, drop-down, matrix, and clinical case studies).\n2. **Q-Bank Integration:** Confirm whether they provide access to CAT mock tests and detailed rationales for correct/incorrect answers.\n3. **Application & Credentialing Support:** Some institutes assist with **CGFNS, CES reports, and Board of Nursing (BON)** paperwork, which can save months of administrative delays.\n4. **Demo Classes:** Attend a trial or demo session to evaluate how effectively the faculty explains pharmacology and clinical decision-making.",
       "analysis": {
         "mentioned": true,
-        "position": 4,
+        "position": 6,
         "competitorsMentioned": [
           "Mantram Nursing Academy",
+          "Nursing Academy",
           "Umrao NCLEX Coaching Centre",
           "Believe Nursing Coaching / NCA-Nursing",
-          "Gurukul Career Group"
+          "Gurukul Career Group",
+          "UWorld"
         ]
       },
       "citations": [
         {
-          "domain": "navkirannursingclasses.com",
+          "domain": "staffnursecoaching.com",
           "url": null,
-          "channelType": "owned",
-          "brandMentioned": true,
+          "channelType": null,
+          "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "belnursingcoaching.com",
+          "domain": "scribd.com",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
@@ -477,9 +526,16 @@
           "competitorsMentioned": []
         },
         {
-          "domain": "staffnursecoaching.com",
+          "domain": "lyfskills.com",
           "url": null,
           "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "sulekha.com",
+          "url": null,
+          "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
         },
@@ -491,7 +547,7 @@
           "competitorsMentioned": []
         },
         {
-          "domain": "nclexchandigarh.com",
+          "domain": "belnursingcoaching.com",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
@@ -510,33 +566,32 @@
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
+        },
+        {
+          "domain": "navkirannursingclasses.com",
+          "url": null,
+          "channelType": "owned",
+          "brandMentioned": true,
+          "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.033414
+      "costUsd": 0.062515
     },
     {
       "promptIndex": 2,
-      "prompt": "Top rated NCLEX coaching institute in Chandigarh for nurses?",
+      "prompt": "Top rated NCLEX coaching institute in Chandigarh for nurses",
       "engine": "perplexity",
       "model": "openai/gpt-6-luna",
       "badge": "—",
-      "text": "**NCLEX Coaching Chandigarh** appears to be the strongest option by current directory ratings: Justdial lists it at **5.0/5 from 769 ratings**, at **SCO 80–81, Sector 15-D, near PGIMER**.[5][10]\n\nAlso consider **NCA Academy** in Mohali, which offers a 16-week NCLEX-RN course with in-person and live-online classes; its published fee is ₹45,000, but confirm current pricing and details directly.[1][2]\n\nBefore enrolling, ask for a demo class, a breakdown of fees and mock-test access, and recent NCLEX pass outcomes—ratings alone don’t establish teaching quality.",
+      "text": "**NCA Academy (New Careers Academy), in Mohali near Chandigarh, is a strong option to shortlist**: it offers a 16-week NCLEX-RN course with live classes six days a week, in-person or online, and computer-adaptive practice software.[1] The listed fee is ₹45,000, though you should confirm current pricing and what it includes directly with the academy.[2]\n\nIf you mean **highest directory rating**, Justdial lists **NCLEX Coaching Chandigarh** in Sector 15D at 5.0 stars from 769 ratings in one listing; another listing shows 4.9 from 768 ratings, so the directory data appears inconsistent.[6][9] Treat ratings as a starting point, not proof of results—ask each institute for recent NCLEX pass outcomes, instructor credentials, class size, and a demo class before enrolling.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "NCLEX Coaching Chandigarh",
           "NCA Academy"
         ]
       },
       "citations": [
-        {
-          "domain": "ncaacademy.com",
-          "url": "https://ncaacademy.com/nclex-coaching-india/",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
         {
           "domain": "ncaacademy.com",
           "url": "https://ncaacademy.com/nclex-coaching-chandigarh/",
@@ -545,8 +600,22 @@
           "competitorsMentioned": []
         },
         {
+          "domain": "ncaacademy.com",
+          "url": "https://ncaacademy.com/nclex-coaching-india/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
           "domain": "justdial.com",
           "url": "https://www.justdial.com/Chandigarh/Institutes-For-Nursing-Gnm-in-Chandigarh-Sector-40/nct-10269626",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Faridabad/Nclex-Rn-Exam-Training-Centres-in-New-Industrial-Township-1-Faridabad-Nit/nct-11267139",
           "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
@@ -567,13 +636,6 @@
         },
         {
           "domain": "justdial.com",
-          "url": "https://www.justdial.com/Faridabad/Nclex-Rn-Exam-Training-Centres-in-New-Industrial-Township-1-Faridabad-Nit/nct-11267139",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "justdial.com",
           "url": "https://www.justdial.com/Guwahati/Nclex-Rn-Exam-Training-Centres-in-Maligaon/nct-11267139",
           "channelType": "directory",
           "brandMentioned": null,
@@ -581,14 +643,14 @@
         },
         {
           "domain": "justdial.com",
-          "url": "https://www.justdial.com/Jammu/Nclex-Rn-Exam-Training-Centres-in-Batote/nct-11267139",
+          "url": "https://www.justdial.com/Delhi/Nclex-Rn-Exam-Training-Centres-in-Ganesh-Nagar-2/nct-11267139",
           "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
           "domain": "justdial.com",
-          "url": "https://www.justdial.com/Gurgaon/Nclex-Rn-Exam-Training-Centres-in-Bilaspur-Khurd/nct-11267139",
+          "url": "https://www.justdial.com/Panchkula/Nclex-Rn-Exam-Training-Centres/nct-11267139",
           "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
@@ -601,7 +663,7 @@
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.00168
+      "costUsd": 0.0017
     },
     {
       "promptIndex": 3,
@@ -609,32 +671,31 @@
       "engine": "chatgpt",
       "model": "gpt-6-luna",
       "badge": "—",
-      "text": "Choose based on **teaching quality and feedback**, not just “pass” claims or a high review score. Before enrolling, compare two or three institutes using the same checklist.\n\n### What to check\n\n1. **Current NCLEX content**\n   Ask how the course follows the current NCSBN test plan and covers Next Generation NCLEX (NGN) formats—especially case studies and clinical judgment. Request a sample lesson or class.\n\n2. **Who actually teaches**\n   Ask for the instructor’s name, nursing qualifications, NCLEX experience, and who will teach your regular classes. A general “expert faculty” claim isn’t enough.\n\n3. **How practice questions are reviewed**\n   Look for regular practice, detailed rationales for right and wrong answers, and guidance on prioritization, delegation, and clinical judgment—not just lots of mock tests.\n\n4. **Individual feedback**\n   Ask whether you’ll get a diagnostic assessment, a study plan based on weak areas, and progress reviews. Find out how the institute supports repeat candidates if that applies to you.\n\n5. **Schedule and access**\n   Check class size, attendance flexibility, recordings, doubt-clearing arrangements, and whether the course schedule works alongside your job or clinical duties.\n\n6. **Full cost and terms**\n   Get the total fee in writing, including materials, question banks, mock tests, extensions, and any repeat-course charges. Ask about refund and transfer policies.\n\n7. **Independent student feedback**\n   Speak privately with a few recent students if possible. Ask about the actual teaching, feedback, and support—not only whether someone passed. Treat testimonials and online ratings as clues, not proof.\n\n### Chandigarh-area options to compare\n\nPublic listings include **NCLEX Chandigarh** in Sector 35, **Mantram Study Group** with Chandigarh locations, and **NCA Academy** advertising offline classes in Mohali as well as online options. These are starting points for your comparison, not endorsements; confirm current faculty, batches, fees, and course details directly. ([nclexchandigarh.com](https://nclexchandigarh.com/?utm_source=openai))\n\nA local Justdial listing shows a strong rating for an NCLEX coaching centre, but ratings alone don’t establish teaching quality or pass outcomes. ([justdial.com](https://www.justdial.com/Chandigarh/Nclex-Coaching-Centre-Near-Dispensary-Chandigarh-Sector-22/0172PX172-X172-170608183039-H8R2_BZDET/reviews?utm_source=openai))\n\n**Before paying:** attend a demo class, ask to see a sample NGN lesson and feedback report, and get the full fee and course terms in writing. Be wary of guaranteed-pass promises. Also confirm the licensing requirements for the U.S. state or Canadian province where you plan to apply; coaching preparation is separate from licensing eligibility.",
+      "text": "Choose based on **teaching quality and proof of support**, not “100% pass” ads. A practical checklist:\n\n1. **Make sure the course matches your exam.** Confirm it prepares you for NCLEX-RN or NCLEX-PN, and ask how its lessons and practice questions map to the current NCSBN test plan and question formats. NCSBN provides free test plans, sample questions, an exam preview, and a tutorial—use them to check what the institute teaches. ([ncsbn.zendesk.com](https://ncsbn.zendesk.com/hc/en-us/articles/5458912096151-What-resources-does-NCSBN-offer-to-prepare-candidates-for-their-exam?utm_source=openai))\n2. **Meet the instructor before enrolling.** Ask who will teach your classes, what their nursing and NCLEX experience is, and whether you’ll consistently have that instructor—not just sales staff or recorded lessons.\n3. **Try a class and inspect the practice.** Look for explanations of *why* options are right or wrong, realistic case-study practice, timed tests, and feedback on your weak areas. Ask to see a sample class and a sample test review.\n4. **Check the actual support.** Ask how quickly questions get answered, whether you can attend missed classes, class size, schedule flexibility, and how long access lasts.\n5. **Get the full cost and terms in writing.** Confirm what the fee includes—classes, question bank, mock tests, materials, recordings, and any repeat or extension fees.\n6. **Verify success claims.** Ask for the pass-rate calculation: how many students, which exam and time period, and whether it includes everyone enrolled or only students who reported results. If possible, speak with recent students independently.\n7. **Don’t confuse coaching with licensure guidance.** Before paying, confirm that your course is for the exam and candidate pathway you need; an institute’s coaching does not itself establish your eligibility to sit the exam.\n\nThere are advertised options around Chandigarh/Mohali—for example, Mantram lists locations in Sectors 15-D and 34, another provider lists Sector 35-D, and NCA Academy advertises classes in Mohali. Those are **leads to compare, not endorsements**; verify current batches, faculty, and terms directly, and don’t treat an institute’s own marketing claims as independently verified results. ([mantramstudygroup.com](https://www.mantramstudygroup.com/nclex-coaching-academy/?utm_source=openai))\n\n**Quick test:** shortlist two or three institutes, attend a trial class at each, then compare them using the checklist above. If an institute won’t name the instructor, show you a sample lesson, or put its fees and terms in writing, keep looking.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "Mantram Study Group",
           "NCA Academy"
         ]
       },
       "citations": [
         {
-          "domain": "nclexchandigarh.com",
-          "url": "https://nclexchandigarh.com/?utm_source=openai",
+          "domain": "ncsbn.zendesk.com",
+          "url": "https://ncsbn.zendesk.com/hc/en-us/articles/5458912096151-What-resources-does-NCSBN-offer-to-prepare-candidates-for-their-exam?utm_source=openai",
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Chandigarh/Nclex-Coaching-Centre-Near-Dispensary-Chandigarh-Sector-22/0172PX172-X172-170608183039-H8R2_BZDET/reviews?utm_source=openai",
-          "channelType": "directory",
+          "domain": "mantramstudygroup.com",
+          "url": "https://www.mantramstudygroup.com/nclex-coaching-academy/?utm_source=openai",
+          "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.021784
+      "costUsd": 0.021736
     },
     {
       "promptIndex": 3,
@@ -642,16 +703,18 @@
       "engine": "gemini",
       "model": "gemini-3.8-flash",
       "badge": "—",
-      "text": "Choosing the right NCLEX-RN/PN coaching institute in Chandigarh—a well-known hub for nursing coaching due to premier healthcare and academic institutions nearby (like PGIMER and GMCH-32)—requires looking beyond flashy advertisements. \n\nBecause the NCLEX is a computerized adaptive test focused on clinical judgment rather than rote memorization, your preparation needs to be strategic. Here is a step-by-step checklist to help you evaluate and select the best institute:\n\n---\n\n### 1. Ensure Full Alignment with the \"NextGen NCLEX\" (NGN) Format\nThe NCLEX changed fundamentally to the **Next Generation NCLEX (NGN)** format, focusing on the Clinical Judgment Measurement Model (CJMM).\n* **What to check:** Ensure the institute doesn't rely on outdated materials. They must train you specifically on NGN item types: *Extended Multiple Response, Bow-tie questions, Matrix/Grid, Trend items, and unfolding case studies*.\n* **Scoring familiarity:** NGN uses partial-credit scoring (polytomous scoring). The faculty must teach you how to approach questions strategically without losing points.\n\n---\n\n### 2. Full-Cycle Licensing & Documentation Assistance\nClearing the exam is only part of the journey. The administrative steps to sit for the NCLEX can be complex and time-consuming.\n* **Verify their expertise in:**\n  * **Credential Evaluation:** Guidance with **CGFNS** (CES/CP report) or Josef Silny.\n  * **State Board Selection:** Helping you choose the right State Board of Nursing (e.g., New York, Texas, Montana, Northern Mariana Islands) based on your qualifications and immigration plans.\n  * **Registration Support:** Obtaining your Authorization to Test (ATT) through Pearson VUE.\n* *Note:* A good institute will either offer this as an integrated service or guide you accurately so you avoid costly documentation errors.\n\n---\n\n### 3. Access to High-Quality QBanks and Adaptive Mock Tests\nStandard Indian nursing exam preparation differs significantly from US/Canadian clinical standards (OSHA regulations, HIPAA, US pharmacology trade names, ethical/legal nursing frameworks).\n* **Question Banks:** Ask if they incorporate or train you using globally recognized QBanks such as **UWorld, Archer, Kaplan, or Saunders**.\n* **Computerized Adaptive Testing (CAT) Simulation:** The NCLEX shuts off anywhere between 85 and 150 questions based on an algorithm measuring your competency. The institute must provide realistic mock tests that simulate this environment to build your stamina and time management.\n\n---\n\n### 4. Faculty Qualifications and Teaching Methodology\n* **Faculty Background:** Instructors should have strong clinical exposure and, ideally, international exam experience or specialized training in NCLEX-RN pedagogy.\n* **Focus on Core Competencies:** The training should heavily emphasize:\n  * Prioritization and Delegation (Management of Care).\n  * Pharmacology (US brand and generic names, high-alert medications).\n  * Infection Control and Patient Safety.\n* **Demo Class:** Always insist on attending 2 to 3 demo classes before paying any deposit to gauge how clearly concepts and rationales are explained.\n\n---\n\n### 5. Class Size and Doubt Resolution Support\n* In large batches (50+ students), it is easy to get lost. A batch size of **20–35 students** is ideal for interactive discussions.\n* NCLEX preparation relies heavily on understanding **rationales** (why the wrong options are wrong). Check whether the institute provides daily or weekly one-on-one doubt-clearing sessions to analyze your mock test errors.\n\n---\n\n### 6. Verify Genuine Results and Alumni Feedback\n* Chandigarh has educational clusters (especially in **Sector 34**, **Sector 15**, and parts of **Mohali**). Many institutes advertise a \"100% pass rate,\" which is unrealistic.\n* **Look for proof:** Ask to see verified results (students’ score reports, Pearson VUE pass notifications, or RN license numbers).\n* **Talk to existing/past students:** Visit the institute during class hours and speak privately with current students. Ask about syllabus pacing, faculty consistency, and test series availability.\n\n---\n\n### 7. Flexibility and Learning Mode (Offline vs. Hybrid)\n* If you are currently working as a staff nurse, a rigid 9-to-5 schedule will not work.\n* Choose an institute that offers **weekend batches**, **evening slots**, or a **hybrid model** with an LMS (Learning Management System) providing recorded video lectures for revision.\n\n---\n\n### Checklist: Questions to Ask the Institute Before Enrolling\n\n1. *\"Does your mock test interface replicate the NextGen NCLEX adaptive exam algorithm?\"*\n2. *\"Which question bank (UWorld, Archer, Kaplan, etc.) is included in the fee, or will I need to buy it separately?\"*\n3. *\"Do you provide step-by-step assistance for CGFNS and Board of Nursing application filings?\"*\n4. *\"If I don't feel ready after the standard batch duration (usually 3–4 months), can I repeat classes or access mock tests without paying again?\"*\n5. *\"Can I sit in on two trial lectures before making a payment?\"*",
+      "text": "Choosing the right NCLEX (National Council Licensure Examination) coaching institute is crucial, especially because the exam tests **clinical judgment and critical thinking**, not just theoretical memorization. Since Chandigarh (along with Mohali) is a major hub for nursing education in North India, you will find several options, but they vary significantly in quality.\n\nHere is a step-by-step checklist to help you evaluate and choose the best NCLEX institute in Chandigarh:\n\n---\n\n### 1. Updated Curriculum for Next Generation NCLEX (NGN)\n* **What to check:** The NCLEX format transitioned to the **Next Generation NCLEX (NGN)** format, focusing on the Clinical Judgment Measurement Model (CJMM).\n* **Ask the institute:**\n  * Do your lectures and practice questions cover NGN-style case studies, bowtie questions, matrix/grid questions, and highlight questions?\n  * Avoid any institute that is still relying on pre-NGN materials or basic Indian nursing competitive exam notes (like NORCET/AIIMS material).\n\n### 2. High-Quality Test Banks and Adaptive Testing Simulation\n* **What to check:** The NCLEX is a Computerized Adaptive Test (CAT). Solving questions on paper or static PDFs will not prepare you for the test interface.\n* **Ask the institute:**\n  * Do you provide access to standard question banks like **UWorld, Archer, Kaplan, or Saunders**?\n  * Do you provide timed, adaptive mock tests that simulate the Pearson VUE software environment?\n  * Are regular sessions dedicated to **in-depth rationale discussions** (explaining why the wrong options are wrong)?\n\n### 3. Documentation & State Board Guidance Support\n* **What to check:** Clearing the exam is only half the journey. The licensing process involves foreign credential evaluation (e.g., CGFNS, CES), background checks, and submitting applications to state boards of nursing (e.g., New York, Texas, Montana, or Canadian provincial regulators).\n* **Ask the institute:**\n  * Do you provide end-to-end guidance for CGFNS evaluation, verification, and State Board applications?\n  * Are there extra fees for application support, or is it covered in your coaching program?\n\n### 4. Faculty Expertise & Teaching Style\n* **What to check:** NCLEX prioritizes client safety, prioritization, delegation, infection control, and legal/ethical nursing practices—areas that differ significantly between Indian nursing curricula and US/Canadian standards.\n* **Ask the institute:**\n  * Have the mentors cleared the NCLEX themselves or worked in US/international healthcare environments?\n  * Ask for a **2-day demo class**. Observe whether the instructor teaches *critical thinking strategies* (e.g., Maslow's hierarchy, ABC rule, acute vs. chronic) or simply reads slides.\n\n### 5. Batch Size and Individual Attention\n* **What to check:** Large lecture halls with 80–100 students make it difficult to get your clinical doubts addressed.\n* **Ideal setup:** A batch size of 20–35 students. Ask if they offer 1-on-1 performance reviews to analyze your weak areas (e.g., Pharmacology, Med-Surg, Maternity, or Pediatrics).\n\n### 6. Physical Infrastructure & Flexibility (Online/Hybrid)\n* **What to check:** Many candidates are working staff nurses while preparing.\n* **Ask the institute:**\n  * Do they have a dedicated **computer lab** where you can sit and practice full-length 85–150 question CAT mocks?\n  * If you miss a class due to hospital shifts, do they provide high-definition recorded sessions and flexible weekend/evening batches?\n\n---\n\n### Red Flags to Watch Out For\n* **\"100% Pass Guarantee\" Claims:** No genuine NCLEX educator will guarantee a pass on an adaptive exam. \n* **Merging Batches:** Some institutes mix NCLEX students with domestic nursing exam batches (like NORCET/State PSC). The exam objectives, protocols, and standard reference ranges are vastly different.\n* **Refusal to Give Demo Classes:** An institute confident in its faculty should readily offer a demo class.\n\n---\n\n### Recommended Next Steps in Chandigarh\n1. **Visit the Coaching Hubs:** Most prominent healthcare and nursing coaching centers in the Tricity are concentrated in **Sector 34 (Chandigarh)** and nearby areas in Mohali. \n2. **Shortlist 2–3 Institutes:** Popular names often discussed by students include Mantram Nursing Academy, Metier Academy, and Aimers, among others. \n3. **Talk to Current Students:** When you visit an institute for an inquiry, step outside the counselor's cabin and ask 1 or 2 enrolled students about their honest experience with the test series and faculty support.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "UWorld"
+          "UWorld",
+          "Mantram Nursing Academy",
+          "Nursing Academy"
         ]
       },
       "citations": [],
-      "costUsd": 0.006813
+      "costUsd": 0.006592
     },
     {
       "promptIndex": 3,
@@ -659,11 +722,13 @@
       "engine": "perplexity",
       "model": "openai/gpt-6-luna",
       "badge": "—",
-      "text": "Choose an institute by **verifiable teaching quality and support**, not its “best” or “highest pass rate” claims. Use this checklist when comparing Chandigarh and Mohali options:\n\n- **Check who teaches.** Ask for the instructors’ nursing qualifications, clinical experience, and NCLEX teaching experience. Request a sample class or demo.\n- **Inspect the curriculum.** Confirm it covers all NCLEX-RN content areas and Next Generation NCLEX (NGN) question formats, with a schedule for completing and reviewing the material.\n- **Try the practice system.** Look for realistic, adaptive practice tests, rationales for answers, and a way to track weak areas—not just a large question count.\n- **Ask for outcome evidence.** Request the number of recent students who tested and passed, the time period, and how the institute calculated the rate. Treat unsupported testimonials or guarantees cautiously.\n- **Clarify access and support.** Ask about class size, doubt-clearing, individual study plans, recorded lessons, missed-class policies, and whether support continues through your exam date.\n- **Get the full cost in writing.** Check what tuition includes and whether question banks, mock exams, books, repeat classes, or other services cost extra.\n- **Verify the location and schedule.** Chandigarh-area listings include options in Chandigarh and Mohali; visit the campus if you plan to attend in person, and confirm the current address and class timings directly.[2][4]\n- **Speak with recent students.** Ask about teaching consistency, feedback, and whether promised resources were actually provided. Online directory reviews can help identify leads, but don’t rely on ratings alone.[4]\n\nBefore paying, compare at least three institutes using the same questions, attend a demo, and read the refund and cancellation terms. A Chandigarh-area institute, NCA Academy, advertises both online and campus coaching in Mohali; treat its published course details as claims to verify directly, just as you would with any provider.[2]",
+      "text": "Choose a Chandigarh/Tricity NCLEX institute by **checking what it actually teaches and supports—not by relying on “best institute” claims or headline pass rates**. Use the same questions with each institute, then attend a trial class before paying.\n\n- **Check instructor credentials:** Ask who will teach, their nursing qualifications and NCLEX experience, and whether you can speak with current or former students.\n- **Verify current exam coverage:** The course should cover the current NCLEX-RN test plan, Next Generation NCLEX (NGN) question types, clinical judgment, and all major content areas.\n- **Try the practice system:** Ask to see the question bank, rationales, mock exams, and—if offered—computer-adaptive testing. Look for explanations that teach reasoning, not just answer keys.\n- **Ask for evidence behind pass-rate claims:** Request the timeframe, number of students included, and how “pass rate” is calculated. Treat unsupported percentages and testimonials as marketing, not proof.\n- **Compare support and course length:** Confirm class size, doubt-clearing access, recorded lessons, study-plan help, and whether access continues if your exam date changes.\n- **Get the full cost in writing:** Check for extra charges for question banks, mock tests, repeat classes, or exam-date extensions, plus the refund and cancellation policy.\n- **Check practical fit:** Visit the centre if you want in-person classes; confirm commute, schedule, and whether a trial class or sample materials are available.\n\nBefore enrolling, compare at least two or three providers and request written answers about **who teaches, what is included, how long access lasts, and what costs extra**. NCA Academy, for example, lists its campus in Sector 91, Mohali, and advertises live/online coaching; treat its published features as claims to verify directly, just as you would with any provider.[1][2]",
       "analysis": {
         "mentioned": false,
         "position": null,
-        "competitorsMentioned": []
+        "competitorsMentioned": [
+          "NCA Academy"
+        ]
       },
       "citations": [
         {
@@ -689,14 +754,14 @@
         },
         {
           "domain": "justdial.com",
-          "url": "https://www.justdial.com/Chandigarh/Nclex-Rn-Exam-Training-Centres-in-Chandigarh-Sector-22/nct-11267139",
+          "url": "https://www.justdial.com/Guwahati/Nclex-Rn-Exam-Training-Centres-in-Maligaon/nct-11267139",
           "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
           "domain": "justdial.com",
-          "url": "https://www.justdial.com/Guwahati/Nclex-Rn-Exam-Training-Centres-in-Maligaon/nct-11267139",
+          "url": "https://www.justdial.com/Chandigarh/Nclex-Rn-Exam-Training-Centres-in-Chandigarh-Sector-22/nct-11267139",
           "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
@@ -737,15 +802,15 @@
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.0018
+      "costUsd": 0.00179
     },
     {
       "promptIndex": 4,
-      "prompt": "Which NCLEX coaching institute in Chandigarh do you recommend?",
+      "prompt": "Which NCLEX coaching institute in Chandigarh do you recommend for RN?",
       "engine": "chatgpt",
       "model": "gpt-6-luna",
       "badge": "—",
-      "text": "**I’d visit NCLEX Chandigarh first** if you want an in-person, NCLEX-focused option in Chandigarh. Its website lists live classes, mock tests, and student performance tracking, with a Sector 35D address. Those are the right things to look for—but the information is from the institute itself, so I can’t independently vouch for its teaching quality or results. ([nclexchandigarh.com](https://nclexchandigarh.com/?utm_source=openai))\n\nAlso compare **Mantram Study Group** in Sector 15-D: it advertises NCLEX classes, simulated tests, and personalized feedback. ([mantramstudygroup.com](https://www.mantramstudygroup.com/nclex-coaching-academy/?utm_source=openai)) If Mohali works for you, **NCA Academy** publishes a more detailed course outline, including 30+ mock tests and one-to-one feedback; its site lists a ₹45,000 fee, which I’d confirm directly before relying on it. ([ncaacademy.com](https://ncaacademy.com/nclex-coaching-chandigarh/?utm_source=openai))\n\nBefore enrolling, ask each institute for a demo class, the current instructor’s NCLEX experience, how they review NGN-style questions, batch size, and **recent first-attempt pass data with the number of students included**. I wouldn’t treat promotional success stories or directory ratings alone as proof of results.",
+      "text": "For **NCLEX-RN (U.S./Canada)**, I’d **start by speaking with Mantram Study Group**: it advertises NCLEX-focused preparation and lists Chandigarh locations in Sector 15-D and Sector 34. ([mantramstudygroup.com](https://www.mantramstudygroup.com/nclex-coaching-academy/?utm_source=openai))\n\nI’d also compare **NCA Academy** if Mohali works for you. Its course page describes NGN-format practice, mock tests, and one-to-one feedback—but those are the institute’s own claims, so ask to see a sample class and course plan before paying. ([ncaacademy.com](https://ncaacademy.com/nclex-coaching-chandigarh/?utm_source=openai))\n\n**My practical advice:** don’t choose based on a claimed pass rate or rating alone. Ask who teaches the RN content, how much is live instruction versus recorded material, whether the fee includes question-bank access and mocks, and whether you can attend a demo. I couldn’t verify independent pass-rate data for these options.\n\nIf you tell me whether you’re aiming for **the U.S., Canada, or Australia**, I can narrow the recommendation further—the licensing pathway can differ.",
       "analysis": {
         "mentioned": false,
         "position": null,
@@ -755,13 +820,6 @@
         ]
       },
       "citations": [
-        {
-          "domain": "nclexchandigarh.com",
-          "url": "https://nclexchandigarh.com/?utm_source=openai",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
         {
           "domain": "mantramstudygroup.com",
           "url": "https://www.mantramstudygroup.com/nclex-coaching-academy/?utm_source=openai",
@@ -777,22 +835,23 @@
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.021684
+      "costUsd": 0.011615
     },
     {
       "promptIndex": 4,
-      "prompt": "Which NCLEX coaching institute in Chandigarh do you recommend?",
+      "prompt": "Which NCLEX coaching institute in Chandigarh do you recommend for RN?",
       "engine": "gemini",
       "model": "gemini-3.8-flash",
       "badge": "Mentioned",
-      "text": "Several reputable institutes in Chandigarh (and the broader Tricity area, including Mohali) specialize in **NCLEX-RN** coaching. The most recommended options and their highlights include:\n\n---\n\n### 1. **Mantram Nursing Academy (Sector 34-A, Chandigarh)**\n* **Reputation:** One of the most established nursing coaching institutes in North India.\n* **Strengths:** \n  * Comprehensive coverage of core clinical concepts required for the **Next Generation NCLEX (NGN)**.\n  * Structured mock tests, topic-wise assessments, and dedicated faculty for nursing sciences.\n  * Offers both classroom batches and live online sessions for working nurses.\n\n---\n\n### 2. **Umrao NCLEX Coaching Centre (Mohali / Tricity)**\n* **Reputation:** Highly regarded exclusively for overseas nurse licensing exams (NCLEX-RN, DHA, HAAD).\n* **Strengths:**\n  * Led by experienced mentors (such as Dr. Ravinder Singh) with a strong track record of candidates clearing the exam.\n  * Focused heavily on clinical judgment, case study questions, and decision-making strategies rather than pure memorization.\n  * Provides guidance on CGFNS evaluation and state board processing alongside exam training.\n\n---\n\n### 3. **Believe Nursing Coaching Institute / NCA Academy (Chandigarh)**\n* **Reputation:** Specialized coaching geared toward international nursing migration (USA, Canada, Australia).\n* **Strengths:**\n  * Tailored curriculums focusing strictly on NGN question formats (Extended Multiple Response, Matrix, Trend, Dropdown).\n  * Small batch sizes, offering personalized doubt clearing and customized study schedules for candidates working shifts.\n\n---\n\n### 4. **Navkiran Nursing Classes (Chandigarh / Mohali)**\n* **Reputation:** Popular for modern digital modules, mock practice questions, and hybrid prep.\n* **Strengths:**\n  * Heavy emphasis on test-taking strategies and eliminating distractors in complex clinical scenarios.\n  * Regular practice simulated exams to improve timing and reduce exam-day anxiety.\n\n---\n\n### What to Verify Before Enrolling\nWhen choosing between them, consider asking the following:\n1. **NGN Alignment:** Confirm they have updated their material to match the **Next Gen NCLEX (NGN)** format, particularly Clinical Judgment Measurement Model (NCJMM) case studies.\n2. **Q-Bank Integration:** Find out if their teaching aligns with industry-standard question banks like **UWorld, Archer, or Saunders**.\n3. **Licensing Assistance:** Ask if they provide administrative assistance for CES/CGFNS credential verification, state board application, and ATT issuance.\n4. **Demo Classes:** Take a trial/demo class to see if the faculty’s teaching pace and clinical problem-solving style fit your learning speed.",
+      "text": "Several established institutes in Chandigarh and the Tricity area (Mohali/Panchkula) specialize in NCLEX-RN preparation. The most reputable and frequently recommended options include:\n\n---\n\n### 1. Mantram Nursing Academy (Sector 34-A, Chandigarh)\n* **Highlights:** One of the most established nursing institutes in Northern India. While heavily recognized for domestic officer exams (NORCET, PGIMER), they have a dedicated wing for NCLEX-RN.\n* **Key Features:**\n  * Highly experienced faculty composed of senior nursing tutors and PGIMER alumni.\n  * Concept-heavy teaching with a strong focus on pharmacology, pathophysiology, and prioritization.\n  * Regular mock tests and doubt-clearing sessions.\n\n---\n\n### 2. Believe Nursing Coaching / NCA Academy (Sector 34 / Mohali area)\n* **Highlights:** Founded by clinical nursing educators (notably Kiran Dhaliwal, PGIMER distinction holder), this institute focuses specifically on international pathways (NCLEX-RN for the USA/Canada/Australia, OSCE, and CBT).\n* **Key Features:**\n  * Thorough preparation for **Next Generation NCLEX (NGN)** question types (case studies, drag-and-drop, matrix questions).\n  * Step-by-step guidance on documentation, CGFNS credential evaluation, and state board licensing applications.\n  * Strong student feedback for individual mentorship and rationale-based question practice.\n\n---\n\n### 3. Umrao NCLEX Coaching Centre (Mohali / Chandigarh)\n* **Highlights:** A dedicated overseas nursing training center led by Dr. Ravinder Singh, highly rated among nurses specifically targeting the USA, Canada, and Australia.\n* **Key Features:**\n  * Clinical judgment and test-taking strategy orientation rather than just memorization.\n  * Integration of computer-adaptive test (CAT) style mock tests.\n  * Strong support for board licensing formalities.\n\n---\n\n### 4. Navkiran Nursing Classes\n* **Highlights:** Offers both classroom and hybrid/online NCLEX-RN coaching with a strong modern question bank infrastructure.\n* **Key Features:**\n  * Focuses heavily on NGN unfolding case studies and clinical judgment measurement models (CJMM).\n  * Assistance with credential evaluations and step-by-step board enrollment.\n\n---\n\n### 5. NCLEX Coaching Centre / Chandigarh Nursing Classes (CNCRN)\n* **Highlights:** Known for focused NCLEX crash courses and comprehensive review tracks tailored to nurses currently working shifts.\n* **Key Features:**\n  * Weekend/flexible batch timings for working staff nurses.\n  * Detailed review of Saunders, UWorld, and Kaplan-style rationale questions.\n\n---\n\n### What to Verify Before Enrolling:\n1. **Next Generation NCLEX (NGN) Alignment:** Ensure the curriculum reflects the current NGN format (clinical judgment case studies, matrix questions, partial scoring rules).\n2. **CGFNS & Board Application Support:** Clearing the NCLEX requires documentation (credentials evaluation, background checks, and state board approval like New York, Texas, or NMBI/AHPRA). Ask if the institute provides documentation assistance.\n3. **QBank Access:** Check if they provide access to standard question banks or train you to use platforms like UWorld, Archer Review, or Bootcamp alongside their lectures.\n4. **Demo Lecture:** Always attend a trial session to verify that the educator's teaching style and English/clinical communication align with your learning pace.",
       "analysis": {
         "mentioned": true,
-        "position": 4,
+        "position": 5,
         "competitorsMentioned": [
           "Mantram Nursing Academy",
+          "Nursing Academy",
+          "NCA Academy",
           "Umrao NCLEX Coaching Centre",
-          "Believe Nursing Coaching Institute / NCA Academy",
           "UWorld"
         ]
       },
@@ -805,14 +864,7 @@
           "competitorsMentioned": []
         },
         {
-          "domain": "umraonclex.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "nclexchandigarh.com",
+          "domain": "belnursingcoaching.com",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
@@ -826,227 +878,50 @@
           "competitorsMentioned": []
         },
         {
+          "domain": "umraonclex.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
           "domain": "navkirannursingclasses.com",
           "url": null,
           "channelType": "owned",
           "brandMentioned": true,
           "competitorsMentioned": []
+        },
+        {
+          "domain": "navkirannursingclasses.com",
+          "url": null,
+          "channelType": "owned",
+          "brandMentioned": true,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cncrnreview.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drbkminstitutes.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.032484
+      "costUsd": 0.033047
     },
     {
       "promptIndex": 4,
-      "prompt": "Which NCLEX coaching institute in Chandigarh do you recommend?",
-      "engine": "perplexity",
-      "model": "openai/gpt-6-luna",
-      "badge": "Named #1",
-      "text": "**New Careers Academy (NCA Academy), in Mohali near Chandigarh, would be my first one to check.** It offers a 16-week NCLEX-RN course with live classes six days a week, recorded sessions, and a CAT practice platform; the advertised fee is ₹45,000, so confirm current pricing and what’s included before enrolling.[1][2]\n\nNavkiran Nursing Classes in Mohali is another local option to compare.[3] Before paying either institute, ask for a demo class, instructor credentials, a sample study plan, and recent student references—claims of being “best” or high pass rates should be independently verified.",
-      "analysis": {
-        "mentioned": true,
-        "position": 1,
-        "competitorsMentioned": []
-      },
-      "citations": [
-        {
-          "domain": "ncaacademy.com",
-          "url": "https://ncaacademy.com/nclex-coaching-india/",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "ncaacademy.com",
-          "url": "https://ncaacademy.com/online-nclex-coaching-india/",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "navkirannursingclasses.com",
-          "url": "https://navkirannursingclasses.com/nclex-rn/",
-          "channelType": "owned",
-          "brandMentioned": true,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "norcetcoaching.com",
-          "url": "https://norcetcoaching.com/best-nclex-coaching-in-india/",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "bigappleacademy.in",
-          "url": "https://bigappleacademy.in/",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "nclexclasses.com",
-          "url": "https://nclexclasses.com/nclex-training-india/",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "medlinenclexrn.com",
-          "url": "https://medlinenclexrn.com/best-nclex-rn-coaching-in-india/",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "thepharmainstitute.com",
-          "url": "https://thepharmainstitute.com/nclex-rn-exam-coaching-in-india-expert-classes-mock-tests-and-study-support/",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "thepharmainstitute.com",
-          "url": "https://thepharmainstitute.com/best-nclex-rn-coaching-centre-in-india/",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Ernakulam/Nclex-Rn-Exam-Training-Centres/nct-11267139",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        }
-      ],
-      "costUsd": 0.00147
-    },
-    {
-      "promptIndex": 5,
-      "prompt": "Who can I trust for NCLEX coaching institute in Chandigarh?",
-      "engine": "chatgpt",
-      "model": "gpt-6-luna",
-      "badge": "—",
-      "text": "I’d **shortlist Sanjivani Institute of NCLEX and Nclex Chandigarh for in-person demo classes—but I can’t verify either as definitively trustworthy from public information alone.**\n\n- **Sanjivani Institute of NCLEX, Sector 35:** A directory lists it for NCLEX coaching and shows a 4.8 rating from 82 ratings. Treat that as a lead, not proof: the listing doesn’t establish that those reviews are from NCLEX students. ([justdial.com](https://www.justdial.com/Chandigarh/Tutorials-For-Nclex/nct-10943629?utm_source=openai))  \n- **Nclex Chandigarh, Sector 35:** Its website describes NCLEX classes, mock tests, and performance tracking, and gives an address at SCO 262, Sector 35. But another directory places a similarly named listing in Mohali and shows only three ratings, so confirm the exact branch and ask for recent student references before paying. ([nclexchandigarh.com](https://nclexchandigarh.com/?utm_source=openai))\n\n**Before enrolling:** attend a demo, meet the instructor who will actually teach you, ask for the full fee and refund terms in writing, and speak privately with two recent students who took the same NCLEX exam. Be wary of guaranteed passes or claims of special access to exam questions. If you tell me whether you’re preparing for **NCLEX-RN or NCLEX-PN**, and whether you prefer classroom or online coaching, I can help narrow the shortlist.",
-      "analysis": {
-        "mentioned": false,
-        "position": null,
-        "competitorsMentioned": [
-          "Sanjivani Institute of NCLEX",
-          "Nclex Chandigarh"
-        ]
-      },
-      "citations": [
-        {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Chandigarh/Tutorials-For-Nclex/nct-10943629?utm_source=openai",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "nclexchandigarh.com",
-          "url": "https://nclexchandigarh.com/?utm_source=openai",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        }
-      ],
-      "costUsd": 0.021728
-    },
-    {
-      "promptIndex": 5,
-      "prompt": "Who can I trust for NCLEX coaching institute in Chandigarh?",
-      "engine": "gemini",
-      "model": "gemini-3.8-flash",
-      "badge": "Mentioned",
-      "text": "When choosing a trusted coaching institute for **NCLEX-RN (Next Generation NCLEX / NGN)** in Chandigarh and the Tricity area, several academies have established strong track records. Because NCLEX requires a clinical judgment approach rather than rote memorization, selecting an institute with instructors experienced in Western nursing standards is key.\n\n---\n\n### 1. Most Trusted Institutes in Chandigarh / Tricity\n\n* **Mantram Nursing Academy (Sector 15 / Sector 34, Chandigarh)**\n  * **Why consider them:** Mantram is one of the oldest and most established nursing exam coaching centers in Northern India. They offer both offline classroom and online coaching.\n  * **Strengths:** Dedicated nursing faculty, comprehensive foundational concept clearing, regular mock test series, and strong peer-learning environment.\n\n* **Umrao NCLEX Coaching Centre (Mohali / Chandigarh)**\n  * **Why consider them:** Unlike general nursing recruitment centers, Umrao focuses heavily and specifically on **NCLEX-RN and international licensing exams** (DHA, HAAD, Prometric).\n  * **Strengths:** Led by Dr. Ravinder Singh; known for strong individualized attention, prioritization/delegation concepts, and clinical case studies.\n\n* **NCA Nursing / Believe Nursing Coaching (Chandigarh)**\n  * **Why consider them:** Specialize in training nurses specifically aiming to relocate to the USA, Canada, and Australia.\n  * **Strengths:** Offers guidance on Next Generation NCLEX question types (case studies, trend items, matrix questions) as well as process guidance.\n\n* **Navkiran Nursing Classes (Chandigarh & Mohali)**\n  * **Why consider them:** Focuses on test-taking strategies and question dissection for international licensing exams with flexible scheduling.\n\n---\n\n### 2. What to Verify Before Paying Fees\n\n1. **Next Generation NCLEX (NGN) Alignment:** Ensure the curriculum reflects the current NCSBN Clinical Judgment Measurement Model (matrix questions, case studies, bowtie questions).\n2. **Access to Standard Q-Banks:** Ask if they incorporate practice from recognized platforms like **UWorld**, **Archer Review**, or **Kaplan**, which simulate the actual CAT (Computer Adaptive Testing) interface.\n3. **Licensing & Credentialing Guidance:** NCLEX is only one part of the journey; confirm if the institute provides guidance for the **CGFNS / NNAS / State Board of Nursing (BON)** application process and ATT (Authorization to Test) procedures.\n4. **Demo Classes:** Always attend 1–2 trial or demo lectures to see if the teaching methodology resonates with you before committing to full tuition.\n\n---\n\n### Recommended Hybrid Strategy\nEven with the best local coaching in Chandigarh, the majority of candidates who pass on their first attempt combine coaching classes with:\n* **Saunders Comprehensive Review for the NCLEX-RN Examination** (for solid content foundation).\n* **Archer or UWorld QBank** (essential for rationale reviews and timed mock tests).\n* **Mark Klimek Audio Lectures** (especially Lecture 12 on Prioritization and Delegation).",
-      "analysis": {
-        "mentioned": true,
-        "position": 4,
-        "competitorsMentioned": [
-          "Mantram Nursing Academy",
-          "Umrao NCLEX Coaching Centre",
-          "NCA Nursing / Believe Nursing Coaching",
-          "UWorld",
-          "Archer Review",
-          "Kaplan"
-        ]
-      },
-      "citations": [
-        {
-          "domain": "justdial.com",
-          "url": null,
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "staffnursecoaching.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "staffnursecoaching.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "staffnursecoaching.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "umraonclex.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "belnursingcoaching.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "belnursingcoaching.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "nclexchandigarh.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "navkirannursingclasses.com",
-          "url": null,
-          "channelType": "owned",
-          "brandMentioned": true,
-          "competitorsMentioned": []
-        }
-      ],
-      "costUsd": 0.033388
-    },
-    {
-      "promptIndex": 5,
-      "prompt": "Who can I trust for NCLEX coaching institute in Chandigarh?",
+      "prompt": "Which NCLEX coaching institute in Chandigarh do you recommend for RN?",
       "engine": "perplexity",
       "model": "openai/gpt-6-luna",
       "badge": "—",
-      "text": "**NCA Academy (New Careers Academy)** is one option to investigate: it advertises NCLEX-RN classes in Chandigarh/Mohali, including live instruction and practice tests. Its own site lists a Sector 35-C Chandigarh centre, but those details are self-reported—not independent proof of teaching quality or pass rates.[1][6]\n\nLocal listings also show **NCLEX Chandigarh** in Mohali and **Chandigarh Nursing Classes** in Sector 15, but directory ratings alone aren’t enough to establish trustworthiness.[3][4]\n\nBefore paying, ask each institute for:\n- The instructor’s nursing and NCLEX-teaching credentials.\n- A sample class, syllabus, and details of question-bank access.\n- Recent, verifiable student outcomes and references.\n- A written fee, refund, and class-attendance policy.\n\nAvoid anyone promising a guaranteed pass or asking for a large non-refundable payment before you can verify the course.",
+      "text": "I’d shortlist **NCA Academy (New Careers Academy)** in the Chandigarh–Mohali area. It advertises a 16-week NCLEX-RN course with live classes six days a week, in-person or online options, and computer-adaptive practice tests; the listed fee is ₹45,000, so confirm the current price and schedule directly before enrolling.[1][2]\n\nBefore paying, ask to observe a class and verify who will teach you, how much individual feedback you’ll get, what practice resources are included, and whether any pass-rate claims are independently documented. The course details above are provider-published, so treat them as claims to verify rather than an independent endorsement.[1]",
       "analysis": {
         "mentioned": false,
         "position": null,
@@ -1063,8 +938,22 @@
           "competitorsMentioned": []
         },
         {
+          "domain": "ncaacademy.com",
+          "url": "https://ncaacademy.com/nclex-coaching-india/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
           "domain": "justdial.com",
-          "url": "https://www.justdial.com/Delhi/Nclex-Rn-Exam-Training-Centres-in-Ganesh-Nagar-2/nct-11267139",
+          "url": "https://www.justdial.com/Chandigarh/Online-Training-For-Nclex-Rn-Exam-in-Chandigarh-Sector-46/nct-12618829",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Faridabad/Nclex-Rn-Exam-Training-Centres-in-New-Industrial-Township-1-Faridabad-Nit/nct-11267139",
           "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
@@ -1078,22 +967,245 @@
         },
         {
           "domain": "justdial.com",
+          "url": "https://www.justdial.com/Jammu/Nclex-Rn-Exam-Training-Centres-in-Batote/nct-11267139",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
           "url": "https://www.justdial.com/Chandigarh/Nclex-Rn-Exam-Training-Centres-in-Chandigarh-Sector-22/nct-11267139",
           "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "elas.in",
-          "url": "https://elas.in/",
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Guwahati/Nclex-Rn-Exam-Training-Centres-in-Maligaon/nct-11267139",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Panchkula/Nclex-Rn-Exam-Training-Centres/nct-11267139",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Ambala/Nclex-Rn-Exam-Training-Centres/nct-11267139",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00168
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Who can I trust for NCLEX coaching institute near Chandigarh and Tricity?",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "I wouldn’t call any Tricity institute “trusted” based on online listings alone—those don’t verify pass rates or teaching quality. But these are reasonable places to **compare in person**:\n\n- **Mantram Study Group, Chandigarh** — lists NCLEX coaching at its Sector 15-D and Sector 34 locations, with simulated tests and personalized feedback. Ask to sit in on a class and meet the instructor who would teach your batch. ([mantramstudygroup.com](https://www.mantramstudygroup.com/nclex-coaching/?utm_source=openai))\n- **NCA Academy, Mohali** — advertises offline, online and hybrid coaching, mock tests, and a ₹45,000 course fee. Those details are from the academy’s own website, so confirm the current fee, what’s included, and any refund terms in writing. ([ncaacademy.com](https://ncaacademy.com/nclex-coaching-chandigarh/?utm_source=openai))\n- **Sanjivani / NCLEX Chandigarh, Sector 35D** — advertises NCLEX classes, mock tests and online options. I’d verify the current address and batch details directly before visiting, as online listings aren’t fully consistent. ([nclexchandigarh.com](https://nclexchandigarh.com/?utm_source=openai))\n\n**Before paying:** attend a demo, ask who teaches the NCLEX content, see sample NGN-style questions and a study plan, and speak privately with two recent students—including, if possible, someone who retook the exam. Get the total fee, class duration, materials, missed-class policy and refund terms in writing. Treat “guaranteed pass” claims or impressive pass-rate numbers without verifiable evidence as red flags.\n\nMy first step would be to demo **Mantram and one Mohali option**, then decide based on the actual teacher and class—not the ratings. Justdial scores can be misleading: one Chandigarh listing’s reviews appear associated with a differently named centre. ([justdial.com](https://www.justdial.com/Chandigarh/Nclex-Coaching-Centre-Near-Dispensary-Chandigarh-Sector-22/0172PX172-X172-170608183039-H8R2_BZDET/reviews?utm_source=openai))",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Mantram Study Group",
+          "NCA Academy",
+          "Sanjivani / NCLEX Chandigarh",
+          "NCLEX Chandigarh"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "mantramstudygroup.com",
+          "url": "https://www.mantramstudygroup.com/nclex-coaching/?utm_source=openai",
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
           "domain": "ncaacademy.com",
-          "url": "https://ncaacademy.com/nclex-coaching-india/",
+          "url": "https://ncaacademy.com/nclex-coaching-chandigarh/?utm_source=openai",
           "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "nclexchandigarh.com",
+          "url": "https://nclexchandigarh.com/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Nclex-Coaching-Centre-Near-Dispensary-Chandigarh-Sector-22/0172PX172-X172-170608183039-H8R2_BZDET/reviews?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021878
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Who can I trust for NCLEX coaching institute near Chandigarh and Tricity?",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "Named #3",
+      "text": "When preparing for the **NCLEX-RN / Next-Gen NCLEX (NGN)** in Chandigarh and the Tricity (Chandigarh, Mohali, Panchkula), choosing an institute that understands both the updated clinical judgment model and the international licensing process (such as CGFNS, NYSED, or NNAS) is essential.\n\nThe following coaching institutes are widely recognized and trusted by nursing graduates in the region:\n\n---\n\n### 1. **Mantram Nursing Academy (Sector 15, Chandigarh)**\n* **Reputation:** One of the most established and trusted nursing coaching academies in the Tricity, located near PGIMER. \n* **Key Strengths:** \n  * Faculty comprises seasoned educators, PGIMER alumni, and PhD mentors.\n  * Thorough conceptual grounding in pharmacology, medical-surgical nursing, and pathophysiology.\n  * Offers both offline classroom programs and hybrid/online live interactive classes.\n  * Excellent reputation for structured mock tests and individual doubt clearance.\n\n### 2. **Navkiran Nursing Classes (Mohali / Chandigarh)**\n* **Reputation:** Specifically tailored for nurses looking to migrate to **Canada, the USA, or Australia**.\n* **Key Strengths:**\n  * Founded by a PGIMER MSN alumna who is a licensed Registered Nurse (RN) in Canada.\n  * Strong focus on **Next-Generation NCLEX (NGN)** clinical case scenarios, decision-making trees, and eliminating distractor choices.\n  * Offers end-to-end guidance not just for the exam, but also for foreign licensing paperwork (e.g., NNAS, CGFNS, state nursing boards).\n\n### 3. **Umrao NCLEX Coaching Centre (Sector 91, Mohali)**\n* **Reputation:** A specialized, high-rated coaching center dedicated specifically to overseas licensing exams (NCLEX-RN, DHA, HAAD).\n* **Key Strengths:**\n  * Led by experienced faculty with over two decades of mentorship experience.\n  * Small batch sizes, which allow personalized assessment and regular progress tracking.\n  * Direct coaching on how to manage exam stress and computerized adaptive testing (CAT) pacing.\n\n### 4. **Gurukul Career Group (Sector 34, Chandigarh)**\n* **Reputation:** Centrally located in the major coaching hub (Sector 34) of Chandigarh.\n* **Key Strengths:**\n  * Regular classroom batches and comprehensive question-solving sessions.\n  * Useful for candidates who prefer a traditional, campus-style classroom atmosphere.\n  * Structured unit tests covering all NCLEX client need categories (Safe and Effective Care, Psychosocial Integrity, Physiological Integrity).\n\n---\n\n### What to Verify Before Enrolling\n\nBefore paying full tuition at any institute, verify the following:\n\n1. **Next-Generation NCLEX (NGN) Alignment:** The NCLEX format heavily emphasizes **clinical judgment** (case studies, bowtie questions, trend questions) rather than plain memorization. Ensure their question pool reflects this update.\n2. **Q-Bank Integration:** Ask whether they provide or complement their curriculum with recognized Q-banks like **UWorld, Archer Review, or Kaplan**.\n3. **Demo Class:** Always take 1–2 demo classes to see if the educator focuses on rationales (the *“why”* behind right and wrong options) rather than just reading slides.\n4. **Credentialing / Documentation Support:** Passing the exam is only half the journey. Confirm if the center assists with eligibility evaluation, transcripts, and board of nursing applications (such as the New York Board, Illinois Board, or Canadian regulatory colleges).",
+      "analysis": {
+        "mentioned": true,
+        "position": 3,
+        "competitorsMentioned": [
+          "Mantram Nursing Academy",
+          "Nursing Academy",
+          "Umrao NCLEX Coaching Centre",
+          "Gurukul Career Group",
+          "UWorld"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "staffnursecoaching.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "staffnursecoaching.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "lyfskills.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "nclexcoachinginstitute.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "writeupcafe.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "youtube.com",
+          "url": null,
+          "channelType": "video",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "belnursingcoaching.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "youtube.com",
+          "url": null,
+          "channelType": "video",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "umraonclex.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "gurukulcareergroup.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.062769
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Who can I trust for NCLEX coaching institute near Chandigarh and Tricity?",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "A practical starting point is **NCA Academy (New Careers Academy)**: it lists NCLEX-RN coaching in the Tricity, with a Chandigarh counselling centre in Sector 35-C and classroom batches at its Mohali campus in Sector 91. The academy describes a 16-week course with live classes and practice tests; confirm the current schedule, fee, and exact classroom location directly before enrolling.[2][3]\n\nOther names appear in local directories—such as **NCLEX Coaching Chandigarh** in Sector 15-D and **NCLEX Chandigarh** in Mohali Sector 90—but directory listings and ratings alone aren’t enough to establish teaching quality or outcomes.[1][6]\n\nBefore paying, ask each institute for:\n- A demo class and a sample lesson or study plan.\n- The instructor’s NCLEX teaching experience and recent student references.\n- What’s included: question bank, CAT-style practice, progress reviews, and doubt support.\n- Written details of fees, refund terms, batch size, and whether classes are in person or online.\n\nNo listing can guarantee a pass, so compare a couple of options and speak with recent students before committing.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "NCA Academy",
+          "NCLEX Chandigarh"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Institutes-For-Nursing-Gnm-in-Chandigarh-Sector-40/nct-10269626",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ncaacademy.com",
+          "url": "https://ncaacademy.com/nursing-exam-coaching-india/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ncaacademy.com",
+          "url": "https://ncaacademy.com/nclex-coaching-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Tutorials-For-Nursing-Exam-in-Chandigarh-Sector-17/nct-12388700",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Institutes-For-Nursing-Gnm-in-Chandigarh-College-Of-Arts-Chandigarh-Sector-10C/nct-10269626",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Nclex-Rn-Exam-Training-Centres-in-Chandigarh-Sector-22/nct-11267139",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Delhi/Nursing-Tutorials/nct-11236583/page-5",
+          "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
         },
@@ -1106,27 +1218,20 @@
         },
         {
           "domain": "justdial.com",
-          "url": "https://www.justdial.com/Faridabad/Nclex-Rn-Exam-Training-Centres-in-Faridabad-Sector-11D/nct-11267139",
+          "url": "https://www.justdial.com/Bhatinda/Tutorials-For-B-Sc-Nursing-Entrance-Exam-in-100-Feet-Road/nct-12391028",
           "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "staffnursecoaching.com",
-          "url": "https://www.staffnursecoaching.com/nclex-coaching-online/",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "ncaacademy.com",
-          "url": "https://ncaacademy.com/nursing-exam-coaching-india/",
-          "channelType": null,
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Panchkula/Nursing-Tutorials-in-Panchkula-Sector-8/nct-11236583",
+          "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.0017
+      "costUsd": 0.00173
     }
   ]
 }
