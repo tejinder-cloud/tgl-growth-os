@@ -1,6 +1,7 @@
 // services/tgl-ops/src/agents/prospect-researcher/sources/enrichment.ts
 import { sanitizeDecisionMaker, isRolePlaceholderName } from "../guardrails.js";
 import type { DecisionMaker, ProspectSignals } from "../types.js";
+import { assessWorkEmail, isIndividualPractitionerName } from "../contact-rules.js";
 import type { RawPlaceCandidate } from "./places.js";
 import { checkMetaAdLibrary } from "./meta-ads.js";
 import { scrapeClinicWebsite } from "./website-scraper.js";
@@ -105,6 +106,12 @@ export function isCandidateOrgSizeGe50(
 ): boolean {
   const normName = candidate.name.toLowerCase();
   const cat = (category || "").toLowerCase();
+
+  // A person's own practice ("Dr. A Sharma | Laparoscopic Surgeon") is owner-run whatever category the rotation
+  // found it under and however many reviews it has. Only a real second location makes it more than that (#184).
+  if (isIndividualPractitionerName(candidate.name)) {
+    return Boolean(candidate.placesBrandCount && candidate.placesBrandCount >= 2);
+  }
 
   // Category hospitals or multi-speciality hospitals are ≥50 staff
   if (
@@ -227,6 +234,8 @@ export async function enrichCandidateSignals(
     places_brand_count: candidate.placesBrandCount,
     is_large_org: orgSizeGe50,
     brand_prefix: candidate.brandPrefix,
+    place_primary_type: candidate.primaryType,
+    place_primary_type_label: candidate.primaryTypeLabel,
     root_domain_hosts_other_branches: Boolean(
       (candidate.website && isSubBranchUrl(candidate.website)) ||
       chainEvidence.some((e) => /locations?\/centres?|hospital-network|other branches/i.test(e))
@@ -343,6 +352,16 @@ async function findVerifiedDecisionMaker(
       }
     } catch (err: any) {
       console.warn(`[Hunter Domain Search Error on ${domain}]:`, err.message || err);
+    }
+
+    // Work-contact rule (#184): only an address on the prospect's own website domain, not on a free-mail provider
+    // and not a shared inbox, may be verified and stored. "Deliverable" alone does not make it the prospect's.
+    for (let i = candidateEmailPool.length - 1; i >= 0; i--) {
+      const check = assessWorkEmail(candidateEmailPool[i].email, candidate.website);
+      if (!check.ok) {
+        console.log(`  • [Contact Rule] discarded one candidate email for '${candidate.name}': ${check.reason}`);
+        candidateEmailPool.splice(i, 1);
+      }
     }
 
     // Sort candidate emails by priorityScore descending

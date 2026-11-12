@@ -2,6 +2,7 @@
 import type { ProspectSignals, DecisionMaker } from "./types.js";
 import { isDecisionMakerRole } from "./sources/enrichment.js";
 import { FIT_QUALIFIED_THRESHOLD } from "./threshold.js";
+import { assessWorkEmail } from "./contact-rules.js";
 import {
   analyseDim4Answer as _analyseDim4Answer,
   serializeDim4Probe,
@@ -184,7 +185,12 @@ export function scoreDim4(params: { company: string; domain: string; answer: str
  *   (Practo, Justdial, MakeMyTrip) or a site rebuilt in the last 12 months; none observed = 0
  * - Dimension 3: Google profile maturity (20 pts) — review volume (up to 10) + owner engagement (10); hiring criterion removed
  * - Dimension 4: AI visibility gap (25 pts) — scored from `dim4Probe`; no probe supplied = 0 pts, "not probed"
- * - Dimension 5: Decision-Maker Reachability (15 pts: 10 email/phone + 5 phone bonus, 0 = disqualified) — unchanged
+ * - Dimension 5: Decision-Maker Reachability (15 pts: 10 email/phone + 5 phone bonus, 0 = disqualified).
+ *   Issue #184: an email counts only when it is on the prospect's own website domain, not on a free-mail
+ *   provider and not a shared inbox (contact-rules.ts). An owner-run practice with no such email is still
+ *   reachable on its Google Places business line (10 pts).
+ * - Two-location cap (#184): a brand seen at exactly two Places locations is held one point below the threshold
+ *   for Architect review (three or more is a Playbook C disqualification).
  *
  * This function is pure and never calls an engine. Use evaluateProspectRubricWithProbe to run the probe
  * only for candidates that survive Playbook C and Dimension 5.
@@ -325,7 +331,7 @@ export function evaluateProspectRubric(params: {
       `Dim 5 (DM Reachability): Contact found, DM unknown — role '${decisionMaker.role || "unknown"}' is not an approved DM for ${isLargeOrg ? "large organisation (≥50 staff)" : "small clinic (<50 staff)"} (0 pts) [Score: 0/15]`
     );
   } else {
-    const hasHunterEmail = Boolean(
+    const hunterVerified = Boolean(
       decisionMaker.email &&
       decisionMaker.email.includes("@") &&
       decisionMaker.source &&
@@ -335,13 +341,19 @@ export function evaluateProspectRubric(params: {
         decisionMaker.source.includes("status:") ||
         decisionMaker.source.includes("confidence"))
     );
+    // "Deliverable" says the inbox exists, not whose it is. The address must also be the prospect's own (#184).
+    const workEmail = assessWorkEmail(decisionMaker.email, domain);
+    const hasHunterEmail = hunterVerified && workEmail.ok;
+    const emailRejected = hunterVerified && !workEmail.ok;
 
+    // The phone on a decision maker is only ever the Google Places business line (enrichment.ts), whichever
+    // source string the record carries. It counts for owner-run practices only (Playbook D).
     const hasPlacesPhone = Boolean(
       isOwnerRun &&
       decisionMaker.phone &&
       String(decisionMaker.phone).trim().length >= 8 &&
       decisionMaker.source &&
-      decisionMaker.source.includes("places:phone")
+      (decisionMaker.source.includes("places:phone") || emailRejected)
     );
 
     if (hasHunterEmail && hasPlacesPhone) {
@@ -364,17 +376,20 @@ export function evaluateProspectRubric(params: {
     } else if (hasPlacesPhone) {
       dim5Score = 10;
       reasons.push(
-        `Dim 5 (DM Reachability): Verified business phone from Places for owner-run clinic (${decisionMaker.role} / ${decisionMaker.name}) (+10 pts) [Score: 10/15]`
+        emailRejected
+          ? `Dim 5 (DM Reachability): Email not counted (${workEmail.reason}) · Verified business phone from Places for owner-run clinic (+10 pts) [Score: 10/15]`
+          : `Dim 5 (DM Reachability): Verified business phone from Places for owner-run clinic (${decisionMaker.role} / ${decisionMaker.name}) (+10 pts) [Score: 10/15]`
       );
     } else {
-      reasons.push(
-        `Dim 5 (DM Reachability): Disqualified — No verified website email via Hunter or Places business phone (0/15 pts)`
-      );
+      const why = emailRejected
+        ? `Email not counted (${workEmail.reason}); no owner-run Places business phone`
+        : "No verified website email via Hunter or Places business phone";
+      reasons.push(`Dim 5 (DM Reachability): Disqualified — ${why} (0/15 pts)`);
       return {
         fitScore: 0,
         qualified: false,
         disqualified: true,
-        disqualificationReason: "No verified website email via Hunter or Places business phone",
+        disqualificationReason: why,
         fitReasons: reasons,
         dim4Probed: false,
       };
@@ -388,7 +403,18 @@ export function evaluateProspectRubric(params: {
     reasons.push(serializeDim4Probe(dim4Probe));
   }
 
-  const finalScore = Math.min(100, Math.max(0, score));
+  let finalScore = Math.min(100, Math.max(0, score));
+
+  // Two-location cap: a real second Places location under the same brand is not yet a chain (Playbook C starts
+  // at three) but is not a plain owner-run practice either. Hold it one point below the threshold for review.
+  const brandLocations = signals.places_brand_count ?? 1;
+  if (brandLocations === 2 && finalScore >= FIT_QUALIFIED_THRESHOLD) {
+    const capped = FIT_QUALIFIED_THRESHOLD - 1;
+    reasons.push(
+      `Two-location cap: brand '${signals.brand_prefix || company}' appears at 2 Places locations; score ${finalScore} held at ${capped} for Architect review`
+    );
+    finalScore = capped;
+  }
   const qualified = finalScore >= FIT_QUALIFIED_THRESHOLD;
 
   return {
@@ -430,7 +456,15 @@ export async function evaluateProspectRubricWithProbe(params: {
     return { ...first, probeCalled: false };
   }
 
-  const result = await probe({ company: base.company, domain: base.domain, category: base.category, city: base.city });
+  const result = await probe({
+    company: base.company,
+    domain: base.domain,
+    category: base.category,
+    city: base.city,
+    brand: base.signals.brand_prefix,
+    placeType: base.signals.place_primary_type,
+    placeTypeLabel: base.signals.place_primary_type_label,
+  });
   if (!result) {
     return { ...first, qualified: false, probeCalled: true, probe: null, probeUnavailable: true };
   }

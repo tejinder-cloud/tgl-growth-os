@@ -10,6 +10,8 @@ export interface DecisionMaker {
   email: string;
   phone?: string;
   source: string;
+  /** False when no contact route passed the work-contact rules (contact-rules.ts). Absent on rows written before #184. */
+  verified?: boolean;
 }
 
 export interface ProspectSignals {
@@ -35,6 +37,9 @@ export interface ProspectSignals {
   brand_prefix?: string;
   root_domain_hosts_other_branches?: boolean;
   registered_hq_metro?: string;
+  /** Google Places primary type ("dental_clinic") and its display name, used to phrase the Dimension 4 question. */
+  place_primary_type?: string;
+  place_primary_type_label?: string;
   raw_signals?: Record<string, any>;
 }
 

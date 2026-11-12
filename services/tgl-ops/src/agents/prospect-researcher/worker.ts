@@ -16,6 +16,7 @@ import { parseDim4Probe } from "./dim4.js";
 import { FIT_QUALIFIED_THRESHOLD, FIT_BENCH_FLOOR } from "./threshold.js";
 import { createDim4ProbeGovernor, type ProbeStats } from "./probe.js";
 import { rescoreBenchedProspects, type BenchRescoreResult } from "./bench-rescore.js";
+import { refreshOutdatedProbes } from "./probe-refresh.js";
 import { routeScoredCandidate } from "./bench-save.js";
 import { isProspectDuplicate, analyzeRejectionPatterns } from "./dedupe.js";
 import { loadAllProspects, upsertProspectRecords } from "./db.js";
@@ -186,6 +187,18 @@ export async function runProspectResearch(
       if (benchWrite.persistedToSupabase || isTest) {
         benchPromotedSaved = benchResult.promoted.length;
       }
+    }
+  }
+
+  // 3c. Issue #184: qualified, unreviewed rows whose stored probe asked a generic question are re-scored on the
+  // specialty question before new discovery. Same governor, so the same daily cap applies.
+  const refreshResult = await refreshOutdatedProbes({ prospects: existingProspects, probe: probeGovernor.probe });
+  if (refreshResult.eligible > 0) {
+    console.log(
+      `[Probe Refresh] ${refreshResult.eligible} qualified row(s) had an outdated Dimension 4 question: ${refreshResult.kept.length} still qualified, ${refreshResult.benched.length} benched, ${refreshResult.rejected.length} rejected, ${refreshResult.notProbed.length} not probed (retry next run)`
+    );
+    if (refreshResult.touched.length > 0) {
+      await upsertProspectRecords(refreshResult.touched, options);
     }
   }
 
