@@ -15,12 +15,14 @@ import {
   prospectAuditSummary,
   prospectCategoryPhrase,
   prospectDomain,
+  isBroaderThan,
+  tidyCity,
   resetProspectAuditMemoryForTests,
   runProspectAudit,
   type ProspectAuditDeps,
   type ProspectAuditRequest,
 } from "./agents/aeo-audit-engine/prospect-audit.js";
-import { generateAuditPdf, promptsLabel, queryColumnLabel, renderAuditHtml } from "./agents/aeo-audit-engine/pdf.js";
+import { auditWording, generateAuditPdf, promptsLabel, queryColumnLabel, renderAuditHtml } from "./agents/aeo-audit-engine/pdf.js";
 import { runProspectAudit as runOutreachProspectAudit } from "./agents/outreach-sequencer/onepager.js";
 import type { EngineAnswer, EngineId } from "./agents/aeo-audit-engine/types.js";
 import { createApp } from "./app.js";
@@ -105,6 +107,14 @@ async function main(): Promise<void> {
     assert.equal(prospectCategoryPhrase({ businessName: "Aarogya Wellness", industry: "healthcare" }), null, "healthcare with no specialty in the name is not guessed");
     assert.equal(prospectCategoryPhrase({ businessName: "Nimbus", industry: "saas" }), null);
     assert.equal(prospectCategoryPhrase({ businessName: "Kora", industry: "ecommerce" }), null);
+    // First live audit, 12 Nov: "coaching institute" was typed for a nursing-exam institute and every engine
+    // answered "it depends on the course". The name already says more, so the narrower phrase is asked.
+    assert.deepEqual(prospectCategoryPhrase({ businessName: "Navkiran Nursing Classes", what: "coaching institute" }), { phrase: "nursing exam coaching institute", from: "name" });
+    assert.deepEqual(prospectCategoryPhrase({ businessName: "Navkiran Nursing Classes", what: "nursing coaching institute" }), { phrase: "nursing coaching institute", from: "architect" }, "the Architect's own narrower words are kept");
+    assert.equal(isBroaderThan("coaching institute", "IELTS coaching institute"), true);
+    assert.equal(isBroaderThan("dental clinic", "dental clinic"), false);
+    assert.equal(isBroaderThan("skin clinic", "dental clinic"), false);
+    assert.deepEqual(prospectCategoryPhrase({ businessName: "Sunrise Dental", what: "cosmetic dentist" }), { phrase: "cosmetic dentist", from: "architect" });
     ok("category phrase: architect's words, then the name (clinics and institutes only), then the industry; otherwise not guessed");
 
     const prompts = buildProspectAuditPrompts("dental clinic", "Mohali");
@@ -114,6 +124,10 @@ async function main(): Promise<void> {
     assert.ok(prompts.every((p) => !p.toLowerCase().includes("sunrise")));
     assert.equal(prompts[0], "best dental clinic in Mohali");
     assert.ok(buildProspectAuditPrompts("online saree store", null).every((p) => p.includes("in India")));
+    assert.equal(buildProspectAuditPrompts("dental clinic", "mohali")[0], "best dental clinic in Mohali", "a city typed in lower case is capitalised");
+    assert.equal(tidyCity("new delhi"), "New Delhi");
+    assert.equal(tidyCity("Navi Mumbai"), "Navi Mumbai");
+    assert.ok(Math.max(...buildProspectAuditPrompts("dental clinic", "Mohali").map((p) => p.length)) <= 65, "typical questions fit one table row");
     ok("five distinct buyer questions from the phrase and city, none with the business name; no city means India");
 
     assert.equal(prospectDomain(SITE), "sunrisedental.in");
@@ -129,10 +143,10 @@ async function main(): Promise<void> {
   {
     const names = businessNamesInAnswer(ANSWER_OTHERS).map((n) => n.name);
     assert.deepEqual(names, ["Clove Dental", "Apollo White Dental"], names.join(" | "));
-    for (const junk of ["Best for", "Highlights", "NABH", "Eye Care", "Mother & Child Care / Maternity", "Top Private Dental Clinics", "For budget care", "Summary Recommendation", "Why it matters?"]) {
+    for (const junk of ["Best for", "Highlights", "NABH", "Eye Care", "Mother & Child Care / Maternity", "Top Private Dental Clinics", "For budget care", "Summary Recommendation", "Why it matters?", "JEE/NEET", "IELTS", "NORCET", "UPSC CSE", "NEET UG"]) {
       assert.equal(looksLikeBusinessName(junk), false, junk);
     }
-    for (const real of ["Fortis Hospital", "Grewal Eye Institute", "PGIMER", "Dr. R. K. Mehta", "Cloudnine Hospital", "Allen Career Institute", "Taj Chandigarh"]) {
+    for (const real of ["Fortis Hospital", "Grewal Eye Institute", "PGIMER", "Dr. R. K. Mehta", "Cloudnine Hospital", "Allen Career Institute", "Taj Chandigarh", "Umrao NCLEX Coaching Centre", "Mantram Nursing Academy", "Aakash Institute", "AIIMS"]) {
       assert.equal(looksLikeBusinessName(real), true, real);
     }
     assert.equal(canonicalBusinessName("Fortis Hospital, Sector 62, Mohali"), "Fortis Hospital");
@@ -191,7 +205,17 @@ async function main(): Promise<void> {
     assert.equal(queryColumnLabel(prospectResult), "Buyer Question (Your Category and City)");
     const html = renderAuditHtml(prospectResult);
     assert.ok(!/Verified/.test(html), "prospect PDF markup must not say Verified");
+    const pw = auditWording(prospectResult);
+    assert.equal(pw.competitors, "Who AI Named Instead of You");
+    assert.equal(pw.action, "WHAT THIS SHOWS");
+    assert.ok(pw.closing.includes("20-minute conversation"));
+    for (const jargon of ["Mechanistic", "MECHANISTIC", "Authority Channels", "Query Visibility Matrix", "Brand Share"]) assert.ok(!html.includes(jargon), `prospect PDF must not say ${jargon}`);
+    assert.ok(html.includes("Who AI Named Instead of You") && html.includes("20-minute conversation"));
     const clientLike = { ...prospectResult, auditKind: "client" as const };
+    const cw = auditWording(clientLike);
+    assert.equal(cw.action, "MECHANISTIC NEXT STEPS");
+    assert.equal(cw.closing, "");
+    assert.ok(!renderAuditHtml(clientLike).includes("20-minute conversation"), "client audits are unchanged");
     assert.equal(promptsLabel(clientLike), "Verified Buyer Prompts");
     assert.equal(queryColumnLabel(clientLike), "Buyer Query (Verified Setup Profile)");
     const pdf = await generateAuditPdf(prospectResult);

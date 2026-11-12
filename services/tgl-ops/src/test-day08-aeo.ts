@@ -432,8 +432,16 @@ async function runDay08AeoTests() {
   let baseDir = process.cwd();
   if (baseDir.endsWith("services/tgl-ops")) baseDir = path.resolve(baseDir, "../..");
   const trackedAuditDir = path.join(baseDir, "logs", result.auditedAt.slice(0, 10), "aeo-audit");
+  // The tracked folder legitimately holds real audits the service recorded on main today (first one: 12 Nov 2026).
+  // What must never happen is this test writing there: no file in it may be newer than this test process.
   if (fs.existsSync(trackedAuditDir)) {
-    throw new Error(`Test 8.3 Failed: Found test artifact written directly into tracked ${trackedAuditDir}!`);
+    const processStartMs = Date.now() - process.uptime() * 1000;
+    const writtenByTest = fs
+      .readdirSync(trackedAuditDir)
+      .filter((f) => fs.statSync(path.join(trackedAuditDir, f)).mtimeMs >= processStartMs);
+    if (writtenByTest.length > 0) {
+      throw new Error(`Test 8.3 Failed: Found test artifact written directly into tracked ${trackedAuditDir}: ${writtenByTest.join(", ")}`);
+    }
   }
 
   const rawJsonContent = JSON.parse(fs.readFileSync(result.rawAnswersJsonPath, "utf8"));
