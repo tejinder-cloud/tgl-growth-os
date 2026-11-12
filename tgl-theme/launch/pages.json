@@ -3,7 +3,7 @@
     "slug": "home",
     "url": "/",
     "title": "The Growth Lab | AI visibility and AI automation for Indian businesses",
-    "description": "Prototype A3, Paper and Ink. Does ChatGPT recommend your business? The Growth Lab tracks what AI says about you, fixes it, and runs the busywork on AI agents.",
+    "description": "Does ChatGPT recommend your business? The Growth Lab tracks what AI says about you, fixes it, and runs the busywork on AI agents.",
     "noindex": false,
     "css": [
       "site.css"
@@ -89,7 +89,7 @@
     "slug": "agent-team",
     "url": "/agent-team",
     "title": "Our agent team | The Growth Lab",
-    "description": "Prototype of the agent team page: the AI agents that run The Growth Lab, their day and their roster.",
+    "description": "The AI agents that run The Growth Lab: who is on duty, what each one does in a day, and the full roster.",
     "noindex": false,
     "css": [
       "site.css"
