@@ -20,6 +20,10 @@ export interface RawPlaceCandidate {
   brandPrefix?: string;
   placeDetailsEnriched?: boolean;
   placeDetailsError?: string;
+  /** Issue #184: Places primaryType (e.g. "maternity_hospital"). Drives the specialty-specific Dim 4 question. */
+  primaryType?: string;
+  /** Issue #184: Places primaryTypeDisplayName (e.g. "Maternity hospital"). */
+  primaryTypeLabel?: string;
 }
 
 const PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || "";
@@ -28,7 +32,7 @@ const PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_M
  * Searches for institutions via Google Places API (New) — searchText.
  * Endpoint: POST https://places.googleapis.com/v1/places:searchText
  * Header Authentication: X-Goog-Api-Key
- * FieldMask: places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri,places.nationalPhoneNumber,places.googleMapsUri
+ * FieldMask: places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri,places.nationalPhoneNumber,places.googleMapsUri,places.primaryType,places.primaryTypeDisplayName
  * Strictly consumes from the 95 calls/day quota.
  * Zero stubs or mock data: returns empty array if no live API key or results.
  */
@@ -45,7 +49,7 @@ export async function searchPlacesCandidates(
   const query = `${categoryQuery} in ${city}`;
   const endpoint = "https://places.googleapis.com/v1/places:searchText";
   const fieldMask =
-    "places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri,places.nationalPhoneNumber,places.googleMapsUri";
+    "places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri,places.nationalPhoneNumber,places.googleMapsUri,places.primaryType,places.primaryTypeDisplayName";
 
   // 1. If key is missing, log real attempt and return empty array without stubs
   if (!PLACES_API_KEY) {
@@ -96,6 +100,8 @@ export async function searchPlacesCandidates(
         googleMapsUrl: p.googleMapsUri || `https://www.google.com/maps/place/?q=place_id:${p.id}`,
         placeIdVerified: true,
         rawApiResponseExcerpt: JSON.stringify(p).slice(0, 200),
+        primaryType: p.primaryType || undefined,
+        primaryTypeLabel: p.primaryTypeDisplayName?.text || undefined,
       }));
     }
 
@@ -113,7 +119,7 @@ export async function searchPlacesCandidates(
  * Enriches candidate with Place Details via Google Places API (New) — places/{id}.
  * Endpoint: GET https://places.googleapis.com/v1/places/{id}
  * Header Authentication: X-Goog-Api-Key
- * FieldMask: id,displayName,formattedAddress,rating,userRatingCount,websiteUri,nationalPhoneNumber,googleMapsUri,businessStatus,regularOpeningHours
+ * FieldMask: id,displayName,formattedAddress,rating,userRatingCount,websiteUri,nationalPhoneNumber,googleMapsUri,businessStatus,regularOpeningHours,primaryType,primaryTypeDisplayName
  * Strictly consumes 1 quota unit.
  */
 export async function enrichPlaceDetails(
@@ -156,7 +162,7 @@ export async function enrichPlaceDetails(
 
   const endpoint = `https://places.googleapis.com/v1/places/${encodeURIComponent(cleanPlaceId)}`;
   const fieldMask =
-    "id,displayName,formattedAddress,rating,userRatingCount,websiteUri,nationalPhoneNumber,googleMapsUri,businessStatus,regularOpeningHours";
+    "id,displayName,formattedAddress,rating,userRatingCount,websiteUri,nationalPhoneNumber,googleMapsUri,businessStatus,regularOpeningHours,primaryType,primaryTypeDisplayName";
 
   try {
     checkAndConsumePlacesQuota(1, options);
@@ -184,6 +190,8 @@ export async function enrichPlaceDetails(
         rating: data.rating !== undefined ? data.rating : candidate.rating,
         userRatingsTotal: data.userRatingCount !== undefined ? data.userRatingCount : candidate.userRatingsTotal,
         googleMapsUrl: data.googleMapsUri || candidate.googleMapsUrl,
+        primaryType: data.primaryType || candidate.primaryType,
+        primaryTypeLabel: data.primaryTypeDisplayName?.text || candidate.primaryTypeLabel,
         placeDetailsEnriched: true,
       };
     }
