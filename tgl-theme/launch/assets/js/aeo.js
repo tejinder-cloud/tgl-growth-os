@@ -15,7 +15,7 @@
   function draw(){var m=Q[cur],c=tc.value.trim()||m[1];who.textContent=m[0];
     while(qs.firstChild)qs.removeChild(qs.firstChild);
     m[2].forEach(function(t){var li=document.createElement('li'),s=document.createElement('span'),o=document.createElement('span');
-      s.textContent=t.split('{c}').join(c);o.className='o';o.setAttribute('aria-hidden','true');o.appendChild(document.createElement('i'));o.appendChild(document.createElement('i'));o.appendChild(document.createElement('i'));
+      s.textContent=t.split('{c}').join(c);o.className='o';o.setAttribute('aria-hidden','true');for(var k=0;k<4;k++)o.appendChild(document.createElement('i'));
       li.appendChild(s);li.appendChild(o);qs.appendChild(li);});}
   function pick(k,flip){cur=Q[k]?k:'other';chips.forEach(function(c){c.setAttribute('aria-pressed',String(c.getAttribute('data-for')===cur));});
     draw();if(flip){qs.classList.remove('flip');void qs.offsetWidth;qs.classList.add('flip');}}

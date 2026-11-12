@@ -331,11 +331,11 @@ details.roster summary small{font-weight:500;color:var(--ink-2);margin-left:auto
 .rep .stat b{font-family:var(--serif);font-weight:500;font-size:1.6rem;line-height:1.1;display:block}
 .rep .tw{overflow-x:auto}
 .rep table{border-collapse:collapse;width:100%;font-size:.78rem;table-layout:fixed}
-.rep th.c{font-size:.54rem;padding:6px 2px;letter-spacing:.02em}
+.rep th.c{font-size:.52rem;padding:6px 1px;letter-spacing:0;text-transform:none}
 .rep .nmw{display:none}
 .rep th,.rep td{border:1.5px solid var(--ink);padding:6px 8px;text-align:left}
 .rep th{background:var(--sage-t);font-size:.64rem;letter-spacing:.05em;text-transform:uppercase}
-.rep td.c,.rep th.c{text-align:center;width:19%}
+.rep td.c,.rep th.c{text-align:center;width:15.5%}
 .rep td.y{background:var(--sage-t);font-weight:700;color:var(--sage-text)}
 .rep td.n{color:var(--mute)}
 .rep .two{display:grid;gap:8px}
@@ -491,7 +491,7 @@ details.roster summary small{font-weight:500;color:var(--ink-2);margin-left:auto
   .steps ol.rt>li::before{left:50%;top:-41px;transform:translateX(-50%)}
   .sample .cols{grid-template-columns:1.35fr 1fr;gap:44px}
   .rep .stats{grid-template-columns:repeat(4,1fr)}
-  .rep th.c{font-size:.64rem;padding:6px 8px;letter-spacing:.05em}
+  .rep th.c{font-size:.64rem;padding:6px 6px;letter-spacing:.05em;text-transform:uppercase}
   .rep .nmw{display:inline}
   .rep .two{grid-template-columns:1fr 1fr}
   .rep .in{padding:20px 22px 24px}
