@@ -183,3 +183,194 @@ export type Dim4ProbeFn = (input: {
   primaryType?: string;
   primaryTypeLabel?: string;
 }) => Promise<Dim4Probe | null>;
+
+// Bold spans that are section headings or labels, not businesses.
+const HEADING_LEAD_WORDS = new Set([
+  "top", "best", "key", "note", "disclaimer", "important", "why", "how", "here", "summary", "tip", "tips",
+  "factors", "conclusion", "things", "what", "when", "consider", "according", "based", "please", "remember",
+  "always", "other", "additional", "also", "overall", "recommendation", "recommendations", "pros", "cons",
+  "cost", "price", "pricing", "services", "contact", "location", "address", "rating", "ratings", "reviews",
+  "specialty", "specialties", "speciality", "specialities", "facilities", "timings", "hours", "phone", "website",
+  "known", "famous", "popular", "highly", "reputation", "technology", "experience", "expertise", "accreditation",
+]);
+
+/** True when a name found in an answer refers to the prospect: every distinctive token of the prospect appears in the name. */
+export function nameMatchesProspect(foundName: string, company: string): boolean {
+  const want = distinctiveTokens(company);
+  if (want.length === 0) {
+    return nameTokens(foundName).join(" ") === nameTokens(company).join(" ");
+  }
+  const have = new Set(nameTokens(foundName));
+  return want.every((t) => have.has(t));
+}
+
+/** True when a found name contains any distinctive brand token of the prospect ("Motherhood Hospital" has "motherhood"). */
+export function nameHasBrandToken(foundName: string, brandTokens: string[]): boolean {
+  if (brandTokens.length === 0) return false;
+  const have = new Set(nameTokens(foundName));
+  return brandTokens.some((t) => have.has(t));
+}
+
+function cleanFoundName(raw: string): string | null {
+  if (/\?\s*\**$/.test(raw.trim())) return null;
+  let n = raw.replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
+  n = n.replace(/^[\d.)\s-]+/, "").replace(/[:.,;\s]+$/, "").trim();
+  if (n.length < 3 || n.length > 80) return null;
+  if (!/^[A-Z0-9]/.test(n)) return null;
+  const words = n.split(" ");
+  if (words.length > 8) return null;
+  if (HEADING_LEAD_WORDS.has(words[0].toLowerCase())) return null;
+  return n;
+}
+
+/** Extracts business names from an answer: bold spans and numbered-list lead-ins, in order of appearance. */
+export function extractNamedBusinesses(answer: string): { name: string; index: number }[] {
+  const found: { name: string; index: number }[] = [];
+  const push = (raw: string, index: number) => {
+    const name = cleanFoundName(raw);
+    if (!name) return;
+    const key = nameTokens(name).join(" ");
+    if (!key || found.some((f) => nameTokens(f.name).join(" ") === key)) return;
+    found.push({ name, index });
+  };
+  const text = answer || "";
+  for (const m of text.matchAll(/\*\*([^*\n]{3,90}?)\*\*/g)) push(m[1], m.index ?? 0);
+  for (const m of text.matchAll(/^[ \t]*\d+[.)][ \t]+(?!\*\*)([A-Z][^:\n–—]{2,80}?)(?=[ \t]*(?:[:–—(]|-\s|$))/gm)) {
+    push(m[1], (m.index ?? 0) + m[0].indexOf(m[1]));
+  }
+  return found.sort((a, b) => a.index - b.index);
+}
+
+function hostLabel(domain: string): { host: string; label: string } {
+  try {
+    let clean = (domain || "").trim();
+    if (!clean) return { host: "", label: "" };
+    if (!/^https?:\/\//i.test(clean)) clean = `https://${clean}`;
+    const host = new URL(clean).hostname.replace(/^www\./, "").toLowerCase();
+    return { host, label: host.split(".")[0] };
+  } catch {
+    return { host: "", label: "" };
+  }
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Index of the first whole-word occurrence of a token in lowercase text, or -1. */
+function wordIndex(lowerText: string, token: string): number {
+  const m = new RegExp(`(^|[^a-z0-9])${escapeRegExp(token)}(?![a-z0-9])`).exec(lowerText);
+  return m ? m.index + m[1].length : -1;
+}
+
+export interface Dim4Analysis {
+  namesFound: string[];
+  prospectNamed: boolean;
+  prospectPosition: number | null;
+  competitorNamed: boolean;
+  score: number;
+}
+
+/**
+ * Reads an engine answer for one prospect and scores Dimension 4.
+ * prospect_named is true when ANY of these appears: a found name matching every distinctive token of the company,
+ * the full company name, the website host, or any distinctive brand token (brandPrefix without generic words) as a
+ * whole word in a found name or in the answer text.
+ * An answer that names nobody at all scores 0: there is no observed gap to quote.
+ */
+export function analyseDim4Answer(params: { company: string; domain: string; answer: string; brandPrefix?: string }): Dim4Analysis {
+  const { company, domain, answer, brandPrefix } = params;
+  const named = extractNamedBusinesses(answer);
+  const lower = (answer || "").toLowerCase();
+  const brandTokens = brandTokensFor(brandPrefix, company).filter((t) => t.length >= 3);
+  const isProspectName = (n: string) => nameMatchesProspect(n, company) || nameHasBrandToken(n, brandTokens);
+
+  // Where does the prospect first appear? Match extracted names, then the full company name, brand tokens, then the website host.
+  const indexes: number[] = [];
+  for (const n of named) if (isProspectName(n.name)) indexes.push(n.index);
+  const companyLower = (company || "").toLowerCase().trim();
+  if (companyLower.length >= 4) {
+    const i = lower.indexOf(companyLower);
+    if (i >= 0) indexes.push(i);
+  }
+  for (const t of brandTokens) {
+    const i = wordIndex(lower, t);
+    if (i >= 0) indexes.push(i);
+  }
+  const { host, label } = hostLabel(domain);
+  if (host) {
+    const i = lower.indexOf(host);
+    if (i >= 0) indexes.push(i);
+  }
+  if (label.length >= 6) {
+    const i = lower.indexOf(label);
+    if (i >= 0) indexes.push(i);
+  }
+  const prospectIndex = indexes.length ? Math.min(...indexes) : null;
+
+  const competitors = named.filter((n) => !isProspectName(n.name));
+  const prospectNamed = prospectIndex !== null;
+  const prospectPosition = prospectNamed ? 1 + competitors.filter((c) => c.index < (prospectIndex as number)).length : null;
+
+  let score = 0;
+  if (!prospectNamed) {
+    score = competitors.length > 0 ? DIM4_PROSPECT_ABSENT_POINTS : 0;
+  } else {
+    score = prospectPosition === 1 ? DIM4_PROSPECT_FIRST_POINTS : DIM4_PROSPECT_NOT_FIRST_POINTS;
+  }
+
+  return {
+    namesFound: named.map((n) => n.name),
+    prospectNamed,
+    prospectPosition,
+    competitorNamed: competitors.length > 0,
+    score,
+  };
+}
+
+/**
+ * Re-reads a STORED probe answer with the current analysis logic. No engine call, no spend: question, answer, engine,
+ * model, date and cost are kept verbatim; only the derived fields (names, prospect_named, position, score) are recomputed.
+ */
+export function reanalyseDim4Probe(
+  probe: Dim4Probe,
+  params: { company: string; domain: string; brandPrefix?: string }
+): Dim4Probe {
+  const a = analyseDim4Answer({ company: params.company, domain: params.domain, answer: probe.answer, brandPrefix: params.brandPrefix });
+  return {
+    ...probe,
+    names_found: a.namesFound,
+    prospect_named: a.prospectNamed,
+    prospect_position: a.prospectPosition,
+    competitor_named: a.competitorNamed,
+    score: a.score,
+  };
+}
+
+/** Serialises the probe as the `dim4_probe` entry of fit_reasons. */
+export function serializeDim4Probe(probe: Dim4Probe): string {
+  return `${DIM4_PROBE_PREFIX} ${JSON.stringify(probe)}`;
+}
+
+/** Reads a stored `dim4_probe` entry back out of fit_reasons. Returns null when absent or unreadable. */
+export function parseDim4Probe(fitReasons: unknown): Dim4Probe | null {
+  if (!Array.isArray(fitReasons)) return null;
+  const entry = fitReasons.find((r) => typeof r === "string" && r.startsWith(DIM4_PROBE_PREFIX));
+  if (typeof entry !== "string") return null;
+  try {
+    const parsed = JSON.parse(entry.slice(DIM4_PROBE_PREFIX.length).trim());
+    return parsed && typeof parsed === "object" && typeof parsed.score === "number" ? (parsed as Dim4Probe) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** A short, quotable summary of the stored probe for cards and logs. Never includes the full answer. */
+export function summariseDim4Probe(probe: Dim4Probe): string {
+  const where = !probe.prospect_named
+    ? "prospect not named"
+    : probe.prospect_position === 1
+    ? "prospect named first"
+    : `prospect named at position ${probe.prospect_position}`;
+  return `${probe.engine} asked "${probe.question}" on ${probe.date.slice(0, 10)}: ${where}; names found: ${probe.names_found.join(", ") || "none"}`;
+}
