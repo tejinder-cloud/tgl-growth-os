@@ -5,6 +5,7 @@
 // - Rows that already carry a dim4_probe were scored under v2 and are not re-probed (no repeat spend).
 // - A row whose probe cannot run (cap, engine unavailable, engine error) is left untouched and retried next run.
 // - Disqualified rows (Playbook C, Dimension 5 = 0) never reach the probe.
+// - Issue #184: the decision maker (verified flag) and signals (large-org cap reason) judged by the rubric are stored.
 import type { ProspectRecord } from "./types.js";
 import { evaluateProspectRubricWithProbe } from "./rubric.js";
 import { parseDim4Probe, type Dim4ProbeFn } from "./dim4.js";
@@ -69,6 +70,8 @@ export async function rescoreBenchedProspects(params: {
     }
 
     p.fit_reasons = evalRes.fitReasons;
+    if (evalRes.decisionMaker) p.decision_maker = evalRes.decisionMaker;
+    if (evalRes.signals) p.signals = evalRes.signals;
     p.rescored_at = now().toISOString();
 
     if (evalRes.disqualified) {
