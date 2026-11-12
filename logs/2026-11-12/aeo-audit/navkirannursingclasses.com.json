@@ -10,136 +10,144 @@
     ],
     "setupStatus": "prospect_unverified"
   },
-  "auditedAt": "2026-11-12T08:51:03.910Z",
+  "auditedAt": "2026-11-12T08:59:58.452Z",
   "promptsCount": 5,
   "enginesCount": 3,
   "totalQueries": 15,
   "summary": {
-    "totalMentions": 0,
-    "visibilityScorePercent": 0,
+    "totalMentions": 4,
+    "visibilityScorePercent": 26.7,
     "mentionsByEngine": {
-      "chatgpt": 0,
-      "gemini": 0,
+      "chatgpt": 1,
+      "gemini": 3,
       "perplexity": 0
     },
     "competitorMentions": {
-      "JEE/NEET": 3,
-      "ALLEN": 1,
-      "Aakash Institute": 5,
-      "Allen Career Institute": 2,
-      "The Pillars Coaching Classes & Helix Institute": 1,
-      "Grey Matters": 4,
-      "Spearhead IELTS": 2,
-      "British Career Group": 3,
-      "ThinkEnglish": 3,
-      "AAA Bright Academy": 3,
-      "IBT Institute": 2,
-      "Raj Malhotra’s IAS / O2 IAS Academy": 1,
-      "ThinkNEXT Technologies": 5,
-      "Techedo Technologies & Netmax Technologies": 1,
-      "Primary Hubs": 1,
-      "Phase 7": 3,
-      "Next Steps": 1,
-      "Shrivik Academy": 1,
-      "Comet AI Institute": 1,
-      "Eduzphere": 1,
+      "Believe Nursing Coaching": 3,
+      "NCLEX or OSCE": 1,
+      "Mantram Nursing Academy": 5,
+      "IRA": 1,
+      "NORCET": 1,
+      "My quick pick": 1,
+      "International Licensing": 2,
+      "Umrao NCLEX Coaching Centre": 7,
+      "Focus": 1,
+      "Kanika’s Nursing Academy": 4,
+      "Mannat Nursing Academy & Science Tutorial": 1,
+      "Competition Guru": 4,
+      "Target Exam": 1,
+      "AIIMS / PGIMER / Central Govt jobs": 1,
+      "Demo Classes": 1,
+      "Batch Timings": 1,
+      "NCA Academy in Sector 91": 1,
+      "Believe Nursing Coaching Institute": 3,
+      "Believe Nursing Coaching Institute in Landran": 2,
+      "Mohali city proper": 1,
+      "Umrao NCLEX Coaching Centre in Sector 91": 1,
+      "NCLEX": 2,
+      "NCLEX-RN or foreign licensure": 1,
+      "AIIMS NORCET": 2,
+      "NCLEX and overseas-registration preparation": 1,
+      "NCLEX coaching": 1,
+      "Nclex Chandigarh / Believe Nursing Coaching": 1,
+      "NCLEX-RN": 1,
+      "NCA Academy": 2,
+      "NCLEX and OSCE preparation": 1,
+      "Umrao": 1,
+      "B.Sc. Nursing entrance": 1,
+      "Institutes Located Directly in Mohali": 1,
+      "Umrao NCLEX & Staff Nursing Coaching Centre": 1,
+      "International Nursing Licensure": 1,
+      "NCA-Nursing / New Careers Academy": 1,
+      "OSCE Training": 1,
+      "Vertex Nursings Hub": 1,
+      "Global Nursing Exams & Mentorship": 1,
+      "MNS & State Recruitment Exams": 1,
+      "Gurukul Career Group": 1,
+      "PPMET & NORCET": 1,
+      "Science Tutorial Nursing Academy": 1,
+      "B.Sc/Post-Basic Nursing Entrances": 1,
+      "If your goal is to move abroad": 1,
+      "Umrao NCLEX": 1,
+      "NCA-Nursing": 1,
+      "If your goal is Punjab State admission": 1,
+      "Mantram": 3,
+      "If targeting the Armed Forces": 1,
+      "Nursing Academy": 1,
+      "Umrao Institute": 2,
+      "NORCET/staff-nurse recruitment": 1,
+      "NCLEX/another overseas licensing exam": 1,
       "New Careers Academy": 1,
-      "Spearhead": 1,
-      "Minerva Academy": 2,
-      "Sleepy Classes": 1,
-      "ALLEN Career Institute": 3,
-      "Helix Institute": 2,
-      "Abhimanu IAS": 1,
-      "Phase 3B2": 2,
-      "Grey Matters / Touchstone": 1,
-      "JEE / NEET": 1,
-      "ALLEN Mohali": 2,
-      "Defence / SSB": 1,
-      "Youthbaba Academy": 1,
-      "Narayan Gurukul Academy": 1,
-      "Mohali and nearby Greater Mohali": 1,
-      "GOEL Institute": 3,
-      "Shree Saraswati Institute": 2,
-      "Popel’s IELTS Academy": 1,
-      "Landmark Immigration Consultants": 1,
-      "Sector 66/118": 1,
-      "NEET-UG/Medical": 1,
-      "GP’s Gurukul / Topper's Choice": 2,
-      "AAA-Bright Academy": 1,
-      "Competition Guru": 1,
-      "Touchstone Educationals": 3,
-      "IELTS": 1,
-      "Spearhead Education": 1,
-      "Hatchway Overseas": 1,
-      "IELTS Made Easy": 1,
-      "Sector 34 in Chandigarh": 1,
-      "Spearhead IELTS / British Career Group": 1,
-      "Dolphin Head Hunter": 1,
-      "Abhimanu’s IAS / Chanakya IAS": 1,
-      "Edu Mohali / Local Competition Academies": 1,
-      "Webtech Learning": 1,
-      "Shortlist 2–3 institutes": 1,
-      "Request a trial seat": 1,
-      "JEE/NEET or school subjects": 1,
-      "NDA/defence exams": 1,
-      "IELTS/PTE": 1,
-      "JEE or NEET": 1,
-      "ALLEN’s Mohali centre": 1,
-      "Aakash’s Sector 118 centre": 1,
-      "Physics Wallah": 1,
-      "British Counsel": 1,
-      "Bright Academy / IBT Institute": 1,
-      "Ojaank / Chanakya IAS": 1,
-      "Ask who the actual teacher is": 1,
-      "Batch sizes": 1,
-      "Written demo & refund terms": 1,
+      "One thing to check": 1,
+      "SCO 71": 1,
+      "My practical recommendation": 1,
+      "Align with Your Specific Target Exam": 1,
+      "Domestic Recruitment / Entrance": 1,
+      "International Licensure": 1,
+      "NGN": 1,
+      "Faculty Experience & Specialization": 1,
+      "Study Material & Question Bank Quality": 1,
+      "Batch Size and Shift Flexibility": 1,
+      "Demo Lectures & Peer Feedback": 1,
+      "Science Tutorial": 2,
+      "Shortlist 2–3 options": 1,
+      "Schedule in-person visits": 1,
+      "Attend demo sessions": 1,
+      "Shortlist to investigate": 1,
+      "NCLEX / OSCE / UK CBT": 1,
+      "NORCET / staff-nurse recruitment exams": 1,
+      "Broader recruitment and international exams": 1,
+      "ELAS": 1,
+      "My honest take": 1,
+      "State/National Entrance Exams": 1,
+      "Track Record": 1,
+      "Study Material": 1,
       "Faculty": 1,
-      "Results": 1,
-      "Fit": 1,
-      "Terms": 1,
-      "Independent feedback": 1
+      "Targeted Coaching": 1,
+      "Flexibility": 1,
+      "Longstanding Presence": 1,
+      "Directly in Mohali": 1,
+      "Ask for Current Results": 1,
+      "Insist on a 2-Day Demo Class": 1,
+      "Assess the Question Bank": 1,
+      "Clarify Backup Options": 1,
+      "Kanika's Nursing Academy": 1,
+      "Umrao NCLEX Centre": 1,
+      "Recent results you can verify": 1,
+      "Faculty details": 1,
+      "A demo class and course plan": 1,
+      "Written fee and refund terms": 1,
+      "Recent student references": 1,
+      "Practical recommendation": 1
     },
     "citationDomains": {
-      "allen.ac.in": 7,
-      "aakash.ac.in": 3,
+      "belnursingcoaching.com": 7,
+      "staffnursecoaching.com": 6,
+      "iracoaching.in": 1,
+      "kanikasnursingacademy.com": 5,
+      "navkirannursingclasses.com": 3,
+      "cgi.guru": 4,
+      "umraonclex.com": 5,
+      "sciencetutorial.in": 4,
+      "mannatacademy.com": 1,
+      "ncaacademy.com": 5,
+      "epageindia.in": 5,
+      "justdial.com": 11,
+      "omnursingacademy.com": 1,
       "sulekha.com": 1,
-      "yocket.com": 5,
-      "britishcareergroup.in": 3,
-      "topperchoice.in": 4,
-      "justdial.com": 9,
-      "urbanpro.com": 2,
-      "ncaacademy.com": 2,
-      "eduzphere.com": 1,
-      "abroadgateway.com": 3,
-      "amitbookdepot.com": 3,
-      "collegedunia.com": 2,
-      "academycheck.com": 1,
-      "classapna.com": 1,
-      "addressguru.in": 4,
-      "mysarkarinaukri.com": 1,
-      "goelinstitute.in": 1,
-      "saraswatiinstitue.com": 1,
-      "tuition.in": 1,
-      "allen.in": 2,
-      "gpsgurukul.com": 2,
-      "aaabrightacademy.in": 1,
-      "ibtindia.com": 1,
-      "insightrobmedia.com": 1,
-      "medium.com": 2,
-      "edumohali.com": 1,
-      "blog.shikshacoach.com": 1,
-      "britishcounsel.org.in": 1,
-      "leapscholar.com": 1
+      "gurukulcareergroup.com": 2,
+      "grotal.com": 1,
+      "sgni.in": 1,
+      "in.linkedin.com": 1,
+      "golocall.com": 1
     },
-    "totalCostUsd": 0.3007,
-    "totalCostInr": 28.54
+    "totalCostUsd": 0.3151,
+    "totalCostInr": 29.9
   },
   "nextSteps": {
-    "weakestEngine": "ChatGPT",
+    "weakestEngine": "Perplexity",
     "weakestEngineMentions": 0,
     "zeroMentionEngines": [
-      "ChatGPT",
-      "Gemini",
       "Perplexity"
     ],
     "queriesLost": [
@@ -150,18 +158,18 @@
       5
     ],
     "weakestQueries": [
-      1,
-      2
+      3,
+      5
     ],
-    "winningCompetitor": "Aakash Institute",
-    "winningCompetitorCount": 5,
+    "winningCompetitor": "Umrao NCLEX Coaching Centre",
+    "winningCompetitorCount": 7,
     "topCitationGap": "justdial.com",
-    "formattedText": "Navkiran Nursing Classes was named in 0 of 15 answers (0%). ChatGPT, Gemini and Perplexity did not name Navkiran Nursing Classes in any of the 5 prompts. Aakash Institute was the competitor named most often, in 5 of 15 answers. Weakest queries: Q1 \"best coaching institute in mohali\" (0 of 3 engines named Navkiran Nursing Classes); Q2 \"which coaching institute in mohali has the best reviews\" (0 of 3 engines named Navkiran Nursing Classes)."
+    "formattedText": "Navkiran Nursing Classes was named in 4 of 15 answers (26.7%). Perplexity did not name Navkiran Nursing Classes in any of the 5 prompts. Umrao NCLEX Coaching Centre was the competitor named most often, in 7 of 15 answers. Weakest queries: Q3 \"top rated nursing coaching institute in Mohali and what each is kno...\" (0 of 3 engines named Navkiran Nursing Classes); Q5 \"nursing coaching institute in Mohali: which one should I trust and why\" (0 of 3 engines named Navkiran Nursing Classes)."
   },
   "matrix": [
     {
       "promptIndex": 1,
-      "prompt": "best coaching institute in mohali",
+      "prompt": "best nursing coaching institute in Mohali",
       "journeyPhase": "decision",
       "chatgpt": {
         "badge": "—",
@@ -169,9 +177,9 @@
         "mentioned": false
       },
       "gemini": {
-        "badge": "—",
-        "position": null,
-        "mentioned": false
+        "badge": "Mentioned",
+        "position": 4,
+        "mentioned": true
       },
       "perplexity": {
         "badge": "—",
@@ -179,14 +187,14 @@
         "mentioned": false
       },
       "excerpt": {
-        "engine": "perplexity",
-        "badge": "—",
-        "text": "There isn’t one best coaching institute for every student—it depends on the course. For a general starting point, Shrivik Acade..."
+        "engine": "gemini",
+        "badge": "Mentioned",
+        "text": "The \"best\" nursing coaching institute in Mohali depends on whether you are preparing for Government Nursing Officer Exams (AIIM..."
       }
     },
     {
       "promptIndex": 2,
-      "prompt": "which coaching institute in mohali has the best reviews",
+      "prompt": "which nursing coaching institute in Mohali has the best reviews",
       "journeyPhase": "decision",
       "chatgpt": {
         "badge": "—",
@@ -194,9 +202,9 @@
         "mentioned": false
       },
       "gemini": {
-        "badge": "—",
-        "position": null,
-        "mentioned": false
+        "badge": "Named #2",
+        "position": 2,
+        "mentioned": true
       },
       "perplexity": {
         "badge": "—",
@@ -204,14 +212,14 @@
         "mentioned": false
       },
       "excerpt": {
-        "engine": "perplexity",
-        "badge": "—",
-        "text": "“Best” depends on the subject, but Youthbaba Academy looks like a strong general option in Mohali: it has a 4.8/5 rating from 2..."
+        "engine": "gemini",
+        "badge": "Named #2",
+        "text": "The nursing coaching institute with the best reviews often depends on whether you are preparing for international licensure (NC..."
       }
     },
     {
       "promptIndex": 3,
-      "prompt": "top rated coaching institute in mohali and what each is known for",
+      "prompt": "top rated nursing coaching institute in Mohali and what each is known for",
       "journeyPhase": "decision",
       "chatgpt": {
         "badge": "—",
@@ -231,22 +239,22 @@
       "excerpt": {
         "engine": "perplexity",
         "badge": "—",
-        "text": "“Top-rated” depends on the course —Mohali has different coaching options for IELTS, defence exams, and other subjects. If you m..."
+        "text": "If you mean exam coaching (NCLEX, staff-nurse or nursing entrance exams), Believe Nursing Coaching Institute is the clearest to..."
       }
     },
     {
       "promptIndex": 4,
-      "prompt": "how do I choose a coaching institute in mohali, and which ones do you recommend",
+      "prompt": "how do I choose a nursing coaching institute in Mohali, and which ones do you recommend",
       "journeyPhase": "decision",
       "chatgpt": {
-        "badge": "—",
-        "position": null,
-        "mentioned": false
+        "badge": "Mentioned",
+        "position": 5,
+        "mentioned": true
       },
       "gemini": {
-        "badge": "—",
-        "position": null,
-        "mentioned": false
+        "badge": "Mentioned",
+        "position": 10,
+        "mentioned": true
       },
       "perplexity": {
         "badge": "—",
@@ -254,14 +262,14 @@
         "mentioned": false
       },
       "excerpt": {
-        "engine": "perplexity",
-        "badge": "—",
-        "text": "The right coaching institute depends on what you’re preparing for —JEE/NEET, school exams, NDA, IELTS, or something else. Befor..."
+        "engine": "gemini",
+        "badge": "Mentioned",
+        "text": "Choosing the right nursing coaching institute depends heavily on the specific exam you are preparing for (such as domestic gove..."
       }
     },
     {
       "promptIndex": 5,
-      "prompt": "coaching institute in mohali: which one should I trust and why",
+      "prompt": "nursing coaching institute in Mohali: which one should I trust and why",
       "journeyPhase": "decision",
       "chatgpt": {
         "badge": "—",
@@ -281,75 +289,503 @@
       "excerpt": {
         "engine": "perplexity",
         "badge": "—",
-        "text": "There isn’t one coaching institute in Mohali that can be recommended for every student—the right choice depends on which exam o..."
+        "text": "There isn’t enough independent evidence to name one Mohali nursing coaching institute as the clear, trustworthy winner. If you’..."
       }
     }
   ],
   "rawAnswers": [
     {
       "promptIndex": 1,
-      "prompt": "best coaching institute in mohali",
+      "prompt": "best nursing coaching institute in Mohali",
       "engine": "chatgpt",
       "model": "gpt-6-luna",
       "badge": "—",
-      "text": "“Best” depends on what you’re preparing for. For **JEE/NEET**, you could compare **ALLEN, Aakash, and GOEL Institute** in the Mohali area; they list JEE/NEET coaching, but the right choice depends on the specific branch, faculty, and batch. ([allen.ac.in](https://www.allen.ac.in/chandigarh/?utm_source=openai))\n\nWhat do you need coaching for—**JEE, NEET, IELTS, UPSC, government exams, or school subjects**?",
+      "text": "There isn’t one clear “best” for every nursing exam. **For coaching in Mohali, I’d shortlist:**\n\n- **Believe Nursing Coaching (Sector 91)** — a good fit if you’re preparing for **NCLEX or OSCE**; it advertises in-person coaching and a free demo class. ([belnursingcoaching.com](https://belnursingcoaching.com/contact-us/?utm_source=openai))\n- **Mantram Nursing Academy** — worth checking for **nursing entrance and staff-nurse recruitment exams**; confirm its current Mohali/Chandigarh location before visiting. ([staffnursecoaching.com](https://www.staffnursecoaching.com/best-nursing-coaching-in-mohali-vicinity/?utm_source=openai))\n- **IRA, Mohali** — offers **NORCET** preparation. ([iracoaching.in](https://www.iracoaching.in/faq?utm_source=openai))\n\n**My quick pick:** Believe Nursing Coaching for NCLEX/OSCE; Mantram or IRA for India-based entrance/recruitment exams. Before enrolling, attend a demo and ask about the current faculty, batch size, mock tests, fees, and recent results.\n\nWhich exam are you preparing for—**NORCET, staff nurse, B.Sc. Nursing entrance, NCLEX, or OSCE**?",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "JEE/NEET",
-          "ALLEN"
+          "Believe Nursing Coaching",
+          "NCLEX or OSCE",
+          "Mantram Nursing Academy",
+          "IRA",
+          "NORCET",
+          "My quick pick"
         ]
       },
       "citations": [
         {
-          "domain": "allen.ac.in",
-          "url": "https://www.allen.ac.in/chandigarh/?utm_source=openai",
+          "domain": "belnursingcoaching.com",
+          "url": "https://belnursingcoaching.com/contact-us/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "staffnursecoaching.com",
+          "url": "https://www.staffnursecoaching.com/best-nursing-coaching-in-mohali-vicinity/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "iracoaching.in",
+          "url": "https://www.iracoaching.in/faq?utm_source=openai",
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.011056
+      "costUsd": 0.021548
     },
     {
       "promptIndex": 1,
-      "prompt": "best coaching institute in mohali",
+      "prompt": "best nursing coaching institute in Mohali",
       "engine": "gemini",
       "model": "gemini-3.8-flash",
-      "badge": "—",
-      "text": "Because Mohali (SAS Nagar) has different hubs of specialized institutes, the “best” coaching institute depends on the exam or field you are preparing for:\n\n---\n\n### 1. IIT-JEE & NEET (Medical / Engineering Entrance)\n* **Aakash Institute (Sector 118 / Mohali branches):** One of the most reputed national brands for NEET and JEE preparation, known for structured test series, study materials, and experienced faculty.\n* **Allen Career Institute (Tricity / Sector 34 & Mohali access):** While its flagship Tricity campus is in Chandigarh Sector 34 (10–15 minutes from Mohali), it remains the top choice for Tricity students aiming for top ranks in JEE Advanced and NEET-UG.\n* **The Pillars Coaching Classes & Helix Institute:** Strong regional reputations for biology, medical entrance, and school board + competitive exam integration.\n\n---\n\n### 2. IELTS / PTE & Study Abroad\n* **Grey Matters (Phase 7 / Phase 3B2):** One of Punjab’s oldest and most established networks for IELTS, Spoken English, and visa preparation.\n* **Spearhead IELTS (Phase 3B2):** Popular for small batch sizes, regular mock tests, and personalized feedback.\n* **British Career Group (Phase 7):** IDP-affiliated training focusing on rapid score improvement across reading, writing, and speaking modules.\n* **ThinkEnglish (Sector 68):** Highly rated for general spoken English, IELTS, and PTE preparation.\n\n---\n\n### 3. Banking, SSC, State PCS & Govt. Job Exams\n* **AAA Bright Academy (Phase 7 / Tricity):** A household name across Punjab and Chandigarh for Bank PO/Clerk, SSC CGL, and Punjab State exams.\n* **IBT Institute (Phase 7):** Known for structured test batches, shortcut tricks, and consistent past results in competitive government tests.\n* **Raj Malhotra’s IAS / O2 IAS Academy (Mohali/Chandigarh border):** The go-to choices for UPSC Civil Services and Punjab Civil Services (PCS) preparation in the Tricity area.\n\n---\n\n### 4. IT, Software & Industrial Training\n* **ThinkNEXT Technologies (Sector 65, Phase 11):** One of the largest and most awarded IT training institutes in Mohali, offering courses in Full Stack Web Development, Python, Data Science, AI, and Digital Marketing with live project support.\n* **Techedo Technologies & Netmax Technologies:** Notable alternatives for software engineering, networking, and technical certifications.\n\n---\n\n### Summary Advice:\n* **Primary Hubs:** Most top institutes in Mohali are clustered around **Phase 7, Phase 3B2, and Sector 70**. \n* **Next Steps:** Always ask for **1–2 free demo classes**, verify recent student results (from the past year), and inquire about average batch sizes before paying admission fees.",
+      "badge": "Mentioned",
+      "text": "The \"best\" nursing coaching institute in Mohali depends on whether you are preparing for **Government Nursing Officer Exams** (AIIMS NORCET, PGIMER, GMCH, State Staff Nurse), **International Licensing** (NCLEX-RN, DHA, HAAD), or **Entrance Exams** (B.Sc/M.Sc Nursing).\n\nBecause Mohali is part of the Tricity area (along with Chandigarh and Panchkula), many of the top academies are located directly in Mohali or just across the border in Chandigarh (Sector 34/35 hub), easily accessible to Mohali residents.\n\n---\n\n### 1. For International Licensing Exams (NCLEX-RN, DHA, HAAD, OSCE)\n\n* **Umrao NCLEX Coaching Centre (Sector 91, Mohali)**\n  * **Focus:** NCLEX-RN (NextGen), DHA, MOH, HAAD for the US, Canada, Australia, and Middle East.\n  * **Highlights:** One of the few dedicated centres located right inside Mohali. Known for high-yield question banks, scenario-based practice questions, and individualized doubt-solving sessions.\n* **Navkiran Nursing Classes (NNC)**\n  * **Focus:** NCLEX-RN, REx-PN, CBT/OSCE.\n  * **Highlights:** Very popular across Punjab and the Tricity for nurses seeking overseas jobs. Offers dedicated hybrid/online options, app access, and licensing process guidance.\n\n---\n\n### 2. For Government Jobs (AIIMS NORCET, PGIMER, GMCH, ESIC, State Staff Nurse)\n\n* **Mantram Nursing Academy (Mohali / Sector 34)**\n  * **Focus:** AIIMS NORCET, PGIMER Chandigarh, GMCH-32, BFUHS, HPPSC, ESIC.\n  * **Highlights:** Widely recognized as one of the premier institutions in the Tricity for staff nurse exams. Offers comprehensive printed study materials, regular test series mimicking real CBT exam environments, and structured revisions.\n* **Kanika’s Nursing Academy (KNA) (Tricity / Sector 34)**\n  * **Focus:** NORCET, PGIMER, State Commission exams, Post-Basic & M.Sc Nursing.\n  * **Highlights:** Renowned for specialized faculty with strong track records in national selection lists. Both regular classroom courses and flexible online live batches are available.\n\n---\n\n### 3. For B.Sc / M.Sc Nursing Entrance Exams\n\n* **Mannat Nursing Academy (MNA) & Science Tutorial (Tricity)**\n  * **Focus:** B.Sc Nursing entrance (PGI, AIIMS, BFUHS PPMET).\n  * **Highlights:** Special focus on 10+2 science syllabus (Physics, Chemistry, Biology, Aptitude), providing foundational coaching alongside dedicated MCQ test series.\n* **Competition Guru (Phase 7 / Sector 34 branches)**\n  * **Focus:** State and national-level nursing entrance exams, General Aptitude, and Staff Nurse tests.\n  * **Highlights:** Focuses on shortcut problem-solving techniques, regular mock tests, and backup doubt sessions.\n\n---\n\n### How to Choose:\n1. **Target Exam:** If your goal is **immigration / abroad**, prioritize *Umrao* or *NNC*. If your goal is **AIIMS / PGIMER / Central Govt jobs**, prioritize *Mantram* or *Kanika’s*.\n2. **Demo Classes:** Most centres in Mohali offer 1–2 days of free demo classes; attend them to assess the teaching style.\n3. **Batch Timings:** If you are a working nurse doing hospital shifts, check whether the institute provides recorded lectures and weekend/evening batch alternatives.",
       "analysis": {
-        "mentioned": false,
-        "position": null,
+        "mentioned": true,
+        "position": 4,
         "competitorsMentioned": [
-          "Aakash Institute",
-          "Allen Career Institute",
-          "The Pillars Coaching Classes & Helix Institute",
-          "Grey Matters",
-          "Spearhead IELTS",
-          "British Career Group",
-          "ThinkEnglish",
-          "AAA Bright Academy",
-          "IBT Institute",
-          "Raj Malhotra’s IAS / O2 IAS Academy",
-          "ThinkNEXT Technologies",
-          "Techedo Technologies & Netmax Technologies",
-          "Primary Hubs",
-          "Phase 7",
-          "Next Steps"
+          "International Licensing",
+          "Umrao NCLEX Coaching Centre",
+          "Focus",
+          "Mantram Nursing Academy",
+          "Kanika’s Nursing Academy",
+          "Mannat Nursing Academy & Science Tutorial",
+          "Competition Guru",
+          "Target Exam",
+          "AIIMS / PGIMER / Central Govt jobs",
+          "Demo Classes",
+          "Batch Timings"
         ]
       },
       "citations": [
         {
-          "domain": "aakash.ac.in",
+          "domain": "kanikasnursingacademy.com",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "allen.ac.in",
+          "domain": "navkirannursingclasses.com",
+          "url": null,
+          "channelType": "owned",
+          "brandMentioned": true,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cgi.guru",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "umraonclex.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "staffnursecoaching.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "sciencetutorial.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mannatacademy.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.034538
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "best nursing coaching institute in Mohali",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "If you mean **coaching for nursing exams or overseas nursing registration**, **NCA Academy in Sector 91, Mohali** is a strong option to check. It offers NCLEX coaching and preparation for nursing officer exams, with classroom and online formats; its specific course and campus details vary by program.[1][2][5]\n\nOther listed options include **Believe Nursing Coaching Institute** in Sector 90 and **Umrao NCLEX Coaching Centre** in Sector 91; directory listings show ratings, but those alone don’t establish which is best.[6][9]\n\nBefore enrolling, compare the course for your exact goal (NCLEX, staff-nurse recruitment, or entrance exams), attend a demo, and ask for current fees, batch size, faculty details, and independently verifiable recent results.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "NCA Academy in Sector 91",
+          "Believe Nursing Coaching Institute",
+          "Umrao NCLEX Coaching Centre"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "ncaacademy.com",
+          "url": "https://ncaacademy.com/nclex-coaching-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ncaacademy.com",
+          "url": "https://ncaacademy.com/nclex-coaching-india/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ncaacademy.com",
+          "url": "https://ncaacademy.com/osce-coaching-in-mohali/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "epageindia.in",
+          "url": "https://epageindia.in/education/best-staff-nurse-coaching-in-chandigarh-himachal",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ncaacademy.com",
+          "url": "https://ncaacademy.com/pgimer-nursing-officer-coaching/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Tutorials-For-Nclex-in-Landran/nct-10943629",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Delhi/Government-Nursing-Colleges-in-Sukhdev-Vihar/nct-11182401",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Delhi/Nursing-Tutorials/nct-11236583/page-5",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Kharar/Nclex-Rn-Exam-Training-Centres-in-Mohali-Sector-126/nct-11267139",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Vikas-Nagar/Government-Nursing-Colleges-in-Vikas-Nagar/nct-11182401",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00169
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "which nursing coaching institute in Mohali has the best reviews",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "**Believe Nursing Coaching Institute in Landran** appears to have the highest rating I found: **5.0/5 from 134 ratings** on Justdial. ([justdial.com](https://www.justdial.com/Mohali/Tutorials-For-Nclex/nct-10943629?utm_source=openai))\n\nIf you mean **Mohali city proper**, **Umrao NCLEX Coaching Centre in Sector 91** is a strong alternative, listed at **4.9/5 from 138 ratings**. ([justdial.com](https://www.justdial.com/Mohali/Umrao-Nclex-Coaching-Centre-Mohali-Sector-91/0172PX172-X172-121212183352-K7D2_BZDET?utm_source=openai))\n\nRatings can vary by platform, and the right fit depends on whether you need **NCLEX, nursing entrance, or staff-nurse exam** coaching—so check that the institute teaches your specific exam before enrolling.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Believe Nursing Coaching Institute in Landran",
+          "Mohali city proper",
+          "Umrao NCLEX Coaching Centre in Sector 91",
+          "NCLEX"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Tutorials-For-Nclex/nct-10943629?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Umrao-Nclex-Coaching-Centre-Mohali-Sector-91/0172PX172-X172-121212183352-K7D2_BZDET?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021505
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "which nursing coaching institute in Mohali has the best reviews",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "Named #2",
+      "text": "The nursing coaching institute with the best reviews often depends on whether you are preparing for **international licensure (NCLEX-RN, DHA)** or **domestic government exams/entrances (AIIMS NORCET, PGIMER, GMCH, B.Sc. Nursing)**. \n\nBecause Mohali and Chandigarh function as a connected education hub (Tricity), students in Mohali frequently choose from top-rated centers in both Mohali and immediately adjoining sectors.\n\n---\n\n### 1. Best for International Licensing (NCLEX-RN, DHA, OSCE):\n* **Umrao NCLEX Coaching Centre (Sector 91, Mohali)**\n  * **Ratings & Reputation:** Consistently rated **4.9 to 5.0 stars** across local reviews and student testimonials.\n  * **Highlights:** Led by Dr. Ravinder Singh, this institute specializes specifically in NCLEX-RN, REx-PN, and Middle East licensing (DHA/MOH). Reviewers praise the small batch sizes, concept-based lectures, and high first-attempt pass rates on the Next Generation NCLEX (NGN).\n* **Navkiran Nursing Classes (NNC) / NCA-Nursing (Mohali & Vicinity)**\n  * **Highlights:** High student ratings for Canada and USA nursing licensing prep, structured question banks, and OSCE practical training.\n\n---\n\n### 2. Best for Domestic Government Exams & Entrances (NORCET, PGIMER, B.Sc Nursing):\n* **Mantram Nursing Academy (Chandigarh – Sector 34 / Serving Mohali Vicinity)**\n  * **Ratings & Reputation:** Widely considered the highest-rated and most recommended nursing academy in the Tricity area for government officer recruitment exams.\n  * **Highlights:** Specializes in AIIMS NORCET, PGIMER, GMCH-32, state staff nurse exams, and B.Sc/M.Sc nursing entrance exams. Reviewers frequently highlight the comprehensive study material, high rank track record, and specialized subject-wise faculty.\n* **Kanika’s Nursing Academy (Chandigarh / Mohali Border Area)**\n  * **Ratings & Reputation:** Outstanding student feedback (4.8+ stars).\n  * **Highlights:** Highly praised for AIIMS NORCET classroom/online crash courses, regular doubt-clearing sessions, and test series.\n\n---\n\n### Summary Recommendation:\n* If your goal is **NCLEX-RN or foreign licensure** and you want an institute physically located within Mohali, **Umrao NCLEX Coaching Centre (Sector 91)** has the strongest track record and reviews.\n* If your goal is **AIIMS NORCET, PGIMER, or Staff Nurse recruitment**, **Mantram Nursing Academy** (just across the border in Sector 34) has the most positive feedback and highest success rate in the region.",
+      "analysis": {
+        "mentioned": true,
+        "position": 2,
+        "competitorsMentioned": [
+          "Umrao NCLEX Coaching Centre",
+          "Mantram Nursing Academy",
+          "Kanika’s Nursing Academy",
+          "NCLEX-RN or foreign licensure",
+          "AIIMS NORCET"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "umraonclex.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "belnursingcoaching.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "navkirannursingclasses.com",
+          "url": null,
+          "channelType": "owned",
+          "brandMentioned": true,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "staffnursecoaching.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "kanikasnursingacademy.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.032823
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "which nursing coaching institute in Mohali has the best reviews",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "For nursing-exam coaching, **Believe Nursing Coaching Institute in Landran** appears to have the strongest combination of rating and review volume among the Mohali options found: **5.0/5 from 134 reviews** on Justdial[6]. **Umrao NCLEX Coaching Centre** is another strong option, listed at **5.0/5 from 141 ratings** in Mohali Sector 91[2].\n\nRatings can vary by platform and exam focus, so check recent reviews and confirm the institute teaches the specific exam you’re preparing for (such as NCLEX, NORCET, or staff-nurse recruitment) before enrolling.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Believe Nursing Coaching Institute in Landran",
+          "Umrao NCLEX Coaching Centre"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Government-Nursing-Colleges-in-Mohali-Sector-79/nct-11182401",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Nclex-Rn-Exam-Training-Centres/nct-11267139",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Patiala/Institutes-For-Nursing-Gnm/nct-10269626?stype=category_list",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Tutorials-for-HPSSC-in-New-Chandigarh/nct-10502492-att-ce232",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Ferozepur/Nclex-Rn-Exam-Training-Centres/nct-11267139",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Believe-Nursing-Coaching-Institute-Landran/0172PX172-X172-240523020810-K9J3_BZDET",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Nclex-Chandigarh-Bsf-Camp-Mohali-Sector-90/0172PX172-X172-241219200113-U6F6_BZDET",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Kharar/B-Sc-Nursing-Institutes-in-Mohali-Sector-125/nct-11279066",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "epageindia.in",
+          "url": "https://epageindia.in/education/best-staff-nurse-coaching-in-chandigarh-himachal",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Institutes-For-Nursing-Gnm-in-Chandigarh-Sector-40/nct-10269626",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00168
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "top rated nursing coaching institute in Mohali and what each is known for",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "Mohali’s nursing-coaching listings are weighted toward **NCLEX and overseas-registration preparation**. Ratings below are third-party listing snapshots—not a definitive ranking—and some have very few reviews.\n\n| Institute | Public rating snapshot | What it’s known for |\n|---|---:|---|\n| **Umrao NCLEX Coaching Centre**, Sector 91 | **4.8/5, 138 ratings** on one Justdial listing | The strongest review-count signal I found for **NCLEX coaching** in Mohali. ([justdial.com](https://www.justdial.com/Mohali/Nclex-Rn-Exam-Training-Centres/nct-11267139?utm_source=openai)) |\n| **Nclex Chandigarh / Believe Nursing Coaching**, Mohali | **5.0/5, 3 ratings** | **NCLEX-RN, OSCE and CBT** preparation; its own site also advertises practice tests, doubt sessions and individual attention. The rating is perfect but based on only three ratings. ([justdial.com](https://www.justdial.com/Mohali/Nclex-Chandigarh-Bsf-Camp-Mohali-Sector-90/0172PX172-X172-241219200113-U6F6_BZDET/reviews?utm_source=openai)) |\n| **NCA Academy**, Sector 91 | No comparable review count verified in the sources I found | **NCLEX and OSCE preparation**, including courses aimed at nurses pursuing registration abroad. Its site also notes a longer history in defence-exam coaching, so ask specifically about the nursing faculty and course. ([ncaacademy.com](https://ncaacademy.com/osce-coaching-in-mohali/?utm_source=openai)) |\n\n**Quick pick:** For NCLEX, **Umrao** has the largest visible review sample; **Believe Nursing Coaching** is another option to compare, but its rating sample is small. For **B.Sc. Nursing entrance, NORCET or staff-nurse recruitment exams**, these results don’t establish a clear top-rated Mohali option—ask any institute for the exact exam-specific batch, recent results, demo class and current fee before enrolling.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "NCLEX and overseas-registration preparation",
+          "Umrao NCLEX Coaching Centre",
+          "NCLEX coaching",
+          "Nclex Chandigarh / Believe Nursing Coaching",
+          "NCLEX-RN",
+          "NCA Academy",
+          "NCLEX and OSCE preparation",
+          "Umrao",
+          "Believe Nursing Coaching",
+          "B.Sc. Nursing entrance"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Nclex-Rn-Exam-Training-Centres/nct-11267139?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Nclex-Chandigarh-Bsf-Camp-Mohali-Sector-90/0172PX172-X172-241219200113-U6F6_BZDET/reviews?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ncaacademy.com",
+          "url": "https://ncaacademy.com/osce-coaching-in-mohali/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021688
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "top rated nursing coaching institute in Mohali and what each is known for",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because Mohali and Chandigarh form part of the contiguous Tricity area, nursing aspirants in Mohali generally rely on a mix of **institutes located directly inside Mohali (SAS Nagar)** and **institutes situated right along the border** (e.g., Sector 15 near PGIMER and Sector 34). \n\nThe top-rated nursing coaching institutes serving Mohali students and their respective specialties are detailed below:\n\n---\n\n### **1. Institutes Located Directly in Mohali**\n\n#### **Umrao NCLEX & Staff Nursing Coaching Centre** *(Sector 91 / Sector 70, Mohali)*\n* **Best Known For:** **International Nursing Licensure (NCLEX-RN, DHA, HAAD)**.\n* **Highlights:** One of the most established names in Mohali specifically for nurses aiming to practice abroad (USA, Canada, Australia, and Middle East). Led by senior educators like Dr. Ravinder Singh, it is renowned for critical-thinking question frameworks, computer-adaptive test strategies, and small interactive batches.\n\n#### **NCA-Nursing / New Careers Academy** *(Sector 91, Mohali)*\n* **Best Known For:** **OSCE Training, NCLEX-RN, and CBT (UK/NZ)**.\n* **Highlights:** Particularly known for its dedicated hands-on simulation setup—often billed as an exclusive OSCE training facility in the Tricity. They offer combined training modules for foreign licensing exams as well as Indian government nursing officer positions (NORCET/PGI).\n\n#### **Vertex Nursings Hub** *(Sector 91, Mohali)*\n* **Best Known For:** **Global Nursing Exams (CBT-UK, DHA, NCLEX) & Mentorship**.\n* **Highlights:** Known for personalized counseling, flexible online/offline schedules tailored for working hospital staff, and targeted preparation for international qualifying exams alongside domestic staff nurse tests.\n\n#### **Competition Guru** *(Branches in Mohali / Tricity)*\n* **Best Known For:** **MNS (Military Nursing Service) & State Recruitment Exams**.\n* **Highlights:** Recognized for preparing candidates for the Indian Army’s Military Nursing Service (B.Sc entrance and interview rounds) as well as Punjab state-level health department tests. They focus heavily on GK, general science, aptitude, and past-year question paper drills.\n\n---\n\n### **2. Top-Rated Tricity Academies (Directly Bordering Mohali)**\n*A large proportion of Mohali students commute to or take hybrid classes from these leading hubs located minutes away from the Mohali border:*\n\n#### **Mantram Nursing Academy** *(Sector 15-D, near PGIMER)*\n* **Best Known For:** **AIIMS NORCET, PGIMER, GMCH-32, & B.Sc/M.Sc Entrances**.\n* **Highlights:** Widely considered the benchmark nursing academy in the region. Because of its proximity to PGIMER, it attracts premier faculty. It is best known for its disciplined syllabus coverage, rigorous weekend test series, and high qualification rates for central government Nursing Officer positions.\n\n#### **Gurukul Career Group** *(Sector 34 / Tricity)*\n* **Best Known For:** **PPMET (Punjab Para Medical Entrance Test) & NORCET**.\n* **Highlights:** The go-to institute for 12th-standard students in Punjab aiming for B.Sc Nursing admissions via the PPMET exam conducted by BFUHS (Faridkot). They provide comprehensive coverage of physics, chemistry, and biology tailored to state nursing entrance patterns.\n\n#### **Kanika’s Nursing Academy** *(Tricity / Sector 34 hub)*\n* **Best Known For:** **NORCET Crash Courses, CHO (Community Health Officer), & Online Test App**.\n* **Highlights:** Popular for its digital question banks, daily subject-wise tests, and fast-track revision batches for state PSC and national nursing recruitment exams.\n\n#### **Science Tutorial Nursing Academy** *(Chandigarh/Mohali border)*\n* **Best Known For:** **B.Sc/Post-Basic Nursing Entrances (PGI & AIIMS)**.\n* **Highlights:** Focuses heavily on academic entrance foundations. Known for simplifying core medical-science concepts for students making the transition straight out of school into competitive nursing degrees.\n\n---\n\n### **Summary: Which One Should You Choose?**\n\n* **If your goal is to move abroad (USA / UK / Middle East):** Look at **Umrao NCLEX** or **NCA-Nursing** (both inside Sector 91, Mohali).\n* **If your goal is a central govt. job (AIIMS NORCET, PGI, GMCH):** **Mantram Nursing Academy** or **Kanika’s Nursing Academy**.\n* **If your goal is Punjab State admission (PPMET B.Sc Nursing):** **Gurukul Career Group** or **Mantram**.\n* **If targeting the Armed Forces (MNS):** **Competition Guru**.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Institutes Located Directly in Mohali",
+          "Umrao NCLEX & Staff Nursing Coaching Centre",
+          "International Nursing Licensure",
+          "NCA-Nursing / New Careers Academy",
+          "OSCE Training",
+          "Vertex Nursings Hub",
+          "Global Nursing Exams & Mentorship",
+          "Competition Guru",
+          "MNS & State Recruitment Exams",
+          "Mantram Nursing Academy",
+          "AIIMS NORCET",
+          "Gurukul Career Group",
+          "PPMET & NORCET",
+          "Kanika’s Nursing Academy",
+          "Science Tutorial Nursing Academy",
+          "B.Sc/Post-Basic Nursing Entrances",
+          "If your goal is to move abroad",
+          "Umrao NCLEX",
+          "NCA-Nursing",
+          "If your goal is Punjab State admission",
+          "Mantram",
+          "If targeting the Armed Forces"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "staffnursecoaching.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "omnursingacademy.com",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
@@ -363,426 +799,268 @@
           "competitorsMentioned": []
         },
         {
-          "domain": "yocket.com",
+          "domain": "umraonclex.com",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "britishcareergroup.in",
+          "domain": "justdial.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "belnursingcoaching.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "belnursingcoaching.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cgi.guru",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "kanikasnursingacademy.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "gurukulcareergroup.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "sciencetutorial.in",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.019247
+      "costUsd": 0.067447
     },
     {
-      "promptIndex": 1,
-      "prompt": "best coaching institute in mohali",
+      "promptIndex": 3,
+      "prompt": "top rated nursing coaching institute in Mohali and what each is known for",
       "engine": "perplexity",
       "model": "openai/gpt-6-luna",
       "badge": "—",
-      "text": "There isn’t one best coaching institute for every student—it depends on the course. For a general starting point, **Shrivik Academy** and **Comet AI Institute** are among the highly rated options listed in Mohali, but ratings alone don’t establish teaching quality[2].\n\nFor specific goals, consider **Eduzphere** for banking/SSC and government exams[7], **New Careers Academy** for NDA/CAPF[5], or **Spearhead** and **ThinkEnglish** for IELTS[8]. If you share the exam or subject, I can narrow it down. Before enrolling, compare a demo class, faculty experience, batch size, fees, and independently verifiable results.",
+      "text": "If you mean **exam coaching** (NCLEX, staff-nurse or nursing entrance exams), **Believe Nursing Coaching Institute** is the clearest top-rated Mohali-area option in the listings found: it shows **5.0 from 134 ratings** and is described as offering expert faculty and personalized guidance. It is in Sector 90, Landran, Mohali.[4]\n\nOther options to consider:\n\n- **Nursing Academy** — listed among popular NCLEX-RN training centres; located in Chandigarh Sector 24C, so it serves the wider Tricity rather than Mohali proper.[4]\n- **Umrao NCLEX Coaching Centre** — another listed NCLEX-focused option, in Mohali Sector 91; the available listing didn’t show a rating or a specific specialty beyond NCLEX coaching.[4]\n- **Umrao Institute** — described in a directory listing as providing staff-nurse coaching and nursing entrance tutoring; verify its current Mohali location and ratings directly before enrolling.[5]\n\nRatings and directory descriptions are a useful shortlist, not a guarantee of teaching quality. Ask each institute for its current course outline, class format, demo class, fees, and recent exam outcomes before deciding.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "Shrivik Academy",
-          "Comet AI Institute",
-          "Eduzphere",
+          "Believe Nursing Coaching Institute",
+          "Nursing Academy",
+          "Umrao NCLEX Coaching Centre",
+          "Umrao Institute"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Nclex-Rn-Exam-Training-Centres/nct-11267139",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Patiala/Institutes-For-Nursing-Gnm/nct-10269626?stype=category_list",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Nursing-Institutes-in-Mohali-Sector-76/nct-10620667",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Kharar/Nclex-Rn-Exam-Training-Centres-in-Mohali-Sector-126/nct-11267139",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "epageindia.in",
+          "url": "https://epageindia.in/education/best-staff-nurse-coaching-in-chandigarh-himachal",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Faridkot/Institutes-For-Nursing-Gnm/nct-10269626/page-2",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Institutes-For-Nursing-Gnm-in-Chandigarh-Sector-40/nct-10269626",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Amloh/Nursing-Colleges/nct-10854448",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Nursing-Institutes/nct-10620667",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/M-Sc-Nursing-Institutes-in-Chandigarh-Sector-40/nct-11279064",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00173
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "how do I choose a nursing coaching institute in Mohali, and which ones do you recommend",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "Mentioned",
+      "text": "The right choice depends first on **which exam you’re preparing for**—BSc Nursing entrance, **NORCET/staff-nurse recruitment**, or **NCLEX/another overseas licensing exam**. These need different teaching and practice, so I wouldn’t choose an institute just because it says “nursing coaching.”\n\n### My shortlist around Mohali\n\n- **For NORCET / nursing-officer or staff-nurse recruitment:** **New Careers Academy (NCA)** is worth checking. It advertises NORCET and PGIMER nursing-officer preparation, including classroom coaching at SCO 71, Sector 91, Mohali. ([ncaacademy.com](https://ncaacademy.com/course-category/nursing/nursing-aiims-norcet/?utm_source=openai))\n- **For NCLEX-RN / OSCE / CBT:** **Believe Nursing Coaching** advertises these courses, a demo class, mock tests and a Sector 91, Mohali address. **Navkiran Nursing Classes** is another option to compare; it advertises NCLEX preparation and lists an address at Imperial Tower, CP-67, Mohali. ([belnursingcoaching.com](https://belnursingcoaching.com/?utm_source=openai))\n- **If you’re considering Umrao NCLEX Coaching Centre:** treat it as a lead to investigate rather than a firm recommendation—the details I found are mainly directory listings, so confirm the current faculty, batch and location directly. ([grotal.com](https://www.grotal.com/Mohali/NCLEX-Coaching-Institutes-C2/?utm_source=openai))\n\n**One thing to check:** NCA and Believe Nursing both list **SCO 71, Sector 91**. That doesn’t establish whether they’re connected, but ask who actually runs your course, who teaches it, and where classes take place before paying. ([ncaacademy.com](https://ncaacademy.com/course-category/nursing/nursing-aiims-norcet/?utm_source=openai))\n\n### How to choose\n\nBefore enrolling, attend a demo and ask each institute:\n\n1. **Is the course specifically for my exam and next exam cycle?**\n2. **Who teaches the nursing subjects?** Ask about their nursing and teaching experience, not just the institute’s overall history.\n3. **How much exam-style practice is included?** Ask to see a sample mock test, schedule and doubt-clearing process.\n4. **Can they show verifiable results?** Ask for recent results you can independently check—not just testimonials or “selection guaranteed” claims.\n5. **What is the full cost and written refund/transfer policy?** Get the batch dates, class format and included materials in writing.\n\n**My practical recommendation:** shortlist NCA for recruitment exams and Believe Nursing or Navkiran for NCLEX, then choose only after comparing a demo lesson, the actual instructor and the written fee terms. Online listings and institute websites are useful for finding options, but they don’t independently verify teaching quality or results.\n\nIf you tell me **which exam you’re targeting**, I can narrow this down to the most relevant options.",
+      "analysis": {
+        "mentioned": true,
+        "position": 5,
+        "competitorsMentioned": [
+          "NORCET/staff-nurse recruitment",
+          "NCLEX/another overseas licensing exam",
           "New Careers Academy",
-          "Spearhead",
-          "ThinkEnglish"
+          "Believe Nursing Coaching",
+          "One thing to check",
+          "SCO 71",
+          "My practical recommendation"
         ]
       },
       "citations": [
-        {
-          "domain": "topperchoice.in",
-          "url": "https://topperchoice.in/best-coaching-near-mohali/",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/Institutes/nct-10268288",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "urbanpro.com",
-          "url": "https://www.urbanpro.com/mohali/iit-jee-coaching",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
         {
           "domain": "ncaacademy.com",
-          "url": "https://ncaacademy.com/capf-coaching-in-mohali/",
+          "url": "https://ncaacademy.com/course-category/nursing/nursing-aiims-norcet/?utm_source=openai",
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "ncaacademy.com",
-          "url": "https://ncaacademy.com/nda-coaching-in-mohali/",
+          "domain": "belnursingcoaching.com",
+          "url": "https://belnursingcoaching.com/?utm_source=openai",
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/UGC-Net-Institutes-in-Mohali-Sector-56-Phase-6/nct-11266710",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "eduzphere.com",
-          "url": "https://www.eduzphere.com/ielts-govt-exam-coaching-mohali",
+          "domain": "grotal.com",
+          "url": "https://www.grotal.com/Mohali/NCLEX-Coaching-Institutes-C2/?utm_source=openai",
           "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "abroadgateway.com",
-          "url": "https://abroadgateway.com/blog/top-10-ielts-coaching-institutes-in-chandigarh-and-mohali/",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "amitbookdepot.com",
-          "url": "https://www.amitbookdepot.com/post/best-nda-coaching-in-mohali-2025-top-10-institutes-to-launch-your-defence-career",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/Institutes-in-Mote-Majra/nct-10268288",
-          "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.00167
+      "costUsd": 0.011853
     },
     {
-      "promptIndex": 2,
-      "prompt": "which coaching institute in mohali has the best reviews",
-      "engine": "chatgpt",
-      "model": "gpt-6-luna",
-      "badge": "—",
-      "text": "It depends on the subject—there isn’t one “best” Mohali coaching institute for every course. **Minerva Academy** shows strong reviews (4.7/5 from 788 verified reviewers), but it’s mainly known for defence/SSB coaching. **Sleepy Classes** is listed at 4.8/5 for UPSC coaching, based on a different review listing, so the ratings aren’t directly comparable. ([collegedunia.com](https://collegedunia.com/institute/659-minerva-academy-mohali/google-reviews?utm_source=openai))\n\nWhat are you looking for—**JEE/NEET, IELTS/PTE, UPSC, or something else**? I can compare institutes for that specific course.",
-      "analysis": {
-        "mentioned": false,
-        "position": null,
-        "competitorsMentioned": [
-          "Minerva Academy",
-          "Sleepy Classes",
-          "JEE/NEET"
-        ]
-      },
-      "citations": [
-        {
-          "domain": "collegedunia.com",
-          "url": "https://collegedunia.com/institute/659-minerva-academy-mohali/google-reviews?utm_source=openai",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        }
-      ],
-      "costUsd": 0.011124
-    },
-    {
-      "promptIndex": 2,
-      "prompt": "which coaching institute in mohali has the best reviews",
+      "promptIndex": 4,
+      "prompt": "how do I choose a nursing coaching institute in Mohali, and which ones do you recommend",
       "engine": "gemini",
       "model": "gemini-3.8-flash",
-      "badge": "—",
-      "text": "Because “coaching” spans multiple fields—from competitive exams to English proficiency and technical training—the best-reviewed institute in Mohali depends on what you plan to study. \n\nThe top-rated coaching institutes in Mohali, categorized by exam type and specialization, include:\n\n---\n\n### 1. Banking, SSC, & State Government Exams (PPSC, Punjab Police, Patwari)\n* **AAA Bright Academy (Phase 7, Mohali)**\n  * **Rating:** ~4.7–4.9 / 5 across hundreds of reviews.\n  * **Known for:** Bank PO/Clerk, SSC CGL/CHSL, and Punjab state recruitment exams.\n  * **Why it’s reviewed well:** Experienced faculty, extensive library of test series, regular speed tests, and a strong track record of government exam selections in the Tricity region.\n\n---\n\n### 2. Engineering & Medical Entrance (IIT-JEE & NEET)\n* **ALLEN Career Institute (Mohali Campus)**\n  * **Rating:** ~4.5–4.8 / 5.\n  * **Known for:** JEE Main/Advanced, NEET-UG, and Class 9–12 foundation batches.\n  * **Why it’s reviewed well:** Highly structured curriculum, competitive all-India mock tests, national-level faculty, and proven results. \n  * *(Alternative nearby: Many Mohali students also commute a short distance to **Aakash Institute** or **Helix Institute** on the Chandigarh border for medical prep.)*\n\n---\n\n### 3. Defence Exams & SSB Interviews\n* **Minerva Academy (Daon, Mohali)**\n  * **Rating:** Highly acclaimed nationwide (~4.6 / 5).\n  * **Known for:** NDA, CDS, AFCAT, and SSB Interview training.\n  * **Why it’s reviewed well:** One of India’s oldest and most prestigious defence preparation academies, featuring dedicated outdoor obstacle grounds, retired armed forces officers as assessors, and top selection ratios.\n\n---\n\n### 4. Civil Services (UPSC / Punjab PCS)\n* **Abhimanu IAS (Phase 8, Industrial Area, Mohali)**\n  * **Rating:** ~4.8 / 5.\n  * **Known for:** UPSC Civil Services and State Civil Services (Punjab PCS, HPAS, HCS).\n  * **Why it’s reviewed well:** Strong local focus for Punjab state civil services alongside UPSC, comprehensive general studies coverage, and experienced mentorship.\n\n---\n\n### 5. IELTS, PTE & Spoken English\nThe main hubs for IELTS/PTE coaching in Mohali are **Phase 7** and **Phase 3B2**.\n* **Spearhead IELTS (Phase 3B2, Mohali)**\n  * **Rating:** ~4.7 / 5.\n  * **Known for:** Small batch sizes, personalized speaking/writing feedback, and high band score conversion.\n* **Grey Matters / Touchstone (Phase 7 / Phase 3B2 area)**\n  * **Rating:** High overall volume of positive reviews.\n  * **Known for:** Standardized study material, daily mock exams, and structured computer labs for PTE.\n\n---\n\n### 6. IT, Coding & Industrial Training\n* **ThinkNEXT Technologies (Phase 11, Mohali)**\n  * **Rating:** ~4.9 / 5 (with thousands of reviews on Google).\n  * **Known for:** Full-stack development, Python/AI, Data Science, Digital Marketing, and 6-month/6-week industrial training.\n  * **Why it’s reviewed well:** Practical live project exposure, placement assistance, and recognized industry certifications.\n\n---\n\n### Recommendation\n* If you are preparing for **Government jobs / Banking**, **AAA Bright Academy** is widely considered the safest bet.\n* If you are preparing for **JEE / NEET**, **ALLEN Mohali** has the strongest academic backing.\n* If you are preparing for **Defence / SSB**, **Minerva Academy** is a top choice nationwide.\n\n*Tip: Before enrolling, visit the center in person (most are concentrated along Phase 7, Phase 3B2, or Phase 11) to ask for a free **demo lecture** and confirm the current batch size.*",
+      "badge": "Mentioned",
+      "text": "Choosing the right nursing coaching institute depends heavily on the specific exam you are preparing for (such as domestic government recruitment like AIIMS NORCET, state staff nurse exams, B.Sc./M.Sc. entrance, or international licensure like NCLEX-RN, DHA, or CBT UK). \n\nBecause Mohali and Chandigarh function as contiguous twin cities, the coaching ecosystem is shared; while several centers operate directly inside Mohali, many students also commute just a few kilometers to the education hubs in Chandigarh (such as Sector 34).\n\n---\n\n### Part 1: How to Choose a Nursing Coaching Institute\n\nUse this step-by-step checklist before enrolling:\n\n1. **Align with Your Specific Target Exam**\n   * **Domestic Recruitment / Entrance (NORCET, PGIMER, GMCH, PPMET, State PSCs):** Look for institutes that focus heavily on Indian nursing curricula, standard priority-based questions, reasoning, and hospital clinical theory.\n   * **International Licensure (NCLEX-RN, OSCE, DHA, HAAD, CBT-UK):** Ensure the center specifically trains for **NGN (Next Generation NCLEX)** case studies, clinical judgment measurement models, and computer-adaptive test formats.\n\n2. **Faculty Experience & Specialization**\n   * Ask who teaches each subject. A single teacher covering Anatomy, Pharmacology, OBG, and Community Health is a red flag. Look for specialized mentors (M.Sc. Nursing holders, former nursing officers, or foreign-licensed RNs) who have cracked the exam themselves.\n\n3. **Study Material & Question Bank Quality**\n   * Inspect their test series. For NORCET or NCLEX, theoretical notes alone are not enough. The institute should provide high-yield question banks (10,000+ MCQs), rationales for right/wrong options, and computer-based mock tests simulating the actual exam interface.\n\n4. **Batch Size and Shift Flexibility**\n   * Many nursing aspirants work clinical shifts at local hospitals (Max, Fortis, IVY, GMCH). Verify if the institute provides **weekend batches, evening timings, or hybrid access** (live-recorded lectures on a mobile app) so you do not fall behind on demanding duty days.\n   * Ensure batch sizes are kept under 30–40 students for interactive doubt-solving.\n\n5. **Demo Lectures & Peer Feedback**\n   * Never pay full fees upfront without attending **at least 2 free demo classes**.\n   * Speak to current students or alumni outside the front desk to get honest reviews about syllabus completion speed and doubt clearing.\n\n---\n\n### Part 2: Recommended Nursing Coaching Institutes (Mohali & Tricity)\n\n#### 1. Mohali-Based Centers\n* **Umrao NCLEX Coaching Centre (Mohali):**  \n  * **Best For:** NCLEX-RN, DHA, MOH, UK CBT, and NORCET prep.  \n  * **Highlights:** Known for concept-based teaching, focused international licensing prep, and assistance with credential evaluation and application documentation.\n* **Navkiran Nursing Classes (NNC) (Mohali / Tricity):**  \n  * **Best For:** International licensing exams (NCLEX-RN/PN, REx-PN, OSCE).  \n  * **Highlights:** Tailored for nurses seeking migration to the US, Canada, or Australia; provides dedicated test app access and NGN-focused clinical case analysis.\n* **Believe Nursing Coaching Institute (Landran / Mohali):**  \n  * **Best For:** State staff nurse exams, central government entrance exams, and NCLEX basics.  \n  * **Highlights:** Focuses on small batch sizes, disciplined study routines, and foundation building.\n* **Competition Guru (Mohali Branches):**  \n  * **Best For:** Military Nursing Services (MNS), state-level staff nurse recruitment, and general competitive government exams.\n\n#### 2. Immediate Chandigarh Hub (Easily Accessible from Mohali)\nMany students residing in Mohali commute 10–20 minutes to Sector 34, Chandigarh, which hosts the region's largest concentration of nursing academies:\n\n* **Mantram Nursing Academy (Sector 34, Chandigarh):**  \n  * **Best For:** AIIMS NORCET, PGIMER, GMCH-32, PPMET (B.Sc. & M.Sc. Nursing Entrance).  \n  * **Highlights:** One of the most established nursing institutes in North India, featuring multi-specialist faculty, structured subject-wise modules, and regular offline mock tests.\n* **Kanika’s Nursing Academy (Sector 34, Chandigarh):**  \n  * **Best For:** AIIMS NORCET, state nursing officer recruitment, and entrance prep.  \n  * **Highlights:** High selection rates for government hospital recruitment, offering structured classroom and online test platforms.\n* **Science Tutorial (Chandigarh):**  \n  * **Best For:** B.Sc. / M.Sc. Nursing entrance (PGI, AIIMS, BFUHS) and foundation courses for nursing entrance exams.\n\n---\n\n### Recommended Next Steps\n1. **Shortlist 2–3 options** based on whether your priority is domestic government service (e.g., *Mantram* or *Kanika's*) or overseas migration (e.g., *Umrao* or *NNC*).\n2. **Schedule in-person visits** to evaluate classroom infrastructure and view their mock test software.\n3. **Attend demo sessions** to gauge whether the instructors' teaching pacing matches your learning style.",
       "analysis": {
-        "mentioned": false,
-        "position": null,
+        "mentioned": true,
+        "position": 10,
         "competitorsMentioned": [
-          "AAA Bright Academy",
-          "ALLEN Career Institute",
-          "Aakash Institute",
-          "Helix Institute",
-          "Minerva Academy",
-          "Abhimanu IAS",
-          "Phase 7",
-          "Phase 3B2",
-          "Spearhead IELTS",
-          "Grey Matters / Touchstone",
-          "ThinkNEXT Technologies",
-          "JEE / NEET",
-          "ALLEN Mohali",
-          "Defence / SSB"
-        ]
-      },
-      "citations": [
-        {
-          "domain": "academycheck.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "justdial.com",
-          "url": null,
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "yocket.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        }
-      ],
-      "costUsd": 0.035356
-    },
-    {
-      "promptIndex": 2,
-      "prompt": "which coaching institute in mohali has the best reviews",
-      "engine": "perplexity",
-      "model": "openai/gpt-6-luna",
-      "badge": "—",
-      "text": "“Best” depends on the subject, but **Youthbaba Academy** looks like a strong general option in Mohali: it has a 4.8/5 rating from 247 reviews on Justdial[8]. For CBSE, JEE, or NEET coaching, **Narayan Gurukul Academy** lists 4.5/5, but that score is based on only 8 reviews[1].\n\nTell me what you’re preparing for—such as JEE, NEET, UPSC, school tuition, or banking—and I can narrow it down. Ratings and review counts can change, so check recent reviews and visit before enrolling.",
-      "analysis": {
-        "mentioned": false,
-        "position": null,
-        "competitorsMentioned": [
-          "Youthbaba Academy",
-          "Narayan Gurukul Academy"
-        ]
-      },
-      "citations": [
-        {
-          "domain": "classapna.com",
-          "url": "https://www.classapna.com/",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/UGC-Net-Institutes-in-Mohali-Sector-56-Phase-6/nct-11266710",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Chandigarh/Institutes-in-Chandigarh-Sector-61-Phase-7/nct-10268288",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/SBI-Po-Clerk-Coaching-Institute-in-Mohali-Sector-80/nct-11242005",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "addressguru.in",
-          "url": "https://www.addressguru.in/Coaching-Institute/Mohali/MQ==",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/Institutes-in-Mote-Majra/nct-10268288",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "mysarkarinaukri.com",
-          "url": "https://www.mysarkarinaukri.com/study/gk/ias-coaching-in-mohali/",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/Educational-Institutes-in-Mohali-Sector-91/nct-10180445",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/Neet-Tutorials-in-Industrial-Area-Phase-2/nct-11037560",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/Tutorials-For-NIOS-Class-XII/nct-10961964",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        }
-      ],
-      "costUsd": 0.00168
-    },
-    {
-      "promptIndex": 3,
-      "prompt": "top rated coaching institute in mohali and what each is known for",
-      "engine": "chatgpt",
-      "model": "gpt-6-luna",
-      "badge": "—",
-      "text": "“Top-rated” depends on the subject, and online directory ratings aren’t a reliable apples-to-apples ranking. For **Mohali and nearby Greater Mohali**, these are worth shortlisting by goal:\n\n| Institute | Best known for |\n|---|---|\n| **GOEL Institute** | JEE, NEET and NDA coaching; it describes itself as serving Greater Mohali and says it has operated since 2007. ([goelinstitute.in](https://www.goelinstitute.in/?utm_source=openai)) |\n| **Shree Saraswati Institute** | School classes (8–12), board exams, and JEE/NEET preparation in Mohali. ([saraswatiinstitue.com](https://saraswatiinstitue.com/?utm_source=openai)) |\n| **Popel’s IELTS Academy** | IELTS preparation. Its Justdial listing shows a large review count, but check the current star rating and recent reviews directly before relying on it. ([justdial.com](https://www.justdial.com/Mohali/Popels-Ielts-Academy-Near-Ptl-Chowk-Mohali-Sas-Nagar/0172PX172-X172-090330085841-E8H2_BZDET/reviews?utm_source=openai)) |\n| **Landmark Immigration Consultants** | IELTS and language training alongside immigration services. A directory listing shows a 3.9 rating from 2,924 ratings—use that as a signal to read recent reviews, not as a definitive ranking. ([tuition.in](https://www.tuition.in/coaching-centers/chandigarh/index.html?utm_source=openai)) |\n\n**Quick pick:** for JEE/NEET, compare GOEL and Shree Saraswati; for IELTS, compare Popel’s and Landmark. Ask each for a demo class, the actual teacher for your batch, batch size, and recent results for students at a similar starting level. If you tell me the exam or subject, I can narrow this to the best-fit options.",
-      "analysis": {
-        "mentioned": false,
-        "position": null,
-        "competitorsMentioned": [
-          "Mohali and nearby Greater Mohali",
-          "GOEL Institute",
-          "Shree Saraswati Institute",
-          "Popel’s IELTS Academy",
-          "Landmark Immigration Consultants"
-        ]
-      },
-      "citations": [
-        {
-          "domain": "goelinstitute.in",
-          "url": "https://www.goelinstitute.in/?utm_source=openai",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "saraswatiinstitue.com",
-          "url": "https://saraswatiinstitue.com/?utm_source=openai",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/Popels-Ielts-Academy-Near-Ptl-Chowk-Mohali-Sas-Nagar/0172PX172-X172-090330085841-E8H2_BZDET/reviews?utm_source=openai",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "tuition.in",
-          "url": "https://www.tuition.in/coaching-centers/chandigarh/index.html?utm_source=openai",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        }
-      ],
-      "costUsd": 0.021792
-    },
-    {
-      "promptIndex": 3,
-      "prompt": "top rated coaching institute in mohali and what each is known for",
-      "engine": "gemini",
-      "model": "gemini-3.8-flash",
-      "badge": "—",
-      "text": "Mohali (part of the Chandigarh Tricity) has a concentration of coaching centers in hubs like **Phase 7 (Sector 61)**, **Phase 3B2**, and **Sector 66/118**. Because students prepare for various goals—from entrance exams to studying abroad—the top-rated institutes are categorized below by their domain and what they are known for:\n\n---\n\n### 1. Medical & Engineering Entrance (NEET & JEE)\n\n* **ALLEN Career Institute** *(Sector 66)*\n  * **Known for:** Rigorous IIT-JEE (Main & Advanced) and NEET-UG preparation.\n  * **Strengths:** Implements Kota-style classroom pedagogy, strict academic discipline, national-level benchmarking tests (ALLEN Test Series), and strong Pre-Nurture & Foundation batches (classes 8–10).\n* **Aakash Institute** *(Sector 118 / Phase 3B2)*\n  * **Known for:** Premier coaching for **NEET-UG/Medical**, as well as JEE coaching.\n  * **Strengths:** Highly structured biology and chemistry study materials, standardized test series (AIATS), and recorded video solutions with performance analytics.\n* **GP’s Gurukul / Topper's Choice** *(Local Boutique Academies)*\n  * **Known for:** Small-batch tutoring for Classes 9–12 along with JEE/NEET.\n  * **Strengths:** Ideal for students who struggle with the crowded batches of big corporate coaching centers and prefer personalized attention and tailored doubt resolution.\n\n---\n\n### 2. Government Jobs, Banking & SSC Exams\n\n* **AAA-Bright Academy** *(Phase 7 / Sector 61)*\n  * **Known for:** Punjab State Recruitment Exams (Patwari, Punjab Police, Excise Inspector) and Bank PO/Clerk (SBI, IBPS).\n  * **Strengths:** One of the most recognized local brands in the Tricity for government exams. Renowned for shortcut math/aptitude techniques, updated Punjab General Knowledge materials, and dedicated self-study library spaces.\n* **IBT Institute** *(Phase 7)*\n  * **Known for:** Banking (PO/Clerk), SSC (CGL, CHSL), and Railway recruitment exams.\n  * **Strengths:** Comprehensive test-taking software that mimics actual exam interfaces, weekly current affairs capsules, and lifetime course validity until you pass.\n* **Competition Guru** *(Phase 7)*\n  * **Known for:** Teaching entrance exams (CTET, PSTET, UGC NET) along with state-level police and defence tests.\n  * **Strengths:** Specialized subject faculty for humanities/teaching exams and flexible weekend batches for working aspirants.\n\n---\n\n### 3. IELTS, PTE & Study Abroad Preparation\n\n* **Grey Matters** *(Phase 7)*\n  * **Known for:** One of the longest-standing and most recognized IELTS and Spoken English brands in Punjab.\n  * **Strengths:** Strict daily mock speaking tests, one-on-one feedback sessions, and intensive essay-writing workshops aimed at getting 7+ bands.\n* **British Career Group** *(Phase 3B2 / Phase 7)*\n  * **Known for:** Band 8+ target training, Pearson PTE lab coaching, and spoken fluency.\n  * **Strengths:** Certified IDP/British Council trainers, updated modern computer labs for computer-delivered IELTS/PTE, and small batch sizes.\n* **Touchstone Educationals** *(Phase 7)*\n  * **Known for:** Large-scale training paired with overseas education and visa consultation.\n  * **Strengths:** Official knowledge partner with major international testing bodies, extensive digital library of practice modules, and structured grammar-foundation classes.\n\n---\n\n### 4. Civil Services (UPSC & Punjab PCS)\n\n* **AAA-Bright Academy & Raj Malhotra’s IAS** *(Serving Mohali / Tricity)*\n  * **Known for:** Punjab Civil Services (PPSC) and UPSC Civil Services examination prep.\n  * **Strengths:** In-depth coverage of regional Punjab governance, state history, and Punjabi language modules, alongside standard General Studies and Mains answer-writing mentorship.\n\n---\n\n### 5. Technical Training & Coding / IT Courses\n\n* **ThinkNEXT Technologies** *(Sector 65 / Phase 11)*\n  * **Known for:** 6-week and 6-month industrial IT training for engineering and polytechnic students.\n  * **Strengths:** ISO-certified courses in Python, Full-Stack Web Development, Data Science, AI/ML, and digital marketing, complete with live capstone projects and placement assistance.\n\n---\n\n### Tips for Choosing:\n* **For JEE/NEET:** Consider whether you perform better under high competition (ALLEN/Aakash) or individualized attention (boutique centers like GP's Gurukul).\n* **For Govt Exams / IELTS:** The primary hub is **Phase 7 (Sector 61)**; walking through the market allows you to attend multiple **free demo classes** before paying fees.",
-      "analysis": {
-        "mentioned": false,
-        "position": null,
-        "competitorsMentioned": [
-          "Phase 7",
-          "Phase 3B2",
-          "Sector 66/118",
-          "ALLEN Career Institute",
-          "Aakash Institute",
-          "NEET-UG/Medical",
-          "GP’s Gurukul / Topper's Choice",
-          "AAA-Bright Academy",
-          "IBT Institute",
+          "Align with Your Specific Target Exam",
+          "Domestic Recruitment / Entrance",
+          "International Licensure",
+          "NGN",
+          "Faculty Experience & Specialization",
+          "Study Material & Question Bank Quality",
+          "Batch Size and Shift Flexibility",
+          "Demo Lectures & Peer Feedback",
+          "Umrao NCLEX Coaching Centre",
+          "Believe Nursing Coaching Institute",
           "Competition Guru",
-          "Grey Matters",
-          "British Career Group",
-          "Touchstone Educationals",
-          "ThinkNEXT Technologies"
+          "Mantram Nursing Academy",
+          "Kanika’s Nursing Academy",
+          "Science Tutorial",
+          "Shortlist 2–3 options",
+          "Schedule in-person visits",
+          "Attend demo sessions"
         ]
       },
       "citations": [
         {
-          "domain": "allen.ac.in",
+          "domain": "kanikasnursingacademy.com",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "allen.in",
+          "domain": "umraonclex.com",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "allen.in",
+          "domain": "sciencetutorial.in",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "aakash.ac.in",
+          "domain": "staffnursecoaching.com",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "aakash.ac.in",
+          "domain": "navkirannursingclasses.com",
           "url": null,
-          "channelType": null,
-          "brandMentioned": null,
+          "channelType": "owned",
+          "brandMentioned": true,
           "competitorsMentioned": []
         },
         {
-          "domain": "gpsgurukul.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "topperchoice.in",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "aaabrightacademy.in",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "aaabrightacademy.in",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "ibtindia.com",
+          "domain": "belnursingcoaching.com",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
@@ -796,526 +1074,361 @@
           "competitorsMentioned": []
         },
         {
-          "domain": "urbanpro.com",
+          "domain": "justdial.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cgi.guru",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "yocket.com",
+          "domain": "staffnursecoaching.com",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "britishcareergroup.in",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "insightrobmedia.com",
+          "domain": "sciencetutorial.in",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.095336
+      "costUsd": 0.036921
     },
     {
-      "promptIndex": 3,
-      "prompt": "top rated coaching institute in mohali and what each is known for",
+      "promptIndex": 4,
+      "prompt": "how do I choose a nursing coaching institute in Mohali, and which ones do you recommend",
       "engine": "perplexity",
       "model": "openai/gpt-6-luna",
       "badge": "—",
-      "text": "“Top-rated” depends on the **course**—Mohali has different coaching options for IELTS, defence exams, and other subjects. If you mean **IELTS**, a recent local roundup lists these highly rated options:\n\n| Institute | Known for |\n|---|---|\n| **ThinkEnglish** | Individual speaking practice, manageable batches, and technology-supported classes.[1] |\n| **Spearhead Education** | Small batches, regular mock tests, and focused feedback.[1] |\n| **British Career Group** | Speaking practice that simulates the test, plus study-abroad guidance.[1] |\n| **Hatchway Overseas** | IELTS and PTE preparation, personalised support, and French classes.[1] |\n| **IELTS Made Easy** | Practical test strategies across all four IELTS modules.[1] |\n\nThe same roundup reports ratings from **4.7 to 4.9 stars** for these institutes, but ratings and fees can change, so confirm them directly before enrolling.[1] If you meant **JEE/NEET, NDA, UPSC, banking, or school tuition**, share the subject and I can narrow the list.",
+      "text": "First clarify what you mean by “nursing coaching”: **entrance or recruitment exams** (such as AIIMS NORCET or Punjab staff-nurse exams), **NCLEX**, or coaching for your nursing-college subjects. The best fit depends on the exam and format.\n\nTo choose, ask each institute for:\n- The exact syllabus and a recent sample class or demo.\n- Who teaches each subject, how much doubt-solving and individual feedback you get, and how often mock tests are held.\n- Recent results with the number of students who enrolled and sat the exam—not just selected success stories.\n- Total fees, batch size, class schedule, refund policy, and what happens if you miss a class.\n- Recent contactable students or alumni you can speak with.\n\n**Shortlist to investigate:** For NCLEX preparation, **NCA Academy** is one option to compare: its page describes a Mohali campus in Sector 91, live online nursing batches, and OSCE practice in a simulation ward.[1] For staff-nurse or nursing-entrance coaching, **Umrao Institute** is listed in Sector 91, Mohali, but the available listing alone does not verify its teaching quality or results.[3] Treat both as leads, not endorsements; confirm the course matches your exam and verify claims in person.\n\nDirectories also list other nearby providers, but listings and star ratings are not enough to establish teaching quality or verified pass rates.[4] Before paying, attend a demo, inspect the materials, speak with recent students, and get the fee and course details in writing.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "IELTS",
-          "ThinkEnglish",
-          "Spearhead Education",
-          "British Career Group",
-          "Hatchway Overseas",
-          "IELTS Made Easy",
-          "JEE/NEET"
+          "NCLEX",
+          "Shortlist to investigate",
+          "NCA Academy",
+          "Umrao Institute"
         ]
       },
       "citations": [
         {
-          "domain": "abroadgateway.com",
-          "url": "https://abroadgateway.com/blog/top-10-ielts-coaching-institutes-in-chandigarh-and-mohali/",
+          "domain": "ncaacademy.com",
+          "url": "https://ncaacademy.com/nclex-coaching-chandigarh/",
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
           "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/Institutes/nct-10268288",
+          "url": "https://www.justdial.com/Kharar/B-Sc-Nursing-Institutes-in-Mohali-Sector-125/nct-11279066",
           "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "amitbookdepot.com",
-          "url": "https://www.amitbookdepot.com/post/best-nda-coaching-in-mohali-2025-top-10-institutes-to-launch-your-defence-career",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "addressguru.in",
-          "url": "https://www.addressguru.in/Coaching-Institute/Mohali/MQ==",
+          "domain": "epageindia.in",
+          "url": "https://epageindia.in/education/best-staff-nurse-coaching-in-chandigarh-himachal",
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
           "domain": "justdial.com",
-          "url": "https://www.justdial.com/Chandigarh/Institutes-in-Chandigarh-Sector-61-Phase-7/nct-10268288",
+          "url": "https://www.justdial.com/Mohali/Nclex-Rn-Exam-Training-Centres/nct-11267139",
           "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
           "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/Institutes-in-Jhanjeri/nct-10268288",
+          "url": "https://www.justdial.com/Patiala/Institutes-For-Nursing-Gnm/nct-10269626?stype=category_list",
           "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
           "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/Institutes-in-Samgoli/nct-10268288",
+          "url": "https://www.justdial.com/Mohali/Government-Nursing-Colleges-in-Mohali-Sector-79/nct-11182401",
           "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
           "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/UGC-Net-Institutes-in-Mohali-Sector-56-Phase-6/nct-11266710",
+          "url": "https://www.justdial.com/Chandigarh/M-Sc-Nursing-Institutes-in-Chandigarh-Sector-40/nct-11279064",
           "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
           "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/Educational-Institutes-in-Mohali-Sector-91/nct-10180445",
+          "url": "https://www.justdial.com/Delhi/Government-Nursing-Colleges-in-Rohini-Sector-15/nct-11182401",
           "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
           "domain": "justdial.com",
-          "url": "https://www.justdial.com/Kharar/Institutes-in-Mohali-Sector-123/nct-10268288",
+          "url": "https://www.justdial.com/Morinda/B-Sc-Nursing-Institutes-in-Dhangrali/nct-11279066",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Education-Consultants-For-Nursing-in-Industrial-Area-Phase-7/nct-10180224",
           "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.00172
+      "costUsd": 0.00178
     },
     {
-      "promptIndex": 4,
-      "prompt": "how do I choose a coaching institute in mohali, and which ones do you recommend",
+      "promptIndex": 5,
+      "prompt": "nursing coaching institute in Mohali: which one should I trust and why",
       "engine": "chatgpt",
       "model": "gpt-6-luna",
       "badge": "—",
-      "text": "The right choice depends a lot on **what you’re preparing for**—JEE/NEET, IELTS/PTE, UPSC, school subjects, or something else.\n\nIf you mean **school, JEE or NEET coaching**, I’d use these as a **starting shortlist to compare**, not a ranking: **ALLEN Mohali**, **GOEL Institute**, and **Shree Saraswati Institute**. Their own websites list relevant courses or a Mohali presence; that doesn’t, by itself, prove which centre or batch is best. ([allen.ac.in](https://www.allen.ac.in/chandigarh/?utm_source=openai))\n\nBefore enrolling:\n\n- Attend a **demo with the teacher who would actually teach your batch**.\n- Ask the centre for the **batch size**, weekly schedule, test plan, doubt-support arrangements, and how it handles missed classes.\n- Ask for **results from your specific branch and recent batches**—including how many students enrolled, not just a few top ranks.\n- Get the **full fee, refund/transfer terms, and what materials or tests cost extra** in writing.\n- Compare the commute and timetable too; consistency matters more than a famous name.\n\nTell me **which exam/subject, your class or level, and whether you prefer Mohali proper or nearby Chandigarh/Kharar**, and I can narrow the recommendations to options that fit.",
+      "text": "If you mean **exam coaching**—rather than choosing a nursing college—my shortlist depends on your exam:\n\n- **NCLEX / OSCE / UK CBT:** I’d **try Believe Nursing Coaching (BNC) first**, not enroll blindly. Its listed address is in Sector 91, Mohali, and it advertises a free demo, weekly mock tests, doubt sessions and individual interaction. Those are useful things to check in person, but they’re the institute’s own claims—not proof of results. ([belnursingcoaching.com](https://belnursingcoaching.com/contact-us/?utm_source=openai))\n- **NORCET / staff-nurse recruitment exams:** **Mantram** appears more specifically aimed at NORCET and related nursing exams, but the listing I found places it in Sector 15D, Chandigarh—not Mohali. I’d attend a class and verify the current location and faculty before considering it. ([sgni.in](https://sgni.in/institute-view/31435/mantram-norcet-coaching-institute-offlineonline-nursing-entrance-coaching-institute-mns-hpssc-nhmcho?utm_source=openai))\n- **Broader recruitment and international exams:** **ELAS** lists a Phase 11, Sector 65 address and says it has operated since 2014; treat that history as a claim to verify, not a recommendation on its own. ([in.linkedin.com](https://in.linkedin.com/company/elas-education-services?utm_source=openai))\n\n**My honest take:** BNC is the most practical first visit if your goal is NCLEX-related coaching in Mohali, because it offers a demo and describes specific practice support. I can’t confidently say it’s *the* most trustworthy overall: the evidence I found is mostly institute or directory material, not independently verified student outcomes.\n\nBefore paying, take the demo, ask to speak with two recent students, confirm who will teach your batch, and request **year-by-year results with the number of students enrolled**—not just selected success stories. Get the total fee and refund terms in writing, and be cautious of guaranteed-pass or guaranteed-job promises.\n\nWhich exam are you preparing for—**NORCET, NCLEX, a state staff-nurse exam, or BSc Nursing entrance**? The best choice changes with the exam.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "ALLEN Mohali",
-          "GOEL Institute",
-          "Shree Saraswati Institute"
+          "NCLEX / OSCE / UK CBT",
+          "NORCET / staff-nurse recruitment exams",
+          "Mantram",
+          "Broader recruitment and international exams",
+          "ELAS",
+          "My honest take"
         ]
       },
       "citations": [
         {
-          "domain": "allen.ac.in",
-          "url": "https://www.allen.ac.in/chandigarh/?utm_source=openai",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        }
-      ],
-      "costUsd": 0.011683
-    },
-    {
-      "promptIndex": 4,
-      "prompt": "how do I choose a coaching institute in mohali, and which ones do you recommend",
-      "engine": "gemini",
-      "model": "gemini-3.8-flash",
-      "badge": "—",
-      "text": "To choose the right coaching institute in Mohali, you need to evaluate options carefully based on your target exam, as Mohali (SAS Nagar) and the adjoining Chandigarh area (especially Sector 34) form a major education hub in North India.\n\n---\n\n### Part 1: How to Choose a Coaching Institute in Mohali\n\n#### 1. Factor in the \"Tricity Advantage\" (Mohali vs. Sector 34, Chandigarh)\n* Mohali has prominent coaching hubs of its own (notably **Phase 7, Phase 3B2, Sector 70, and Sector 66**). \n* However, **Sector 34 in Chandigarh** is just 15–20 minutes away and serves as the primary regional coaching hub. Determine whether you prefer a center within Mohali to save travel time or are willing to commute to Sector 34 for a flagship branch.\n\n#### 2. Faculty Stability over Brand Name\n* National chains often rotate teachers between centers. Ask: *“Will the teachers taking the demo classes continue for our batch throughout the year?”*\n* Inquire about the experience and qualifications of the permanent faculty rather than relying solely on visiting guest lecturers.\n\n#### 3. Batch Size and Doubt Clearance\n* Many large centers accommodate 70–100+ students per batch, where average students often get overlooked. \n* Ask about the **student-to-mentor ratio** and how daily doubt resolution works (e.g., dedicated doubt counters, post-class teacher availability, or online portals).\n\n#### 4. Audit Recent Results (Beware of \"Bought\" Ranks)\n* Many institutes publish results of distance-learning or test-series candidates under classroom achievements. Ask for verifiable contact details or testimonials of **regular classroom students** from the Mohali branch specifically.\n\n#### 5. Take Demo Classes Before Paying\n* Never pay full fees upfront based on marketing brochures. Attend 2 to 3 days of trial/demo classes to evaluate the pace, communication style, and classroom discipline.\n* Check the refund/cancellation policy in writing before enrolling.\n\n---\n\n### Part 2: Recommended Coaching Institutes in & around Mohali\n\nBecause \"coaching\" covers multiple domains, here are the top-rated institutes categorized by stream:\n\n---\n\n#### A. Engineering & Medical (IIT-JEE / NEET / Foundation)\n1. **ALLEN Career Institute** *(Sector 66, Mohali / Sector 34, Chandigarh)*\n   * **Best for:** Rigorous, national-level preparation for JEE (Main + Advanced) and NEET.\n   * **Strengths:** Structured curriculum, extensive study materials, and regular national-level test rankings.\n2. **Aakash Institute** *(Mohali branch / Sector 34, Chandigarh)*\n   * **Best for:** Pre-Medical (NEET-UG).\n   * **Strengths:** Strong legacy in medical entrance preparation, well-curated biology and chemistry study modules.\n3. **Helix Institute** *(Sector 34, Chandigarh — 15 min from Mohali)*\n   * **Best for:** NEET (Medical).\n   * **Strengths:** Historically one of the most trusted regional names in the Tricity for medical entrance results.\n4. **GP’s Gurukul / Topper's Choice** *(Mohali)*\n   * **Best for:** Smaller batches, personalized board + foundation/NEET/JEE mentoring.\n\n---\n\n#### B. Study Abroad & English Proficiency (IELTS / PTE / OET)\nMohali is one of Punjab's largest hubs for English testing and overseas prep:\n1. **Grey Matters** *(Phase 7, Mohali)*\n   * **Best for:** General and Academic IELTS preparation.\n   * **Strengths:** Established brand with extensive mock-testing setups and grammar modules.\n2. **Spearhead IELTS / British Career Group** *(Phase 3B2 & Phase 7, Mohali)*\n   * **Best for:** One-on-one speaking practice and targeted band-score improvement.\n3. **Touchstone Educationals** *(Phase 7 / Mohali borders)*\n   * **Best for:** High-volume practice, computer-delivered IELTS, and PTE software labs.\n4. **Dolphin Head Hunter** *(Sector 34 / Mohali area)*\n   * **Best for:** Small batches and intensive personal feedback on writing and speaking modules.\n\n---\n\n#### C. Government Exams (Punjab PCS, UPSC, SSC, Banking, Patwari, Police)\n1. **AAA Bright Academy** *(Phase 7, Mohali & Sector 34, Chandigarh)*\n   * **Best for:** Bank PO/Clerk, SSC CGL/CHSL, and Punjab State competitive exams.\n   * **Strengths:** High frequency of test batches, bilingual teaching (English/Punjabi), and exam-oriented shortcut methods.\n2. **Abhimanu’s IAS / Chanakya IAS** *(Sector 34, Chandigarh / Mohali access)*\n   * **Best for:** UPSC Civil Services and Punjab Civil Services (PCS).\n   * **Strengths:** Deep domain experience in state civil services and regular answer-writing feedback.\n3. **Edu Mohali / Local Competition Academies** *(Mohali)*\n   * **Best for:** State-level government openings (Punjab Police, Patwari, Excise Inspector).\n\n---\n\n#### D. IT, Coding & Industrial Training (Software & Digital Skills)\nMohali has a thriving IT park (Phase 8/8B/Industrial Area), making it ideal for technical skills:\n1. **ThinkNEXT Technologies** *(Sector 65 / Phase 11, Mohali)*\n   * **Best for:** 6-month/6-week industrial training, Python, Full Stack Development, and AI.\n2. **Webtech Learning** *(Sector 34 / Mohali perimeter)*\n   * **Best for:** Web Development, UI/UX, and Digital Marketing.\n\n---\n\n### Next Step Checklist\n1. **Shortlist 2–3 institutes** from the relevant category above.\n2. **Visit in person between 3:00 PM and 6:00 PM** (this is usually when batches are wrapping up, allowing you to speak to exiting students outside the reception desk for honest feedback).\n3. **Request a trial seat** in an ongoing regular batch rather than a curated demo class.",
-      "analysis": {
-        "mentioned": false,
-        "position": null,
-        "competitorsMentioned": [
-          "Sector 34 in Chandigarh",
-          "ALLEN Career Institute",
-          "Aakash Institute",
-          "Helix Institute",
-          "GP’s Gurukul / Topper's Choice",
-          "Grey Matters",
-          "Spearhead IELTS / British Career Group",
-          "Touchstone Educationals",
-          "Dolphin Head Hunter",
-          "AAA Bright Academy",
-          "Abhimanu’s IAS / Chanakya IAS",
-          "Edu Mohali / Local Competition Academies",
-          "ThinkNEXT Technologies",
-          "Webtech Learning",
-          "Shortlist 2–3 institutes",
-          "Request a trial seat"
-        ]
-      },
-      "citations": [
-        {
-          "domain": "allen.ac.in",
-          "url": null,
+          "domain": "belnursingcoaching.com",
+          "url": "https://belnursingcoaching.com/contact-us/?utm_source=openai",
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "allen.in",
-          "url": null,
+          "domain": "sgni.in",
+          "url": "https://sgni.in/institute-view/31435/mantram-norcet-coaching-institute-offlineonline-nursing-entrance-coaching-institute-mns-hpssc-nhmcho?utm_source=openai",
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "topperchoice.in",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "gpsgurukul.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "yocket.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "britishcareergroup.in",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "medium.com",
-          "url": null,
+          "domain": "in.linkedin.com",
+          "url": "https://in.linkedin.com/company/elas-education-services?utm_source=openai",
           "channelType": "social",
           "brandMentioned": null,
           "competitorsMentioned": []
-        },
-        {
-          "domain": "justdial.com",
-          "url": null,
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "edumohali.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.038798
-    },
-    {
-      "promptIndex": 4,
-      "prompt": "how do I choose a coaching institute in mohali, and which ones do you recommend",
-      "engine": "perplexity",
-      "model": "openai/gpt-6-luna",
-      "badge": "—",
-      "text": "The right coaching institute depends on **what you’re preparing for**—JEE/NEET, school exams, NDA, IELTS, or something else. Before enrolling, compare a few options in person: attend a demo, meet the actual teacher, check batch size and doubt support, and ask for a written breakdown of fees, schedule, tests, and refund or makeup-class policies. For advertised results, ask how many students were enrolled and how many achieved the claimed outcome—not just for a few success stories.\n\nFor an initial shortlist:\n\n- **JEE/NEET or school subjects:** Topper’s Choice Institute, in Sector 40C, Chandigarh, is one nearby option listed for Classes 9–12, JEE, NEET, and board preparation. Visit and verify the current faculty, batch, and course details before deciding.[1]\n- **NDA/defence exams:** Minerva Academy is listed in the Mohali area for NDA, CDS, and AFCAT preparation.[2]\n- **IELTS/PTE:** Spearhead and British Career Group are listed as Mohali options; compare their trainers, individual speaking practice, mock-test frequency, and recent student results.[9]\n\nThese are **starting points, not a definitive ranking**: public directories and institute lists don’t establish which centre will be best for your needs. Tell me the exam or subject, your area in Mohali, and your budget, and I can narrow down the shortlist.",
-      "analysis": {
-        "mentioned": false,
-        "position": null,
-        "competitorsMentioned": [
-          "JEE/NEET or school subjects",
-          "NDA/defence exams",
-          "IELTS/PTE"
-        ]
-      },
-      "citations": [
-        {
-          "domain": "topperchoice.in",
-          "url": "https://topperchoice.in/best-coaching-near-mohali/",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "collegedunia.com",
-          "url": "https://collegedunia.com/coaching/punjab-institutes",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "addressguru.in",
-          "url": "https://www.addressguru.in/Coaching-Institute/Mohali/MQ==",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/Institutes/nct-10268288",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "topperchoice.in",
-          "url": "https://topperchoice.in/best-coaching-in-chandigarh/",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "amitbookdepot.com",
-          "url": "https://www.amitbookdepot.com/post/best-nda-coaching-in-mohali-2025-top-10-institutes-to-launch-your-defence-career",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/Neet-Tutorials-in-Industrial-Area-Phase-2/nct-11037560",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "amitbookdepot.com",
-          "url": "https://www.amitbookdepot.com/public/index.php/post/best-nda-coaching-in-mohali-2025-top-10-institutes-to-launch-your-defence-career",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "abroadgateway.com",
-          "url": "https://abroadgateway.com/blog/top-10-ielts-coaching-institutes-in-chandigarh-and-mohali/",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "blog.shikshacoach.com",
-          "url": "https://blog.shikshacoach.com/ielts-coaching-in-mohali/",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        }
-      ],
-      "costUsd": 0.00176
+      "costUsd": 0.021827
     },
     {
       "promptIndex": 5,
-      "prompt": "coaching institute in mohali: which one should I trust and why",
-      "engine": "chatgpt",
-      "model": "gpt-6-luna",
-      "badge": "—",
-      "text": "There isn’t one Mohali institute I’d recommend for every goal—the right choice depends on **what you’re preparing for**.\n\nIf you mean **JEE or NEET**, I’d start by comparing **ALLEN’s Mohali centre** and **Aakash’s Sector 118 centre**; both list local centres on their official websites. **GOEL Institute** is another local option, but its claims about years operating and student selections are self-published, so ask to see results you can verify. ([allen.ac.in](https://www.allen.ac.in/chandigarh/?utm_source=openai))\n\nBefore paying, visit at least two places and:\n- Attend a demo with the **actual teacher** who would teach your batch.\n- Ask for recent results with exam, year, and rank—not just a “selections” headline.\n- Check batch size, doubt support, test schedule, and the **written refund policy**.\n- Speak privately with current students, not only the ones the institute refers you to.\n\nTell me the **exam or course**—for example, NEET, JEE, IELTS, UPSC, or banking—and your preferred area in Mohali, and I can narrow it down.",
-      "analysis": {
-        "mentioned": false,
-        "position": null,
-        "competitorsMentioned": [
-          "JEE or NEET",
-          "ALLEN’s Mohali centre",
-          "Aakash’s Sector 118 centre",
-          "GOEL Institute"
-        ]
-      },
-      "citations": [
-        {
-          "domain": "allen.ac.in",
-          "url": "https://www.allen.ac.in/chandigarh/?utm_source=openai",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        }
-      ],
-      "costUsd": 0.011714
-    },
-    {
-      "promptIndex": 5,
-      "prompt": "coaching institute in mohali: which one should I trust and why",
+      "prompt": "nursing coaching institute in Mohali: which one should I trust and why",
       "engine": "gemini",
       "model": "gemini-3.8-flash",
       "badge": "—",
-      "text": "Because \"coaching institute\" covers many different exam goals, the right institute to trust depends on what you are preparing for. \n\nMohali is closely integrated with the Chandigarh Tricity education hub. The most trusted coaching institutes across the major academic and competitive categories—and the reasons to choose them—include:\n\n---\n\n### 1. For Medical & Engineering Entrances (NEET / JEE / Foundation)\n\nIf you are aiming for IIT-JEE, NEET-UG, or CBSE Board foundation:\n\n*   **Aakash Institute (Sector 118 / Phase 7 & nearby Sector 34)**\n    *   **Why trust them:** Aakash has one of the most established standardized curriculums and high-frequency testing modules in the country. Their biology test series and NCERT-aligned modules for NEET are widely regarded as top tier.\n    *   **Best for:** Students who need structured weekly targets, error-analysis reports, and strong testing infrastructure.\n*   **Allen Career Institute (Mohali & Central Chandigarh Campus)**\n    *   **Why trust them:** While many Mohali students commute to the large Allen campuses in Chandigarh (Sector 34), Allen maintains the deepest question banks and highest national rank count for both JEE Advanced and NEET.\n    *   **Best for:** Competitive students targeting top 1,000 national ranks who thrive in high-intensity batch environments.\n*   **Physics Wallah (PW Vidyapeeth Mohali)**\n    *   **Why trust them:** They offer a balance of quality faculty, regular offline support, and significantly lower fees compared to legacy institutes.\n    *   **Best for:** Value-for-money, tech-enabled classroom learning with access to recorded backup lectures.\n\n---\n\n### 2. For Study Abroad & English Proficiency (IELTS / PTE / Spoken English)\n\nMohali (especially Phase 7, Phase 3B2, and Sector 70) is crowded with hundreds of IELTS centers, but many are aggressive visa agents rather than genuine teaching academies. The most reliable options include:\n\n*   **Touchstone Educationals (Phase 7 / Chandigarh)**\n    *   **Why trust them:** An official IDP platinum partner with certified trainers, high trainer-retention, and an organized daily routine (separate speaking cabins, daily listening labs, and weekly mock exams).\n    *   **Best for:** Structured module-by-module preparation without pushy visa-sales pitches upfront.\n*   **British Counsel (Sector 70 / Phase 7)**\n    *   **Why trust them:** They focus heavily on grammar foundation and one-on-one speaking slots. Their internal mock assessments align closely with real Cambridge exam grading.\n*   **Grey Matters (Phase 7 / Phase 5)**\n    *   **Why trust them:** One of the oldest test-prep chains in Punjab, known for rigorous classroom drills and abundant library material.\n\n---\n\n### 3. For Government & Civil Services (PPSC, UPSC, Banking, SSC)\n\n*   **Bright Academy / IBT Institute (Phase 7 / Mohali border & Sector 34)**\n    *   **Why trust them:** For Punjab State exams (Patwari, Sub-Inspector, Excise, Naib Tehsildar) and Banking (SBI/IBPS PO), they have dedicated Punjabi-medium/English-medium material, static GK capsules, and shortcut-heavy quantitative aptitude trainers.\n*   **Ojaank / Chanakya IAS (for UPSC/PPSC)**\n    *   **Why trust them:** If civil services is your target, select an institute where current-affairs analysis and answer-writing evaluation happen regularly, rather than one relying on recorded video playlists.\n\n---\n\n### 4. For IT, Coding & Industrial Training (Tech Hub Mohali)\n\n*   **ThinkNEXT Technologies (Phase 11 / Sector 65)**\n    *   **Why trust them:** Mohali is a major IT corridor. ThinkNEXT is widely recognized for Python, Data Science, Full-Stack Development, and Digital Marketing training. They provide real-project internships rather than just classroom theory, helping with local company placements in QuarkCity and Bestech.\n\n---\n\n### Red Flags & How to Verify Before Paying\n\nRegardless of which institute you visit, check these three factors before depositing non-refundable fees:\n\n1. **Ask who the actual teacher is (not the franchise brand):** High teacher turnover is common in Mohali. Clarify if the teacher taking your demo class will be teaching the entire 6-month or 1-year syllabus.\n2. **Batch sizes:** For IELTS or coding, if the batch size exceeds 20–25 students, you will receive minimal personal feedback (especially for speaking and essay evaluations).\n3. **Written demo & refund terms:** Reputable institutes always offer **2 to 3 days of trial/demo classes** before taking full upfront payment. Walk away from any center that demands a full non-refundable installment on day one without a demo.",
+      "text": "Because Mohali is part of the Tricity area (Mohali, Chandigarh, and Panchkula), the choice of a nursing coaching institute depends on your specific goal: **Government Nursing Officer Exams** (AIIMS NORCET, PGIMER, GMCH, ESIC), **State/National Entrance Exams** (PPMET, AIIMS/PGI B.Sc/M.Sc Entrance, MNS), or **International Licensing** (NCLEX-RN, OET, OSCE).\n\nWhile some institutes are situated directly in Mohali, several leading academies operate near the Mohali–Chandigarh border (often in Sector 34 or Sector 15/35), which is easily accessible for Mohali students.\n\n---\n\n### Top Institutes to Consider (and Why)\n\n#### 1. Mantram Nursing Academy *(Near Mohali border / Sector 34, Chandigarh)*\n* **Best for:** AIIMS NORCET, PGIMER, GMCH, Staff Nurse Recruitments.\n* **Why to trust them:**\n  * **Track Record:** Recognized across the Tricity with consistent selections in PGIMER and AIIMS.\n  * **Study Material:** Known for structured, topic-wise booklets and test series aligned with the updated pattern of high-yield clinical reasoning questions.\n  * **Faculty:** Experienced educators focusing specifically on nursing subjects rather than generic competitive faculties.\n\n#### 2. Kanika’s Nursing Academy *(Chandigarh / Tricity)*\n* **Best for:** AIIMS NORCET, HPRCA, GMCH, and State Staff Nurse Recruitment Exams.\n* **Why to trust them:**\n  * **Targeted Coaching:** Focuses heavily on the evolving NORCET CBT patterns (clinical decision-making and scenario-based MCQs).\n  * **Flexibility:** Offers reliable hybrid setups (live interactive online classes alongside offline classroom sessions), making it practical if you are commuting from Phase 7, 8, 9, or Kharar.\n\n#### 3. Science Tutorial *(Mohali / Chandigarh)*\n* **Best for:** B.Sc / M.Sc Nursing Entrance Exams (PPMET, AIIMS B.Sc, PGI B.Sc).\n* **Why to trust them:**\n  * **Entrance Specialist:** While most nursing academies cater to post-graduates or registered nurses looking for jobs, Science Tutorial specializes in the 10+2 science syllabus (Physics, Chemistry, Biology + Nursing Aptitude) required for entrance exams.\n  * **Longstanding Presence:** One of the older setups in the Tricity specifically targeting PMET/PPMET aspirants.\n\n#### 4. Umrao NCLEX Coaching Centre *(Located in Mohali)*\n* **Best for:** NCLEX-RN and overseas nursing immigration.\n* **Why to trust them:**\n  * **Directly in Mohali:** Centrally situated within Mohali, minimizing commute times.\n  * **Specialized Focus:** Instead of mixing government exams with licensing exams, they cater primarily to nurses aiming for US/Canada licensing, focusing on the Next Generation NCLEX (NGN) case-study format.\n\n---\n\n### Checklist: How to Verify Before Paying Fees\n\n1. **Ask for Current Results (Not Just \"Past 10 Years\"):** Verify their result list for the most recent cycle (e.g., the latest NORCET or PPMET session). Speak to students currently enrolled in the batch if possible.\n2. **Insist on a 2-Day Demo Class:** Trustworthy institutes will allow you to sit in on ongoing batches to evaluate the teacher’s pace, clarity, and whether they solve doubts in real time.\n3. **Assess the Question Bank:** Nursing exams have moved heavily away from direct theory toward **clinical application, image-based, and scenario-based questions**. Check whether their test portal reflects this change.\n4. **Clarify Backup Options:** If you miss an offline lecture due to hospital shifts or duty timings, ensure they provide recorded backup lectures and active digital portal access.\n\n### Final Recommendation\n* **For NORCET / PGIMER / GMCH Staff Nurse:** Start with a demo at **Mantram** or **Kanika's Nursing Academy**.\n* **For 12th-grade Entrance (PPMET / B.Sc Entrance):** Compare **Science Tutorial** with **Competition Guru**.\n* **For Going Abroad (NCLEX-RN):** Visit **Umrao NCLEX Centre** directly in Mohali.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "Aakash Institute",
-          "Allen Career Institute",
-          "Physics Wallah",
-          "Touchstone Educationals",
-          "British Counsel",
-          "Grey Matters",
-          "Bright Academy / IBT Institute",
-          "Ojaank / Chanakya IAS",
-          "ThinkNEXT Technologies",
-          "Ask who the actual teacher is",
-          "Batch sizes",
-          "Written demo & refund terms"
-        ]
-      },
-      "citations": [
-        {
-          "domain": "aakash.ac.in",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "allen.ac.in",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "medium.com",
-          "url": null,
-          "channelType": "social",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "britishcounsel.org.in",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "yocket.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        }
-      ],
-      "costUsd": 0.036054
-    },
-    {
-      "promptIndex": 5,
-      "prompt": "coaching institute in mohali: which one should I trust and why",
-      "engine": "perplexity",
-      "model": "openai/gpt-6-luna",
-      "badge": "—",
-      "text": "There isn’t one coaching institute in Mohali that can be recommended for every student—the right choice depends on **which exam or subject** you’re preparing for. The available listings cover unrelated options, and rankings or institutes’ own “success rate” claims aren’t enough to establish trustworthiness.[1][2][7]\n\nBefore paying, visit a class and verify:\n- **Faculty:** Ask who will teach your batch, their relevant experience, and whether you can attend a demo.\n- **Results:** Request recent, verifiable results for your specific course—not just a headline selection count.\n- **Fit:** Check batch size, doubt-clearing access, test schedule, and whether the actual class matches the demo.\n- **Terms:** Get the full fee, refund policy, course duration, and promised services in writing.\n- **Independent feedback:** Speak privately with current and former students; don’t rely only on testimonials shown by the institute.\n\nIf you share the **exam or subject** (for example, NEET, JEE, IELTS, UPSC, NDA, or school tuition) and your area in Mohali, I can narrow down suitable options.",
-      "analysis": {
-        "mentioned": false,
-        "position": null,
-        "competitorsMentioned": [
+          "State/National Entrance Exams",
+          "International Licensing",
+          "Track Record",
+          "Study Material",
           "Faculty",
-          "Results",
-          "Fit",
-          "Terms",
-          "Independent feedback"
+          "Targeted Coaching",
+          "Flexibility",
+          "Longstanding Presence",
+          "Directly in Mohali",
+          "Ask for Current Results",
+          "Insist on a 2-Day Demo Class",
+          "Assess the Question Bank",
+          "Clarify Backup Options",
+          "Mantram",
+          "Kanika's Nursing Academy",
+          "Science Tutorial",
+          "Competition Guru",
+          "Umrao NCLEX Centre"
         ]
       },
       "citations": [
         {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/Institutes/nct-10268288",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "ncaacademy.com",
-          "url": "https://ncaacademy.com/capf-coaching-in-mohali/",
+          "domain": "sciencetutorial.in",
+          "url": null,
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "addressguru.in",
-          "url": "https://www.addressguru.in/Coaching-Institute/Mohali/MQ==",
+          "domain": "belnursingcoaching.com",
+          "url": null,
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "ncaacademy.com",
-          "url": "https://ncaacademy.com/nda-coaching-in-mohali/",
+          "domain": "kanikasnursingacademy.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "gurukulcareergroup.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "staffnursecoaching.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "golocall.com",
+          "url": null,
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
           "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/Tutorials-in-Khizrabad-West/nct-10502492",
+          "url": null,
           "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/UGC-Net-Institutes-in-Mohali-Sector-56-Phase-6/nct-11266710",
-          "channelType": "directory",
+          "domain": "umraonclex.com",
+          "url": null,
+          "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/Educational-Institutes/nct-10180445?stype=category_list",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/Pte-Coaching-Centres/nct-10930578",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "justdial.com",
-          "url": "https://www.justdial.com/Mohali/Tuition-Centres/nct-10502492",
-          "channelType": "directory",
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "leapscholar.com",
-          "url": "https://leapscholar.com/exams/ielts/coaching-centres-in-mohali-punjab",
+          "domain": "cgi.guru",
+          "url": null,
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.00172
+      "costUsd": 0.036309
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "nursing coaching institute in Mohali: which one should I trust and why",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t enough independent evidence to name one Mohali nursing coaching institute as the clear, trustworthy winner. **If you’re preparing for NCLEX or OSCE, NCA Academy is a reasonable option to investigate** because it has a Mohali campus and describes specific coaching and mock-practice offerings—but its pass-rate and “most trusted” claims are self-published, so verify them before paying.[2][3]\n\nFor **staff-nurse or entrance-exam preparation**, local directories list options such as Umrao and Believe Nursing Coaching Institute, but directory ratings and testimonials alone don’t establish teaching quality or verified results.[4][7][8]\n\nBefore enrolling, ask each institute for:\n- **Recent results you can verify:** batch size, number who sat the exam, pass rate, and the exam session covered.\n- **Faculty details:** names, nursing qualifications, relevant clinical or exam-teaching experience.\n- **A demo class and course plan:** confirm it matches your specific exam and syllabus.\n- **Written fee and refund terms:** including extra charges, class access, and what happens if a batch is postponed.\n- **Recent student references:** speak directly with former students, not only those featured in promotional material.\n\n**Practical recommendation:** shortlist two or three, attend a demo, and choose the one that is transparent about outcomes and terms—not simply the one with the highest online rating.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Recent results you can verify",
+          "Faculty details",
+          "A demo class and course plan",
+          "Written fee and refund terms",
+          "Recent student references",
+          "Practical recommendation"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Institutes-For-Nursing-Gnm-in-Mohali-Sector-70/nct-10269626",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ncaacademy.com",
+          "url": "https://ncaacademy.com/osce-coaching-in-mohali/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ncaacademy.com",
+          "url": "https://ncaacademy.com/nclex-coaching-india/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Nclex-Rn-Exam-Training-Centres/nct-11267139",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ncaacademy.com",
+          "url": "https://ncaacademy.com/nclex-coaching-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Patiala/Institutes-For-Nursing-Gnm/nct-10269626?stype=category_list",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "epageindia.in",
+          "url": "https://epageindia.in/education/best-staff-nurse-coaching-in-chandigarh-himachal",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/Tutorials-in-Mohali-Sector-109/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ncaacademy.com",
+          "url": "https://ncaacademy.com/pgimer-nursing-officer-coaching/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mohali/B-Sc-Nursing-Institutes-in-Mohali-Sector-74A/nct-11279066",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00174
     }
   ]
 }
