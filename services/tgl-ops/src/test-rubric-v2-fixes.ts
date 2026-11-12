@@ -3,7 +3,7 @@
 // no write to decisions/ or logs/ beyond the test-mode cost ledger that resetCostLedgerForTests() clears.
 //
 // [1] Dim 4 question is specialty-specific (Places primary type and name), never the bare category when Places knows more.
-// [2] prospect_named is true when any distinctive brand token appears (stored 12 Nov Motherhood probe shape).
+// [2] prospect_named is true when any distinctive brand token appears (12 Nov Motherhood probe shape).
 // [3] Dim 5 email verification: domain must match the website root domain; free-mail and generic local parts score 0.
 // [4] is_large_org is not set from "dr." or other generic prefixes; a real multi-branch signal caps the fit score.
 // [5] Re-score of rows eecc9010 and 68547d0b through the rescore path (rescoreRows), limited to those ids.
@@ -15,6 +15,7 @@ import {
 } from "./agents/prospect-researcher/rubric.js";
 import {
   buildSpecialtyDim4Question,
+  nameMatchesProspect,
   reanalyseDim4Probe,
   serializeDim4Probe,
   parseDim4Probe,
@@ -59,7 +60,7 @@ function signals(overrides: Partial<ProspectSignals> = {}): ProspectSignals {
 
 // The 12 Nov Motherhood probe: the stored dim4_probe row lives in Supabase (public.prospects) and was not readable from
 // the build sandbox. This fixture reproduces its shape: the engine names the brand "Motherhood Hospital" without the
-// location words that sit in the stored company name, so the old full-name match reported prospect_named=false.
+// location word that sits in the stored company name, so the full-name match reported prospect_named=false.
 // Replace the answer with the verbatim stored text if the stored row is exported.
 const MOTHERHOOD_COMPANY = "Motherhood Women and Child Hospital Noida";
 const MOTHERHOOD_DOMAIN = "https://www.motherhoodindia.com/noida";
@@ -96,20 +97,19 @@ function mkAnswer(text: string, costUsd: number): EngineAnswer {
   };
 }
 
-function storedProbe(question: string, answer: string, company: string, domain: string, brandPrefix?: string): Dim4Probe {
-  const a = analyseDim4Answer({ company, domain, answer });
-  void brandPrefix;
+/** A probe as stored BEFORE the fix: prospect_named false, score 25. */
+function preFixProbe(question: string, answer: string): Dim4Probe {
   return {
     rubric_version: "v2",
     engine: "gemini",
     model: "fixture-model",
     question,
     answer,
-    names_found: a.namesFound,
-    prospect_named: a.prospectNamed,
-    prospect_position: a.prospectPosition,
-    competitor_named: a.competitorNamed,
-    score: a.score,
+    names_found: ["Fortis Hospital Noida", "Motherhood Hospital", "Cloudnine Hospital"],
+    prospect_named: false,
+    prospect_position: null,
+    competitor_named: true,
+    score: 25,
     date: "2026-11-12T09:00:00.000Z",
     cost_usd: 0.01,
   };
@@ -133,7 +133,7 @@ async function main(): Promise<void> {
     const byName = buildSpecialtyDim4Question("hospitals", "Noida", { primaryType: "hospital", primaryTypeLabel: "Hospital", company: "Rainbow Maternity Hospital" });
     check("generic Places type 'Hospital' falls back to the specialty in the name", byName.question === "best maternity hospital in Noida" && byName.basis === "name", JSON.stringify(byName));
     const dentistByName = buildSpecialtyDim4Question("cosmetic_dental", "Mumbai", { primaryType: "dentist", company: "Smile Orthodontic Centre" });
-    check("generic dentist type with an orthodontic name -> best orthodontic centre in <city>", dentistByName.question === "best orthodontic centre in Mumbai", dentistByName.question);
+    check("generic dentist type with an orthodontic name -> a specialty question, not the category", dentistByName.question === "best orthodontic dentist in Mumbai" && dentistByName.basis === "name", dentistByName.question);
 
     const fallback = buildSpecialtyDim4Question("hospitals", "Hyderabad", { primaryType: "hospital", company: "City Care" });
     check("only when Places and the name offer no specialty does it fall back to the category, and says so",
@@ -162,16 +162,12 @@ async function main(): Promise<void> {
   // [2] prospect_named from brand tokens
   console.log("\n[2] prospect_named from any distinctive brand token (12 Nov Motherhood probe)");
   {
-    const old = analyseDim4Answer({ company: MOTHERHOOD_COMPANY, domain: "", answer: MOTHERHOOD_ANSWER });
-    check("without brand tokens the full-name match misses the stored answer (the bug being fixed)", old.prospectNamed === false && old.score === 25, JSON.stringify(old));
+    check("the full-name match alone misses 'Motherhood Hospital' (the bug being fixed)", nameMatchesProspect("Motherhood Hospital", MOTHERHOOD_COMPANY) === false);
 
     const fixed = analyseDim4Answer({ company: MOTHERHOOD_COMPANY, domain: "", answer: MOTHERHOOD_ANSWER, brandPrefix: "motherhood" });
     check("with brand_prefix 'motherhood', prospect_named is true", fixed.prospectNamed === true);
     check("names_found carries Motherhood Hospital and the prospect sits at position 2 (score 10)", fixed.namesFound.includes("Motherhood Hospital") && fixed.prospectPosition === 2 && fixed.score === 10, JSON.stringify(fixed));
-    check("competitors exclude the prospect", fixed.competitorNamed === true);
-
-    const noPrefix = analyseDim4Answer({ company: MOTHERHOOD_COMPANY, domain: "", answer: MOTHERHOOD_ANSWER, brandPrefix: undefined });
-    check("with no brand_prefix the first distinctive token of the name is used", noPrefix.prospectNamed === false || noPrefix.prospectNamed === true);
+    check("the other businesses stay competitors", fixed.competitorNamed === true);
 
     const prose = analyseDim4Answer({
       company: MOTHERHOOD_COMPANY, domain: "", brandPrefix: "Motherhood",
@@ -179,7 +175,7 @@ async function main(): Promise<void> {
     });
     check("a brand token in plain answer text (not bold, not listed) also counts", prose.prospectNamed === true);
 
-    check("generic words are not brand tokens: 'dr.' and 'hospital' yield no token of their own",
+    check("generic words are not brand tokens: 'dr.', 'hospital', 'the clinic' are generic, 'Motherhood' is not",
       isGenericBrandPrefix("dr.") && isGenericBrandPrefix("Hospital") && isGenericBrandPrefix("the clinic") && !isGenericBrandPrefix("Motherhood"));
     check("brandTokensFor drops generic words from the prefix", JSON.stringify(brandTokensFor("Dr. Motherhood Hospital", "x")) === JSON.stringify(["motherhood"]));
 
@@ -189,11 +185,9 @@ async function main(): Promise<void> {
     });
     check("'dr' and 'hospital' alone never make the prospect named", generic.prospectNamed === false && generic.score === 25, JSON.stringify(generic));
 
-    const reread = reanalyseDim4Probe(
-      storedProbe("best hospital in Noida", MOTHERHOOD_ANSWER, MOTHERHOOD_COMPANY, MOTHERHOOD_DOMAIN),
-      { company: MOTHERHOOD_COMPANY, domain: MOTHERHOOD_DOMAIN, brandPrefix: "motherhood" }
-    );
-    check("re-reading a stored probe keeps answer, question and date and corrects prospect_named",
-      reread.prospect_named === true && reread.answer === MOTHERHOOD_ANSWER && reread.question === "best hospital in Noida" && reread.date === "2026-11-12T09:00:00.000Z" && reread.cost_usd === 0.01);
+    const stored = preFixProbe("best hospital in Noida", MOTHERHOOD_ANSWER);
+    const reread = reanalyseDim4Probe(stored, { company: MOTHERHOOD_COMPANY, domain: MOTHERHOOD_DOMAIN, brandPrefix: "motherhood" });
+    check("re-reading the stored pre-fix probe corrects prospect_named (false -> true) and the score (25 -> 10)", stored.prospect_named === false && reread.prospect_named === true && reread.score === 10 && reread.prospect_position === 2);
+    check("the re-read keeps answer, question, date and cost verbatim", reread.answer === MOTHERHOOD_ANSWER && reread.question === "best hospital in Noida" && reread.date === "2026-11-12T09:00:00.000Z" && reread.cost_usd === 0.01);
     check("the re-read probe survives the fit_reasons round trip", parseDim4Probe([serializeDim4Probe(reread)])?.prospect_named === true);
   }
