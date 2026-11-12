@@ -7,7 +7,7 @@ import type { AddressInfo } from "node:net";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { runShortFormAudit, analyzeProspectAnswer, type ShortFormAuditResult } from "./agents/aeo-audit-engine/short-form.js";
+import { runShortFormAudit, analyzeProspectAnswer, rankProspectAnswer, type ShortFormAuditResult } from "./agents/aeo-audit-engine/short-form.js";
 import { businessNamesInAnswer, looksLikeBusinessName, canonicalBusinessName } from "./agents/aeo-audit-engine/named-businesses.js";
 import {
   buildProspectAuditPrompts,
@@ -354,6 +354,29 @@ async function main(): Promise<void> {
       server.close();
       setSiteLeadDeps(null);
     }
+  }
+
+  // ---- rank is read against names found anywhere, not only bold ones (first live case, 12 Nov 2026) ----
+  {
+    // One engine bolds its names. Another writes plain sentences and opens with a rival before the prospect.
+    const BOLD = "1. **NCA Academy**: 16-week course.\n2. **Mantram Nursing Academy**: weekend batches.";
+    const PLAIN = "New Careers Academy (NCA Academy), in Mohali near Chandigarh, would be my first one to check. Sunrise Dental is another option some students mention.";
+    const mixed = await runShortFormAudit(
+      { name: BUSINESS, variants: [BUSINESS], domains: ["sunrisedental.in"], competitors: [] },
+      { prospect: { name: BUSINESS, website: SITE }, prompts: buildProspectAuditPrompts("dental clinic", "Mohali"), engineMock: async (e) => answer(e, e === "perplexity" ? PLAIN : BOLD), saveRawJson: false }
+    );
+    const cell = mixed.results[0].engineResults.perplexity;
+    assert.equal(cell.analysis.mentioned, true);
+    assert.equal(cell.badge, "Named #2", "a rival named first in plain text must not leave the prospect showing as Named #1");
+    assert.deepEqual(cell.analysis.competitorsMentioned, ["NCA Academy"]);
+    assert.equal(mixed.summary.competitorMentions["NCA Academy"], 15, "the rival is counted in the plain-text answers too");
+    assert.equal(mixed.summary.competitorMentions["Mantram Nursing Academy"], 10);
+    assert.deepEqual(mixed.summary.mentionsByEngine, { chatgpt: 0, gemini: 0, perplexity: 5 });
+    const alone = rankProspectAnswer("Sunrise Dental is the clinic most reviewers recommend.", { name: BUSINESS, variants: [BUSINESS], domains: ["sunrisedental.in"], competitors: [] }, ["NCA Academy"]);
+    assert.deepEqual(alone, { mentioned: true, position: 1, competitorsMentioned: [] });
+    const absent = rankProspectAnswer(BOLD, { name: BUSINESS, variants: [BUSINESS], domains: ["sunrisedental.in"], competitors: [] }, ["NCA Academy", "Mantram Nursing Academy"]);
+    assert.deepEqual(absent, { mentioned: false, position: null, competitorsMentioned: ["NCA Academy", "Mantram Nursing Academy"] });
+    ok("rank: a rival named first in plain sentences counts, so the prospect is #2, not #1; alone it is #1; absent it has no rank");
   }
 
   // ---- summary text when nothing was named ----

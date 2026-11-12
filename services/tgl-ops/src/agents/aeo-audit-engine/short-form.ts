@@ -17,7 +17,7 @@ import {
   type EngineId,
 } from "./types.js";
 import { loadEngineConfig, askEngine } from "./engines.js";
-import { analyzeAnswer, analyzeCitation } from "./analyze.js";
+import { analyzeAnswer, analyzeCitation, firstIndexOf, namesFor } from "./analyze.js";
 import {
   loadVerifiedBrandProfile,
   type VerifiedBrandProfile,
@@ -274,6 +274,29 @@ export function analyzeProspectAnswer(text: string, lens: BrandLens, allowed?: S
 }
 
 /**
+ * Ranks the prospect in one answer against a known list of other businesses, wherever in the text they appear
+ * (bold, numbered or plain sentence). `mentioned` is decided exactly as in analyzeProspectAnswer, so the second
+ * pass never changes whether an answer counts as naming the prospect; only who else was named, and the order.
+ */
+export function rankProspectAnswer(text: string, lens: BrandLens, otherNames: string[]): AnswerAnalysis {
+  const isOwn = (n: string) => [lens.name, ...lens.variants].some((v) => v && nameMatchesProspect(n, v));
+  const ownIndexes = businessNamesInAnswer(text).filter((n) => isOwn(n.name)).map((n) => n.index);
+  const inText = firstIndexOf(text, namesFor(lens));
+  if (inText >= 0) ownIndexes.push(inText);
+  const brandAt = ownIndexes.length > 0 ? Math.min(...ownIndexes) : -1;
+  const found = otherNames
+    .filter((n) => !isOwn(n))
+    .map((name) => ({ name, at: firstIndexOf(text, [name]) }))
+    .filter((c) => c.at >= 0)
+    .sort((a, b) => a.at - b.at);
+  return {
+    mentioned: brandAt >= 0,
+    position: brandAt >= 0 ? 1 + found.filter((c) => c.at < brandAt).length : null,
+    competitorsMentioned: found.map((c) => c.name),
+  };
+}
+
+/**
  * Executes a 5-prompt × 3-engine short-form AEO audit for a given brand.
  * Refuses to run if the brand's setup profile is unverified.
  */
@@ -438,26 +461,34 @@ export async function runShortFormAudit(
     });
   }
 
-  // Prospect audits: one more reading of the names, across all answers at once. Dropped names leave the
-  // "named instead" counts and stop counting toward position; the answers themselves are not asked again.
-  if (prospect?.nameFilter && Object.keys(competitorMentions).length > 0) {
-    let kept: string[] | null = null;
-    try {
-      kept = await prospect.nameFilter(Object.keys(competitorMentions));
-    } catch (err: any) {
-      console.warn(`[Prospect Audit] name check failed, keeping the rule-based list: ${err?.message || err}`);
-    }
-    if (kept) {
-      const allowed = new Set(kept.filter((n) => n in competitorMentions));
-      for (const key of Object.keys(competitorMentions)) delete competitorMentions[key];
-      for (const r of results) {
-        for (const er of Object.values(r.engineResults)) {
-          er.analysis = analyzeProspectAnswer(er.text, lens, allowed);
-          er.badge = getCellBadge(er.analysis);
-          for (const comp of new Set(er.analysis.competitorsMentioned)) competitorMentions[comp] = (competitorMentions[comp] || 0) + 1;
-        }
-        r.excerpt = extractPromptExcerpt(r.promptIndex, r.engineResults, lens.name);
+  // Prospect audits, second pass. The first pass read each answer on its own and only saw names an answer put in
+  // bold or in a numbered list. Engines differ: one bolds every name, another writes them in plain sentences. So
+  // the names found anywhere are now looked for in every answer's text, and the prospect's rank in an answer is
+  // the number of those businesses mentioned before it, plus one. Without this an answer that opened with a
+  // rival in plain text showed the prospect as "Named #1" (first live case: 12 Nov 2026).
+  // The optional name check runs first; names it drops leave the counts and the ranking.
+  if (prospect) {
+    let names = Object.keys(competitorMentions);
+    if (prospect.nameFilter && names.length > 0) {
+      let kept: string[] | null = null;
+      try {
+        kept = await prospect.nameFilter(names);
+      } catch (err: any) {
+        console.warn(`[Prospect Audit] name check failed, keeping the rule-based list: ${err?.message || err}`);
       }
+      if (kept) {
+        const allowed = new Set(kept);
+        names = names.filter((n) => allowed.has(n));
+      }
+    }
+    for (const key of Object.keys(competitorMentions)) delete competitorMentions[key];
+    for (const r of results) {
+      for (const er of Object.values(r.engineResults)) {
+        er.analysis = rankProspectAnswer(er.text, lens, names);
+        er.badge = getCellBadge(er.analysis);
+        for (const comp of new Set(er.analysis.competitorsMentioned)) competitorMentions[comp] = (competitorMentions[comp] || 0) + 1;
+      }
+      r.excerpt = extractPromptExcerpt(r.promptIndex, r.engineResults, lens.name);
     }
   }
 
