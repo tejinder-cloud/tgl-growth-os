@@ -127,3 +127,59 @@ export function detectMultiBranchSignal(signals: ProspectSignals | undefined): s
   if (evidence) return `branch evidence: ${evidence}`;
   return null;
 }
+
+export interface LargeOrgAssessment {
+  isLarge: boolean;
+  /** Plain-text reason when isLarge is true: category, name hint, review volume or a real multi-branch signal. */
+  reason?: string;
+  /** Set only when the reason is a real multi-branch signal. This is what caps the fit score. */
+  multiBranchReason: string | null;
+}
+
+/**
+ * Decides is_large_org (50+ staff) for a candidate (issue #184).
+ * A generic brand prefix such as "dr." never contributes: it neither raises places_brand_count into a multi-branch
+ * signal nor lifts branch_count. A real multi-branch signal (distinctive brand at 2+ Places locations, root domain
+ * hosting other branches, or branch evidence not resting on a generic brand) is reported separately so the rubric
+ * can cap the fit score.
+ */
+export function assessLargeOrg(input: {
+  name: string;
+  category?: string;
+  userRatingsTotal?: number;
+  placesBrandCount?: number;
+  brandPrefix?: string;
+  signals?: ProspectSignals;
+}): LargeOrgAssessment {
+  const normName = (input.name || "").toLowerCase();
+  const cat = (input.category || "").toLowerCase();
+  const brandPrefix = input.brandPrefix ?? input.signals?.brand_prefix;
+
+  // Evaluate multi-branch on a view of the signals in which a generic brand prefix carries no weight.
+  const view: ProspectSignals = {
+    ...(input.signals || ({} as ProspectSignals)),
+    brand_prefix: brandPrefix,
+    places_brand_count: input.placesBrandCount ?? input.signals?.places_brand_count,
+  };
+  const multiBranchReason = detectMultiBranchSignal(view);
+  if (multiBranchReason) {
+    return { isLarge: true, reason: `real multi-branch signal: ${multiBranchReason}`, multiBranchReason };
+  }
+
+  if (cat === "hospitals" || cat === "hospital") {
+    return { isLarge: true, reason: `category '${cat}'`, multiBranchReason: null };
+  }
+  const nameHint = ["hospital", "super speciality", "multispeciality", "medical centre", "institute"].find((h) => normName.includes(h));
+  if (nameHint) {
+    return { isLarge: true, reason: `name contains '${nameHint}'`, multiBranchReason: null };
+  }
+  if (input.userRatingsTotal && input.userRatingsTotal >= 200) {
+    return { isLarge: true, reason: `${input.userRatingsTotal} Google reviews (200 or more)`, multiBranchReason: null };
+  }
+  const genericPrefix = brandPrefix !== undefined && isGenericBrandPrefix(brandPrefix);
+  const branchCount = input.signals?.branch_count;
+  if (!genericPrefix && typeof branchCount === "number" && branchCount >= 2) {
+    return { isLarge: true, reason: `branch_count ${branchCount}`, multiBranchReason: null };
+  }
+  return { isLarge: false, multiBranchReason: null };
+}
