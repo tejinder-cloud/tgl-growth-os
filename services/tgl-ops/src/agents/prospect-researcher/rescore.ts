@@ -55,14 +55,19 @@ export function rescoreRows(
     const scoreBefore = p.fit_score;
     const statusBefore = p.status;
 
-    // 1. Re-evaluate brand token and root domain, then drop signals that rested on a generic brand prefix ("dr.").
+    // 1. Drop chain signals that rested on a generic brand prefix ("dr.") already stored on the row.
+    const storedClean = sanitizeGenericBrandSignals(p.signals, p.company);
+    p.signals = storedClean.signals;
+    notes.push(...storedClean.removed);
+
+    // 2. Re-evaluate the brand token and root domain; a newly derived generic prefix is cleaned the same way.
     const { brand } = extractBrandToken(p.company, p.website);
     p.signals.brand_prefix = brand;
-    const sanitized = sanitizeGenericBrandSignals(p.signals, p.company);
-    p.signals = sanitized.signals;
-    notes.push(...sanitized.removed);
+    const derivedClean = sanitizeGenericBrandSignals(p.signals, p.company);
+    p.signals = derivedClean.signals;
+    notes.push(...derivedClean.removed);
 
-    // 2. Generic Chain Rule (Playbook C): 3+ Places locations, root domain hosting branches, or HQ in another metro.
+    // 3. Generic Chain Rule (Playbook C): 3+ Places locations, root domain hosting branches, or HQ in another metro.
     const chainCheck = checkPlaybookCDisqualification(p.company, p.website, p.signals, p.city);
     if (chainCheck.disqualified && chainCheck.reason) {
       p.signals.chain_evidence = p.signals.chain_evidence || [];
@@ -71,7 +76,8 @@ export function rescoreRows(
       }
     }
 
-    // 3. Organisation size and DM role. Not set from a generic brand prefix; the reason is stored.
+    // 4. Organisation size and DM role. Not set from a generic brand prefix; the reason is stored.
+    const wasLarge = Boolean(original.signals.is_large_org);
     const largeOrg = assessLargeOrg({
       name: p.company,
       category: p.category,
@@ -82,18 +88,19 @@ export function rescoreRows(
     });
     p.signals.is_large_org = largeOrg.isLarge;
     p.signals.is_large_org_reason = largeOrg.reason;
+    if (wasLarge !== largeOrg.isLarge) {
+      notes.push(`is_large_org ${wasLarge} -> ${largeOrg.isLarge}${largeOrg.reason ? ` (${largeOrg.reason})` : ""}`);
+    }
 
-    // 4. Rubric v2. Dimension 4 is the stored probe answer, re-read with the current prospect_named logic.
+    // 5. Rubric v2. Dimension 4 is the stored probe answer, re-read with the current prospect_named logic.
     const storedProbe = parseDim4Probe(p.fit_reasons);
     const probe = storedProbe
       ? reanalyseDim4Probe(storedProbe, { company: p.company, domain: p.website, brandPrefix: p.signals.brand_prefix })
       : null;
-    if (storedProbe && probe) {
-      if (storedProbe.prospect_named !== probe.prospect_named || storedProbe.score !== probe.score) {
-        notes.push(
-          `Dim 4 re-read: prospect_named ${storedProbe.prospect_named} -> ${probe.prospect_named}, probe score ${storedProbe.score} -> ${probe.score}`
-        );
-      }
+    if (storedProbe && probe && (storedProbe.prospect_named !== probe.prospect_named || storedProbe.score !== probe.score)) {
+      notes.push(
+        `Dim 4 re-read: prospect_named ${storedProbe.prospect_named} -> ${probe.prospect_named}, probe score ${storedProbe.score} -> ${probe.score}`
+      );
     }
 
     const evalRes = evaluateProspectRubric({
