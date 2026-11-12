@@ -7,7 +7,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabase } from "../prospect-researcher/db.js";
 
-export type SetupStatus = "verified" | "pending_verification" | "needs_changes";
+// "prospect_unverified" is never stored: it marks a free first audit for a prospect that has no setup profile
+// (decisions/2026-11-12.md). Such an audit is posted for the Architect's review and is never sent by the service.
+export type SetupStatus = "verified" | "pending_verification" | "needs_changes" | "prospect_unverified";
 
 export interface VerifiedPrompt {
   id: string;

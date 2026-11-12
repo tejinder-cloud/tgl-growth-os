@@ -99,6 +99,26 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // /task audit | Business | website | what they are | city  -> free first audit for a prospect, posted to
+    // #revenue for the Architect's review (decisions/2026-11-12.md). Never sent to the prospect by the service.
+    if (/^audit\s*\|/i.test(trimmedText)) {
+      const { parseAuditCommand, runProspectAudit } = await import("../agents/aeo-audit-engine/prospect-audit.js");
+      const auditReq = parseAuditCommand(trimmedText);
+      if (!auditReq) {
+        res.json({
+          response_type: "ephemeral",
+          text: "Usage: `/task audit | <business name> | <website> | <what they are, for example dental clinic> | <city>`. The last two parts are optional.",
+        });
+        return;
+      }
+      res.status(200).json({
+        response_type: "ephemeral",
+        text: `Audit engine: running the free first audit for ${auditReq.businessName}. The PDF and the five questions will be posted to #revenue for your review in a few minutes. Nothing is sent to the prospect.`,
+      });
+      void runProspectAudit(auditReq).catch((err: any) => console.error("[Task audit Error]", err?.message || err));
+      return;
+    }
+
     // Direct /task @prospect-researcher invocation without pipes
     if (
       trimmedText.toLowerCase() === "@prospect-researcher" ||
