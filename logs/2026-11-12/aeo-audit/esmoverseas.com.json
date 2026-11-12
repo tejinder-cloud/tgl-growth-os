@@ -1,0 +1,1313 @@
+{
+  "brand": {
+    "name": "ESM Overseas",
+    "primaryDomain": "esmoverseas.com",
+    "domains": [
+      "esmoverseas.com"
+    ],
+    "variants": [
+      "ESM Overseas"
+    ],
+    "setupStatus": "prospect_unverified"
+  },
+  "auditedAt": "2026-11-12T10:20:09.221Z",
+  "promptsCount": 5,
+  "enginesCount": 3,
+  "totalQueries": 15,
+  "summary": {
+    "totalMentions": 0,
+    "visibilityScorePercent": 0,
+    "mentionsByEngine": {
+      "chatgpt": 0,
+      "gemini": 0,
+      "perplexity": 0
+    },
+    "competitorMentions": {
+      "Skyline Immigration": 2,
+      "Sector 17": 1,
+      "IDP Education": 5,
+      "SIEC Education": 2,
+      "Edwise International": 1,
+      "Canam Consultants": 3,
+      "Western Overseas": 2,
+      "Landmark Immigration": 2,
+      "Pyramid eServices / Grey Matters": 1,
+      "SIEC": 2,
+      "Canada College / Diploma Programs": 1,
+      "USA / Europe": 1,
+      "Edwise": 2,
+      "IDP": 1,
+      "Refusal Cases / Complex Gap Years": 1,
+      "Canam": 2,
+      "Direct University Representation": 1,
+      "Transparent Fee Structure": 1,
+      "No Fake Guarantees": 1,
+      "Access to Your Application": 1,
+      "Unitrack Overseas": 2,
+      "Abroad Gateway": 2,
+      "Student Feedback": 1,
+      "Beware of review farming": 1,
+      "Check for accreditation": 1,
+      "CICC/RCIC": 1,
+      "MARA": 3,
+      "AIRC": 2,
+      "Avoid \"Guaranteed Visa\" promises": 1,
+      "AECC": 1,
+      "Skyline Immigration Consultants": 1,
+      "Sunland Education & Immigration Consultants": 1,
+      "UK and Australia": 1,
+      "Vrinda International": 1,
+      "West Highlander": 1,
+      "New Zealand & Australia visas": 1,
+      "SI-UK": 1,
+      "United Kingdom admissions": 1,
+      "Russell Group universities": 1,
+      "Pyramid eServices": 1,
+      "European study options": 1,
+      "Eduland Immigration": 1,
+      "USA Study Visas and Visa Interview Preparation": 1,
+      "Touchstone Educationals": 1,
+      "UK Exclusively / Russell Group Universities": 1,
+      "Canada": 4,
+      "USA & Face-to-Face Interview Prep": 1,
+      "Refusal Cases / New Zealand Specialist": 1,
+      "Germany / European Low-Tuition Programs": 1,
+      "Visa Winner Consultants": 1,
+      "Flytouch Overseas": 1,
+      "IBT Overseas": 1,
+      "Study International Consultants": 1,
+      "Oracle Immigration Solutions": 1,
+      "Local License": 1,
+      "Punjab Travel Professionals Regulation Act": 1,
+      "Country-Specific Certifications": 1,
+      "RCIC/CICC": 1,
+      "Australia": 2,
+      "QEAC": 2,
+      "British Council": 1,
+      "USA": 1,
+      "Global": 1,
+      "ICEF": 1,
+      "Tuition Fees & GIC/Proof of Funds": 1,
+      "Offering fake documents": 1,
+      "Pushing one specific private college": 1,
+      "Shortlist 2–3 agencies": 1,
+      "Do your own homework first": 1,
+      "Compare their course recommendations": 1,
+      "IDP Education Chandigarh": 1,
+      "February 17": 1,
+      "Walk away": 1,
+      "My practical recommendation": 1,
+      "Global Standing": 1,
+      "Free Services": 1,
+      "Transparency": 1,
+      "Pan-India Reputation": 1,
+      "Accreditations": 1,
+      "Fair Guidance": 1,
+      "Legacy in Punjab/Chandigarh": 1,
+      "Strong Canadian Footprint": 1,
+      "Systematic Process": 1,
+      "UK Specialist": 1,
+      "Direct UK University Links": 1,
+      "Licensed Representation": 1,
+      "High-Refusal Profile Handling": 1,
+      "RCIC": 1,
+      "New Zealand": 1,
+      "LIA": 1,
+      "Local Legal License": 1,
+      "Never trust": 1,
+      "The \"Package System\"": 1,
+      "Withholding Original Documents": 1,
+      "Arranging \"Show Money\"": 1,
+      "Practical recommendation": 1
+    },
+    "citationDomains": {
+      "aeccglobal.com": 3,
+      "idp.com": 7,
+      "innovisioninternational.com": 2,
+      "western-overseas.com": 1,
+      "ibtoverseas.com": 2,
+      "unitrackoverseas.com": 4,
+      "abroadgateway.com": 6,
+      "oceanicconsultants.com": 1,
+      "justdial.com": 8,
+      "quora.com": 1,
+      "wanderlog.com": 1,
+      "collegedunia.com": 1,
+      "portal.chandigarhpolice.gov.in": 1,
+      "jupiterconsultants.in": 2,
+      "visagurustudyabroad.com": 1,
+      "innovationimmigration.co.in": 1,
+      "canada.ca": 3,
+      "siecindia.com": 1,
+      "fateheducation.com": 1,
+      "thesfedu.com": 1,
+      "chandigarhpolice.gov.in": 1,
+      "indianembassyusa.gov.in": 1
+    },
+    "totalCostUsd": 0.2493,
+    "totalCostInr": 23.66
+  },
+  "nextSteps": {
+    "weakestEngine": "ChatGPT",
+    "weakestEngineMentions": 0,
+    "zeroMentionEngines": [
+      "ChatGPT",
+      "Gemini",
+      "Perplexity"
+    ],
+    "queriesLost": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "weakestQueries": [
+      1,
+      2
+    ],
+    "winningCompetitor": "IDP Education",
+    "winningCompetitorCount": 5,
+    "topCitationGap": "justdial.com",
+    "formattedText": "ESM Overseas was named in 0 of 15 answers (0%). ChatGPT, Gemini and Perplexity did not name ESM Overseas in any of the 5 prompts. IDP Education was the competitor named most often, in 5 of 15 answers. Weakest queries: Q1 \"best study visa consultant in Chandigarh\" (0 of 3 engines named ESM Overseas); Q2 \"which study visa consultant in Chandigarh has the best reviews\" (0 of 3 engines named ESM Overseas)."
+  },
+  "matrix": [
+    {
+      "promptIndex": 1,
+      "prompt": "best study visa consultant in Chandigarh",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t an independently verified single “best” consultant, but IDP Education is a sensible starting point for study-visa g..."
+      }
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "which study visa consultant in Chandigarh has the best reviews",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "Unitrack Overseas appears to be a strong choice based on the available review figures: its Chandigarh listing reports 4.9/5 fro..."
+      }
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "top rated study visa consultant in Chandigarh: what is each known for",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t a single reliable, independently verified “top” ranking. A 2026 local list names these Chandigarh-area consultancie..."
+      }
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "how to choose a study visa consultant in Chandigarh: which do you recommend",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "I’d shortlist IDP Education Chandigarh as a first consultation—not as a guaranteed “best” choice. It has a listed Chandigarh of..."
+      }
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "study visa consultant in Chandigarh: which one should I trust and why",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "I wouldn’t choose a Chandigarh consultant based on “best” rankings or visa-success claims alone. The available listings identif..."
+      }
+    }
+  ],
+  "rawAnswers": [
+    {
+      "promptIndex": 1,
+      "prompt": "best study visa consultant in Chandigarh",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one objectively “best” consultant—it depends on your destination country and course. **AECC Chandigarh is one option to compare first**: its website currently reports a 4.8/5 rating from 711 Google reviews. For another comparison, **Skyline Immigration** has a 4.9/5 Justdial rating from 503 ratings and appears on a Chandigarh Police agent list. Ratings are only a starting point, not a guarantee of good advice or a visa approval. ([aeccglobal.com](https://www.aeccglobal.com/in/study-abroad-consultants/chandigarh?utm_source=openai))\n\nBefore signing with anyone, get the **full fee and refund terms in writing**, verify the university and course yourself, and be wary of anyone promising a guaranteed visa. A listing on a police agent list should not be treated as an endorsement.\n\n**Which country are you planning to study in—Canada, UK, Australia, US, or somewhere else?** I can narrow the shortlist to consultants suited to that destination.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Skyline Immigration"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "aeccglobal.com",
+          "url": "https://www.aeccglobal.com/in/study-abroad-consultants/chandigarh?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021598
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "best study visa consultant in Chandigarh",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Chandigarh has a high concentration of study visa and education consultancies, primarily clustered around **Sector 17, Sector 34, and Sector 35**. \n\nThe choice of the best consultant depends on your target country (Canada, UK, Australia, USA, Europe) and whether you prefer an official international agency or an experienced regional specialist.\n\n---\n\n### 1. Top Tier: Globally Recognized Consultants\nThese consultancies have direct tie-ups with universities and generally offer genuine, transparent counseling with official university application access.\n\n* **IDP Education (Sector 9-C)**\n  * **Best For:** Australia, UK, Canada, New Zealand, USA, Ireland.\n  * **Why Choose Them:** Co-owner of IELTS and a global education powerhouse. They represent hundreds of universities directly, their basic counseling is often free, and they have an extremely high success rate without pushing private colleges.\n* **SIEC Education (Sector 35-C)**\n  * **Best For:** Australia, UK, Germany, Canada, and USA.\n  * **Why Choose Them:** A pioneer in Australian and UK admissions with deep university networks (including Australian Group of Eight institutions). They provide strong profile evaluation, SOP drafting, and visa mock preparation.\n* **Edwise International (Sector 34-A)**\n  * **Best For:** UK, USA, Canada, and European universities.\n  * **Why Choose Them:** One of India’s oldest overseas education consultancies with a vast portfolio of top universities. Ideal for students targeting academic degrees rather than diploma programs.\n\n---\n\n### 2. Prominent Regional Consultancies (High Volume & Experience)\nThese consultancies are widely established in Punjab/Chandigarh and specialize heavily in student visa processing, particularly for Canada and Australia:\n\n* **Canam Consultants (Sector 17-C)**\n  * **Best For:** Canada, USA, Australia, and New Zealand.\n  * **Why Choose Them:** One of the largest and oldest immigration and study abroad consultancies in North India. They hold authorized partnerships with colleges and universities across Canada.\n* **Western Overseas (Sector 34-A)**\n  * **Best For:** Canada, Australia, and UK.\n  * **Why Choose Them:** Extensive presence across Punjab and Haryana with high application volume and strong visa file handling for student visas.\n* **Landmark Immigration (Sector 17)**\n  * **Best For:** Canada (SDS & Non-SDS) and the UK.\n  * **Why Choose Them:** Well-known for Canada student visas and handling complex profiles or refusal cases.\n* **Pyramid eServices / Grey Matters (Sector 17 / Sector 35)**\n  * **Best For:** End-to-end IELTS coaching + study visa processing for Canada and Australia.\n\n---\n\n### Which One Should You Pick?\n\n| Your Goal | Recommended Consultant |\n| :--- | :--- |\n| **Top Universities & Transparent Guidance (Direct Tie-ups)** | **IDP Education** or **SIEC** |\n| **Canada College / Diploma Programs** | **Canam Consultants** or **Western Overseas** |\n| **USA / Europe (including Germany/Ireland)** | **Edwise** or **IDP** |\n| **Refusal Cases / Complex Gap Years** | **Canam** or **Landmark Immigration** |\n\n---\n\n### Essential Checklist Before Finalizing Any Consultant:\n1. **Direct University Representation:** Confirm if the consultant is an official agent of the college/university (you can verify this on the university’s official website).\n2. **Transparent Fee Structure:** Avoid agents who charge excessive upfront service fees for partner universities (most authorized agents receive commission from universities).\n3. **No Fake Guarantees:** Steer clear of consultants promising \"100% Guaranteed Visas\" or pushing questionable financial documents.\n4. **Access to Your Application:** Ensure your own email address is registered on visa portals (such as the IRCC portal for Canada or ImmiAccount for Australia) so you retain full control over your application updates.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Sector 17",
+          "IDP Education",
+          "SIEC Education",
+          "Edwise International",
+          "Canam Consultants",
+          "Western Overseas",
+          "Landmark Immigration",
+          "Pyramid eServices / Grey Matters",
+          "SIEC",
+          "Canada College / Diploma Programs",
+          "USA / Europe",
+          "Edwise",
+          "IDP",
+          "Refusal Cases / Complex Gap Years",
+          "Canam",
+          "Direct University Representation",
+          "Transparent Fee Structure",
+          "No Fake Guarantees",
+          "Access to Your Application"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "idp.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "innovisioninternational.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "western-overseas.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ibtoverseas.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.020524
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "best study visa consultant in Chandigarh",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t an independently verified single “best” consultant, but **IDP Education** is a sensible starting point for study-visa guidance: it has Chandigarh offices in Sectors 34-A and 9-C and provides destination-specific application support.[3]\n\nOther options to compare include **Unitrack Overseas** in Sector 34-A and **Abroad Gateway** in Sector 42-C; both advertise study-abroad consulting, though their “best” claims are self-promotional.[1][2]\n\nBefore paying, compare the written service fees and refund terms, ask who handles your application, and verify admissions and visa requirements directly with the university and official government sources. No consultant can guarantee a visa.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "IDP Education",
+          "Unitrack Overseas",
+          "Abroad Gateway"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "unitrackoverseas.com",
+          "url": "https://www.unitrackoverseas.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "abroadgateway.com",
+          "url": "https://abroadgateway.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "idp.com",
+          "url": "https://www.idp.com/india/usa-study-visa-consultants/chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "oceanicconsultants.com",
+          "url": "https://oceanicconsultants.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "unitrackoverseas.com",
+          "url": "https://www.unitrackoverseas.com/chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "unitrackoverseas.com",
+          "url": "https://www.unitrackoverseas.com/about-us/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-40d/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-46/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-18/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "unitrackoverseas.com",
+          "url": "https://www.unitrackoverseas.com/study-in-europe/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00186
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "which study visa consultant in Chandigarh has the best reviews",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "**AECC Chandigarh looks like the strongest pick by review volume among the options I found:** it reports **4.8/5 from 711 Google reviews**. **SIEC** is a close alternative at **4.8/5 from 638 Google reviews**. ([aeccglobal.com](https://www.aeccglobal.com/in/study-abroad-consultants/chandigarh?utm_source=openai))\n\nIf you’re judging only by star rating, **Skyline Immigration** lists **4.9/5 from 503 ratings**, though that figure is from Justdial rather than the same Google-review comparison. ([justdial.com](https://www.justdial.com/Chandigarh/Skyline-Immigration-Consultants-Near-SBI-Bank-Main-Market-Chandigarh-Sector-42c/0172PX172-X172-170502120219-X8L8_BZDET/reviews?utm_source=openai))\n\nRatings aren’t a guarantee of good advice. Before paying, get the full fee and refund terms in writing, check recent reviews for your destination country, and don’t accept promises of a guaranteed visa. If you tell me **which country you’re applying to**, I can narrow the shortlist.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "SIEC",
+          "Skyline Immigration"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "aeccglobal.com",
+          "url": "https://www.aeccglobal.com/in/study-abroad-consultants/chandigarh?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Skyline-Immigration-Consultants-Near-SBI-Bank-Main-Market-Chandigarh-Sector-42c/0172PX172-X172-170502120219-X8L8_BZDET/reviews?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011614
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "which study visa consultant in Chandigarh has the best reviews",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because Chandigarh (particularly Sectors 17, 34, and 35) is the primary hub for overseas education in North India, hundreds of agencies compete for clients. While many small agencies accumulate artificial 5-star ratings, **IDP Education**, **Canam Consultants**, and **SIEC Education** consistently hold the highest credibility, volume of verified positive reviews, and success rates.\n\nThe best-reviewed study visa consultancies in Chandigarh include:\n\n---\n\n### 1. IDP Education (Sector 9 / Sector 34)\n* **Best for:** Australia, UK, Canada, New Zealand, and USA.\n* **Why it’s top-rated:** As the co-owner of IELTS and a global education powerhouse, IDP is widely regarded by students as the safest and most legitimate option. They do not engage in dishonest profile exaggerations and offer transparent, often free student counseling and university filing.\n* **Student Feedback:** High praise for transparent processes, direct communication with partner universities, and lack of hidden charges.\n\n### 2. Canam Consultants (Sector 17-C)\n* **Best for:** Canada, UK, and Australia.\n* **Why it’s top-rated:** One of the oldest and largest consultancies in the region, Canam has thousands of verified student reviews. They have direct tie-ups with hundreds of Canadian colleges and universities.\n* **Student Feedback:** Reviewers frequently cite structured documentation support, expert SOP drafting guidance, and high visa approval rates even for students with study gaps.\n\n### 3. SIEC Education (Sector 34-A)\n* **Best for:** Australia, Germany, Ireland, and Canada.\n* **Why it’s top-rated:** SIEC has a stellar reputation for adhering to legal and official compliance. They have registered migration agents (e.g., MARA agents for Australia) attached to their processes.\n* **Student Feedback:** Appreciated for clear, candid profile assessments—counselors are known to decline cases or advise realistic alternatives rather than taking fees on unviable profiles.\n\n### 4. Edwise International (Sector 34-A)\n* **Best for:** USA, UK, Europe, and Australia.\n* **Why it’s top-rated:** A pan-India brand with a strong office in Chandigarh, Edwise is well-known for handling university admissions (Master’s/Bachelor’s degrees) rather than just diploma programs.\n* **Student Feedback:** Consistently receives high ratings for interview preparation (especially for US F-1 visas) and scholarship assistance.\n\n### 5. Western Overseas (Sector 34-A)\n* **Best for:** Canada and Australia study permits.\n* **Why it’s top-rated:** Extremely popular locally with heavy footfall across Punjab and Haryana. They have a dedicated team for visa filing, documentation, and in-house language coaching (IELTS/PTE).\n* **Student Feedback:** Appreciated for responsive handling and fast turnaround, though wait times can be high during peak intake seasons due to crowds.\n\n---\n\n### Red Flags & How to Verify Reviews in Chandigarh\n\nWhen shortlisting an agency based on reviews, keep these precautions in mind:\n1. **Beware of review farming:** Many smaller consultancies ask students to post 5-star Google reviews during the initial consultation before the visa application has even been filed. Filter Google reviews by \"Newest\" or look for 3-star/2-star ratings to read actual experiences regarding delays or refusal handling.\n2. **Check for accreditation:** If applying to Canada, ask if they work with an active **CICC/RCIC** agent; for Australia, check for **MARA** registration; for the US, check for **AIRC** accreditation.\n3. **Avoid \"Guaranteed Visa\" promises:** No consultant can legally guarantee a visa decision. Firms that promise 100% guarantees or offer package-after-visa deals requiring document alterations carry severe long-term rejection risks.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "IDP Education",
+          "Canam Consultants",
+          "SIEC Education",
+          "Student Feedback",
+          "Beware of review farming",
+          "Check for accreditation",
+          "CICC/RCIC",
+          "MARA",
+          "AIRC",
+          "Avoid \"Guaranteed Visa\" promises"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "quora.com",
+          "url": null,
+          "channelType": "forum",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "idp.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "abroadgateway.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.035275
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "which study visa consultant in Chandigarh has the best reviews",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "**Unitrack Overseas** appears to be a strong choice based on the available review figures: its Chandigarh listing reports **4.9/5 from 383 reviews**.[1] Review totals and ratings can vary across platforms, though, and the firm’s own website is promoting its services, so treat that score as a starting point rather than a definitive ranking.\n\nBefore paying, check recent reviews on an independent platform and get the full service scope, fees, and refund terms in writing.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Unitrack Overseas"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "unitrackoverseas.com",
+          "url": "https://www.unitrackoverseas.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-47A/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "unitrackoverseas.com",
+          "url": "https://www.unitrackoverseas.com/chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "abroadgateway.com",
+          "url": "https://abroadgateway.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-18/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-40d/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-46/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-28a/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-47/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-46C/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00165
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "top rated study visa consultant in Chandigarh: what is each known for",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t a reliable, independent “#1” ranking, but these are **well-reviewed options to compare** based on the ratings and review information I found. Ratings can change, and reviews aren’t proof of visa success.\n\n| Consultant | What they seem best known for |\n|---|---|\n| **AECC** | A broad study-abroad consultancy. Its Chandigarh page reports **4.8/5 from 711+ Google reviews**; student reviews mention Australia applications. ([aeccglobal.com](https://www.aeccglobal.com/in/study-abroad-consultants/chandigarh?utm_source=openai)) |\n| **Skyline Immigration Consultants** | Study-visa guidance and a strong customer-rating signal: **4.9/5 from 503 Justdial ratings**. The review summary highlights helpful staff and transparent service. ([justdial.com](https://www.justdial.com/Chandigarh/Skyline-Immigration-Consultants-Near-SBI-Bank-Main-Market-Chandigarh-Sector-42c/0172PX172-X172-170502120219-X8L8_BZDET/reviews?utm_source=openai)) |\n| **Sunland Education & Immigration Consultants** | Reviews describe help with **UK and Australia** applications, from choosing a university through documentation. Wanderlog reports **4.6/5 from 441 Google reviews**. ([wanderlog.com](https://wanderlog.com/place/details/4644534/sunland-education-and-immigration-consultants?utm_source=openai)) |\n| **Vrinda International** | General overseas-education counseling across multiple destinations. Collegedunia reports **4.9/5 from 145 Google reviews** and describes support with admissions and visa applications. ([collegedunia.com](https://collegedunia.com/institute/10631-vrinda-international-overseas-education-consultancy-chandigarh?utm_source=openai)) |\n\n**How I’d choose:** shortlist two or three that handle your destination and course, then compare their written fee breakdown, refund terms, and exactly what they’ll do for admissions and the visa file. Ask who will handle your case and whether you can speak with a recent student applying to the **same country and program**. Treat any guarantee of a visa as a red flag. Chandigarh Police also publishes immigration-agent lists; check the current list before paying. ([portal.chandigarhpolice.gov.in](https://portal.chandigarhpolice.gov.in/attachments/uploads/files/2026-06-05/Agents_List_3efed.pdf?utm_source=openai))\n\nIf you tell me your **destination country and intended course**, I can narrow this down to the most relevant options.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "AECC",
+          "Skyline Immigration Consultants",
+          "Sunland Education & Immigration Consultants",
+          "UK and Australia",
+          "Vrinda International"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "aeccglobal.com",
+          "url": "https://www.aeccglobal.com/in/study-abroad-consultants/chandigarh?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Skyline-Immigration-Consultants-Near-SBI-Bank-Main-Market-Chandigarh-Sector-42c/0172PX172-X172-170502120219-X8L8_BZDET/reviews?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "wanderlog.com",
+          "url": "https://wanderlog.com/place/details/4644534/sunland-education-and-immigration-consultants?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/institute/10631-vrinda-international-overseas-education-consultancy-chandigarh?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "portal.chandigarhpolice.gov.in",
+          "url": "https://portal.chandigarhpolice.gov.in/attachments/uploads/files/2026-06-05/Agents_List_3efed.pdf?utm_source=openai",
+          "channelType": "reference",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021941
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "top rated study visa consultant in Chandigarh: what is each known for",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Chandigarh (especially Sectors 17, 34, and 9) is the primary hub for overseas education counseling in North India. Several consultants operate here, but different firms are renowned for distinct strengths, target countries, and processing styles. \n\nThe top-rated study visa consultants in Chandigarh and their primary specializations include:\n\n---\n\n### 1. **IDP Education** (Sector 9 / Sector 17)\n* **Best known for:** Direct university partnerships, unbiased counseling, and Australian/UK admissions.\n* **Reputation & Strength:**\n  * As the co-owner of IELTS, IDP carries the highest institutional trust and brand legitimacy.\n  * Unlike local agencies that push specific colleges for commissions, IDP acts as an official representative for hundreds of reputable public universities across **Australia, the UK, the USA, Canada, and New Zealand**.\n  * Most of their initial counseling and university application services are officially funded by partner institutions, meaning students rarely face hidden counseling charges.\n\n---\n\n### 2. **Canam Consultants** (Sector 17-A)\n* **Best known for:** Canadian student visas and massive institutional reach.\n* **Reputation & Strength:**\n  * One of the oldest and largest overseas consultancy brands in North India.\n  * Canam is considered an authority on Canadian admissions—ranging from community colleges and post-graduate diploma programs to leading public universities.\n  * Strong infrastructure for financial documentation review, GIC assistance, and SDS (Student Direct Stream) compliance.\n\n---\n\n### 3. **West Highlander** (Sector 34-A)\n* **Best known for:** Licensed immigration counsel, complex profiles, and **New Zealand & Australia visas**.\n* **Reputation & Strength:**\n  * Led by certified advisers (including Licensed Immigration Advisers for New Zealand), giving them a legal edge over standard education agents.\n  * Widely considered the go-to agency in Chandigarh for **visa refusal cases** (students who have previously faced rejections) and dual-intent/spouse accompaniment cases alongside study visas.\n  * Thorough scrutiny of Statement of Purpose (SOP) writing and genuine student requirement compliance.\n\n---\n\n### 4. **SI-UK** (Sector 9)\n* **Best known for:** Exclusively dedicated to **United Kingdom (UK) admissions**.\n* **Reputation & Strength:**\n  * If your goal is specifically England, Scotland, Wales, or Northern Ireland, SI-UK specializes entirely in this corridor.\n  * Known for placing students into **Russell Group universities** (e.g., King's College, Manchester, Edinburgh) and handling Oxbridge applications.\n  * They provide direct submission portals, fast-track offer letter processing, and CAS/Confirmation of Acceptance guidance.\n\n---\n\n### 5. **Pyramid eServices** (Sector 17 / Sector 34)\n* **Best known for:** High visa approval volume, accessible diploma/degree pathways, and **European study options (notably Germany)**.\n* **Reputation & Strength:**\n  * Deep grassroots penetration across Punjab and Haryana, known for straightforward, accessible counseling for average-to-high academic profiles.\n  * Aside from Canada and the UK, they are recognized for English-taught bachelor’s and master’s programs in European destinations with low or zero tuition fees (like Germany).\n\n---\n\n### 6. **Landmark Immigration** (Sector 17)\n* **Best known for:** Canadian & UK student visas, frequent public seminars, and high case turnaround.\n* **Reputation & Strength:**\n  * Landmark is a household name in the region for students applying to practical/career-oriented courses in Canadian public colleges.\n  * Known for transparent status updates and strong pre-departure counseling, assisting students with accommodation and post-arrival networks.\n\n---\n\n### 7. **Eduland Immigration** (Sector 34)\n* **Best known for:** **USA Study Visas (F-1) and Visa Interview Preparation**.\n* **Reputation & Strength:**\n  * While many local agencies avoid the USA due to subjective embassy interviews, Eduland specializes heavily in the US application cycle.\n  * Particularly well-regarded for rigorous mock interview coaching, financial justification strategies, and I-20 application support.\n\n---\n\n### 8. **Touchstone Educationals** (Sector 17)\n* **Best known for:** Integrated test preparation (IELTS/PTE) + Study Abroad processing.\n* **Reputation & Strength:**\n  * Primarily famous as one of North India’s largest test-prep networks (official partners with IDP and Cambridge).\n  * Ideal for candidates who want an end-to-end package: starting from language coaching and clearing the exam to shortlisting colleges in Canada and Australia.\n\n---\n\n### Summary Checklist for Choosing:\n\n| If your primary focus is... | The recommended consultant is: |\n| :--- | :--- |\n| **Top Global Universities / Australia / New Zealand** | **IDP Education** |\n| **UK Exclusively / Russell Group Universities** | **SI-UK** |\n| **Canada (Colleges & Universities)** | **Canam Consultants** or **Landmark Immigration** |\n| **USA & Face-to-Face Interview Prep** | **Eduland Immigration** |\n| **Refusal Cases / New Zealand Specialist** | **West Highlander** |\n| **Germany / European Low-Tuition Programs** | **Pyramid eServices** |",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "IDP Education",
+          "Canam Consultants",
+          "West Highlander",
+          "New Zealand & Australia visas",
+          "SI-UK",
+          "United Kingdom admissions",
+          "Russell Group universities",
+          "Pyramid eServices",
+          "European study options",
+          "Landmark Immigration",
+          "Eduland Immigration",
+          "USA Study Visas and Visa Interview Preparation",
+          "Touchstone Educationals",
+          "UK Exclusively / Russell Group Universities",
+          "Canada",
+          "USA & Face-to-Face Interview Prep",
+          "Refusal Cases / New Zealand Specialist",
+          "Germany / European Low-Tuition Programs"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "jupiterconsultants.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "idp.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "visagurustudyabroad.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ibtoverseas.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "innovationimmigration.co.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.037433
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "top rated study visa consultant in Chandigarh: what is each known for",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t a single reliable, independently verified “top” ranking. A 2026 local list names these Chandigarh-area consultancies; its descriptions are largely provider claims, so treat them as a shortlist, not proof of visa outcomes.[9]\n\n| Consultant | What it’s known for |\n|---|---|\n| **Abroad Gateway** — Sector 42 | Study-visa support plus IELTS/PTE coaching; advertises profile assessment, document and SOP help, and interview preparation.[9] |\n| **Western Overseas** — Sector 35-C | Language training alongside visa services; the listing highlights German, French and Spanish courses, and preparation for European study destinations.[9] |\n| **Visa Winner Consultants** — Sector 32 | The listing emphasizes selective case assessment and documentation; it also mentions work permits for healthcare and skilled professionals.[9] |\n| **Flytouch Overseas** — Sector 34 | Advertises help with course selection, education loans and scholarships, as well as support for UK, US and Australian applications.[9] |\n| **IBT Overseas** — Sector 34-A | The listing highlights USA and Australia applications, eligibility checks, documentation and interview preparation.[9] |\n\nOther names appear in local directory listings, but the available results don’t provide enough comparable detail to say what each is best at. Justdial lists **Study International Consultants** at **5.0/464 ratings** and **Oracle Immigration Solutions** at **4.6/76 ratings**; directory ratings are useful for shortlisting but don’t guarantee results.[2][8]\n\nBefore paying, compare written fee/refund terms, who will handle your case, and which services are included. Ask for a tailored checklist and confirm all admissions and visa requirements directly with the school and official immigration authority.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Abroad Gateway",
+          "Western Overseas",
+          "Visa Winner Consultants",
+          "Flytouch Overseas",
+          "IBT Overseas",
+          "Study International Consultants",
+          "Oracle Immigration Solutions"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "unitrackoverseas.com",
+          "url": "https://www.unitrackoverseas.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-46/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "abroadgateway.com",
+          "url": "https://abroadgateway.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-40D/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-47/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-22c/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-28/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-20/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "abroadgateway.com",
+          "url": "https://abroadgateway.com/blog/top-visa-consultants-in-chandigarh-and-mohali/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-46C/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00178
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "how to choose a study visa consultant in Chandigarh: which do you recommend",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "**If you want one place to start, I’d book a consultation with IDP Chandigarh**—but treat it as a first opinion, not an automatic endorsement. IDP says its counselling and visa-application assistance are free and explicitly says it cannot guarantee approval. Ask which universities they work with and whether they’ll advise you on schools outside that network. ([idp.com](https://www.idp.com/india/study-visa-consultants/chandigarh/?utm_source=openai))\n\nBefore signing with any consultant, get the **full fee and service scope in writing**, keep control of your application login and documents, and don’t proceed if they promise a visa, suggest fake documents, or pressure you to pay immediately. A consultant can help prepare an application, but the government makes the decision.\n\nFor country-specific checks: if you’re applying to **Canada**, verify any paid immigration representative through Canada’s official authorized-representative guidance; for the **UK**, use the government’s adviser finder to check registration. ([canada.ca](https://www.canada.ca/en/immigration-refugees-citizenship/services/immigration-citizenship-representative/choose/authorized.html?utm_source=openai))\n\nTell me **which country you’re applying to** and I can make the recommendation more specific.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Canada"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "idp.com",
+          "url": "https://www.idp.com/india/study-visa-consultants/chandigarh/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "canada.ca",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigration-citizenship-representative/choose/authorized.html?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021643
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "how to choose a study visa consultant in Chandigarh: which do you recommend",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Choosing the right study visa consultant in Chandigarh requires caution. While Chandigarh (especially Sector 17, 34, 35, and Madhya Marg) is one of India’s biggest hubs for overseas education, the market is crowded with both world-class consultancies and unauthorized operators.\n\n---\n\n### Step 1: How to Choose a Consultant (The Evaluation Checklist)\n\n#### 1. Check Proper Licensing and International Accreditations\n* **Local License:** Verify that the agency is officially registered and holds a valid license under the **Punjab Travel Professionals Regulation Act** or local Chandigarh Administration norms.\n* **Country-Specific Certifications:**\n  * **Canada:** Regulated Canadian Immigration Consultant (**RCIC/CICC**) or recognized student agency.\n  * **Australia:** Registered Migration Agent (**MARA**) or Qualified Education Agent Counsellor (**QEAC**).\n  * **UK:** **British Council**-certified agents.\n  * **USA:** **AIRC** (American International Recruitment Council) certified.\n  * **Global:** **ICEF** certified agency status.\n\n#### 2. Direct University Tie-ups vs. Sub-Agencies\n* Prefer agencies that are **direct representatives** of foreign universities. \n* *Why it matters:* Sub-agents route your file through third parties, leading to delays, lack of accountability, and restricted college choices. Direct representatives usually do not charge you application or processing fees because they are compensated directly by the universities.\n\n#### 3. SOP and Documentation Quality\n* The Statement of Purpose (SOP) / Statement of Intent is a leading reason for visa refusals if it looks plagiarized or templated.\n* Ask them how they handle SOP writing. A good consultant will **interview you and edit your draft**, whereas a poor consultant will supply a generic, copy-pasted template.\n\n#### 4. Absolute Transparency with Fees & Accounts\n* **Tuition Fees & GIC/Proof of Funds:** You should **never pay university fees or visa fees directly into the agent’s personal or company account**. Tuition must go straight to the university portal via authorized wire transfer or forex card.\n* Clarify whether they charge for counseling and what the refund policy is in case of visa rejection.\n\n#### 5. Spotting Major Red Flags\n* **\"100% Visa Guarantee\":** No consultant can guarantee a visa; the decision rests solely with the visa officer/embassy.\n* **Offering fake documents:** Offering to arrange forged financial statements, experience certificates, or \"IELTS bypass\" letters can result in a 5- to 10-year ban from entering countries like Canada, Australia, or the UK.\n* **Pushing one specific private college:** If a counselor aggressively steers you toward a small, obscure private college regardless of your academic background, they are likely chasing high commission rates.\n\n---\n\n### Step 2: Recommended Study Visa Consultants in Chandigarh\n\nThe following consultancies are widely regarded for compliance, university representation, and track record:\n\n#### 1. IDP Education (Sector 9 & Sector 34)\n* **Best For:** Australia, UK, Canada, New Zealand, USA.\n* **Why Them:** Co-owner of IELTS and a global education powerhouse. They directly represent hundreds of top-tier universities. Their basic counseling and university placement services are largely free of charge for partner universities.\n\n#### 2. Canam Consultants (Sector 17 & Sector 34)\n* **Best For:** Canada, UK, Australia, USA, New Zealand.\n* **Why Them:** One of the oldest and most established immigration and study abroad consultancies in North India. They hold direct contracts with a massive portfolio of Canadian colleges and universities.\n\n#### 3. SIEC Education (Sector 34)\n* **Best For:** Australia, UK, Ireland, Germany, Canada.\n* **Why Them:** Operating for over 25 years with strong institutional ties, particularly with Australian and UK universities. They have experienced in-house visa filing teams and MARA-compliant processes.\n\n#### 4. Edwise International (Sector 34)\n* **Best For:** UK, USA, Australia, France, Germany, Ireland.\n* **Why Them:** A pan-India brand known for academic counseling for degree programs (Bachelors and Masters) rather than just diploma mill placements. Highly recognized for UK and US admissions.\n\n#### 5. Fateh Education (Sector 34)\n* **Best For:** United Kingdom and Ireland.\n* **Why Them:** Highly specialized in UK and Irish university admissions. If your sole focus is a British or Irish master's or bachelor's degree, their counselors offer in-depth, tailored guidance.\n\n#### 6. Silver Fern Education Consultants (Sector 35)\n* **Best For:** USA, UK, Canada, Australia.\n* **Why Them:** Good reputation among students looking for scholarships, university admissions, and transparent profile evaluation.\n\n---\n\n### Recommended Action Plan Before Signing Anything:\n\n1. **Shortlist 2–3 agencies** from the list above and book preliminary counseling sessions.\n2. **Do your own homework first:** Check the average tuition fees, course requirements, and post-study work visa rules on the official immigration website of your target country (e.g., IRCC for Canada, Home Affairs for Australia, Gov.uk for the UK).\n3. **Compare their course recommendations:** If a consultant recommends programs aligned with your past education and career goals, proceed. If they push a completely unrelated diploma in a remote location, seek a second opinion.\n4. **Never surrender original academic certificates or your passport** to any consultant. Certified copies or scanned uploads are all that are required during the initial application stages.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Local License",
+          "Punjab Travel Professionals Regulation Act",
+          "Country-Specific Certifications",
+          "Canada",
+          "RCIC/CICC",
+          "Australia",
+          "MARA",
+          "QEAC",
+          "British Council",
+          "USA",
+          "AIRC",
+          "Global",
+          "ICEF",
+          "Tuition Fees & GIC/Proof of Funds",
+          "Offering fake documents",
+          "Pushing one specific private college",
+          "Shortlist 2–3 agencies",
+          "Do your own homework first",
+          "Compare their course recommendations"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "idp.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "idp.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "innovisioninternational.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "siecindia.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fateheducation.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thesfedu.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.037752
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "how to choose a study visa consultant in Chandigarh: which do you recommend",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "I’d shortlist **IDP Education Chandigarh** as a first consultation—not as a guaranteed “best” choice. It has a listed Chandigarh office in Sector 9-C, and its services focus on overseas study and student visas.[1] Compare it with at least one other consultant, since fit depends on your destination, course and case.\n\nBefore paying, ask each consultant for:\n- Recent experience with **your destination country and visa type**\n- A written, itemised fee quote and service agreement\n- Exactly who prepares and submits each document—and what you must verify yourself\n- References or reviews from students with similar profiles\n- A frank assessment of risks, not promises of visa approval\n\nAvoid anyone guaranteeing a visa or pressuring you to submit inaccurate information; the decision belongs to the destination country’s authorities.[4] You can also check the official immigration guidance and apply directly if you’re comfortable handling the process. Reputability checks should include reviews, experience and clear fees.[1][2]\n\nTell me your destination country and preferred course, and I can help narrow down what credentials or authorisation to check.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "IDP Education Chandigarh"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "idp.com",
+          "url": "https://www.idp.com/india/study-visa-consultants/chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-47A/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-28/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "abroadgateway.com",
+          "url": "https://abroadgateway.com/blog/top-visa-consultants-in-chandigarh-and-mohali/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-40d/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-18/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-46/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-28B/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "jupiterconsultants.in",
+          "url": "https://jupiterconsultants.in/blog/top-10-immigration-consultants-in-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-46C/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00172
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "study visa consultant in Chandigarh: which one should I trust and why",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "**I wouldn’t trust any Chandigarh consultant just because of high ratings or a “100% visa success” claim.** I can’t verify one firm as the most trustworthy from public information alone.\n\nA sensible starting point is to **compare IDP Chandigarh with one or two firms on Chandigarh Police’s agent roster**. The roster I found is dated **February 17, 2026**, but being listed is a basic check—not a police endorsement, proof of good service, or evidence of visa success. ([chandigarhpolice.gov.in](https://chandigarhpolice.gov.in/pdf/Agents%20List%20-%2017.02.2026.pdf?utm_source=openai))\n\nBefore paying anyone, ask each firm for:\n\n- A written plan naming the **specific universities and programs** they recommend—and why they fit your profile.\n- An itemized fee agreement, refund terms, and receipts.\n- Confirmation that you’ll control your application account and review every form before submission.\n- The name and credentials of the person giving immigration advice. **For Canada**, paid immigration advice or representation must come from an authorized professional; check the person—not just the company—in the official register. ([canada.ca](https://www.canada.ca/en/immigration-refugees-citizenship/services/protect-fraud/study-permit-fraud.html?utm_source=openai))\n- Tuition-payment instructions that direct you to pay the university, not the consultant.\n\n**Walk away** if they guarantee a visa, urge you to hide a refusal or submit altered documents, ask you to sign blank forms, or won’t give you a contract. Canada’s government specifically warns that no representative can guarantee a study permit and recommends written contracts, receipts, and paying tuition directly to the school. ([canada.ca](https://www.canada.ca/en/immigration-refugees-citizenship/services/protect-fraud/study-permit-fraud.html?utm_source=openai))\n\n**My practical recommendation:** use IDP and a police-rostered local firm for two initial consultations, then choose the one that gives the clearest written advice without pressuring you. Tell me your **destination country and intended course**, and I can narrow down what credentials and checks matter for that visa.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "February 17",
+          "Walk away",
+          "My practical recommendation"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "chandigarhpolice.gov.in",
+          "url": "https://chandigarhpolice.gov.in/pdf/Agents%20List%20-%2017.02.2026.pdf?utm_source=openai",
+          "channelType": "reference",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "canada.ca",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/protect-fraud/study-permit-fraud.html?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021898
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "study visa consultant in Chandigarh: which one should I trust and why",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Chandigarh (especially Sectors 17, 34, and 9) has hundreds of study visa consultants, ranging from globally accredited organizations to fly-by-night operators. \n\nBecause visa approval is entirely in the hands of foreign embassies, **no consultant can legally or honestly guarantee a visa.** Therefore, the ones you should trust are those with **direct institutional affiliations, transparent fee structures, and accredited legal licenses.**\n\nHere is a breakdown of the most reputable consultants in Chandigarh, grouped by why they are worth trusting, followed by red flags you must avoid.\n\n---\n\n### The Most Trusted Study Visa Consultants in Chandigarh\n\n#### 1. IDP Education (Sector 9-D)\n* **Best for:** Australia, Canada, UK, USA, New Zealand, Ireland\n* **Why trust them:**\n  * **Global Standing:** IDP is a global leader in international education and a co-owner of the IELTS exam. \n  * **Free Services:** Because they are direct representatives for hundreds of public universities, they generally **do not charge consultation or application service fees** to students.\n  * **Transparency:** You get official portal access and unmanipulated university communications.\n* **Drawback:** They primarily pitch universities they have tie-ups with; if you want to apply to an institution outside their network, they may not assist.\n\n#### 2. Edwise International (Sector 34-A)\n* **Best for:** UK, USA, Canada, Europe\n* **Why trust them:**\n  * **Pan-India Reputation:** In operation since 1991 with branches across India, maintaining strict compliance standards.\n  * **Accreditations:** Member of official international education bodies (AIRC, British Council certified).\n  * **Fair Guidance:** Known for unbiased profile evaluations without pushing students toward dubious private colleges.\n\n#### 3. Canam Consultants (Sector 17-C)\n* **Best for:** Canada and USA\n* **Why trust them:**\n  * **Legacy in Punjab/Chandigarh:** One of North India’s oldest overseas education consultancies.\n  * **Strong Canadian Footprint:** Extensive direct agreements with Canadian Designated Learning Institutions (DLIs), public community colleges, and universities.\n  * **Systematic Process:** Well-structured document review pipelines that minimize basic clerical errors.\n\n#### 4. SI-UK (Sector 34-A)\n* **Best for:** United Kingdom exclusively\n* **Why trust them:**\n  * **UK Specialist:** Unlike generic agencies, they specialize exclusively in British higher education.\n  * **Direct UK University Links:** Trusted directly by Russell Group universities and backed by British Council-trained counselors. If your primary goal is the UK, their depth of knowledge exceeds generalist firms.\n\n#### 5. West Highlander (Sector 34-A)\n* **Best for:** New Zealand and Australia\n* **Why trust them:**\n  * **Licensed Representation:** Led by counselors who hold formal certifications (e.g., Licensed Immigration Adviser / LIA for New Zealand, and QEAC for Australia).\n  * **High-Refusal Profile Handling:** They have a strong reputation locally for objectively reviewing complex cases or prior visa rejections before re-applying.\n\n---\n\n### How to Evaluate \"Why\" to Trust a Consultant (The Checklist)\n\nWhen you walk into any office in Sector 17 or 34, test them against these criteria:\n\n1. **Are they authorized by regulatory bodies?**\n   * **Canada:** Do they work with an **RCIC** (Regulated Canadian Immigration Consultant)?\n   * **Australia:** Do they have a **MARA** agent or **QEAC** (Qualified Education Agent Counsellor) certification?\n   * **New Zealand:** Do they have an **LIA** (Licensed Immigration Adviser)?\n   * **Local Legal License:** They must hold a valid registration certificate issued by the Chandigarh Administration/Punjab Government under the Travel Agents Regulation Act.\n2. **Do they give you direct access to your application?**\n   * A trustworthy consultant uses **your email ID** or shares login credentials for your university application portals, GCKey/IRCC (Canada), or ImmiAccount (Australia). \n   * **Never trust** an agent who refuses to share your application logins or correspondence letters.\n3. **Do they push public universities or obscure private colleges?**\n   * Sub-standard agents push private colleges that offer heavy commissions, even if those colleges do not qualify you for a Post-Graduation Work Permit (PGWP). Trust agents who insist on recognized public universities or reputable DLIs.\n\n---\n\n### Red Flags to Avoid in Chandigarh\n\n* **The \"Package System\" (Pay after visa):** Many agencies offer \"full package\" deals where they claim you only pay after the visa arrives. These schemes almost always involve **forged bank statements, fake work experience, or altered academic marks**, which can lead to a 5-to-10-year entry ban for document fraud.\n* **100% Visa Guarantees:** Visas are granted solely by embassy visa officers. Any consultant promising an \"assured visa\" or claiming \"inside embassy links\" is lying.\n* **Withholding Original Documents:** Never surrender your original passports, mark sheets, or degree certificates to an agent as \"security.\"\n* **Arranging \"Show Money\":** If an agent offers to arrange temporary bank deposits or backdated funds through informal lenders, walk away immediately. Embassies regularly verify the financial trail directly with banks.\n\n### Recommended Next Step\nShortlist **IDP Education** and either **Edwise** or **Canam**. Book a free initial profile assessment at both. Compare their university shortlists and fee disclosures—this will immediately make it obvious which counselor understands your academic background best.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Global Standing",
+          "Free Services",
+          "Transparency",
+          "Pan-India Reputation",
+          "Accreditations",
+          "Fair Guidance",
+          "Legacy in Punjab/Chandigarh",
+          "Strong Canadian Footprint",
+          "Systematic Process",
+          "UK Specialist",
+          "Direct UK University Links",
+          "Licensed Representation",
+          "High-Refusal Profile Handling",
+          "Canada",
+          "RCIC",
+          "Australia",
+          "MARA",
+          "QEAC",
+          "New Zealand",
+          "LIA",
+          "Local Legal License",
+          "Never trust",
+          "The \"Package System\"",
+          "Withholding Original Documents",
+          "Arranging \"Show Money\"",
+          "IDP Education",
+          "Edwise",
+          "Canam"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.008624
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "study visa consultant in Chandigarh: which one should I trust and why",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "**I wouldn’t choose a Chandigarh consultant based on “best” rankings or visa-success claims alone.** The available listings identify Unitrack Overseas in Sector 34A and Abroad Gateway in Sector 42C, but much of the praise comes from the firms’ own promotional material, so it doesn’t independently establish which is more trustworthy.[2][5][7][10]\n\nA safer way to choose is to compare two or three consultants and verify:\n\n- **Who will advise on the visa application?** If you’re applying to Canada and paying for immigration advice or representation, check that the actual adviser is authorized and in good standing with Canada’s College of Immigration and Citizenship Consultants or a relevant law society—not just that the agency has an office or claims experience.[12][13]\n- **What exactly are you paying for?** Get a written contract listing services, fees, refund terms, and who handles each stage. Canada’s official guidance recommends checking authorization, asking about experience, and getting a written agreement.[15]\n- **Are the claims realistic?** Avoid anyone promising a guaranteed visa, job, or permanent residency; the Embassy of India advises students to verify an agent’s authorization and avoid such guarantees.[17]\n- **Can you verify the education plan yourself?** Confirm the institution, course, admission offer, fees, and visa requirements through the institution and the destination country’s official immigration site. You remain responsible for the information in your application, even if someone prepares it for you.[12][17]\n\n**Practical recommendation:** Treat Unitrack and Abroad Gateway as names to investigate—not endorsements. Choose the consultant who gives you a clear written fee breakdown, names the person responsible for your case, supports each recommendation with official requirements, and never asks you to submit misleading information. For Canada, verify the individual representative before paying; for another destination, check that country’s own rules for paid visa advisers.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Practical recommendation"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "abroadgateway.com",
+          "url": "https://abroadgateway.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "unitrackoverseas.com",
+          "url": "https://www.unitrackoverseas.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-47A/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-28/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "unitrackoverseas.com",
+          "url": "https://www.unitrackoverseas.com/chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-46C/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "abroadgateway.com",
+          "url": "https://abroadgateway.com/blog/top-visa-consultants-in-chandigarh-and-mohali/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-18/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Student-Visa-Assistance-in-Chandigarh-Sector-22c/nct-10967131",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "abroadgateway.com",
+          "url": "https://abroadgateway.com/study-visa-consultant-in-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "canada.ca",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigration-citizenship-representative.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "canada.ca",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigration-citizenship-representative/learn-about-representatives.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "canada.ca",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigration-citizenship-representative/choose/authorized.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "canada.ca",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/operational-bulletins-manuals/service-delivery/use-representatives/guidelines-other-stakeholders.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "canada.ca",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigration-citizenship-representative/choose.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "canada.ca",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/protect-fraud.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indianembassyusa.gov.in",
+          "url": "https://indianembassyusa.gov.in/extra?id=127",
+          "channelType": "reference",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "canada.ca",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/operational-bulletins-manuals/service-delivery/use-representatives/processing-applications.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "canada.ca",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/educational-institutions/best-practices.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "canada.ca",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/corporate/publications-manuals/operational-bulletins-manuals/service-delivery/use-representatives/compensated.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00396
+    }
+  ]
+}
