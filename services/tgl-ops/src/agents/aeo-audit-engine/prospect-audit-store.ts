@@ -13,7 +13,7 @@ export interface ProspectAuditRow {
   business_name: string;
   domain: string;
   category_phrase: string;
-  phrase_from: "architect" | "name" | "industry";
+  phrase_from: "architect" | "name" | "industry" | "website";
   city: string | null;
   prompts: string[];
   total_mentions: number;

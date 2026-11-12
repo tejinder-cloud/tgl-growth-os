@@ -18,7 +18,7 @@ import { generateMatrixNextSteps } from "./next-steps.js";
  * The text of the "Mechanistic next steps" box, generated from the audit matrix only.
  */
 export function buildNextStepsText(result: ShortFormAuditResult): string {
-  return generateMatrixNextSteps(result.results, result.summary, result.brand.name).formattedText;
+  return generateMatrixNextSteps(result.results, result.summary, result.brand.name, result.auditKind === "prospect").formattedText;
 }
 
 /**
@@ -40,6 +40,12 @@ function resolveFontPath(filename: string): string | null {
   return null;
 }
 
+function prospectBookingLink(): string | null {
+  const v = (process.env.PROSPECT_AUDIT_BOOKING_LINK || "").trim();
+  if (/^off$/i.test(v)) return null;
+  return /^https:\/\/\S+$/.test(v) ? v : "https://api.leadconnectorhq.com/widget/booking/liUlrrRvDQmCUmUnudID";
+}
+
 /**
  * Headings and captions. A client audit keeps the analyst wording; a prospect audit is read by a business owner
  * who has never heard of us, so it says the same things in plain words.
@@ -59,7 +65,9 @@ export function auditWording(result: ShortFormAuditResult) {
       action: "WHAT THIS SHOWS",
       evidence: "What the Answers Said",
       evidenceSub: "One line from an answer to each question",
-      closing: " What to fix first is a 20-minute conversation: reply to the message this report came with.",
+      closing: prospectBookingLink()
+        ? ` What to fix first is a 20-minute conversation: reply to the email this report came with, or pick a time at\n${prospectBookingLink()}`
+        : " What to fix first is a 20-minute conversation: reply to the message this report came with.",
     };
   }
   return {
@@ -783,6 +791,12 @@ export async function generateAuditPdf(
 
   doc.font(fontSansBold).fontSize(7.5).fillColor("#C85A32").text(w.action, 50, actionY + 6);
   doc.font(fontSans).fontSize(7.2).fillColor("#1F2421").text(nextStepsText, 50, actionY + 18, actionTextOptions);
+  // The booking page sits on its own last line; make that line a working link.
+  const bookingUrl = result.auditKind === "prospect" ? prospectBookingLink() : null;
+  if (bookingUrl && nextStepsText.endsWith(bookingUrl)) {
+    const lineH = doc.currentLineHeight(true);
+    doc.link(50, doc.y - lineH, doc.widthOfString(bookingUrl), lineH, bookingUrl);
+  }
 
   // 8. Lower 40%: Query Evidence & Answer Excerpts
   const evidenceY = actionY + actionH + 8;

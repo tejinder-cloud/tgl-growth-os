@@ -172,6 +172,12 @@ export interface ProspectAuditTarget {
   website: string;
   /** Other ways the business is written, if known. */
   variants?: string[];
+  /**
+   * Optional second reading of the names found across all answers: given every name, returns the ones that are
+   * real businesses of the prospect's kind (or null when it cannot say). Names it drops are removed from
+   * "who was named instead" and no longer count toward position. It can only remove names, never add one.
+   */
+  nameFilter?: (names: string[]) => Promise<string[] | null>;
 }
 
 export interface ShortFormOptions {
@@ -248,9 +254,10 @@ function prospectHost(website: string): string {
  * Reads one engine answer for a prospect. `mentioned` uses the same brand matching as client audits; position
  * counts the businesses the answer names before the prospect; competitorsMentioned are the other names found.
  */
-export function analyzeProspectAnswer(text: string, lens: BrandLens): AnswerAnalysis {
+export function analyzeProspectAnswer(text: string, lens: BrandLens, allowed?: Set<string>): AnswerAnalysis {
   const base = analyzeAnswer(text, lens);
-  const named = businessNamesInAnswer(text);
+  const isOwn = (n: string) => [lens.name, ...lens.variants].some((v) => v && nameMatchesProspect(n, v));
+  const named = businessNamesInAnswer(text).filter((n) => !allowed || allowed.has(n.name) || isOwn(n.name));
   const isProspect = (n: string) => [lens.name, ...lens.variants].some((v) => v && nameMatchesProspect(n, v));
   const own = named.filter((n) => isProspect(n.name));
   const others = named.filter((n) => !isProspect(n.name));
@@ -431,6 +438,29 @@ export async function runShortFormAudit(
     });
   }
 
+  // Prospect audits: one more reading of the names, across all answers at once. Dropped names leave the
+  // "named instead" counts and stop counting toward position; the answers themselves are not asked again.
+  if (prospect?.nameFilter && Object.keys(competitorMentions).length > 0) {
+    let kept: string[] | null = null;
+    try {
+      kept = await prospect.nameFilter(Object.keys(competitorMentions));
+    } catch (err: any) {
+      console.warn(`[Prospect Audit] name check failed, keeping the rule-based list: ${err?.message || err}`);
+    }
+    if (kept) {
+      const allowed = new Set(kept.filter((n) => n in competitorMentions));
+      for (const key of Object.keys(competitorMentions)) delete competitorMentions[key];
+      for (const r of results) {
+        for (const er of Object.values(r.engineResults)) {
+          er.analysis = analyzeProspectAnswer(er.text, lens, allowed);
+          er.badge = getCellBadge(er.analysis);
+          for (const comp of new Set(er.analysis.competitorsMentioned)) competitorMentions[comp] = (competitorMentions[comp] || 0) + 1;
+        }
+        r.excerpt = extractPromptExcerpt(r.promptIndex, r.engineResults, lens.name);
+      }
+    }
+  }
+
   const totalQueries = prompts.length * engines.length;
   const visibilityScorePercent = Number(((totalMentions / totalQueries) * 100).toFixed(1));
   const totalCostInr = Number((totalCostUsd * rate).toFixed(2));
@@ -445,7 +475,7 @@ export async function runShortFormAudit(
     totalCostInr,
   };
 
-  const nextSteps = generateMatrixNextSteps(results, summary, lens.name);
+  const nextSteps = generateMatrixNextSteps(results, summary, lens.name, Boolean(prospect));
 
   const auditResult: ShortFormAuditResult = {
     brand: {

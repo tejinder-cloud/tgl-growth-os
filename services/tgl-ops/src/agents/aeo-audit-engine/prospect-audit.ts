@@ -12,6 +12,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { defaultProspectAuditStore, type ProspectAuditStore } from "./prospect-audit-store.js";
 import { reviewBlocks } from "./prospect-audit-review.js";
+import { checkNamedBusinesses, writeProspectBrief, type BriefInput, type BriefResult, type ModelCall } from "./prospect-audit-brief.js";
 import { runShortFormAudit, AUDIT_PROMPT_COUNT, type ShortFormAuditResult, type ShortFormOptions } from "./short-form.js";
 import { generateAuditPdf } from "./pdf.js";
 import type { BrandLens } from "./types.js";
@@ -155,6 +156,10 @@ export interface ProspectAuditDeps {
   /** Posts the summary with the Send / Needs refinement buttons. */
   postReview: (o: { channel: string; text: string; blocks: unknown[] }) => Promise<{ ok: boolean; ts?: string; channelId?: string; error?: string }>;
   readPdf: (file: string) => Buffer;
+  /** Reads the prospect's website and writes the five questions. Null: rule-based questions only. */
+  writeBrief: ((input: BriefInput) => Promise<BriefResult>) | null;
+  /** Second reading of the names the answers put forward. Null: the rule-based list is kept. */
+  checkNames: ((names: string[], looking: { phrase: string; where: string }) => Promise<{ keep: string[]; usd: number } | null>) | null;
 }
 
 async function defaultPostReview(o: { channel: string; text: string; blocks: unknown[] }): Promise<{ ok: boolean; ts?: string; channelId?: string; error?: string }> {
@@ -174,7 +179,19 @@ async function defaultPostReview(o: { channel: string; text: string; blocks: unk
   }
 }
 
+async function defaultFetchSite(domain: string) {
+  const { fetchSite } = await import("../aeo-strategist/evidence.js");
+  return fetchSite(domain);
+}
+
+const defaultCallModel: ModelCall = async (o) => {
+  const { callStructuredTool } = await import("../../lib/anthropic-structured.js");
+  const res = await callStructuredTool<any>({ system: o.system, messages: [{ role: "user", content: o.user }], tool: o.tool as any, maxTokens: o.maxTokens ?? 800, agent: PROSPECT_AUDIT_AGENT });
+  return { data: res.data, usd: res.usd };
+};
+
 async function defaultDeps(): Promise<ProspectAuditDeps> {
+  const inTest = process.env.TGL_TEST_MODE === "1";
   const post = await import("../../lib/post.js");
   const cap = await import("../../lib/cost-cap.js");
   return {
@@ -189,6 +206,9 @@ async function defaultDeps(): Promise<ProspectAuditDeps> {
     store: process.env.TGL_TEST_MODE === "1" ? null : defaultProspectAuditStore(),
     postReview: defaultPostReview,
     readPdf: (file) => fs.readFileSync(file),
+    // The model is never called from a test process; tests inject their own writer and checker.
+    writeBrief: inTest ? null : (input) => writeProspectBrief(input, { fetchSite: defaultFetchSite, callModel: defaultCallModel }),
+    checkNames: inTest ? null : (names, looking) => checkNamedBusinesses(names, looking, defaultCallModel),
   };
 }
 
@@ -253,15 +273,43 @@ export async function runProspectAudit(req: ProspectAuditRequest, depsOverride?:
     return { status: "duplicate", reason: `${domain} was already audited today` };
   }
 
-  const category = prospectCategoryPhrase({ businessName: name, industry: req.industry, what: req.what });
-  if (!category) {
-    const reason = `the name and industry (${req.industry || "not given"}) do not say what the business offers`;
-    await say(`*Prospect audit not run* for *${name}* (${domain}): ${reason}, so the five questions cannot be written without guessing. To run it, post in #architect: ${rerun}`);
-    return { status: "needs_input", reason };
+  // First choice: read their website and have the questions written for this business (prospect-audit-brief.ts).
+  // When that cannot be done, the rule-based path below is used and the summary says why.
+  let modelUsd = 0;
+  let briefNote = "";
+  let category: { phrase: string; from: "architect" | "name" | "industry" | "website" } | null = null;
+  let prompts: string[] = [];
+  let whereForNames = tidyCity(req.city) || "India";
+  if (deps.writeBrief) {
+    const written = await deps.writeBrief({ businessName: name, domain, industry: req.industry, city: req.city, what: req.what }).catch((e: any) => ({ ok: false as const, reason: `the question writer failed (${String(e?.message || e).slice(0, 120)})`, usd: 0 }));
+    modelUsd += (written.ok ? written.brief.usd : written.usd) || 0;
+    if (written.ok) {
+      category = { phrase: written.brief.phrase, from: cleanPhrase(req.what || "").length >= 3 ? "architect" : "website" };
+      prompts = written.brief.questions;
+      whereForNames = written.brief.where;
+    } else {
+      briefNote = written.reason;
+    }
   }
-  const prompts = buildProspectAuditPrompts(category.phrase, req.city);
+
+  if (!category) {
+    category = prospectCategoryPhrase({ businessName: name, industry: req.industry, what: req.what });
+    if (!category) {
+      const reason = `${briefNote ? `${briefNote}, and ` : ""}the name and industry (${req.industry || "not given"}) do not say what the business offers`;
+      await say(`*Prospect audit not run* for *${name}* (${domain}): ${reason}, so the five questions cannot be written without guessing. To run it, post in #architect: ${rerun}`);
+      return { status: "needs_input", reason };
+    }
+    prompts = buildProspectAuditPrompts(category.phrase, req.city);
+  }
   const phraseFrom =
-    category.from === "architect" ? `"${category.phrase}", as you gave it` : category.from === "name" ? `"${category.phrase}", read from the business name` : `"${category.phrase}", from the industry chosen on the form`;
+    (category.from === "architect"
+      ? `"${category.phrase}", as you gave it`
+      : category.from === "website"
+      ? `"${category.phrase}", written from their website`
+      : category.from === "name"
+      ? `"${category.phrase}", read from the business name`
+      : `"${category.phrase}", from the industry chosen on the form. This is broad: check the questions and use Needs refinement if they do not fit`) +
+    (briefNote && category.from !== "website" ? `; ${briefNote}` : "");
 
   let spend = 0;
   let cap = 0;
@@ -292,7 +340,26 @@ export async function runProspectAudit(req: ProspectAuditRequest, depsOverride?:
   try {
     result = await deps.runAudit(
       { name, domains: [domain], variants: [name], competitors: [] },
-      { prospect: { name, website: domain }, prompts, testMode, engineMock: options?.engineMock, saveRawJson: true }
+      {
+        prospect: {
+          name,
+          website: domain,
+          nameFilter: deps.checkNames
+            ? async (names) => {
+                const checked = await (deps.checkNames as NonNullable<ProspectAuditDeps["checkNames"]>)(names, { phrase: (category as { phrase: string }).phrase, where: whereForNames });
+                if (!checked) return null;
+                modelUsd += checked.usd || 0;
+                // A reply that drops every one of several names is more likely a bad reply than a true reading.
+                if (checked.keep.length === 0 && names.length >= 3) return null;
+                return checked.keep;
+              }
+            : undefined,
+        },
+        prompts,
+        testMode,
+        engineMock: options?.engineMock,
+        saveRawJson: true,
+      }
     );
   } catch (e: any) {
     auditedToday.delete(domain);
@@ -304,6 +371,12 @@ export async function runProspectAudit(req: ProspectAuditRequest, depsOverride?:
     const reason = `the audit returned ${result.promptsCount} questions, not ${AUDIT_PROMPT_COUNT}`;
     await say(`*Prospect audit failed* for *${name}* (${domain}): ${reason}.`);
     return { status: "failed", reason };
+  }
+  // The question writer and the name check are part of what this audit cost.
+  if (modelUsd > 0) {
+    const usdInr = result.summary.totalCostUsd > 0 ? result.summary.totalCostInr / result.summary.totalCostUsd : Number(process.env.USD_INR_RATE || "85");
+    result.summary.totalCostUsd = Number((result.summary.totalCostUsd + modelUsd).toFixed(4));
+    result.summary.totalCostInr = Number((result.summary.totalCostUsd * usdInr).toFixed(2));
   }
   const costUsd = result.summary.totalCostUsd;
   try {
