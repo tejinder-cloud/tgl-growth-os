@@ -3,3 +3,4 @@
 - 14:00 IST — Intake classification [decision]: 1056 input, 166 output · Cost: $0.0057
 - 14:06 IST — Intake classification [decision]: 1047 input, 147 output · Cost: $0.0053
 - 15:30 IST — Intake classification [decision]: 1018 input, 118 output · Cost: $0.0048
+- 17:50 IST — Standup compilation: 3855 input, 1279 output (claude-sonnet-5-5) · Cost: $0.0307
