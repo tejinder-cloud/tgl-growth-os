@@ -543,3 +543,268 @@ export async function runProspectResearch(
   if (!rotation.isOverridden) {
     advanceRotation(options);
   }
+
+  // 7. Generate CSV and post Top 25 review card (lists only rows inserted in that run; never lists benched rows)
+  const rowsToCard = isTest || savedCount > 0 ? qualifiedProspects : [];
+  const csvLabel = `${city}-${category}`;
+  const csvPath = saveProspectsCsv(rowsToCard, csvLabel, options);
+
+  let cardTs: string | undefined;
+  if (options?.postToSlack !== false) {
+    const cardRes = await postTop25ReviewCard({
+      city,
+      category,
+      prospects: rowsToCard,
+      csvPath,
+      savedCount,
+      rejectionProposal: rejectionAnalysis.proposedRubricAdjustment,
+      options,
+    });
+    cardTs = cardRes.cardTs;
+  }
+
+  // 8. Token and Cost Accounting
+  // The Dimension 4 probe cost is recorded separately under prospect-researcher by the probe governor (apiName gemini-dim4-probe).
+  const estimatedInputTokens = 1200 + qualifiedProspects.length * 300;
+  const estimatedOutputTokens = 300 + qualifiedProspects.length * 100;
+  const runCostUsd =
+    (estimatedInputTokens / 1_000_000) * pricing.priceInPerMTok +
+    (estimatedOutputTokens / 1_000_000) * pricing.priceOutPerMTok;
+
+  const quota = getPlacesQuotaState(options);
+
+  // Record LLM run cost into unified cost ledger and persist to state
+  recordCostEntry(
+    {
+      timestamp: new Date().toISOString(),
+      issueNumber: 0,
+      agent: "prospect-researcher",
+      model,
+      inputTokens: estimatedInputTokens,
+      outputTokens: estimatedOutputTokens,
+      totalCostUsd: Number(runCostUsd.toFixed(4)),
+      costType: "llm",
+      details: `prospect-researcher run: ${city} · ${category}`,
+    },
+    options
+  );
+
+  // Record Google Places API spend into unified cost ledger ($0.032 per call)
+  if (quota.count > 0) {
+    const placesCostUsd = Number((quota.count * 0.032).toFixed(4));
+    recordApiSpend({
+      agent: "prospect-researcher",
+      apiName: "google-places-api",
+      totalCostUsd: placesCostUsd,
+      details: `${quota.count} Google Places API call(s)`,
+      options,
+    });
+  }
+
+  // 9. Format Daily Standup Log
+  const shortfallReason =
+    qualifiedProspects.length < targetCount
+      ? ` (Shortfall of ${targetCount - qualifiedProspects.length} accounts: ${funnel.discovered} candidates discovered via Places, ${funnel.dnsPassed} DNS alive, ${funnel.playbookCDisqualified} disqualified by Playbook C, ${funnel.placeDetailsEnriched} Place Details enriched, ${funnel.emailVerified} email verified via Hunter, ${funnel.phoneVerified} owner phones, ${funnel.scoredGe70} scored >= ${FIT_QUALIFIED_THRESHOLD}, ${funnel.benched} benched${funnel.probeSkipped > 0 ? `, ${funnel.probeSkipped} not scored because the Dimension 4 probe was unavailable` : ""})`
+      : "";
+
+  const benchSummary =
+    benchResult.eligible > 0
+      ? ` Re-scored ${benchResult.eligible} benched candidate(s) under v2: ${benchResult.promoted.length} promoted, ${benchResult.stillBenched.length} still benched, ${benchResult.rejected.length} rejected, ${benchResult.notProbed.length} not probed.`
+      : "";
+
+  const standupLines = {
+    did: `Sourced and qualified ${qualifiedProspects.length} accounts for Door AEO in ${city} (${category}) with avg fit score ${
+      qualifiedProspects.length > 0
+        ? (qualifiedProspects.reduce((sum, p) => sum + p.fit_score, 0) / qualifiedProspects.length).toFixed(1)
+        : "N/A"
+    }${shortfallReason}; Places API quota: ${quota.count}/95 calls; Dim 4 probes: ${probeGovernor.stats.completed} ($${probeGovernor.stats.costUsd.toFixed(4)}).${benchSummary}`,
+    blocked: funnel.discovered === 0 ? "Google Places API key unconfigured or rejected by upstream service." : probeShortfall || "None.",
+    need: cardTs ? `Architect review on Top 25 card in #revenue (ts: ${cardTs}).` : "None.",
+    tomorrow: `Execute next metro in rotation (${getNextRotation(options).city} · ${getNextRotation(options).category}) at 09:30 IST.`,
+  };
+
+  // Write daily agent log
+  appendProspectResearcherLog({
+    dateStr,
+    timeStr,
+    city,
+    category,
+    qualifiedCount: qualifiedProspects.length,
+    benchedCount: benchedProspects.length,
+    benchSavedCount,
+    targetCount,
+    funnel,
+    placesUsed: quota.count,
+    costUsd: runCostUsd,
+    cardTs,
+    standupLines,
+    probeStats: probeGovernor.stats,
+    probeShortfall,
+    benchResult,
+    options,
+  });
+
+  return {
+    city,
+    category,
+    discoveredCount: rawCandidates.length,
+    qualifiedCount: qualifiedProspects.length,
+    benchedCount: benchedProspects.length,
+    dedupedCount: funnel.dedupedOut,
+    prospects: qualifiedProspects,
+    placesCallsUsed: quota.count,
+    playwrightSearches: playwrightSearchesUsed,
+    tokens: {
+      input: estimatedInputTokens,
+      output: estimatedOutputTokens,
+      costUsd: Number(runCostUsd.toFixed(4)),
+    },
+    cardTs,
+    csvPath,
+    rejectionPatternProposal: rejectionAnalysis.proposedRubricAdjustment,
+    standupLines,
+  };
+}
+
+/**
+ * Appends execution metrics to logs/<date>/prospect-researcher.md
+ * Note: lines about Dimension 4 probe spend deliberately avoid the word "Cost" followed by a dollar amount,
+ * because the cost ledger parser reads "Cost: $x" lines as LLM run cost. Probe spend is recorded in the ledger
+ * directly (apiName gemini-dim4-probe) by the probe governor.
+ */
+function appendProspectResearcherLog(params: {
+  dateStr: string;
+  timeStr: string;
+  city: string;
+  category: string;
+  qualifiedCount: number;
+  benchedCount: number;
+  benchSavedCount: number;
+  targetCount: number;
+  funnel: ValidationFunnelMetrics;
+  placesUsed: number;
+  costUsd: number;
+  cardTs?: string;
+  standupLines: { did: string; blocked: string; need: string; tomorrow: string };
+  probeStats: ProbeStats;
+  probeShortfall: string | null;
+  benchResult: BenchRescoreResult;
+  options?: { testMode?: boolean };
+}): void {
+  const isTest = params.options?.testMode === true || isTestMode();
+  const dir = path.join(config.repoRoot, isTest ? "logs/.test" : `logs/${params.dateStr}`);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+
+  const logFile = path.join(dir, "prospect-researcher.md");
+  const logContent = `
+### Run — ${params.timeStr} IST (${params.city} · ${params.category})
+- **Scheduled Pair:** ${params.city} × ${params.category}
+- **Rubric:** v2 (qualified at ${FIT_QUALIFIED_THRESHOLD} or above, benched from ${FIT_BENCH_FLOOR})
+- **Qualified Accounts:** ${params.qualifiedCount} / ${params.targetCount}
+- **Benched This Run (saved with status bench):** ${params.benchedCount} (${params.benchSavedCount} verified in the prospects table)
+- **Benched Re-score (v2, before discovery):** ${params.benchResult.eligible} eligible · ${params.benchResult.promoted.length} promoted · ${params.benchResult.stillBenched.length} still benched · ${params.benchResult.rejected.length} rejected · ${params.benchResult.notProbed.length} not probed
+- **Dim 4 Probes (${"gemini"}):** ${params.probeStats.completed} completed · ${params.probeStats.failed} failed · ${params.probeStats.skippedCap} skipped at daily cap · ${params.probeStats.skippedUnavailable} skipped, engine unavailable · probe spend $${params.probeStats.costUsd.toFixed(4)} USD
+${params.probeShortfall ? `- **Dim 4 Shortfall:** ${params.probeShortfall}\n` : ""}- **Validator Funnel:**
+  - Raw Candidates (Places API): ${params.funnel.discovered}
+  - Live DNS Passed: ${params.funnel.dnsPassed} (Failed: ${params.funnel.dnsFailed})
+  - Playbook C Disqualified (Enterprise Chains): ${params.funnel.playbookCDisqualified}
+  - Place Details Enriched: ${params.funnel.placeDetailsEnriched} (Failed: ${params.funnel.placeDetailsFailed})
+  - Email Verified via Hunter: ${params.funnel.emailVerified}
+  - Places Phone Verified (Owner-Run <50 staff only): ${params.funnel.phoneVerified}
+  - Contact Unverified / Dropped: ${params.funnel.contactUnverified}
+  - Fit Score >= ${FIT_QUALIFIED_THRESHOLD}: ${params.funnel.scoredGe70} (Sub-cutoff: ${params.funnel.scoredBelow70}, of which benched: ${params.funnel.benched}, Not probed: ${params.funnel.probeSkipped})
+  - Write Gate Validated: ${params.funnel.writeGatePassed} (Rejected: ${params.funnel.writeGateFailed})
+- **Places API Daily Quota:** ${params.placesUsed} / 95 calls
+- **Estimated Run Cost:** $${params.costUsd.toFixed(4)} USD
+- **Review Card:** ${
+  params.cardTs
+    ? `Dispatched to Slack (ts: ${params.cardTs})`
+    : isTest
+    ? "DRY RUN (test mode) — not posted"
+    : "Not posted (Slack dispatch unavailable or skipped)"
+}
+
+#### Standup Contribution (18:00 IST):
+- **Did:** ${params.standupLines.did}
+- **Blocked:** ${params.standupLines.blocked}
+- **Need from the Architect:** ${params.standupLines.need}
+- **Tomorrow:** ${params.standupLines.tomorrow}
+`;
+
+  fs.appendFileSync(logFile, logContent.trim() + "\n\n", "utf8");
+
+  // In production, also commit run log to GitHub main
+  if (!isTest && config.githubToken) {
+    appendFileInRepo(
+      `logs/${params.dateStr}/prospect-researcher.md`,
+      logContent.trim() + "\n\n",
+      `chore(log): append prospect-researcher run log for ${params.dateStr}`
+    ).catch((err) => {
+      console.warn(`[GitHub Log Append Notice]:`, err.message || err);
+    });
+  }
+}
+
+/**
+ * Re-scores existing prospects with updated root domain chain detection,
+ * enterprise chain rule enforcement (moving chain HQs like Max Saket to rejected),
+ * and organisation size DM role rules (<50 staff vs ≥50 staff).
+ *
+ * Rubric v2: this re-score never calls an engine. Dimension 4 is taken from the dim4_probe already stored
+ * on the row, with its answer re-read by the current prospect_named logic (issue #184: any distinctive brand token
+ * counts). A row with no stored probe (scored under v1, not yet probed) keeps its score and status unless it is
+ * disqualified; it is probed through the benched-candidate rotation or on its next discovery run, never here.
+ *
+ * Issue #184: `ids` limits the re-score to specific rows (full ids or 8-character prefixes such as "eecc9010").
+ * Only those rows are read back into the update; no new prospect is created and nothing is sent to anyone.
+ * The re-score logic itself lives in rescore.ts (rescoreRows).
+ *
+ * Benched rows (issue #177, status nurture or bench) are read here too: a bench row that still scores from
+ * FIT_BENCH_FLOOR up to below the qualified threshold stays "bench"; one that now qualifies moves to "new" for
+ * Architect review (never straight to "reviewed" or outreach); one below the floor, or disqualified, is rejected.
+ */
+export async function rescoreProspects(options?: { testMode?: boolean; ids?: string[] }): Promise<{
+  totalRescored: number;
+  disqualifiedChains: string[];
+  qualifiedCount: number;
+  records: ProspectRecord[];
+  summaries: RescoreRowSummary[];
+}> {
+  const isTest = options?.testMode === true || isTestMode();
+  const all = await loadAllProspects(options);
+
+  if (all.length === 0) {
+    console.log(`[Rescore Notice] No existing prospects loaded to re-score.`);
+    return { totalRescored: 0, disqualifiedChains: [], qualifiedCount: 0, records: [], summaries: [] };
+  }
+
+  const { records: updatedRecords, disqualifiedChains, summaries } = rescoreRows(all, { ids: options?.ids });
+
+  if (options?.ids && options.ids.length > 0 && updatedRecords.length === 0) {
+    console.warn(`[Rescore Notice] No stored prospect matched ids: ${options.ids.join(", ")}`);
+  }
+
+  // Write updated records back to Supabase
+  if (!isTest && updatedRecords.length > 0) {
+    await upsertProspectRecords(updatedRecords, options);
+  }
+
+  const qualifiedCount = updatedRecords.filter((r) => r.fit_score >= FIT_QUALIFIED_THRESHOLD && r.status !== "rejected").length;
+
+  for (const s of summaries) {
+    console.log(
+      `[Rescore Row] ${s.id ? s.id.slice(0, 8) : "no-id"} '${s.company}': ${s.scoreBefore} (${s.statusBefore}) -> ${s.scoreAfter} (${s.statusAfter})${s.notes.length ? ` | ${s.notes.join(" | ")}` : ""}`
+    );
+  }
+  console.log(`[Rescore Complete] Re-scored ${updatedRecords.length} records: ${disqualifiedChains.length} disqualified as chains, ${qualifiedCount} qualified.`);
+
+  return {
+    totalRescored: updatedRecords.length,
+    disqualifiedChains,
+    qualifiedCount,
+    records: updatedRecords,
+    summaries,
+  };
+}
