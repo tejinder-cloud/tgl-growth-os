@@ -383,6 +383,19 @@
     ],
     "updatedAt": "2026-11-11T11:07:03.803Z"
   },
+  "184": {
+    "channel": "#site-build",
+    "ts": "1794464935.946979",
+    "agent": "web-builder",
+    "door": "core",
+    "title": "Prospect researcher rubric v2 fixes. 1) Dim 4 probe question must be specialty-s",
+    "cardType": "issue",
+    "linkedIssueNumber": 184,
+    "threadTimestamps": [
+      "1794464935.946979"
+    ],
+    "updatedAt": "2026-11-12T06:28:56.013Z"
+  },
   "thread:1794308956.168819": {
     "channel": "#doors-aeo",
     "ts": "1794308956.168819",
@@ -483,5 +496,16 @@
     "door": "core",
     "title": "Plan Status Card — Day 13",
     "updatedAt": "2026-11-12T03:30:09.765Z"
+  },
+  "thread:1794464935.946979": {
+    "channel": "#site-build",
+    "ts": "1794464935.946979",
+    "issueNumber": 184,
+    "linkedIssueNumber": 184,
+    "cardType": "issue",
+    "agent": "web-builder",
+    "door": "core",
+    "title": "Prospect researcher rubric v2 fixes. 1) Dim 4 probe question must be specialty-s",
+    "updatedAt": "2026-11-12T06:28:56.013Z"
   }
 }
