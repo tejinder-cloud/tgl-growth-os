@@ -284,16 +284,33 @@ export function rankProspectAnswer(text: string, lens: BrandLens, otherNames: st
   const inText = firstIndexOf(text, namesFor(lens));
   if (inText >= 0) ownIndexes.push(inText);
   const brandAt = ownIndexes.length > 0 ? Math.min(...ownIndexes) : -1;
-  const found = otherNames
-    .filter((n) => !isOwn(n))
-    .map((name) => ({ name, at: firstIndexOf(text, [name]) }))
-    .filter((c) => c.at >= 0)
-    .sort((a, b) => a.at - b.at);
+
+  // Longest names first, and each match is blanked out before shorter names are looked for. Otherwise a fragment
+  // such as "Nursing Academy" is "found" inside "Mantram Nursing Academy" and "Kanika's Nursing Academy" and is
+  // reported as a business in its own right (first live case: 12 Nov 2026, listed in 7 of 15 answers).
+  let remaining = text;
+  const found: { name: string; at: number }[] = [];
+  const longestFirst = otherNames.filter((n) => !isOwn(n)).sort((a, b) => b.length - a.length);
+  for (const name of longestFirst) {
+    const at = firstIndexOf(remaining, [name]);
+    if (at < 0) continue;
+    found.push({ name, at });
+    remaining = blankOut(remaining, name);
+  }
+  found.sort((a, b) => a.at - b.at);
   return {
     mentioned: brandAt >= 0,
     position: brandAt >= 0 ? 1 + found.filter((c) => c.at < brandAt).length : null,
     competitorsMentioned: found.map((c) => c.name),
   };
+}
+
+/** Replaces every whole-word occurrence of `name` with spaces of the same length, so indexes in the text do not move. */
+function blankOut(text: string, name: string): string {
+  const n = name.trim().replace(/\s+/g, " ");
+  if (n.length < 3) return text;
+  const pattern = n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/ /g, "\\s+").replace(/['’]/g, "['’]");
+  return text.replace(new RegExp(`(^|[^a-z0-9\\u0900-\\u097F])(${pattern})(?=$|[^a-z0-9\\u0900-\\u097F])`, "gi"), (_m, lead: string, hit: string) => lead + " ".repeat(hit.length));
 }
 
 /**
