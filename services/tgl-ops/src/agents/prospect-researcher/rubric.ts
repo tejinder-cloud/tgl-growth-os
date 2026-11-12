@@ -321,3 +321,171 @@ export function evaluateProspectRubric(params: {
     reasons.push(`Dim 4 (AI Visibility Gap): Not probed (0 pts) [Score: 0/25]`);
   }
   score += dim4Score;
+
+  // 5. Dimension 5: Decision-Maker Reachability (15 pts).
+  // Playbook D role enforcement:
+  // Non-DM contacts (Assistant, Consultant, etc.) are labeled "DM unknown" and score Dim 5 = 0 pts.
+  // Issue #184: an email counts as verified only if its domain matches the prospect's website root domain and it is
+  // neither a free-mail address nor a generic local part. Otherwise it scores 0 and decision_maker.verified = false.
+  let dim5Score = 0;
+  const isLargeOrg = Boolean(signals.is_large_org);
+  const isOwnerRun = (signals.branch_count ?? 1) < 5 && !isLargeOrg;
+
+  const emailPresent = Boolean(decisionMaker.email && decisionMaker.email.includes("@"));
+  const emailCheck = emailPresent ? assessDecisionMakerEmail(decisionMaker.email, domain) : null;
+  const emailOk = emailCheck ? emailCheck.ok : false;
+  const emailRejection = emailPresent && !emailOk ? `email '${decisionMaker.email}' not counted: ${emailCheck?.reason || "failed verification"}` : "";
+  const judgedDecisionMaker: DecisionMaker = emailPresent && !emailOk ? { ...decisionMaker, verified: false } : decisionMaker;
+
+  const roleApproved = isDecisionMakerRole(decisionMaker.role, isLargeOrg);
+
+  const isDMUnknown =
+    !roleApproved ||
+    decisionMaker.role === "DM unknown" ||
+    decisionMaker.name === "DM unknown" ||
+    String(decisionMaker.source || "").includes("contact found, DM unknown") ||
+    String(decisionMaker.source || "").includes("contact found, dm unknown");
+
+  if (isDMUnknown) {
+    dim5Score = 0;
+    reasons.push(
+      `Dim 5 (DM Reachability): Contact found, DM unknown — role '${decisionMaker.role || "unknown"}' is not an approved DM for ${isLargeOrg ? "large organisation (≥50 staff)" : "small clinic (<50 staff)"}${emailRejection ? `; ${emailRejection}` : ""} (0 pts) [Score: 0/15]`
+    );
+  } else {
+    const hasHunterEmail = Boolean(
+      emailOk &&
+      decisionMaker.source &&
+      decisionMaker.source.includes("hunter:") &&
+      (decisionMaker.source.includes("deliverable") ||
+        decisionMaker.source.includes("risky") ||
+        decisionMaker.source.includes("status:") ||
+        decisionMaker.source.includes("confidence"))
+    );
+
+    const hasPlacesPhone = Boolean(
+      isOwnerRun &&
+      decisionMaker.phone &&
+      String(decisionMaker.phone).trim().length >= 8 &&
+      decisionMaker.source &&
+      decisionMaker.source.includes("places:phone")
+    );
+
+    if (hasHunterEmail && hasPlacesPhone) {
+      dim5Score = 15;
+      reasons.push(
+        `Dim 5 (DM Reachability): Verified website email via Hunter (+10 pts) · Direct Places business phone verified (+5 pts bonus) [Score: 15/15]`
+      );
+    } else if (hasHunterEmail) {
+      dim5Score = 10;
+      if (decisionMaker.phone) {
+        dim5Score += 5;
+        reasons.push(
+          `Dim 5 (DM Reachability): Verified website email (${decisionMaker.role}) via Hunter (+10 pts) · Direct phone verified (+5 pts bonus) [Score: 15/15]`
+        );
+      } else {
+        reasons.push(
+          `Dim 5 (DM Reachability): Verified website email (${decisionMaker.role}) via Hunter (+10 pts) [Score: 10/15]`
+        );
+      }
+    } else if (hasPlacesPhone) {
+      dim5Score = 10;
+      reasons.push(
+        `Dim 5 (DM Reachability): Verified business phone from Places for owner-run clinic (${decisionMaker.role} / ${decisionMaker.name})${emailRejection ? `; ${emailRejection}` : ""} (+10 pts) [Score: 10/15]`
+      );
+    } else {
+      reasons.push(
+        `Dim 5 (DM Reachability): Disqualified — No verified website email via Hunter or Places business phone${emailRejection ? ` (${emailRejection})` : ""} (0/15 pts)`
+      );
+      return {
+        fitScore: 0,
+        qualified: false,
+        disqualified: true,
+        disqualificationReason: `No verified website email via Hunter or Places business phone${emailRejection ? ` (${emailRejection})` : ""}`,
+        fitReasons: reasons,
+        dim4Probed: false,
+        decisionMaker: judgedDecisionMaker,
+        signals,
+      };
+    }
+  }
+
+  score += dim5Score;
+
+  // Issue #184: a large organisation identified by a real multi-branch signal never qualifies on score alone.
+  // "dr." and other generic brand prefixes are not a multi-branch signal (see brand.ts), so they never trigger this.
+  let finalScore = Math.min(100, Math.max(0, score));
+  let largeOrgCapReason: string | undefined;
+  const multiBranch = isLargeOrg ? detectMultiBranchSignal(signals) : null;
+  if (multiBranch && finalScore >= FIT_QUALIFIED_THRESHOLD) {
+    const cap = FIT_QUALIFIED_THRESHOLD - 1;
+    largeOrgCapReason = `Large organisation from a real multi-branch signal (${multiBranch}): fit score capped at ${cap} (uncapped ${finalScore}), below the ${FIT_QUALIFIED_THRESHOLD} qualified threshold`;
+    reasons.push(`Large-org cap: ${largeOrgCapReason}`);
+    finalScore = cap;
+  }
+
+  // The probe record rides along as a sixth fit_reasons entry so touch 1 can quote it.
+  if (dim4Probe) {
+    reasons.push(serializeDim4Probe(dim4Probe));
+  }
+
+  const qualified = finalScore >= FIT_QUALIFIED_THRESHOLD;
+
+  return {
+    fitScore: finalScore,
+    qualified,
+    fitReasons: reasons,
+    dim4Probed: Boolean(dim4Probe),
+    decisionMaker: judgedDecisionMaker,
+    signals: { ...signals, large_org_cap_reason: largeOrgCapReason },
+    largeOrgCapReason,
+  };
+}
+
+export interface ProbedRubricEvaluation extends RubricEvaluation {
+  /** True when the probe function was called for this candidate. Never true for a Playbook C or Dimension 5 rejection. */
+  probeCalled: boolean;
+  /** The probe result, when one was obtained. */
+  probe?: Dim4Probe | null;
+  /** True when the candidate passed Dimension 5 but no probe result could be obtained (cap, missing engine config, engine error). */
+  probeUnavailable?: boolean;
+}
+
+/**
+ * Rubric v2 with Dimension 4 probe, in the cost-safe order:
+ * 1. Score without a probe. A Playbook C or Dimension 5 disqualification returns here, probe never called.
+ * 2. Otherwise call the probe exactly once and re-score with its result.
+ * If the probe returns null the candidate is NOT scored as qualified: Dimension 4 is unknown, not zero.
+ * The probe receives the brand prefix and the Places primary type so the question is specialty-specific.
+ */
+export async function evaluateProspectRubricWithProbe(params: {
+  company: string;
+  domain: string;
+  category: string;
+  city?: string;
+  signals: ProspectSignals;
+  decisionMaker: DecisionMaker;
+  probe: Dim4ProbeFn;
+}): Promise<ProbedRubricEvaluation> {
+  const { probe, ...base } = params;
+
+  const first = evaluateProspectRubric(base);
+  if (first.disqualified) {
+    return { ...first, probeCalled: false };
+  }
+
+  const result = await probe({
+    company: base.company,
+    domain: base.domain,
+    category: base.category,
+    city: base.city,
+    brandPrefix: base.signals.brand_prefix,
+    primaryType: base.signals.primary_place_type,
+    primaryTypeLabel: base.signals.primary_place_type_label,
+  });
+  if (!result) {
+    return { ...first, qualified: false, probeCalled: true, probe: null, probeUnavailable: true };
+  }
+
+  const scored = evaluateProspectRubric({ ...base, dim4Probe: result });
+  return { ...scored, probeCalled: true, probe: result };
+}
