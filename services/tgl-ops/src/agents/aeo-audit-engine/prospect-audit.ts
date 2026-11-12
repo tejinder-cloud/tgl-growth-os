@@ -15,7 +15,7 @@ import { reviewBlocks } from "./prospect-audit-review.js";
 import { checkNamedBusinesses, writeProspectBrief, type BriefInput, type BriefResult, type ModelCall } from "./prospect-audit-brief.js";
 import { runShortFormAudit, AUDIT_PROMPT_COUNT, type ShortFormAuditResult, type ShortFormOptions } from "./short-form.js";
 import { generateAuditPdf } from "./pdf.js";
-import type { BrandLens } from "./types.js";
+import { API_ENGINES, ENGINE_LABELS, type BrandLens, type EngineId } from "./types.js";
 import { dim4SpecialtyPhrase } from "../prospect-researcher/dim4.js";
 
 export const PROSPECT_AUDIT_AGENT = "aeo-audit-engine";
@@ -160,6 +160,11 @@ export interface ProspectAuditDeps {
   writeBrief: ((input: BriefInput) => Promise<BriefResult>) | null;
   /** Second reading of the names the answers put forward. Null: the rule-based list is kept. */
   checkNames: ((names: string[], looking: { phrase: string; where: string }) => Promise<{ keep: string[]; usd: number } | null>) | null;
+  /**
+   * Engines asked in addition to ChatGPT, Gemini and Perplexity. Each is optional: if it cannot be asked it is
+   * left out of that audit and the summary says so. Default: Claude when PROSPECT_AUDIT_CLAUDE=1.
+   */
+  extraEngines: () => EngineId[];
 }
 
 async function defaultPostReview(o: { channel: string; text: string; blocks: unknown[] }): Promise<{ ok: boolean; ts?: string; channelId?: string; error?: string }> {
@@ -209,6 +214,7 @@ async function defaultDeps(): Promise<ProspectAuditDeps> {
     // The model is never called from a test process; tests inject their own writer and checker.
     writeBrief: inTest ? null : (input) => writeProspectBrief(input, { fetchSite: defaultFetchSite, callModel: defaultCallModel }),
     checkNames: inTest ? null : (names, looking) => checkNamedBusinesses(names, looking, defaultCallModel),
+    extraEngines: () => (!inTest && (process.env.PROSPECT_AUDIT_CLAUDE || "").trim() === "1" ? ["claude"] : []),
   };
 }
 
@@ -218,7 +224,7 @@ export function resetProspectAuditMemoryForTests(): void {
   auditedToday.clear();
 }
 
-const ENGINE_NAMES: Record<string, string> = { chatgpt: "ChatGPT", gemini: "Gemini", perplexity: "Perplexity" };
+const ENGINE_NAMES: Record<string, string> = ENGINE_LABELS;
 
 function slugFor(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "prospect";
@@ -241,6 +247,7 @@ export function prospectAuditSummary(req: ProspectAuditRequest, result: ShortFor
     `Names the answers put forward most: ${names || "none read from these answers"}.`,
     `Questions asked (${phraseFrom}):`,
     ...prompts.map((p, i) => `${i + 1}. ${p}`),
+    ...(result.skippedEngines || []).map((s) => `${ENGINE_NAMES[s.engine] || s.engine} was not asked in this audit (${s.reason}). The figures are for the other ${result.enginesCount} only.`),
     `Cost of this audit: Rs ${result.summary.totalCostInr} (USD ${result.summary.totalCostUsd}).`,
     !pdfPosted
       ? `*The PDF could not be uploaded to Slack.* The figures above are from the completed audit. Nothing was sent to the prospect.`
@@ -335,6 +342,7 @@ export async function runProspectAudit(req: ProspectAuditRequest, depsOverride?:
   }
   const testMode = options?.engineMock ? false : inTestProcess;
 
+  const extra = Array.from(new Set(deps.extraEngines().filter((e) => !API_ENGINES.includes(e))));
   auditedToday.set(domain, today);
   let result: ShortFormAuditResult;
   try {
@@ -359,6 +367,8 @@ export async function runProspectAudit(req: ProspectAuditRequest, depsOverride?:
         testMode,
         engineMock: options?.engineMock,
         saveRawJson: true,
+        engines: [...API_ENGINES, ...extra],
+        optionalEngines: extra,
       }
     );
   } catch (e: any) {
@@ -417,7 +427,7 @@ export async function runProspectAudit(req: ProspectAuditRequest, depsOverride?:
         prompts,
         total_mentions: result.summary.totalMentions,
         total_queries: result.totalQueries,
-        summary: { mentionsByEngine: result.summary.mentionsByEngine, competitorMentions: result.summary.competitorMentions, auditedAt: result.auditedAt },
+        summary: { engines: result.engines || API_ENGINES, mentionsByEngine: result.summary.mentionsByEngine, competitorMentions: result.summary.competitorMentions, auditedAt: result.auditedAt },
         cost_usd: costUsd,
         pdf_filename: filename,
         pdf_base64: pdfBase64,

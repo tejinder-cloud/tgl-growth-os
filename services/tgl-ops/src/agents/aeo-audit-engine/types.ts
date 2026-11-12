@@ -1,8 +1,11 @@
 // services/tgl-ops/src/agents/aeo-audit-engine/types.ts
 // Shared by the Citation Tracker (daily runs, Day 17) and the audit PDFs (Day 8 / Day 9) — one engine, many uses.
 
-export type EngineId = "chatgpt" | "gemini" | "perplexity";
+export type EngineId = "chatgpt" | "gemini" | "perplexity" | "claude";
+/** The engines every tracker run and every audit asks. */
 export const API_ENGINES: EngineId[] = ["chatgpt", "gemini", "perplexity"];
+/** Display names, in the order columns are shown. */
+export const ENGINE_LABELS: Record<EngineId, string> = { chatgpt: "ChatGPT", gemini: "Gemini", perplexity: "Perplexity", claude: "Claude" };
 
 export interface EngineCitation {
   url: string;

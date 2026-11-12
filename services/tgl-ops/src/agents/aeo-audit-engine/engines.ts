@@ -9,6 +9,7 @@ const ENV: Record<EngineId, { key: string[]; prefix: string; baseUrl: string }> 
   chatgpt: { key: ["OPENAI_API_KEY"], prefix: "AEO_OPENAI", baseUrl: "https://api.openai.com/v1/responses" },
   gemini: { key: ["GEMINI_API_KEY", "GOOGLE_AI_API_KEY"], prefix: "AEO_GEMINI", baseUrl: "https://generativelanguage.googleapis.com/v1beta" },
   perplexity: { key: ["PERPLEXITY_API_KEY"], prefix: "AEO_PERPLEXITY", baseUrl: "https://api.perplexity.ai/v1/agent" },
+  claude: { key: ["ANTHROPIC_API_KEY"], prefix: "AEO_CLAUDE", baseUrl: "https://api.anthropic.com/v1/messages" },
 };
 
 /** Reads an engine's settings. Returns the list of missing variables instead of guessing defaults. */
@@ -34,6 +35,19 @@ export function loadEngineConfig(engine: EngineId, env: NodeJS.ProcessEnv = proc
     const effort = env.AEO_PERPLEXITY_EFFORT?.trim(), m = env.AEO_PERPLEXITY_MODEL?.trim();
     if (!effort && !m) missing.push("AEO_PERPLEXITY_EFFORT");
     model = m || (effort ? `effort:${effort}` : "");
+  } else if (engine === "claude") {
+    // The model and token prices default to the ones the service already runs on (ANTHROPIC_MODEL,
+    // ANTHROPIC_PRICE_IN / _OUT); AEO_CLAUDE_MODEL / _PRICE_IN / _PRICE_OUT override them. The web search price has
+    // no default: it must be set, so spend is never recorded at a guessed rate.
+    const or = (own: string, shared: string) => env[`AEO_CLAUDE_${own}`]?.trim() || env[shared]?.trim() || "";
+    model = or("MODEL", "ANTHROPIC_MODEL");
+    if (!model) missing.push("AEO_CLAUDE_MODEL");
+    const pin = or("PRICE_IN", "ANTHROPIC_PRICE_IN"), pout = or("PRICE_OUT", "ANTHROPIC_PRICE_OUT");
+    if (!pin || isNaN(Number(pin))) missing.push("AEO_CLAUDE_PRICE_IN");
+    if (!pout || isNaN(Number(pout))) missing.push("AEO_CLAUDE_PRICE_OUT");
+    priceIn = Number(pin);
+    priceOut = Number(pout);
+    search = num("SEARCH_PRICE_PER_1K");
   } else {
     model = read("MODEL");
     priceIn = num("PRICE_IN");
@@ -203,8 +217,52 @@ async function askPerplexity(cfg: EngineConfig, prompt: string, opts: AskOptions
   };
 }
 
+// ── Claude: Anthropic Messages API + web search tool ─────────────────────────
+export function parseClaude(json: any): { text: string; citations: EngineCitation[]; usage: EngineAnswer["usage"] } {
+  const blocks: any[] = Array.isArray(json?.content) ? json.content : [];
+  const parts: string[] = [];
+  const cites: EngineCitation[] = [];
+  const results: EngineCitation[] = [];
+  let searchCalls = 0;
+  for (const b of blocks) {
+    if (b?.type === "text") {
+      parts.push(String(b.text ?? ""));
+      for (const c of b.citations ?? []) if (c?.url) cites.push({ url: c.url, title: c.title });
+    }
+    if (b?.type === "server_tool_use" && b?.name === "web_search") searchCalls++;
+    if (b?.type === "web_search_tool_result" && Array.isArray(b.content)) {
+      for (const r of b.content) if (r?.type === "web_search_result" && r.url) results.push({ url: r.url, title: r.title });
+    }
+  }
+  const reported = Number(json?.usage?.server_tool_use?.web_search_requests);
+  return {
+    // Text blocks are fragments of one answer split around citations: joined without separators.
+    text: parts.join("").trim(),
+    // Sources the answer cites; fall back to the search results it read when it cited none inline.
+    citations: dedupeCitations(cites.length ? cites : results),
+    // The provider's own count when given; otherwise the search calls seen, so spend is never understated.
+    usage: { inputTokens: json?.usage?.input_tokens ?? 0, outputTokens: json?.usage?.output_tokens ?? 0, searches: isFinite(reported) && reported >= 0 ? Math.max(reported, 0) : searchCalls },
+  };
+}
+
+async function askClaude(cfg: EngineConfig, prompt: string, opts: AskOptions): Promise<EngineAnswer> {
+  const tool: Record<string, unknown> = {
+    type: process.env.AEO_CLAUDE_SEARCH_TOOL?.trim() || "web_search_20250305",
+    name: "web_search",
+    // One search per question, the same budget ChatGPT is held to. Override with AEO_CLAUDE_MAX_SEARCHES.
+    max_uses: Math.max(1, Number(process.env.AEO_CLAUDE_MAX_SEARCHES) || 1),
+  };
+  if (opts.country) tool.user_location = { type: "approximate", country: opts.country, ...(opts.city ? { city: opts.city } : {}) };
+  const body = { model: cfg.model, max_tokens: Math.max(256, Number(process.env.AEO_CLAUDE_MAX_TOKENS) || 1500), messages: [{ role: "user", content: prompt }], tools: [tool] };
+  const json = await postJson(cfg.baseUrl, { "x-api-key": cfg.apiKey, "anthropic-version": "2023-06-01" }, body, opts);
+  const p = parseClaude(json);
+  if (!p.text) throw new Error(`Claude returned no answer text (stop_reason: ${json?.stop_reason ?? "unknown"})`);
+  return { engine: "claude", model: String(json?.model ?? cfg.model), ...p, costUsd: computeCostUsd(cfg, p.usage), costSource: "computed", raw: json };
+}
+
 export async function askEngine(cfg: EngineConfig, prompt: string, opts: AskOptions = {}): Promise<EngineAnswer> {
   switch (cfg.engine) {
+    case "claude": return askClaude(cfg, prompt, opts);
     case "chatgpt": return askOpenAI(cfg, prompt, opts);
     case "gemini": return askGemini(cfg, prompt, opts);
     case "perplexity": return askPerplexity(cfg, prompt, opts);

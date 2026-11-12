@@ -6,11 +6,7 @@
 import type { EngineId } from "./types.js";
 import type { PromptAuditResult, ShortFormAuditResult, MatrixNextSteps } from "./short-form.js";
 
-const ENGINE_LABEL: Record<EngineId, string> = {
-  chatgpt: "ChatGPT",
-  gemini: "Gemini",
-  perplexity: "Perplexity",
-};
+const ENGINE_LABEL: Record<EngineId, string> = { chatgpt: "ChatGPT", gemini: "Gemini", perplexity: "Perplexity", claude: "Claude" };
 
 function engineLabel(engine: string): string {
   return ENGINE_LABEL[engine as EngineId] || engine;
