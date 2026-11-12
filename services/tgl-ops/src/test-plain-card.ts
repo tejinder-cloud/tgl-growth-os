@@ -14,7 +14,9 @@ import { config } from "./config.js";
 import type { PlanEntry } from "./lib/plan.js";
 import {
   PLAN_START_DATE,
+  REVENUE_TARGET,
   addDays,
+  buildRevenueTargetLine,
   buildNeedsItems,
   buildActivitySentences,
   computePace,
@@ -28,7 +30,7 @@ import {
   renderPlainCard,
   type PlainCardInput,
 } from "./agents/chief-of-staff/plain-card.js";
-import { buildPlainCardText, countApprovedCards, istDateOf } from "./agents/chief-of-staff/plain-card-data.js";
+import { buildPlainCardText, countApprovedCards, countRevenueProgress, istDateOf } from "./agents/chief-of-staff/plain-card-data.js";
 import { buildPlainStandupText, isPlainShape } from "./agents/chief-of-staff/anthropic.js";
 import type { GatheredData } from "./agents/chief-of-staff/gather.js";
 
@@ -285,6 +287,56 @@ async function main(): Promise<void> {
   assert(dispatchSrc.includes("buildPlainCardText"), "09:00 card is built by the plain-English builder");
   passed++;
   console.log("[10] Source guards: passed");
+
+  // ---- 11. Revenue target line (decisions/2026-11-12.md) ----
+  {
+    const rev = { auditRequests: 4, diagnosticCallsBooked: 2, proposalsSent: 0, retainersWon: 0, rupeesInvoiced: 0 };
+    const line = buildRevenueTargetLine({ dateStr: "2026-11-13", revenue: rev, revenueProgress: { auditsRequested: 6, auditsSent: 4 } });
+    assertEqual(
+      line,
+      "*Revenue target (by 26 Nov):* 15 conversations and 1 paid retainer. So far: 6 audits requested, 4 audits sent, 2 calls booked of 15, 0 retainers of 1. 13 days left.",
+      "target line states the target, the four counts and the days left"
+    );
+    assert(buildRevenueTargetLine({ dateStr: "2026-11-25", revenue: rev, revenueProgress: { auditsRequested: 1, auditsSent: 1 } }).includes("1 audit requested, 1 audit sent") , "singular counts");
+    assert(buildRevenueTargetLine({ dateStr: "2026-11-25", revenue: rev, revenueProgress: null }).endsWith("1 day left."), "one day left");
+    assert(buildRevenueTargetLine({ dateStr: "2026-11-26", revenue: rev, revenueProgress: null }).endsWith("Due today."), "due today");
+    assert(buildRevenueTargetLine({ dateStr: "2026-11-29", revenue: rev, revenueProgress: null }).endsWith("3 days past the date."), "past the date is said plainly");
+    const unread = buildRevenueTargetLine({ dateStr: "2026-11-13", revenue: rev, revenueProgress: null });
+    assert(unread.includes("So far: audit counts could not be read, 2 calls booked of 15"), "unreadable counts are said, never shown as zero");
+    assertEqual(REVENUE_TARGET.conversations, 15, "target: 15 conversations");
+    assertEqual(REVENUE_TARGET.retainers, 1, "target: 1 retainer");
+    assertEqual(REVENUE_TARGET.due, "2026-11-26", "target date 26 Nov");
+
+    // Counting: per business, test rows out, a refined audit is still one request.
+    const counted = countRevenueProgress([
+      { business_name: "TEST 2", domain: "falkanmedia.com", status: "sent" },
+      { business_name: "test", domain: "x.in", status: "ready" },
+      { business_name: "Navkiran Nursing Classes", domain: "navkirannursingclasses.com", status: "refined" },
+      { business_name: "Navkiran Nursing Classes", domain: "navkirannursingclasses.com", status: "ready" },
+      { business_name: "Navkiran Nursing Classes", domain: "navkirannursingclasses.com", status: "sent" },
+      { business_name: "ESM Overseas", domain: "esmoverseas.com", status: "ready" },
+      { business_name: "Testament Dental", domain: "testamentdental.in", status: "send_failed" },
+      { business_name: "", domain: "nameless.in", status: "sent" },
+    ]);
+    assertEqual(counted.auditsRequested, 3, "three businesses: Navkiran once, ESM, Testament Dental (a name that only begins like 'test' is kept)");
+    assertEqual(counted.auditsSent, 1, "one business has a sent audit; a failed send is not a send");
+    assertEqual(countRevenueProgress([]).auditsRequested, 0, "no rows is zero, not an error");
+
+    // On the card: straight after the greeting, in both cards, and the shape check still holds.
+    for (const mode of ["morning", "evening"] as const) {
+      const text = renderPlainCard(baseInput({ mode, dateStr: "2026-11-13", revenue: rev, revenueProgress: { auditsRequested: 6, auditsSent: 4 } }));
+      const lines = text.split("\n");
+      assert(lines[1].startsWith("*Revenue target (by 26 Nov):*"), `${mode}: the target is the second line:\n${text}`);
+      assert(isPlainShape(text, mode), `${mode}: shape holds with the target line`);
+      assert(!EMOJI_REGEX.test(text), `${mode}: no emojis`);
+    }
+    const gathered = await buildPlainCardText({ mode: "morning", dateStr: "2026-11-13", testMode: true, material, planEntries, currentDay: 13 });
+    assert(gathered.split("\n")[1].includes("audit counts could not be read"), "a test process never reads the database for counts");
+    const withCounts = await buildPlainCardText({ mode: "morning", dateStr: "2026-11-13", testMode: true, material, planEntries, currentDay: 13, overrides: { revenueProgress: { auditsRequested: 2, auditsSent: 1 } } });
+    assert(withCounts.split("\n")[1].includes("2 audits requested, 1 audit sent"), "counts passed in are shown");
+  }
+  passed++;
+  console.log("[11] Revenue target line: passed");
 
   console.log(`\nALL ${passed} PLAIN-CARD SUITES PASSED`);
 }

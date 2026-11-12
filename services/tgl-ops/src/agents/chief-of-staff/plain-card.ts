@@ -11,6 +11,21 @@ export const PROGRAMME_DAYS = 68;
 
 export type CardMode = "morning" | "evening";
 
+/**
+ * The revenue target the Architect set on 12 Nov 2026 (decisions/2026-11-12.md): revenue first, and by 26 Nov
+ * 15 audit conversations and 1 paid Managed AEO retainer. While it is open the card leads with it, straight
+ * after the greeting, so the first number read each day is the one the company is being run on.
+ */
+export const REVENUE_TARGET = { since: "2026-11-12", due: "2026-11-26", conversations: 15, retainers: 1 } as const;
+
+/** Prospect audits since the target was set. Counted per business, test rows left out. Null when not readable. */
+export interface RevenueProgress {
+  /** Businesses an audit was produced for (website requests and requests typed in Slack). */
+  auditsRequested: number;
+  /** Businesses whose audit the Architect sent on email. */
+  auditsSent: number;
+}
+
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 function parseIso(dateStr: string): number {
@@ -396,6 +411,28 @@ export interface PlainCardInput {
   revenue: RevenueMetrics;
   spendRupees: number;
   needs: NeedItem[];
+  /** Audit counts toward the revenue target. Omitted or null: the line says the counts could not be read. */
+  revenueProgress?: RevenueProgress | null;
+}
+
+/**
+ * The revenue-target line. Calls booked and retainers come from the same pipeline figures as the Money line;
+ * audit counts come from the prospect-audit record. Every number is a count; nothing is projected.
+ */
+export function buildRevenueTargetLine(input: Pick<PlainCardInput, "dateStr" | "revenue" | "revenueProgress">): string {
+  const t = REVENUE_TARGET;
+  const left = daysBetween(input.dateStr, t.due);
+  const when = left > 1 ? `${left} days left` : left === 1 ? "1 day left" : left === 0 ? "due today" : `${plural(-left, "day", "days")} past the date`;
+  const p = input.revenueProgress;
+  const audits = p
+    ? `${plural(p.auditsRequested, "audit requested", "audits requested")}, ${plural(p.auditsSent, "audit sent", "audits sent")}`
+    : "audit counts could not be read";
+  const r = input.revenue;
+  return (
+    `*Revenue target (by ${formatShortDate(t.due)}):* ${t.conversations} conversations and ${plural(t.retainers, "paid retainer", "paid retainers")}. ` +
+    `So far: ${audits}, ${plural(r.diagnosticCallsBooked, "call booked", "calls booked")} of ${t.conversations}, ` +
+    `${plural(r.retainersWon, "retainer", "retainers")} of ${t.retainers}. ${when.charAt(0).toUpperCase()}${when.slice(1)}.`
+  );
 }
 
 export function renderGreetingLine(input: Pick<PlainCardInput, "mode" | "dateStr" | "currentDay" | "planEntries">): string {
@@ -413,6 +450,7 @@ export function renderPlainCard(input: PlainCardInput): string {
   const scheduleLabel = input.mode === "morning" ? "Today" : "Tomorrow";
   const lines: string[] = [];
   lines.push(renderGreetingLine(input));
+  lines.push(buildRevenueTargetLine(input));
   lines.push(
     `*${activityLabel}:* ${buildActivitySentences({
       logs: input.activityLogs,
