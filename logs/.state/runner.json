@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-11T11:07:28.250Z",
+  "updatedAt": "2026-11-12T06:29:00.126Z",
   "runs": {
     "72": {
       "agent": "web-builder",
@@ -219,11 +219,24 @@
       "agent": "web-builder",
       "door": "core",
       "title": "[TASK]: Plain-English 09:00 card. Rewrite the Chief of Staff status card in services/tgl",
-      "status": "in-progress",
+      "status": "blocked",
       "runStartedAt": "2026-11-11T10:59:43.877756+00:00",
+      "runCompletedAt": "2026-11-11T11:07:29.281+00:00",
+      "error": "Daily cost cap exceeded for @web-builder ($14.54 >= $12.00). Execution stopped.",
       "recoveryAttempts": 0,
-      "ownerInstance": "inst_1794394762249_02f41060",
-      "heartbeatAt": "2026-11-11T11:07:27.340407+00:00",
+      "ownerInstance": null,
+      "heartbeatAt": null,
+      "toolCallsCount": 0
+    },
+    "184": {
+      "agent": "web-builder",
+      "door": "core",
+      "title": "[TASK]: Prospect researcher rubric v2 fixes. 1) Dim 4 probe question must be specialty-s",
+      "status": "in-progress",
+      "runStartedAt": "2026-11-12T06:28:59.733649+00:00",
+      "recoveryAttempts": 0,
+      "ownerInstance": "inst_1794412520593_fce4c1c6",
+      "heartbeatAt": "2026-11-12T06:28:59.733649+00:00",
       "toolCallsCount": 0
     }
   }
