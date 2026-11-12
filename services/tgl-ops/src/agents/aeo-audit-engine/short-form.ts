@@ -24,6 +24,8 @@ import {
   type SetupStatus,
 } from "./setup-profile.js";
 import { generateMatrixNextSteps } from "./next-steps.js";
+import { businessNamesInAnswer } from "./named-businesses.js";
+import { nameMatchesProspect } from "../prospect-researcher/dim4.js";
 import { putFileInRepo } from "../../lib/github-client.js";
 import { isTestMode } from "../../config.js";
 
@@ -160,6 +162,16 @@ export interface ShortFormAuditResult {
   };
   nextSteps: MatrixNextSteps;
   rawAnswersJsonPath?: string;
+  /** "prospect" for a free first audit run without a verified setup profile; absent or "client" otherwise. */
+  auditKind?: "client" | "prospect";
+}
+
+/** A prospect with no setup profile: the business as it would like to be named, and its website. */
+export interface ProspectAuditTarget {
+  name: string;
+  website: string;
+  /** Other ways the business is written, if known. */
+  variants?: string[];
 }
 
 export interface ShortFormOptions {
@@ -170,6 +182,12 @@ export interface ShortFormOptions {
   engineMock?: (engine: EngineId, prompt: string) => Promise<EngineAnswer>;
   saveRawJson?: boolean;
   supabase?: any;
+  /**
+   * Prospect audit (decisions/2026-11-12.md): run without a verified setup profile for this business.
+   * Requires exactly AUDIT_PROMPT_COUNT non-branded `prompts`. The result is marked auditKind "prospect";
+   * the caller posts it for the Architect's review and never sends it to the prospect.
+   */
+  prospect?: ProspectAuditTarget;
 }
 
 /**
@@ -203,7 +221,8 @@ export function extractPromptExcerpt(
   const badge = pickedResult ? pickedResult.badge : "—";
 
   // Clean and condense to a 1-line factual proof
-  let excerptText = rawText.replace(/\r?\n|\r/g, " ").replace(/\s+/g, " ").trim();
+  // Markdown markers (bold asterisks, heading hashes) are layout, not words: they are dropped from the excerpt.
+  let excerptText = rawText.replace(/\r?\n|\r/g, " ").replace(/\*+|(?:^|\s)#{1,6}\s/g, " ").replace(/\s+/g, " ").trim();
   if (excerptText.length > 130) {
     excerptText = excerptText.slice(0, 127).trim() + "...";
   }
@@ -213,6 +232,38 @@ export function extractPromptExcerpt(
     badge,
     text: excerptText,
   };
+}
+
+function prospectHost(website: string): string {
+  try {
+    const clean = (website || "").trim();
+    if (!clean) return "";
+    return new URL(/^https?:\/\//i.test(clean) ? clean : `https://${clean}`).hostname.replace(/^www\./, "").toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Reads one engine answer for a prospect. `mentioned` uses the same brand matching as client audits; position
+ * counts the businesses the answer names before the prospect; competitorsMentioned are the other names found.
+ */
+export function analyzeProspectAnswer(text: string, lens: BrandLens): AnswerAnalysis {
+  const base = analyzeAnswer(text, lens);
+  const named = businessNamesInAnswer(text);
+  const isProspect = (n: string) => [lens.name, ...lens.variants].some((v) => v && nameMatchesProspect(n, v));
+  const own = named.filter((n) => isProspect(n.name));
+  const others = named.filter((n) => !isProspect(n.name));
+  const mentioned = base.mentioned || own.length > 0;
+  let position: number | null = null;
+  if (own.length > 0) {
+    const at = Math.min(...own.map((n) => n.index));
+    position = 1 + others.filter((o) => o.index < at).length;
+  } else if (base.mentioned) {
+    // Named in running text, not as a listed business: counted as a mention with no rank.
+    position = others.length > 0 ? Math.max(4, others.length + 1) : 1;
+  }
+  return { mentioned, position, competitorsMentioned: others.map((o) => o.name) };
 }
 
 /**
@@ -225,7 +276,32 @@ export async function runShortFormAudit(
 ): Promise<ShortFormAuditResult> {
   // Gate check: verify setup profile
   let verifiedProfile: VerifiedBrandProfile;
-  if ("setupStatus" in lensOrProfile && lensOrProfile.setupStatus) {
+  const prospect = options?.prospect;
+  if (prospect) {
+    const prompts = (options?.prompts || []).map((p) => (p || "").trim()).filter(Boolean);
+    if (prompts.length !== AUDIT_PROMPT_COUNT) {
+      throw new Error(`Prospect audit for "${prospect.name}" needs exactly ${AUDIT_PROMPT_COUNT} questions (got ${prompts.length}). Audit refused.`);
+    }
+    const branded = prompts.filter((p) => isBrandedPrompt(p, prospect.name));
+    if (branded.length > 0) {
+      throw new Error(`Prospect audit for "${prospect.name}" was given ${branded.length} question(s) containing the business name. Audit refused.`);
+    }
+    const host = prospectHost(prospect.website);
+    if (!prospect.name.trim() || !host) {
+      throw new Error(`Prospect audit needs a business name and a website. Audit refused.`);
+    }
+    verifiedProfile = {
+      brandId: "",
+      tenantId: "tgl",
+      name: prospect.name.trim(),
+      primaryDomain: host,
+      domains: [host],
+      variants: Array.from(new Set([prospect.name.trim(), ...(prospect.variants || [])].filter(Boolean))),
+      setupStatus: "prospect_unverified",
+      competitors: [],
+      prompts: prompts.map((text, i) => ({ id: `prospect-${i + 1}`, text, language: "en", journey_phase: "decision" })) as any,
+    };
+  } else if ("setupStatus" in lensOrProfile && lensOrProfile.setupStatus) {
     if (lensOrProfile.setupStatus !== "verified") {
       throw new Error(
         `Brand setup profile for "${lensOrProfile.name}" is not verified (status: ${lensOrProfile.setupStatus}). Audit refused.`
@@ -308,7 +384,9 @@ export async function runShortFormAudit(
         answer = await askEngine(engineCfg, prompt);
       }
 
-      const analysis = analyzeAnswer(answer.text, lens);
+      // A prospect has no tracked competitor list, so position and "who was named instead" are read from the
+      // answer itself: the businesses it names, in order of appearance.
+      const analysis = prospect ? analyzeProspectAnswer(answer.text, lens) : analyzeAnswer(answer.text, lens);
       const citations = answer.citations
         .map((c) => analyzeCitation(c, lens))
         .filter((c): c is CitationAnalysis => c !== null);
@@ -387,12 +465,23 @@ export async function runShortFormAudit(
     results,
     summary,
     nextSteps,
+    auditKind: prospect ? "prospect" : "client",
   };
 
   // Store raw answers under logs/<date>/aeo-audit/<domain>.json so every number is traceable
   if (options?.saveRawJson !== false) {
-    const rawJsonPath = await saveRawAuditJson(auditResult);
-    auditResult.rawAnswersJsonPath = rawJsonPath;
+    if (prospect) {
+      // The answers are already paid for: a failed trace write must not lose a prospect audit. It is logged and the
+      // result goes on without a trace path.
+      try {
+        auditResult.rawAnswersJsonPath = await saveRawAuditJson(auditResult);
+      } catch (err: any) {
+        console.warn(`[Prospect Audit] raw answers not saved for ${auditResult.brand.primaryDomain}: ${err?.message || err}`);
+      }
+    } else {
+      const rawJsonPath = await saveRawAuditJson(auditResult);
+      auditResult.rawAnswersJsonPath = rawJsonPath;
+    }
   }
 
   return auditResult;

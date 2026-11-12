@@ -28,6 +28,11 @@ export interface SiteLeadDeps {
   /** The lead card (#revenue). */
   postLeadCard: (card: { title: string; summary: string; kind: SiteLeadKind }) => Promise<void>;
   now: () => number;
+  /**
+   * Starts the free first audit for an AEO request (decisions/2026-11-12.md). Fire-and-forget: the visitor's
+   * response never waits for it. The audit is posted to #revenue for the Architect; it is never sent by the service.
+   */
+  startAudit: (lead: SiteLead, rowId: string) => void;
 }
 
 let depsOverride: Partial<SiteLeadDeps> | null = null;
@@ -55,6 +60,27 @@ async function defaultPostLeadCard(card: { title: string; summary: string; kind:
   });
 }
 
+function defaultStartAudit(lead: SiteLead, rowId: string): void {
+  // Tests never start a live audit from the lead route; they inject startAudit when they want to observe it.
+  if (process.env.TGL_TEST_MODE === "1") return;
+  void (async () => {
+    try {
+      const { runProspectAudit } = await import("../agents/aeo-audit-engine/prospect-audit.js");
+      await runProspectAudit({
+        businessName: lead.business_name,
+        website: lead.domain || lead.website || "",
+        industry: lead.industry,
+        city: lead.city,
+        source: "site_lead",
+        leadId: rowId,
+      });
+    } catch (err: any) {
+      console.error("[Site Leads] prospect audit crashed:", err?.message || err);
+      await defaultNotify(`Prospect audit for lead ${rowId} (${lead.business_name}) crashed: ${String(err?.message || err).slice(0, 160)}`).catch(() => undefined);
+    }
+  })();
+}
+
 function defaultStore(): SiteLeadStore | null {
   const url = (process.env.SUPABASE_URL || "").trim();
   const key = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || "").trim();
@@ -72,6 +98,7 @@ function resolveDeps(): SiteLeadDeps {
     notify: depsOverride?.notify ?? defaultNotify,
     postLeadCard: depsOverride?.postLeadCard ?? defaultPostLeadCard,
     now: depsOverride?.now ?? Date.now,
+    startAudit: depsOverride?.startAudit ?? defaultStartAudit,
   };
 }
 
@@ -181,6 +208,15 @@ export function leadHandler(kind: SiteLeadKind) {
     // 3. The card. Also non-fatal: the row is the record.
     const card = siteLeadCard(lead, ghl, ghlError);
     await deps.postLeadCard({ ...card, kind }).catch((e: any) => console.warn("[Site Leads] card failed:", e?.message || e));
+
+    // 4. The free first audit, for AEO requests. Started after everything else; never awaited.
+    if (kind === "aeo") {
+      try {
+        deps.startAudit(lead, rowId);
+      } catch (e: any) {
+        console.warn("[Site Leads] audit not started:", e?.message || e);
+      }
+    }
 
     res.status(200).json({ ok: true });
   };

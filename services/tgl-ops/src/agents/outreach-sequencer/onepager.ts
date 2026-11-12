@@ -69,9 +69,13 @@ export async function runProspectAudit(
   p: OnePagerProspect,
   options?: ShortFormOptions
 ): Promise<{ result: ShortFormAuditResult; summary: AuditSummary }> {
-  const result = await runShortFormAudit(buildBrandLens(p), {
+  // An outreach prospect has no setup profile: this is a prospect audit (decisions/2026-11-12.md).
+  // Without the prospect option the audit engine refuses every business that is not a verified client.
+  const lens = buildBrandLens(p);
+  const result = await runShortFormAudit(lens, {
     ...options,
     prompts: buildAuditPrompts(p),
+    prospect: { name: p.company, website: p.website, variants: lens.variants },
   });
   return { result, summary: summarizeAudit(result) };
 }

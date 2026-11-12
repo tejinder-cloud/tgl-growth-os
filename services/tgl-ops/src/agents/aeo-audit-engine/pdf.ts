@@ -40,6 +40,16 @@ function resolveFontPath(filename: string): string | null {
   return null;
 }
 
+/** Label under the prompt count. A prospect audit has no verified setup profile and must not claim one. */
+export function promptsLabel(result: ShortFormAuditResult): string {
+  return result.auditKind === "prospect" ? "Buyer Questions for Your Category" : "Verified Buyer Prompts";
+}
+
+/** Header of the question column in the matrix. */
+export function queryColumnLabel(result: ShortFormAuditResult): string {
+  return result.auditKind === "prospect" ? "Buyer Question (Your Category and City)" : "Buyer Query (Verified Setup Profile)";
+}
+
 /**
  * Renders the single-page HTML markup conforming strictly to TGL "paper & ink" visual tokens.
  * Colors: cream canvas #F7F4EE, ink #1F2421, terracotta #C85A32, coral #E07A5F.
@@ -469,7 +479,7 @@ export function renderAuditHtml(result: ShortFormAuditResult): string {
       <div class="kpi-card">
         <div class="kpi-label">Audited Prompts</div>
         <div class="kpi-val">${result.promptsCount}</div>
-        <div class="kpi-sub">Verified Buyer Prompts</div>
+        <div class="kpi-sub">${promptsLabel(result)}</div>
       </div>
     </div>
 
@@ -478,7 +488,7 @@ export function renderAuditHtml(result: ShortFormAuditResult): string {
       <table>
         <thead>
           <tr>
-            <th class="prompt-col">Buyer Query (Verified Setup Profile)</th>
+            <th class="prompt-col">${queryColumnLabel(result)}</th>
             <th class="engine-col">ChatGPT</th>
             <th class="engine-col">Gemini</th>
             <th class="engine-col">Perplexity</th>
@@ -631,7 +641,7 @@ export async function generateAuditPdf(
     { label: "VISIBILITY SCORE", val: `${score}%`, sub: "Overall Brand Share" },
     { label: "AI MENTIONS", val: `${mentions} / ${queries}`, sub: "Total Model Answers" },
     { label: "ENGINES EVALUATED", val: `${result.enginesCount}`, sub: "Perplexity, Gemini, ChatGPT" },
-    { label: "AUDITED PROMPTS", val: `${result.promptsCount}`, sub: "Verified Buyer Prompts" },
+    { label: "AUDITED PROMPTS", val: `${result.promptsCount}`, sub: promptsLabel(result) },
   ];
 
   const cardW = 119;
@@ -658,7 +668,7 @@ export async function generateAuditPdf(
   doc.rect(42, tableY, tableW, 17).lineWidth(1).strokeColor("#1F2421").stroke();
 
   doc.font(fontSansBold).fontSize(7).fillColor("#1F2421");
-  doc.text("BUYER QUERY (VERIFIED SETUP PROFILE)", 50, tableY + 5);
+  doc.text(queryColumnLabel(result).toUpperCase(), 50, tableY + 5);
   doc.text("CHATGPT", 340, tableY + 5, { width: 70, align: "center" });
   doc.text("GEMINI", 410, tableY + 5, { width: 70, align: "center" });
   doc.text("PERPLEXITY", 480, tableY + 5, { width: 70, align: "center" });
