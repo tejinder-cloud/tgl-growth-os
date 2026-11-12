@@ -41,6 +41,11 @@ const GENERIC_WORDS = new Set([
 const NON_BUSINESS_ACRONYMS = new Set([
   "jci", "nabh", "nabl", "nirf", "iso", "naac", "ugc", "aicte", "rera", "gst", "who", "icmr", "mci", "nmc", "dci",
   "cghs", "echs", "tpa", "opd", "icu", "nicu", "emi", "faq", "ai", "seo", "aeo",
+  // Exams and courses: answers about coaching put these in bold beside the institutes ("JEE/NEET", "IELTS").
+  "jee", "neet", "ielts", "pte", "toefl", "gre", "gmat", "sat", "upsc", "ias", "ips", "pcs", "nda", "cds", "ssc",
+  "cat", "clat", "cuet", "net", "ctet", "nclex", "norcet", "bsc", "msc", "gnm",
+  "anm", "mbbs", "bds", "ca", "cs", "cma", "cfa", "mba", "bba", "btech", "iit", "nit", "rrb", "ibps", "sbi", "po",
+  "mains", "prelims", "ug", "pg", "cse", "csat",
 ]);
 
 function tokens(s: string): string[] {

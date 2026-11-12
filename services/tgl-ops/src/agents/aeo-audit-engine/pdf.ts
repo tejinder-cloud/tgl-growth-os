@@ -40,6 +40,44 @@ function resolveFontPath(filename: string): string | null {
   return null;
 }
 
+/**
+ * Headings and captions. A client audit keeps the analyst wording; a prospect audit is read by a business owner
+ * who has never heard of us, so it says the same things in plain words.
+ */
+export function auditWording(result: ShortFormAuditResult) {
+  const n = result.totalQueries;
+  if (result.auditKind === "prospect") {
+    return {
+      kpiScore: "SHARE OF ANSWERS", kpiScoreSub: "Answers That Named You",
+      kpiMentions: "TIMES NAMED", kpiMentionsSub: "Out of All Answers",
+      kpiEngines: "AI ASSISTANTS ASKED", kpiPrompts: "QUESTIONS ASKED",
+      matrix: "What AI Said When Buyers Asked",
+      competitors: "Who AI Named Instead of You",
+      competitorsNote: `Number of answers, out of ${n}, that named each one.`,
+      sources: "Where AI Gets Its Answers",
+      sourcesNote: `Websites the answers cited, with the number of answers out of ${n}.`,
+      action: "WHAT THIS SHOWS",
+      evidence: "What the Answers Said",
+      evidenceSub: "One line from an answer to each question",
+      closing: " What to fix first is a 20-minute conversation: reply to the message this report came with.",
+    };
+  }
+  return {
+    kpiScore: "VISIBILITY SCORE", kpiScoreSub: "Overall Brand Share",
+    kpiMentions: "AI MENTIONS", kpiMentionsSub: "Total Model Answers",
+    kpiEngines: "ENGINES EVALUATED", kpiPrompts: "AUDITED PROMPTS",
+    matrix: "Query Visibility Matrix",
+    competitors: "Competitors Named in Answers",
+    competitorsNote: `Exact competitor appearance counts across all ${n} answers.`,
+    sources: "Cited Authority Channels",
+    sourcesNote: `Primary web sources cited in the ${n} model answers.`,
+    action: "MECHANISTIC NEXT STEPS",
+    evidence: "Query Evidence & Answer Excerpts",
+    evidenceSub: "Verifiable 1-line excerpts establishing cell rankings and competitor mentions",
+    closing: "",
+  };
+}
+
 /** Label under the prompt count. A prospect audit has no verified setup profile and must not claim one. */
 export function promptsLabel(result: ShortFormAuditResult): string {
   return result.auditKind === "prospect" ? "Buyer Questions for Your Category" : "Verified Buyer Prompts";
@@ -62,7 +100,8 @@ export function renderAuditHtml(result: ShortFormAuditResult): string {
   const score = result.summary.visibilityScorePercent;
   const mentions = result.summary.totalMentions;
   const queries = result.totalQueries;
-  const nextStepsText = buildNextStepsText(result);
+  const w = auditWording(result);
+  const nextStepsText = buildNextStepsText(result) + w.closing;
 
   const competitors =
     Object.entries(result.summary.competitorMentions)
@@ -462,29 +501,29 @@ export function renderAuditHtml(result: ShortFormAuditResult): string {
 
     <div class="kpi-grid">
       <div class="kpi-card">
-        <div class="kpi-label">Visibility Score</div>
+        <div class="kpi-label">${w.kpiScore}</div>
         <div class="kpi-val">${score}%</div>
-        <div class="kpi-sub">Overall Brand Share</div>
+        <div class="kpi-sub">${w.kpiScoreSub}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">AI Mentions</div>
+        <div class="kpi-label">${w.kpiMentions}</div>
         <div class="kpi-val">${mentions} / ${queries}</div>
-        <div class="kpi-sub">Total Model Answers</div>
+        <div class="kpi-sub">${w.kpiMentionsSub}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Engines Evaluated</div>
+        <div class="kpi-label">${w.kpiEngines}</div>
         <div class="kpi-val">${result.enginesCount}</div>
         <div class="kpi-sub">Perplexity, Gemini, ChatGPT</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Audited Prompts</div>
+        <div class="kpi-label">${w.kpiPrompts}</div>
         <div class="kpi-val">${result.promptsCount}</div>
         <div class="kpi-sub">${promptsLabel(result)}</div>
       </div>
     </div>
 
     <div class="table-container">
-      <div class="section-title">Query Visibility Matrix</div>
+      <div class="section-title">${w.matrix}</div>
       <table>
         <thead>
           <tr>
@@ -502,19 +541,19 @@ export function renderAuditHtml(result: ShortFormAuditResult): string {
 
     <div class="insights-grid">
       <div class="panel">
-        <div class="panel-title">Competitors Named in Answers</div>
+        <div class="panel-title">${w.competitors}</div>
         <p>${escapeHtml(competitors)}</p>
         <p><em>Exact frequency of competitor appearances across all ${queries} model answers.</em></p>
       </div>
       <div class="panel">
-        <div class="panel-title">Cited Authority Channels</div>
+        <div class="panel-title">${w.sources}</div>
         <p>${escapeHtml(topCitations)}</p>
         <p><em>Exact frequency of citation sources informing the AI answers.</em></p>
       </div>
     </div>
 
     <div class="action-box">
-      <div class="action-title">Mechanistic Next Steps</div>
+      <div class="action-title">${w.action}</div>
       <div class="action-text">
         ${escapeHtml(nextStepsText)}
       </div>
@@ -523,8 +562,8 @@ export function renderAuditHtml(result: ShortFormAuditResult): string {
     <!-- Lower 40%: Query Evidence & Excerpts -->
     <div class="evidence-section">
       <div class="evidence-header-row">
-        <div class="section-title">Query Evidence & Answer Excerpts</div>
-        <div class="evidence-sub">Verifiable 1-line excerpts establishing cell rankings and competitor mentions</div>
+        <div class="section-title">${w.evidence}</div>
+        <div class="evidence-sub">${w.evidenceSub}</div>
       </div>
       <div class="excerpt-list">
         ${excerptCards}
@@ -566,7 +605,8 @@ export async function generateAuditPdf(
   const score = result.summary.visibilityScorePercent;
   const mentions = result.summary.totalMentions;
   const queries = result.totalQueries;
-  const nextStepsText = buildNextStepsText(result);
+  const w = auditWording(result);
+  const nextStepsText = buildNextStepsText(result) + w.closing;
 
   const competitors =
     Object.entries(result.summary.competitorMentions)
@@ -638,10 +678,10 @@ export async function generateAuditPdf(
 
   // 4. Summary KPI Bar (4 cards)
   const kpis = [
-    { label: "VISIBILITY SCORE", val: `${score}%`, sub: "Overall Brand Share" },
-    { label: "AI MENTIONS", val: `${mentions} / ${queries}`, sub: "Total Model Answers" },
-    { label: "ENGINES EVALUATED", val: `${result.enginesCount}`, sub: "Perplexity, Gemini, ChatGPT" },
-    { label: "AUDITED PROMPTS", val: `${result.promptsCount}`, sub: promptsLabel(result) },
+    { label: w.kpiScore, val: `${score}%`, sub: w.kpiScoreSub },
+    { label: w.kpiMentions, val: `${mentions} / ${queries}`, sub: w.kpiMentionsSub },
+    { label: w.kpiEngines, val: `${result.enginesCount}`, sub: "Perplexity, Gemini, ChatGPT" },
+    { label: w.kpiPrompts, val: `${result.promptsCount}`, sub: promptsLabel(result) },
   ];
 
   const cardW = 119;
@@ -660,7 +700,7 @@ export async function generateAuditPdf(
   });
 
   // 5. Query Visibility Matrix Table
-  doc.font(fontSerif).fontSize(11).fillColor("#1F2421").text("Query Visibility Matrix", 42, 142);
+  doc.font(fontSerif).fontSize(11).fillColor("#1F2421").text(w.matrix, 42, 142);
 
   const tableY = 156;
   const tableW = 508;
@@ -685,8 +725,10 @@ export async function generateAuditPdf(
     doc.moveTo(480, rowY).lineTo(480, rowY + rowHeight).stroke();
 
     // Query text
-    doc.font(fontSansBold).fontSize(7.5).fillColor("#C85A32").text(`${r.promptIndex}. `, 48, rowY + 7, { continued: true });
-    doc.font(fontSans).fontSize(7.5).fillColor("#1F2421").text(r.prompt, { width: 282, ellipsis: true });
+    // Number and question are drawn separately so the question has its own box: one line, cut with an
+    // ellipsis when it is too long, never running under the engine columns.
+    doc.font(fontSansBold).fontSize(7.5).fillColor("#C85A32").text(`${r.promptIndex}.`, 48, rowY + 7, { width: 10, lineBreak: false });
+    doc.font(fontSans).fontSize(7.5).fillColor("#1F2421").text(r.prompt, 58, rowY + 7, { width: 276, height: 10, ellipsis: true });
 
     // Engine badges
     const drawBadge = (colX: number, engine: "chatgpt" | "gemini" | "perplexity") => {
@@ -719,16 +761,16 @@ export async function generateAuditPdf(
   // Panel 1: Competitors
   doc.rect(42, panelY, panelW, panelH).fillColor("#FFFFFF").fill();
   doc.rect(42, panelY, panelW, panelH).lineWidth(1.1).strokeColor("#1F2421").stroke();
-  doc.font(fontSerif).fontSize(8.8).fillColor("#1F2421").text("Competitors Named in Answers", 50, panelY + 6);
+  doc.font(fontSerif).fontSize(8.8).fillColor("#1F2421").text(w.competitors, 50, panelY + 6);
   doc.font(fontSans).fontSize(7.5).fillColor("#4A4843").text(competitors, 50, panelY + 18, { width: panelW - 16, ellipsis: true });
-  doc.font(fontSans).fontSize(6.8).fillColor("#63615C").text(`Exact competitor appearance counts across all ${queries} answers.`, 50, panelY + 36);
+  doc.font(fontSans).fontSize(6.8).fillColor("#63615C").text(w.competitorsNote, 50, panelY + 36);
 
   // Panel 2: Cited Authority Channels
   doc.rect(302, panelY, panelW, panelH).fillColor("#FFFFFF").fill();
   doc.rect(302, panelY, panelW, panelH).lineWidth(1.1).strokeColor("#1F2421").stroke();
-  doc.font(fontSerif).fontSize(8.8).fillColor("#1F2421").text("Cited Authority Channels", 310, panelY + 6);
+  doc.font(fontSerif).fontSize(8.8).fillColor("#1F2421").text(w.sources, 310, panelY + 6);
   doc.font(fontSans).fontSize(7.5).fillColor("#4A4843").text(topCitations, 310, panelY + 18, { width: panelW - 16, ellipsis: true });
-  doc.font(fontSans).fontSize(6.8).fillColor("#63615C").text(`Primary web sources cited in the ${queries} model answers.`, 310, panelY + 36);
+  doc.font(fontSans).fontSize(6.8).fillColor("#63615C").text(w.sourcesNote, 310, panelY + 36);
 
   // 7. Matrix-driven Next Steps Box (text regenerated from the matrix; box height fits the text)
   const actionY = panelY + panelH + 7;
@@ -739,14 +781,14 @@ export async function generateAuditPdf(
   doc.rect(42, actionY, tableW, actionH).fillColor("#FBECE8").fill();
   doc.rect(42, actionY, tableW, actionH).lineWidth(1.1).strokeColor("#C85A32").stroke();
 
-  doc.font(fontSansBold).fontSize(7.5).fillColor("#C85A32").text("MECHANISTIC NEXT STEPS", 50, actionY + 6);
+  doc.font(fontSansBold).fontSize(7.5).fillColor("#C85A32").text(w.action, 50, actionY + 6);
   doc.font(fontSans).fontSize(7.2).fillColor("#1F2421").text(nextStepsText, 50, actionY + 18, actionTextOptions);
 
   // 8. Lower 40%: Query Evidence & Answer Excerpts
   const evidenceY = actionY + actionH + 8;
-  doc.font(fontSerif).fontSize(10.5).fillColor("#1F2421").text("Query Evidence & Answer Excerpts", 42, evidenceY);
+  doc.font(fontSerif).fontSize(10.5).fillColor("#1F2421").text(w.evidence, 42, evidenceY);
   doc.font(fontSans).fontSize(6.8).fillColor("#63615C").text(
-    "Verifiable 1-line excerpts establishing cell rankings and competitor mentions",
+    w.evidenceSub,
     230,
     evidenceY + 3,
     { width: 320, align: "right" }

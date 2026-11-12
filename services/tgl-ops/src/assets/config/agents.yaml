@@ -88,7 +88,7 @@
   trigger: "Audit form submission, mention @aeo-audit-engine"
   reviewer: "Delivery QA"
   status: active
-  daily_cost_cap_usd: 1.00
+  daily_cost_cap_usd: 3.00
   routines:
     - name: daily_citation_tracking
       frequency: daily

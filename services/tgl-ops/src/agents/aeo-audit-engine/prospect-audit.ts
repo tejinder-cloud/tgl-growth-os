@@ -56,13 +56,50 @@ function cleanPhrase(s: string): string {
   return s.replace(/[\u0000-\u001F\u007F|]+/g, " ").replace(/\s+/g, " ").trim().replace(/^(?:a|an|the)\s+/i, "").slice(0, 60);
 }
 
+function words(s: string): string[] {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, " ").split(" ").filter(Boolean);
+}
+
+/** True when every word of `broad` appears in `narrow` and `narrow` says more. */
+export function isBroaderThan(broad: string, narrow: string): boolean {
+  const b = words(broad);
+  const n = new Set(words(narrow));
+  return b.length > 0 && b.length < n.size && b.every((w) => n.has(w));
+}
+
+// Words that name a kind of place without saying what it is for.
+const CATEGORY_ONLY_WORDS = new Set([
+  "coaching", "institute", "institutes", "academy", "classes", "class", "centre", "center", "school", "college",
+  "clinic", "clinics", "hospital", "hospitals", "doctor", "doctors", "surgeon", "specialist", "hotel", "hotels",
+  "resort", "store", "shop", "company", "agency", "business", "service", "services", "firm",
+]);
+
+/** True for "coaching institute" or "clinic": a description with no specialty in it. */
+export function isOnlyCategoryWords(phrase: string): boolean {
+  const w = words(phrase);
+  return w.length > 0 && w.every((x) => CATEGORY_ONLY_WORDS.has(x));
+}
+
+/** "mohali" -> "Mohali", "new delhi" -> "New Delhi". A city already written with capitals is left as typed. */
+export function tidyCity(city: string | null | undefined): string {
+  const c = cleanPhrase(city || "");
+  if (!c || c !== c.toLowerCase()) return c;
+  return c.replace(/\b[a-z]/g, (m) => m.toUpperCase());
+}
+
 /**
  * What the prospect is, in a buyer's words, and where that came from. Null when it cannot be told from the
  * request: the caller then asks the Architect instead of guessing.
  */
 export function prospectCategoryPhrase(req: Pick<ProspectAuditRequest, "businessName" | "industry" | "what">): { phrase: string; from: "architect" | "name" | "industry" } | null {
   const given = cleanPhrase(req.what || "");
-  if (given.length >= 3) return { phrase: given, from: "architect" };
+  if (given.length >= 3) {
+    // When the name already says something narrower ("nursing exam coaching institute") than the words given
+    // ("coaching institute"), the narrower one is asked: a broad question scores every specialist at zero.
+    const fromName = dim4SpecialtyPhrase({ company: req.businessName });
+    if (fromName && isOnlyCategoryWords(given) && isBroaderThan(given, fromName)) return { phrase: fromName, from: "name" };
+    return { phrase: given, from: "architect" };
+  }
   const industry = (req.industry || "").toLowerCase().trim();
   // A specialty is read from the name only where names carry one (clinics, institutes) or nothing else is known.
   // A hotel or a developer whose name happens to contain "eye" or "heart" is still a hotel or a developer.
@@ -78,12 +115,12 @@ export function prospectCategoryPhrase(req: Pick<ProspectAuditRequest, "business
 /** The five buyer questions for one prospect. None contains the business name. */
 export function buildProspectAuditPrompts(phrase: string, city?: string | null): string[] {
   const p = cleanPhrase(phrase);
-  const where = cleanPhrase(city || "") || "India";
+  const where = tidyCity(city) || "India";
   return [
     `best ${p} in ${where}`,
     `which ${p} in ${where} has the best reviews`,
-    `top rated ${p} in ${where} and what each is known for`,
-    `how do I choose a ${p} in ${where}, and which ones do you recommend`,
+    `top rated ${p} in ${where}: what is each known for`,
+    `how to choose a ${p} in ${where}: which do you recommend`,
     `${p} in ${where}: which one should I trust and why`,
   ];
 }
