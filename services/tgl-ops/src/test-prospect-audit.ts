@@ -377,6 +377,22 @@ async function main(): Promise<void> {
     const absent = rankProspectAnswer(BOLD, { name: BUSINESS, variants: [BUSINESS], domains: ["sunrisedental.in"], competitors: [] }, ["NCA Academy", "Mantram Nursing Academy"]);
     assert.deepEqual(absent, { mentioned: false, position: null, competitorsMentioned: ["NCA Academy", "Mantram Nursing Academy"] });
     ok("rank: a rival named first in plain sentences counts, so the prospect is #2, not #1; alone it is #1; absent it has no rank");
+
+    // A fragment of longer names is not a business of its own (live case: "Nursing Academy" listed in 7 of 15).
+    const lens = { name: BUSINESS, variants: [BUSINESS], domains: ["sunrisedental.in"], competitors: [] };
+    const two = "Good options are Mantram Nursing Academy and Kanika's Nursing Academy. Sunrise Dental is also mentioned.";
+    const frag = rankProspectAnswer(two, lens, ["Nursing Academy", "Mantram Nursing Academy", "Kanika's Nursing Academy"]);
+    assert.deepEqual(frag.competitorsMentioned, ["Mantram Nursing Academy", "Kanika's Nursing Academy"]);
+    assert.equal(frag.position, 3);
+    const standalone = rankProspectAnswer("Try Nursing Academy first, then Mantram Nursing Academy.", lens, ["Nursing Academy", "Mantram Nursing Academy"]);
+    assert.deepEqual(standalone.competitorsMentioned, ["Nursing Academy", "Mantram Nursing Academy"], "a short name that really stands alone is still counted");
+    const fragAudit = await runShortFormAudit(lens, { prospect: { name: BUSINESS, website: SITE }, prompts: buildProspectAuditPrompts("dental clinic", "Mohali"), engineMock: async (e) => answer(e, "1. **Mantram Nursing Academy**: weekend batches.\n2. **Nursing Academy**: listed without a first name here.\n" + (e === "gemini" ? "" : "Also Kanika's Nursing Academy.")), saveRawJson: false });
+    assert.equal(fragAudit.summary.competitorMentions["Mantram Nursing Academy"], 15);
+    assert.equal(fragAudit.summary.competitorMentions["Nursing Academy"], 15, "where an answer does list it by itself it counts");
+    const noFrag = await runShortFormAudit(lens, { prospect: { name: BUSINESS, website: SITE }, prompts: buildProspectAuditPrompts("dental clinic", "Mohali"), engineMock: async (e) => answer(e, e === "gemini" ? "1. **Nursing Academy**: generic heading-like entry." : "1. **Mantram Nursing Academy**: weekend batches.\n2. **Umrao Nursing Academy**: evening batches."), saveRawJson: false });
+    assert.equal(noFrag.summary.competitorMentions["Nursing Academy"], 5, "it is counted only in the answers where it stands alone, not inside the longer names");
+    assert.equal(noFrag.summary.competitorMentions["Mantram Nursing Academy"], 10);
+    ok("names: a short name is not counted inside a longer one; it counts only where it stands alone");
   }
 
   // ---- summary text when nothing was named ----
