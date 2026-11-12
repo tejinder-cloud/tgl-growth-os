@@ -8,7 +8,10 @@
 // Honest Work: every figure in the Slack summary is read from the audit result, and "posted" is only reported
 // when Slack's own response says the file was accepted. When the questions cannot be built from what is known,
 // no audit is run and the Architect is asked for one line; nothing is guessed.
+import fs from "node:fs";
 import path from "node:path";
+import { defaultProspectAuditStore, type ProspectAuditStore } from "./prospect-audit-store.js";
+import { reviewBlocks } from "./prospect-audit-review.js";
 import { runShortFormAudit, AUDIT_PROMPT_COUNT, type ShortFormAuditResult, type ShortFormOptions } from "./short-form.js";
 import { generateAuditPdf } from "./pdf.js";
 import type { BrandLens } from "./types.js";
@@ -31,6 +34,11 @@ export interface ProspectAuditRequest {
   source: ProspectAuditSource;
   /** site_leads row id, when the request came from the website. */
   leadId?: string | null;
+  /** Who asked, when known: used only if the Architect taps "Send on email". */
+  contactName?: string | null;
+  contactEmail?: string | null;
+  /** prospect_audits id of the audit this one replaces after "Needs refinement". */
+  refinedFrom?: string | null;
 }
 
 // What a buyer would call a business in each form industry, when its name says nothing more specific.
@@ -126,7 +134,7 @@ export function buildProspectAuditPrompts(phrase: string, city?: string | null):
 }
 
 export type ProspectAuditOutcome =
-  | { status: "posted"; result: ShortFormAuditResult; prompts: string[]; fileId?: string; costUsd: number }
+  | { status: "posted"; result: ShortFormAuditResult; prompts: string[]; fileId?: string; costUsd: number; auditId?: string }
   | { status: "post_failed"; result: ShortFormAuditResult; prompts: string[]; error: string; costUsd: number }
   | { status: "needs_input"; reason: string }
   | { status: "duplicate"; reason: string }
@@ -142,6 +150,28 @@ export interface ProspectAuditDeps {
   getCapUsd: () => Promise<number>;
   recordSpend: (usd: number, details: string) => void;
   now: () => Date;
+  /** The review record. Null when the database is not configured: the audit is then posted without buttons. */
+  store: ProspectAuditStore | null;
+  /** Posts the summary with the Send / Needs refinement buttons. */
+  postReview: (o: { channel: string; text: string; blocks: unknown[] }) => Promise<{ ok: boolean; ts?: string; channelId?: string; error?: string }>;
+  readPdf: (file: string) => Buffer;
+}
+
+async function defaultPostReview(o: { channel: string; text: string; blocks: unknown[] }): Promise<{ ok: boolean; ts?: string; channelId?: string; error?: string }> {
+  const { config, isTestMode } = await import("../../config.js");
+  if (!config.slackBotToken || isTestMode()) {
+    console.log(`[postReview Dry Run] ${o.channel}: ${o.text.slice(0, 80)}`);
+    return { ok: true, ts: "mock-ts", channelId: o.channel };
+  }
+  try {
+    const { slackClient } = await import("../../lib/slack-client.js");
+    const { resolveChannelId } = await import("../../lib/post.js");
+    const channelId = await resolveChannelId(o.channel);
+    const res = await slackClient.chat.postMessage({ channel: channelId, text: o.text, blocks: o.blocks as any, unfurl_links: false, unfurl_media: false });
+    return { ok: Boolean(res.ok), ts: res.ts as string | undefined, channelId: (res.channel as string) || channelId };
+  } catch (e: any) {
+    return { ok: false, error: String(e?.data?.error || e?.message || e) };
+  }
 }
 
 async function defaultDeps(): Promise<ProspectAuditDeps> {
@@ -156,6 +186,9 @@ async function defaultDeps(): Promise<ProspectAuditDeps> {
     getCapUsd: () => cap.getAgentCostCap(PROSPECT_AUDIT_AGENT),
     recordSpend: (usd, details) => cap.recordApiSpend({ agent: PROSPECT_AUDIT_AGENT, apiName: PROSPECT_AUDIT_API_NAME, totalCostUsd: usd, details }),
     now: () => new Date(),
+    store: process.env.TGL_TEST_MODE === "1" ? null : defaultProspectAuditStore(),
+    postReview: defaultPostReview,
+    readPdf: (file) => fs.readFileSync(file),
   };
 }
 
@@ -172,7 +205,7 @@ function slugFor(name: string): string {
 }
 
 /** The #revenue summary. Every number is read from the result. Plain text and bold only. */
-export function prospectAuditSummary(req: ProspectAuditRequest, result: ShortFormAuditResult, prompts: string[], phraseFrom: string, pdfPosted: boolean): string {
+export function prospectAuditSummary(req: ProspectAuditRequest, result: ShortFormAuditResult, prompts: string[], phraseFrom: string, pdfPosted: boolean, withButtons = false): string {
   const perEngine = Object.entries(result.summary.mentionsByEngine)
     .map(([e, n]) => `${ENGINE_NAMES[e] || e} ${n} of ${result.promptsCount}`)
     .join(", ");
@@ -189,9 +222,11 @@ export function prospectAuditSummary(req: ProspectAuditRequest, result: ShortFor
     `Questions asked (${phraseFrom}):`,
     ...prompts.map((p, i) => `${i + 1}. ${p}`),
     `Cost of this audit: Rs ${result.summary.totalCostInr} (USD ${result.summary.totalCostUsd}).`,
-    pdfPosted
-      ? `*Not sent to the prospect.* Read the PDF in this channel and send it yourself if it is right. If the questions are off, run it again: \`/task audit | ${req.businessName} | ${result.brand.primaryDomain} | <what they are> | <city>\``
-      : `*The PDF could not be uploaded to Slack.* The figures above are from the completed audit. Nothing was sent to the prospect.`,
+    !pdfPosted
+      ? `*The PDF could not be uploaded to Slack.* The figures above are from the completed audit. Nothing was sent to the prospect.`
+      : withButtons
+      ? `*Not sent to the prospect.* Read the PDF in this channel, then choose. ${(req.contactEmail || "").trim() ? `Send on email goes to ${(req.contactEmail || "").trim().toLowerCase()}.` : "No email is on record for this request: Send on email will ask for one."}`
+      : `*Not sent to the prospect.* Read the PDF in this channel and send it yourself if it is right. If the questions are off, run it again: \`/task audit | ${req.businessName} | ${result.brand.primaryDomain} | <what they are> | <city>\``,
   ];
   return lines.join("\n");
 }
@@ -280,11 +315,57 @@ export async function runProspectAudit(req: ProspectAuditRequest, depsOverride?:
   const filename = `${slugFor(name)}-ai-visibility-audit-${today}.pdf`;
   const outFile = path.join(process.cwd(), "artifacts", "audits", "prospects", filename);
   let upload: { ok: boolean; fileId?: string; error?: string };
+  let pdfBase64 = "";
   try {
     await deps.renderPdf(result, outFile);
+    try {
+      pdfBase64 = deps.readPdf(outFile).toString("base64");
+    } catch (e: any) {
+      console.warn(`[Prospect Audit] PDF could not be read back for the review record: ${e?.message || e}`);
+    }
     upload = await deps.postFile({ channel: PROSPECT_AUDIT_CHANNEL, filePath: outFile, filename, title: `AI visibility audit (for review) · ${name}` });
   } catch (e: any) {
     upload = { ok: false, error: String(e?.message || e) };
+  }
+
+  // The review record. Without it there is nothing for a button to act on, so the summary goes out without buttons.
+  let auditId: string | undefined;
+  if (upload.ok && deps.store && pdfBase64) {
+    try {
+      auditId = await deps.store.insert({
+        site_lead_id: req.leadId || null,
+        refined_from: req.refinedFrom || null,
+        source: req.source,
+        business_name: name,
+        domain,
+        category_phrase: category.phrase,
+        phrase_from: category.from,
+        city: tidyCity(req.city) || null,
+        prompts,
+        total_mentions: result.summary.totalMentions,
+        total_queries: result.totalQueries,
+        summary: { mentionsByEngine: result.summary.mentionsByEngine, competitorMentions: result.summary.competitorMentions, auditedAt: result.auditedAt },
+        cost_usd: costUsd,
+        pdf_filename: filename,
+        pdf_base64: pdfBase64,
+        contact_name: (req.contactName || "").trim() || null,
+        contact_email: (req.contactEmail || "").trim().toLowerCase() || null,
+      });
+    } catch (e: any) {
+      console.warn(`[Prospect Audit] review record not saved, posting without buttons: ${e?.message || e}`);
+    }
+  }
+
+  if (auditId && deps.store) {
+    const text = prospectAuditSummary(req, result, prompts, phraseFrom, true, true);
+    const posted = await deps.postReview({ channel: PROSPECT_AUDIT_CHANNEL, text, blocks: reviewBlocks(text, auditId) }).catch((e: any) => ({ ok: false, error: String(e?.message || e) } as { ok: boolean; ts?: string; channelId?: string; error?: string }));
+    if (posted.ok) {
+      await deps.store.update(auditId, { slack_channel: posted.channelId || PROSPECT_AUDIT_CHANNEL, slack_ts: posted.ts || null, slack_file_id: upload.fileId || null }).catch((e: any) => console.warn(`[Prospect Audit] slack reference not saved: ${e?.message || e}`));
+    } else {
+      // The buttons could not be posted: fall back to the plain summary so the audit is still seen.
+      await say(prospectAuditSummary(req, result, prompts, phraseFrom, true));
+    }
+    return { status: "posted", result, prompts, fileId: upload.fileId, costUsd, auditId };
   }
 
   await say(prospectAuditSummary(req, result, prompts, phraseFrom, upload.ok));
