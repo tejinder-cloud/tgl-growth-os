@@ -1,17 +1,18 @@
 {
   "13": {
     "channel": "C073SJJ22P9",
-    "ts": "1794454209.517219",
+    "ts": "1794540610.832349",
     "agent": "chief-of-staff",
     "door": "core",
     "title": "Plan Status Card — Day 13",
-    "updatedAt": "2026-11-12T03:30:09.765Z",
+    "updatedAt": "2026-11-13T03:30:11.055Z",
     "cardType": "plan",
     "linkedIssueNumber": 13,
     "threadTimestamps": [
       "1792833586.528000",
       "1794367809.011469",
-      "1794454209.517219"
+      "1794454209.517219",
+      "1794540610.832349"
     ]
   },
   "14": {
@@ -520,5 +521,16 @@
     "door": "core",
     "title": "Prospect researcher rubric v2 fixes. 1) Dim 4 probe question must be specialty-s",
     "updatedAt": "2026-11-12T07:38:36.570Z"
+  },
+  "thread:1794540610.832349": {
+    "channel": "C073SJJ22P9",
+    "ts": "1794540610.832349",
+    "issueNumber": 13,
+    "linkedIssueNumber": 13,
+    "cardType": "plan",
+    "agent": "chief-of-staff",
+    "door": "core",
+    "title": "Plan Status Card — Day 13",
+    "updatedAt": "2026-11-13T03:30:11.055Z"
   }
 }
