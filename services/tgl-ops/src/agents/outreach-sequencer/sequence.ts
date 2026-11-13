@@ -13,7 +13,9 @@ import type {
 // WhatsApp touches fall back to email when the prospect has no business phone or WhatsApp is off in GHL.
 export const SEQUENCE: SequenceTouchDef[] = [
   { n: 1, offsetBusinessDays: 0, channel: "Email", attachOnePager: false },
-  { n: 2, offsetBusinessDays: 2, channel: "WhatsApp", attachOnePager: false },
+  // Touch 2 says "I emailed your report"; as an email on day 2 that would be untrue (the report goes on day 4), so
+  // it is skipped when WhatsApp is unavailable (Architect, 13 Nov 2026). Touch 4 still falls back to email.
+  { n: 2, offsetBusinessDays: 2, channel: "WhatsApp", attachOnePager: false, whatsappOnly: true },
   { n: 3, offsetBusinessDays: 4, channel: "Email", attachOnePager: true },
   { n: 4, offsetBusinessDays: 7, channel: "WhatsApp", attachOnePager: false },
   { n: 5, offsetBusinessDays: 12, channel: "Email", attachOnePager: false },

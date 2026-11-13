@@ -140,12 +140,13 @@ async function main() {
     assert.equal(/\p{Extended_Pictographic}/u.test(r.markdown), false, "no emojis");
   }
 
-  // Unit: WhatsApp off, or no phone, falls back to email on every touch
+  // Unit: WhatsApp off, or no phone: touch 2 is skipped (13 Nov 2026), the other four go by email
   {
     const off = renderSequencePreview(templates, view, AUDIT, { senderName: "The Growth Lab", bookingLink: BOOKING, whatsappEnabled: false });
     assert.equal(off.failures, 0, off.markdown);
     assert.equal(/: WhatsApp,/.test(off.markdown), false);
-    assert.equal((off.markdown.match(/^Subject: /gm) || []).length, 5, "five email subjects");
+    assert.equal((off.markdown.match(/^Subject: /gm) || []).length, 4, "four email subjects");
+    assert.ok(/#### Touch 2 of 5: skipped/.test(off.markdown), "touch 2 is skipped, never turned into an email");
     const noPhone = renderSequencePreview(templates, { ...view, phone: undefined }, AUDIT, { senderName: "The Growth Lab", bookingLink: BOOKING, whatsappEnabled: true });
     assert.equal(noPhone.failures, 0, noPhone.markdown);
     assert.equal(/: WhatsApp,/.test(noPhone.markdown), false);
@@ -166,12 +167,13 @@ async function main() {
     assert.ok(live.runtime.preflight().some((i) => i.includes("GHL_API_KEY")), "live without GHL credentials is flagged");
   }
 
-  // Dry-run tick: renders the five touches for the test prospect, builds the audit, touches nothing in GHL
+  // Dry-run tick: renders the touches for the test prospect (touch 2 skipped while WhatsApp is off), builds the audit,
+  // touches nothing in GHL
   {
     const h = harness([fixtureProspect("p1", { phone: "+919800000000" })], { OUTREACH_TEST_PROSPECT_ID: "p1", OUTREACH_BOOKING_LINK: BOOKING });
     const res = await h.runtime.tick();
     assert.deepEqual(res.issues, []);
-    assert.equal(res.previewed?.rendered, 5);
+    assert.equal(res.previewed?.rendered, 4);
     assert.equal(res.previewed?.failures, 0);
     assert.equal(res.summary?.mode, "dry_run");
     assert.equal(res.summary?.outcomes[0].result.status, "dry_run");

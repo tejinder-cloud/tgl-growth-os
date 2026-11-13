@@ -121,6 +121,10 @@ export function renderSequencePreview(
 
   for (const def of SEQUENCE) {
     const channel = resolveChannel(def.channel, { hasPhone: Boolean(view.phone), whatsappEnabled: opts.whatsappEnabled });
+    if (def.whatsappOnly && channel !== "WhatsApp") {
+      lines.push(`#### Touch ${def.n} of ${TOTAL_TOUCHES}: skipped (WhatsApp only; WhatsApp is unavailable)`, "");
+      continue;
+    }
     lines.push(`#### Touch ${def.n} of ${TOTAL_TOUCHES}: ${channel}, day ${def.offsetBusinessDays}`);
     try {
       const msg: RenderedMessage = render(def.n, channel, {
