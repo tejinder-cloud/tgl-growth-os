@@ -144,6 +144,11 @@ export async function postTop25ReviewCard(params: {
   } catch (err: any) {
     console.warn(`[Prospect Card Post Notice] ${err.message || err}`);
     cardResult = { ok: false, channel: targetChannel, dryRun: true };
+    // Say so where the Architect reads, instead of leaving the run looking complete.
+    await postLine({
+      channel: targetChannel,
+      text: `*Prospect review card could not be posted* for ${city} (${category}): ${String(err?.message || err).slice(0, 200)}. ${prospects.length} qualified prospect(s) are saved; the run log lists them.`,
+    }).catch(() => {});
   }
 
   // Attach CSV to thread ONLY if real message ts was returned from Slack API and CSV exists
