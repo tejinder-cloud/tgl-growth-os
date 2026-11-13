@@ -86,6 +86,72 @@ export function assessWorkEmail(email: string | undefined | null, website: strin
   return { ok: true, reason: `email is on the prospect's own domain (${siteRoot})` };
 }
 
+// ---------------------------------------------------------------------------
+// Published business email (Architect decision, 13 Nov 2026)
+// For an owner-run business, the address the business itself prints on its own website may be used for
+// outreach, including a shared inbox (info@) or a free-mail address. It is the business's published contact,
+// not a person's private one. A named work email (assessWorkEmail) is still preferred when there is one.
+// ---------------------------------------------------------------------------
+
+// Inboxes that are published but are not a way to reach the owner about their business.
+const NOT_A_CONTACT_INBOX = new Set([
+  "noreply", "no-reply", "donotreply", "do-not-reply", "webmaster", "postmaster", "abuse", "hostmaster",
+  "careers", "career", "jobs", "hr", "recruitment", "billing", "accounts", "privacy", "legal", "press", "media",
+]);
+// Addresses left in a page by a template, a plugin or a web agency.
+const PLACEHOLDER_EMAIL = /^(?:you|your|yourname|name|email|user|username|example|test|demo|sample|john\.?doe|abc|xyz)@|@(?:example|domain|email|yourdomain|yoursite|website|company|test)\./i;
+const ASSET_OR_TOOL = /\.(?:png|jpe?g|gif|webp|svg|css|js|woff2?)$|@(?:.*\.)?(?:sentry|wixpress|wix|wordpress|godaddy|schema|google|facebook|w3|cloudflare)\b/i;
+
+export type PublishedEmailKind = "own_domain" | "free_mail";
+
+export interface PublishedEmailAssessment {
+  ok: boolean;
+  kind?: PublishedEmailKind;
+  /** Plain-English reason, safe for fit_reasons and logs. Never contains the address itself. */
+  reason: string;
+}
+
+/**
+ * Decides whether an address found on the business's own website may be used as its outreach address.
+ * The caller guarantees where it was found; this checks what it is. An address on some other company's
+ * domain (a web agency, a directory) is refused: it is published there, but it is not theirs.
+ */
+export function assessPublishedEmail(email: string | undefined | null, website: string | undefined | null): PublishedEmailAssessment {
+  const value = (email || "").trim().toLowerCase();
+  const at = value.lastIndexOf("@");
+  if (!value || at <= 0 || at === value.length - 1 || /\s/.test(value)) return { ok: false, reason: "no usable published email" };
+  if (PLACEHOLDER_EMAIL.test(value) || ASSET_OR_TOOL.test(value)) return { ok: false, reason: "published address is a placeholder or belongs to a website tool" };
+  const local = value.slice(0, at).split("+")[0];
+  if (NOT_A_CONTACT_INBOX.has(local) || NOT_A_CONTACT_INBOX.has(local.replace(/[._-]/g, ""))) {
+    return { ok: false, reason: "published address is not a contact inbox" };
+  }
+  const emailHost = value.slice(at + 1);
+  const emailRoot = rootDomainOf(emailHost);
+  const siteRoot = rootDomainOf(website || "");
+  if (!siteRoot) return { ok: false, reason: "prospect has no website the address could have been published on" };
+  if (emailRoot === siteRoot) return { ok: true, kind: "own_domain", reason: `published business email on the prospect's own domain (${siteRoot})` };
+  if (FREE_MAIL_DOMAINS.has(emailHost) || FREE_MAIL_DOMAINS.has(emailRoot)) {
+    return { ok: true, kind: "free_mail", reason: `published business email on a free-mail provider, shown on the prospect's own website (${siteRoot})` };
+  }
+  return { ok: false, reason: `published address is on another organisation's domain (${emailRoot})` };
+}
+
+/** Best published address from a website scrape: the business's own domain first, then free-mail. */
+export function pickPublishedEmail(emails: string[], website: string | undefined | null): { email: string; kind: PublishedEmailKind; reason: string } | null {
+  let best: { email: string; kind: PublishedEmailKind; reason: string } | null = null;
+  for (const raw of emails || []) {
+    const email = (raw || "").trim().toLowerCase();
+    const check = assessPublishedEmail(email, website);
+    if (!check.ok || !check.kind) continue;
+    if (check.kind === "own_domain") return { email, kind: check.kind, reason: check.reason };
+    if (!best) best = { email, kind: check.kind, reason: check.reason };
+  }
+  return best;
+}
+
+/** The source tag every published-email contact carries. Checked by the rubric, the write gate and the worker. */
+export const PUBLISHED_EMAIL_SOURCE = "website:published_email";
+
 const HONORIFIC = /^\s*(?:dr|doctor|prof|professor|adv|advocate|ca)\b\.?\s+/i;
 const ORGANISATION_WORDS = /\b(?:hospitals?|institutes?|medical (?:centre|center|college)|super\s*special(?:i)?ty|multi\s*special(?:i)?ty|nursing home|healthcare|group|chain|academy|classes|university|college|pvt|ltd|llp)\b/i;
 

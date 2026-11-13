@@ -15,7 +15,7 @@
 import type { DecisionMaker, ProspectRecord } from "./types.js";
 import { evaluateProspectRubricWithProbe } from "./rubric.js";
 import { buildDim4Question, parseDim4Probe, type Dim4ProbeFn } from "./dim4.js";
-import { assessWorkEmail } from "./contact-rules.js";
+import { PUBLISHED_EMAIL_SOURCE, assessPublishedEmail, assessWorkEmail } from "./contact-rules.js";
 import { isCandidateOrgSizeGe50 } from "./sources/enrichment.js";
 import { extractBrandToken } from "./sources/website-scraper.js";
 import { minimiseDecisionMaker } from "./bench-save.js";
@@ -68,6 +68,8 @@ export function applyContactRuleToStoredDecisionMaker(
   if (!raw.email) return raw;
   const check = assessWorkEmail(raw.email, website);
   if (check.ok) return raw;
+  // An owner-run business's published address (13 Nov 2026 decision) is kept; it was never claimed to be a named one.
+  if (ownerRun && String(raw.source || "").includes(PUBLISHED_EMAIL_SOURCE) && assessPublishedEmail(raw.email, website).ok) return raw;
   const phone = raw.phone ? String(raw.phone).trim() : "";
   if (ownerRun && phone.length >= 8) {
     return {

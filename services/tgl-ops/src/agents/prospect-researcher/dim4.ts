@@ -167,6 +167,8 @@ const HEADING_LEAD_WORDS = new Set([
   "cost", "price", "pricing", "services", "contact", "location", "address", "rating", "ratings", "reviews",
   "specialty", "specialties", "speciality", "specialities", "facilities", "timings", "hours", "phone", "website",
   "known", "famous", "popular", "highly", "reputation", "technology", "experience", "expertise", "accreditation",
+  // Group headings an answer puts above its lists ("For Smile Makeovers / Veneers", "Locations") are not businesses.
+  "for", "locations", "branches", "options", "option", "category", "categories", "treatments", "procedures", "if", "who",
 ]);
 
 function nameTokens(s: string): string[] {
