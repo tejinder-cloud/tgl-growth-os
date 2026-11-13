@@ -2,7 +2,7 @@
 import type { ProspectSignals, DecisionMaker } from "./types.js";
 import { isDecisionMakerRole } from "./sources/enrichment.js";
 import { FIT_QUALIFIED_THRESHOLD } from "./threshold.js";
-import { assessWorkEmail } from "./contact-rules.js";
+import { PUBLISHED_EMAIL_SOURCE, assessPublishedEmail, assessWorkEmail } from "./contact-rules.js";
 import {
   analyseDim4Answer as _analyseDim4Answer,
   serializeDim4Probe,
@@ -356,6 +356,13 @@ export function evaluateProspectRubric(params: {
       (decisionMaker.source.includes("places:phone") || emailRejected)
     );
 
+    // Published business email (13 Nov 2026 decision): owner-run businesses only, and worth the same as the
+    // business phone. It makes a prospect reachable by email; it does not raise the score above a phone-only one.
+    const publishedEmail = assessPublishedEmail(decisionMaker.email, domain);
+    const hasPublishedEmail = Boolean(
+      isOwnerRun && decisionMaker.email && String(decisionMaker.source || "").includes(PUBLISHED_EMAIL_SOURCE) && publishedEmail.ok
+    );
+
     if (hasHunterEmail && hasPlacesPhone) {
       dim5Score = 15;
       reasons.push(
@@ -373,6 +380,13 @@ export function evaluateProspectRubric(params: {
           `Dim 5 (DM Reachability): Verified website email (${decisionMaker.role}) via Hunter (+10 pts) [Score: 10/15]`
         );
       }
+    } else if (hasPublishedEmail) {
+      dim5Score = 10;
+      reasons.push(
+        `Dim 5 (DM Reachability): Published business email, ${publishedEmail.kind === "own_domain" ? "on its own domain" : "free-mail address shown on its own website"}${
+          hasPlacesPhone ? ", and the Places business phone" : ""
+        }, for an owner-run business (+10 pts) [Score: 10/15]`
+      );
     } else if (hasPlacesPhone) {
       dim5Score = 10;
       reasons.push(

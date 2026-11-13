@@ -8,7 +8,7 @@ import { FIT_QUALIFIED_THRESHOLD } from "./threshold.js";
 
 const PLACES_QUOTA_FILE = "logs/.state/places-quota.json";
 const PLACES_TEST_QUOTA_FILE = "logs/.test/.state/places-quota.json";
-const MAX_DAILY_PLACES_CALLS = 95; // Hard stop at 95 (5-call emergency buffer under 100 limit)
+export const MAX_DAILY_PLACES_CALLS = 95; // Hard stop at 95 (5-call emergency buffer under 100 limit)
 
 export interface PlacesQuotaState {
   date: string;
@@ -164,6 +164,7 @@ export function isRolePlaceholderName(name: string, isOwnerRun?: boolean): boole
  * (b) a live DNS result
  * (c) a contact verification result:
  *     - a Hunter-verified website email (status: deliverable|risky), OR
+ *     - for owner-run businesses, the email the business publishes on its own website (13 Nov 2026 decision), OR
  *     - for owner-run businesses (<50 staff), the business phone from Google Places
  * (d) a per-dimension score breakdown in fit_reasons (at least five entries, one per rubric dimension, each with its evidence;
  *     rubric v2 adds a sixth `dim4_probe` entry carrying the Dimension 4 probe record)
@@ -218,14 +219,17 @@ export function validateProspectRecord(p: any): { valid: boolean; reason?: strin
     dmSource.includes("places:phone") &&
     hasPlacesId;
 
+  // Owner-run businesses: the address the business prints on its own website (13 Nov 2026 decision).
+  const hasPublishedEmail = Boolean(dm.email && String(dm.email).includes("@")) && dmSource.includes("website:published_email");
+
   // A rejection of an existing row must always be writable: when a re-score finds the stored contact was never the
   // prospect's own (issue #184), the row has to leave the qualified list, and the missing contact is the reason.
   const isRejection = p.status === "rejected";
 
-  if (!isRejection && !hasHunterEmail && !hasPlacesPhone && !isDMUnknown) {
+  if (!isRejection && !hasHunterEmail && !hasPublishedEmail && !hasPlacesPhone && !isDMUnknown) {
     return {
       valid: false,
-      reason: `Contact not verified: requires Hunter-verified website email or Places business phone for owner-run business (source: '${dm.source || "none"}')`,
+      reason: `Contact not verified: requires Hunter-verified website email, or for an owner-run business its published email or Places business phone (source: '${dm.source || "none"}')`,
     };
   }
 

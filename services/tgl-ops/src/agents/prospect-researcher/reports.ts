@@ -103,7 +103,7 @@ export async function postTop25ReviewCard(params: {
     const phoneTag = p.decision_maker.phone ? " · [phone]" : "";
     const probe = parseDim4Probe(p.fit_reasons);
     const probeLine = probe ? `\n   ↳ _AI visibility: ${summariseDim4Probe(probe)}_` : "";
-    return `*${idx + 1}. <${p.website}|${p.company}>* (Score: *${p.fit_score}*) · ${p.city}\n   ↳ *${p.decision_maker.name}* (${p.decision_maker.role}) · \`${p.decision_maker.email}\`${phoneTag}\n   ↳ _${p.fit_reasons[0] || "Qualified"}_${probeLine}`;
+    return `*${idx + 1}. <${p.website}|${p.company}>* (Score: *${p.fit_score}*) · ${p.city}\n   ↳ *${p.decision_maker.name}* (${p.decision_maker.role}) · ${p.decision_maker.email ? `\`${p.decision_maker.email}\`` : "no email"}${phoneTag}\n   ↳ _${p.fit_reasons[0] || "Qualified"}_${probeLine}`;
   });
 
   const writtenToSupabase =

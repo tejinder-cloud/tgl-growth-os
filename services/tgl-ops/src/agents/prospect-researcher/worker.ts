@@ -9,7 +9,8 @@ import { postLine } from "../../lib/post.js";
 import { getAlertsChannel } from "../../lib/cron-wrapper.js";
 import type { ProspectRecord, ResearchRunOptions, ResearchRunResult } from "./types.js";
 import { getNextRotation, advanceRotation, syncRotationStateFromRepo } from "./rotation.js";
-import { searchPlacesCandidates, verifyDomainDns, enrichPlaceDetails, type RawPlaceCandidate } from "./sources/places.js";
+import { searchPlacesCandidatesWide, verifyDomainDns, enrichPlaceDetails, type RawPlaceCandidate } from "./sources/places.js";
+import { PUBLISHED_EMAIL_SOURCE } from "./contact-rules.js";
 import { enrichCandidateSignals, isCandidateOrgSizeGe50 } from "./sources/enrichment.js";
 import { evaluateProspectRubric, evaluateProspectRubricWithProbe, checkPlaybookCDisqualification } from "./rubric.js";
 import { parseDim4Probe } from "./dim4.js";
@@ -33,8 +34,13 @@ export interface ValidationFunnelMetrics {
   placeDetailsEnriched: number;
   placeDetailsFailed: number;
   emailVerified: number;
+  /** Owner-run businesses kept on the email they publish on their own website (13 Nov 2026 decision). */
+  publishedEmail?: number;
   phoneVerified: number;
   contactUnverified: number;
+  /** Listing searches made this run, and candidates whose search result already carried website and phone. */
+  searches?: number;
+  detailsFromSearch?: number;
   /** Candidates scored at or above the qualified threshold (65 under rubric v2). Name kept for compatibility. */
   scoredGe70: number;
   /** Candidates scored below the qualified threshold (benched or rejected). Name kept for compatibility. */
@@ -203,9 +209,12 @@ export async function runProspectResearch(
   }
 
   // 4. Candidate Discovery via Google Places API (real network call)
-  const rawCandidates = await searchPlacesCandidates(city, category, options);
+  const search = await searchPlacesCandidatesWide(city, category, options);
+  const rawCandidates = search.candidates;
   funnel.discovered = rawCandidates.length;
-  console.log(`[Funnel Stage 1] Google Places API returned ${rawCandidates.length} raw candidates for '${category} in ${city}'`);
+  funnel.searches = search.queries.length;
+  funnel.detailsFromSearch = rawCandidates.filter((c) => c.placeDetailsEnriched).length;
+  console.log(`[Funnel Stage 1] Google Places API returned ${rawCandidates.length} distinct candidates for '${category} in ${city}' from ${search.queries.length} search(es): ${search.queries.join(" | ")}`);
 
   // Group candidates by normalized brand token and root domain to detect multi-unit chains
   for (const c of rawCandidates) {
@@ -397,14 +406,20 @@ export async function runProspectResearch(
       !enrichedDetails.signals.is_large_org
     );
 
+    const isPublishedEmail = Boolean(
+      dm.verified && dm.email && dm.email.includes("@") && dm.source && dm.source.includes(PUBLISHED_EMAIL_SOURCE) && !enrichedDetails.signals.is_large_org
+    );
+
     if (isHunterEmail) {
       funnel.emailVerified++;
+    } else if (isPublishedEmail) {
+      funnel.publishedEmail = (funnel.publishedEmail || 0) + 1;
     } else if (isOwnerPhone) {
       funnel.phoneVerified++;
     } else {
       funnel.contactUnverified++;
       console.log(
-        `  • [Gate 6 Dropped] '${cand.name}': No verified contact (requires Hunter work email for large orgs or Places phone for owner-run clinics) (${dm.source})`
+        `  • [Gate 6 Dropped] '${cand.name}': No verified contact (requires a named work email for large orgs; a published email or Places phone for owner-run businesses) (${dm.source})`
       );
       continue;
     }
@@ -710,11 +725,12 @@ function appendProspectResearcherLog(params: {
 - **Benched Re-score (v2, before discovery):** ${params.benchResult.eligible} eligible · ${params.benchResult.promoted.length} promoted · ${params.benchResult.stillBenched.length} still benched · ${params.benchResult.rejected.length} rejected · ${params.benchResult.notProbed.length} not probed
 - **Dim 4 Probes (${"gemini"}):** ${params.probeStats.completed} completed · ${params.probeStats.failed} failed · ${params.probeStats.skippedCap} skipped at daily cap · ${params.probeStats.skippedUnavailable} skipped, engine unavailable · probe spend $${params.probeStats.costUsd.toFixed(4)} USD
 ${params.probeShortfall ? `- **Dim 4 Shortfall:** ${params.probeShortfall}\n` : ""}- **Validator Funnel:**
-  - Raw Candidates (Places API): ${params.funnel.discovered}
+  - Raw Candidates (Places API): ${params.funnel.discovered} (from ${params.funnel.searches ?? 1} searches; ${params.funnel.detailsFromSearch ?? 0} needed no separate details call)
   - Live DNS Passed: ${params.funnel.dnsPassed} (Failed: ${params.funnel.dnsFailed})
   - Playbook C Disqualified (Enterprise Chains): ${params.funnel.playbookCDisqualified}
   - Place Details Enriched: ${params.funnel.placeDetailsEnriched} (Failed: ${params.funnel.placeDetailsFailed})
   - Email Verified via Hunter: ${params.funnel.emailVerified}
+  - Published Business Email (owner-run only): ${params.funnel.publishedEmail ?? 0}
   - Places Phone Verified (Owner-Run <50 staff only): ${params.funnel.phoneVerified}
   - Contact Unverified / Dropped: ${params.funnel.contactUnverified}
   - Fit Score >= ${FIT_QUALIFIED_THRESHOLD}: ${params.funnel.scoredGe70} (Sub-cutoff: ${params.funnel.scoredBelow70}, of which benched: ${params.funnel.benched}, Not probed: ${params.funnel.probeSkipped})

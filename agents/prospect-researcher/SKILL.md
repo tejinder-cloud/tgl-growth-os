@@ -80,10 +80,12 @@ Target the economic buyer who can authorise a ₹3,999/mo to ₹9,999/mo softwar
    - **Owner-Run Businesses (<50 Staff):** For owner-run clinics, dental practices, boutique surgical centers, and local coaching branches (<50 staff), an authoritative verified contact is:
      - (a) A website email verified by Hunter (`/v2/email-verifier` status `deliverable` or `risky`), **OR**
      - (b) The verified business phone from Google Places (`candidate.phone` from Places API).
+     - (c) From 13 Nov 2026 (Architect decision): the business's own published contact email, meaning the address printed on its own website, including a shared inbox (`info@`) or a free-mail address. An address on another organisation's domain, a placeholder, or a non-contact inbox (`noreply@`, `careers@`) is never used. A named work email is still preferred when there is one. Scores the same as the business phone (10/15), not more.
      - Decision-maker is the **Owner / Lead Doctor**. If a specific doctor or founder name is identified on the website or clinic title (e.g. `Dr. Amit Grover`), use it; otherwise role and title are set to Owner / Lead Doctor.
    - **Enterprise / Growing Institutions (>=50 Staff):** Must have a Hunter-verified work email.
    - **Phone Bonus:** When both a verified email and a direct business phone are present, a +5 bonus is awarded in Dimension 5 (Total 15 pts).
-   - **Generic Mailboxes Never:** Generic addresses (`info@`, `contact@`, `support@`, `admin@`, etc.) are discarded and never accepted as decision-maker contacts.
+   - **Generic mailboxes are never a named decision-maker email.** Generic addresses (`info@`, `contact@`, `support@`, `admin@`, etc.) never count as a verified named work email, and are never accepted for larger organisations. For owner-run businesses they may be used as the published business address under (c).
+   - **Searches per run:** the metro-wide search plus areas of the metro, four by default (`PROSPECT_SEARCHES_PER_RUN`, 1 to 8), merged by place id, inside the 95-calls-a-day Places quota. The separate details lookup is skipped when the search result already carries website and phone.
 4. **Clinic Website Scraping (Playbook D):**
    - Scrape the clinic's public website for `mailto:` addresses and owner/doctor names on Homepage, `/about`, `/doctors`, `/team`, and `/contact` pages.
    - Any non-generic emails discovered on the site are verified through Hunter's `/v2/email-verifier`.
