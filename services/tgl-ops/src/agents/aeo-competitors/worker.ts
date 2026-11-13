@@ -115,8 +115,9 @@ export async function buildInsight(sb: SupabaseClient, brandId: string): Promise
       amount_inr: Number((usd * usdInr).toFixed(4)), detail: { purpose: "competitor_intel", usd, usd_inr_rate: usdInr } }).then(() => {}, () => {});
   }
   const named = answers.filter((a) => a.mentioned).length;
+  const firstDay = answers.map((a) => a.run_date).sort()[0] ?? from;   // the period actually measured, not the window asked for
   const { data: saved, error } = await sb.from("competitor_insights").insert({
-    tenant_id: brand.tenant_id, brand_id: brandId, period_from: from, period_to: to, answers_total: answers.length, named_total: named,
+    tenant_id: brand.tenant_id, brand_id: brandId, period_from: firstDay > from ? firstDay : from, period_to: to, answers_total: answers.length, named_total: named,
     rivals: all.slice(0, 12), discovered, playbooks, cost_usd: usd,
   }).select("id").single();
   if (error) throw new Error(`save: ${error.message}`);

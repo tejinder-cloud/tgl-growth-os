@@ -2,7 +2,7 @@ process.env.TGL_TEST_MODE = "1";
 process.env.NODE_ENV = "test";
 import assert from "node:assert/strict";
 import { rivals, verifyDiscovered, type Ans } from "./agents/aeo-competitors/analyse.js";
-import { validatePlaybooks, playbookMessage } from "./agents/aeo-competitors/propose.js";
+import { stripCodes, validatePlaybooks, playbookMessage } from "./agents/aeo-competitors/propose.js";
 import { spreadSample } from "./agents/aeo-competitors/worker.js";
 
 let passed = 0;
@@ -47,6 +47,12 @@ t("playbooks: reasons need valid evidence refs; numbers and promises dropped", (
   const p = validatePlaybooks(raw, top, new Map([["Dovetail Solutions", 2]]));
   assert.deepEqual(p, [{ rival: "Dovetail Solutions", why: [{ text: "Listed on Sortlist, which AI cites for agency questions.", refs: ["S1"] }], moves: ["Complete a Sortlist profile with the same services wording."] }]);
   assert.match(playbookMessage("TGL", top, new Map([["Dovetail Solutions", [answers[0]]]])), /S1\. sortlist\.com/);
+});
+
+t("evidence codes never reach the client", () => {
+  assert.equal(stripCodes("On the case-study question (Q3) and the real estate question (Q4), AI still lists them."), "On the case-study question and the real estate question, AI still lists them.");
+  assert.equal(stripCodes("Get listed on f6s.com (S3, S5)."), "Get listed on f6s.com.");
+  assert.equal(stripCodes("Agencies like QS2 and Q&A pages stay"), "Agencies like QS2 and Q&A pages stay");
 });
 
 console.log(`\nDay 30: ${passed} checks passed`);
