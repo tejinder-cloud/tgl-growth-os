@@ -27,8 +27,14 @@ export function getOutreachState(p: ProspectRecord): OutreachState | undefined {
 
 export const MIN_FIT_SCORE = 70;
 
-function isEnrollable(p: OutreachProspect): boolean {
-  return p.status === "reviewed" && p.door === "aeo" && p.fit_score >= MIN_FIT_SCORE && !getOutreachState(p);
+/**
+ * Enrolled only with an email address: every touch goes by email while WhatsApp is off (13 Nov 2026), so a
+ * phone-only prospect would only collect failed sends and a pause alert. Phone-only prospects wait for the
+ * WhatsApp flow.
+ */
+export function isEnrollable(p: OutreachProspect): boolean {
+  const email = String(p.decision_maker?.email || "").trim();
+  return p.status === "reviewed" && p.door === "aeo" && p.fit_score >= MIN_FIT_SCORE && !getOutreachState(p) && /\S+@\S+\.\S+/.test(email);
 }
 
 export function createSupabaseStore(): ProspectStore {
