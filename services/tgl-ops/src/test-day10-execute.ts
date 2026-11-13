@@ -157,9 +157,16 @@ async function main() {
     await makeExecute(withWa.ports)(item(2), "live");
     assert.equal(withWa.sent[0].channel, "WhatsApp");
     assert.equal(withWa.log.builds, 0, "touch 2 does not trigger the paid audit");
+    // Without WhatsApp, touch 2 is skipped and the sequence moves on to touch 3 on its own date (13 Nov 2026).
     const noWa = harness({ state: baseState({ next_touch: 2 }), phone: "+919800000000", whatsapp: false });
-    await makeExecute(noWa.ports)(item(2), "live");
-    assert.equal(noWa.sent[0].channel, "Email");
+    const skipped = await makeExecute(noWa.ports)(item(2), "live");
+    assert.equal(skipped.status, "skipped");
+    assert.equal(noWa.sent.length, 0, "touch 2 is never sent as an email");
+    assert.equal(noWa.getState().next_touch, 3);
+    assert.equal(noWa.getState().state, "active");
+    const dry = harness({ state: baseState({ next_touch: 2 }), phone: "+919800000000", whatsapp: false });
+    assert.equal((await makeExecute(dry.ports)(item(2), "dry_run")).status, "skipped");
+    assert.equal(dry.getState().next_touch, 2, "a dry run never advances");
     const t4 = harness({ state: baseState({ next_touch: 4, audit: AUDIT, onepager_path: "p1/onepager.pdf" }), phone: "+919800000000", whatsapp: true });
     await makeExecute(t4.ports)(item(4), "live");
     assert.equal(t4.sent[0].channel, "WhatsApp");

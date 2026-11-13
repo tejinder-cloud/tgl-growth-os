@@ -125,6 +125,22 @@ export function makeExecute(ports: ExecutorPorts): (item: DueTouch, mode: SendMo
 
     const channel = resolveChannel(def.channel, { hasPhone: Boolean(prospect.phone), whatsappEnabled: ports.whatsappEnabled });
 
+    // A WhatsApp-only touch is passed over when WhatsApp is unavailable: nothing is sent and no message is recorded.
+    // Live, the sequence moves on to the next touch on its own schedule; a dry run never advances.
+    if (def.whatsappOnly && channel !== "WhatsApp") {
+      const reason = `touch ${item.touch} is WhatsApp-only and WhatsApp is unavailable for this prospect`;
+      if (mode !== "dry_run") {
+        const last = item.touch >= TOTAL_TOUCHES;
+        await ports.saveState(prospect.id, {
+          ...state,
+          next_touch: last ? TOTAL_TOUCHES + 1 : item.touch + 1,
+          next_due_at: last ? state.next_due_at : dueAtForTouch(new Date(state.enrolled_at), item.touch + 1).toISOString(),
+          state: last ? "completed" : "active",
+        });
+      }
+      return { status: "skipped", reason };
+    }
+
     let message: RenderedMessage;
     try {
       const ctx: MessageContext & { email?: string } = {

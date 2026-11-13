@@ -76,6 +76,8 @@ export interface SequenceTouchDef {
   /** Preferred channel; WhatsApp falls back to Email when unavailable. */
   channel: TouchChannel;
   attachOnePager: boolean;
+  /** Sent only on WhatsApp. When WhatsApp is unavailable the touch is skipped, never turned into an email. */
+  whatsappOnly?: boolean;
 }
 
 export interface RenderedMessage {
