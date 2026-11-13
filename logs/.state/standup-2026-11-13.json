@@ -2,5 +2,15 @@
   "date": "2026-11-13",
   "posted": false,
   "standupTs": "1794486600.660159",
-  "channel": "C0ASF13879Q"
+  "channel": "C0ASF13879Q",
+  "compiledAt": "2026-11-13T12:20:29.004Z",
+  "digestText": "Good evening. Day 13 of 68 — 9 days behind (Next gate: Gate 1 at Day 15, originally due 11 Nov).\n*Revenue target (by 26 Nov):* 15 conversations and 1 paid retainer. So far: 2 audits requested, 0 audits sent, 0 calls booked of 15, 0 retainers of 1. 13 days left.\n*Today:* The citation tracker collected 48 answers and our brand was named in 6 of them. The prospect researcher looked at 93 candidates and 10 qualified. 6 pull requests were merged (\"feat(schedule): agents work every day, weekends included\", \"fix(cards): a long card still posts; the researcher no longer claims a card it did not post\", \"Competitors: no evidence codes in client text; true measured period\" and 3 more), and 1 card was approved.\n*Tomorrow:* These runs are scheduled: the chief of staff at 09:00, the chief of staff at 17:50, the chief of staff at 18:00, the chief of staff at 18:15, the chief of staff, the prospect researcher at 09:30, and 7 more. No issue is in progress.\n*Money:* 2 audit requests, 0 calls booked, 0 proposals, 0 retainers, ₹0 invoiced. Today's spend was ₹49.28.\n*Needs you:*\n1. Reply \"go\" in #architect to start Day 14 (Outreach live: 20/day + Delivery QA) → the agent receives its brief and the plan starts catching up.\nThat is the Daily Standup Digest for 2026-11-13, compiled at 17:50 IST.",
+  "synthesis": {
+    "model": "claude-sonnet-5-5",
+    "inputTokens": 4630,
+    "outputTokens": 1946,
+    "totalCostUsd": 0.0431,
+    "costLine": "Standup compilation: 4630 input, 1946 output (claude-sonnet-5-5) · Cost: $0.0431 USD"
+  },
+  "source": "cron"
 }
