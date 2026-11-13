@@ -80,11 +80,9 @@ export function dailyCap(env: NodeJS.ProcessEnv = process.env): number {
   return Number.isFinite(raw) && raw >= 0 && (env.OUTREACH_DAILY_SEND_CAP || "").trim() !== "" ? Math.floor(raw) : DEFAULT_DAILY_CAP;
 }
 
-/** True Mon-Fri between 09:30 and 17:30 IST (UTC+5:30, no daylight saving). */
+/** True every day between 09:30 and 17:30 IST (UTC+5:30, no daylight saving). Agents work every day (13 Nov 2026). */
 export function isSendWindow(now: Date): boolean {
   const ist = new Date(now.getTime() + IST_OFFSET_MINUTES * 60_000);
-  const day = ist.getUTCDay();
-  if (day === 0 || day === 6) return false;
   const minutes = ist.getUTCHours() * 60 + ist.getUTCMinutes();
   return minutes >= WINDOW_START_MINUTES && minutes < WINDOW_END_MINUTES;
 }

@@ -19,7 +19,7 @@
 //   OUTREACH_TEST_PROSPECT_ID     dry-run only: the first in-window tick of each IST day renders all five touches
 //                                 for this prospect into logs/<date>/outreach-sequencer.md, with no sends and no writes
 //   OUTREACH_LOG_DIR              override for the logs directory
-//   OUTREACH_TICK_CRON            override for the tick schedule (default "30 9-16 * * 1-5", IST)
+//   OUTREACH_TICK_CRON            override for the tick schedule (default "30 9-16 * * *", IST, every day)
 import fs from "node:fs";
 import path from "node:path";
 import { postLine } from "../../lib/post.js";
@@ -36,7 +36,7 @@ import { loadTemplates, makeTemplateRenderer, resolveTemplatesDir, type Template
 import type { AuditSummary, RenderedMessage } from "./types.js";
 import { isLive, isSendWindow, runTick, type DueTouch, type TickPorts, type TickSummary, type TouchNumber } from "./worker.js";
 
-export const DEFAULT_TICK_CRON = "30 9-16 * * 1-5";
+export const DEFAULT_TICK_CRON = "30 9-16 * * *";
 export const DEFAULT_SENDER_NAME = "The Growth Lab";
 
 export function tickCron(env: NodeJS.ProcessEnv = process.env): string {
@@ -119,7 +119,7 @@ export function renderSequencePreview(
 
   for (const def of SEQUENCE) {
     const channel = resolveChannel(def.channel, { hasPhone: Boolean(view.phone), whatsappEnabled: opts.whatsappEnabled });
-    lines.push(`#### Touch ${def.n} of ${TOTAL_TOUCHES}: ${channel}, business day ${def.offsetBusinessDays}`);
+    lines.push(`#### Touch ${def.n} of ${TOTAL_TOUCHES}: ${channel}, day ${def.offsetBusinessDays}`);
     try {
       const msg: RenderedMessage = render(def.n, channel, {
         company: view.company,

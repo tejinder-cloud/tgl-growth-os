@@ -11,7 +11,7 @@
   routines:
     - name: daily_plan_dispatch
       frequency: daily
-      schedule: "0 9 * * 1-5"
+      schedule: "0 9 * * *"
       description: "09:00 IST Morning plan dispatch from config/plan.yaml"
     - name: daily_standup_gather
       frequency: daily
@@ -45,7 +45,7 @@
   routines:
     - name: daily_research_run
       frequency: daily
-      schedule: "30 9 * * 1-5"
+      schedule: "30 9 * * *"
       description: "Sourcing & qualifying 20 prospects for next metro in rotation"
     - name: weekly_csv_export
       frequency: weekly
@@ -66,7 +66,7 @@
   routines:
     - name: daily_outreach_dispatch
       frequency: daily
-      schedule: "0 10 * * 1-5"
+      schedule: "0 10 * * *"
       description: "Dispatch 25 personalized outbound sequence touches"
 
 - name: sales-desk
@@ -79,7 +79,7 @@
   routines:
     - name: daily_calendar_dossier_prep
       frequency: daily
-      schedule: "0 8 * * 1-5"
+      schedule: "0 8 * * *"
       description: "Compile prospect dossiers 4h before calls"
 
 - name: aeo-audit-engine
@@ -168,7 +168,7 @@
   routines:
     - name: daily_social_queue_sweep
       frequency: daily
-      schedule: "30 11 * * 1-5"
+      schedule: "30 11 * * *"
       description: "Schedule derivative snippets into Buffer"
 
 - name: web-builder
@@ -186,7 +186,7 @@
   routines:
     - name: daily_plan_issue
       frequency: daily
-      schedule: "0 9 * * 1-5"
+      schedule: "0 9 * * *"
       description: "Pick up and execute daily plan issue from 09:00 dispatch"
     - name: weekly_lighthouse_sweep
       frequency: weekly
@@ -207,7 +207,7 @@
   routines:
     - name: daily_pr_review
       frequency: daily
-      schedule: "0 16 * * 1-5"
+      schedule: "0 16 * * *"
       description: "Review pending PRs and visual assets before deploy"
     - name: weekly_brand_audit
       frequency: weekly
