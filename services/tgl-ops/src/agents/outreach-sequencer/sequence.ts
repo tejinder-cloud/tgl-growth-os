@@ -33,23 +33,19 @@ function toIstWall(d: Date): Date {
   return new Date(d.getTime() + IST_OFFSET_MS);
 }
 
-/** Adds business days (Mon-Fri), preserving time of day. */
+/**
+ * Adds working days, preserving time of day. Agents work every day of the week (Architect decision, 13 Nov 2026),
+ * so every day counts. The name is kept for its callers.
+ */
 export function addBusinessDays(from: Date, days: number): Date {
   const d = new Date(from.getTime());
-  let remaining = days;
-  while (remaining > 0) {
-    d.setUTCDate(d.getUTCDate() + 1);
-    const dow = toIstWall(d).getUTCDay();
-    if (dow !== 0 && dow !== 6) remaining--;
-  }
+  d.setUTCDate(d.getUTCDate() + Math.max(0, days));
   return d;
 }
 
-/** Send window: Mon-Fri, 09:30-17:30 IST. */
+/** Send window: every day, 09:30-17:30 IST. */
 export function isWithinSendWindow(now: Date = new Date()): boolean {
   const ist = toIstWall(now);
-  const dow = ist.getUTCDay();
-  if (dow === 0 || dow === 6) return false;
   const minutes = ist.getUTCHours() * 60 + ist.getUTCMinutes();
   return minutes >= 9 * 60 + 30 && minutes <= 17 * 60 + 30;
 }

@@ -224,7 +224,7 @@ Every Monday at 07:00 IST:
   - **Weekly CSV File:** Exported to `#revenue` every Friday at 17:00 IST containing the full week's qualified prospects.
   - **Top-25 Review Card:** Interactive Block Kit card posted to `#revenue` / `#approvals` containing the top 25 highest-scoring prospects with summary justification, including a one-line summary of each Dimension 4 probe.
 - **Triggers:**
-  - Scheduled Cron: Mon–Fri at 09:30 IST.
+  - Scheduled Cron: every day at 09:30 IST (agents work every day; decision of 13 Nov 2026).
   - Manual Trigger: `/task @prospect-researcher [city] [category]`.
 
 ---

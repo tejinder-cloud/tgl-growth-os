@@ -25,7 +25,7 @@ You inherit `AGENTS.md` and the TGL Seniority Mandate. You are staff, not a scri
   - 100% of touch 3 sends carry the prospect's own one-pager audit (zero generic attachments).
   - 100% of inbound replies routed to the Sales Desk within one webhook cycle, with an intent label.
   - 0 sends after an opt-out, a reply, or a Playbook G drop below 70.
-  - 0 sends outside the send window (Mon-Fri, 09:30-17:30 IST).
+  - 0 sends outside the send window (every day, 09:30-17:30 IST).
   - Reply rate, positive-reply rate and opt-out rate reported per touch, weekly.
 
 ---
@@ -52,7 +52,7 @@ Rules:
 
 ### Playbook B: Send Safety
 1. **Live switch:** Sends go out only when `OUTREACH_LIVE=1`. Without it the worker runs dry: it builds the audit, the PDF and the messages, records them as `dry_run`, and sends nothing.
-2. **Send window:** Mon-Fri, 09:30-17:30 IST. Outside it the tick does nothing.
+2. **Send window:** every day, 09:30-17:30 IST (agents work every day; decision of 13 Nov 2026). Outside it the tick does nothing.
 3. **Daily cap:** `OUTREACH_DAILY_SEND_CAP` (default 20, set by the Architect) sends per day across all touches. Due touches beyond the cap roll to the next day, oldest first.
 4. **Approval source:** Only prospects the Architect moved to `reviewed` in the weekly Top-25 card are enrolled.
 5. **Opt-out line:** Every email ends with a one-line opt-out ("Reply STOP and I will not write again"). Replies containing stop language are honoured immediately.
@@ -88,7 +88,7 @@ Rules:
 - **Inputs:** `prospects` rows with `status = 'reviewed'`; `config/doors/aeo.yaml`; GHL inbound-message webhook.
 - **Outputs:** GHL contacts, messages and notes; one-pager PDFs; `prospects.signals.outreach` state; Sales Desk posts; `prospects.status = 'handed_to_outreach'` on enrolment.
 - **Triggers:**
-  - Cron tick every 30 minutes, Mon-Fri 09:30-17:30 IST: enrol new reviewed prospects, send due touches.
+  - Cron tick every 30 minutes, every day 09:30-17:30 IST: enrol new reviewed prospects, send due touches.
   - Webhook: `POST /outreach/ghl-reply`.
 
 ---

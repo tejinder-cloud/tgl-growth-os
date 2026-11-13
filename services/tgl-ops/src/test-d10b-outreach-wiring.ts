@@ -17,7 +17,7 @@ import type { AuditSummary, OutreachState } from "./agents/outreach-sequencer/ty
 
 // 2026-03-09 is a Monday. 10:00 IST = 04:30 UTC.
 const MON_1000_IST = new Date("2026-03-09T04:30:00Z");
-const SAT_1100_IST = new Date("2026-03-14T05:30:00Z");
+const SAT_0800_IST = new Date("2026-03-14T02:30:00Z");
 
 const AUDIT: AuditSummary = {
   visibility_percent: 20,
@@ -114,7 +114,7 @@ async function main() {
   assert.equal(whatsappEnabled({}), false);
   assert.equal(whatsappEnabled({ GHL_WA_PHONE_ID: "  " }), false);
   assert.equal(whatsappEnabled({ GHL_WA_PHONE_ID: "wa-1" }), true);
-  assert.equal(tickCron({}), "30 9-16 * * 1-5");
+  assert.equal(tickCron({}), "30 9-16 * * *");
   assert.equal(tickCron({ OUTREACH_TICK_CRON: "0 10 * * 1-5" }), "0 10 * * 1-5");
 
   // Unit: all five touches render for a fixture prospect, WhatsApp on
@@ -198,7 +198,7 @@ async function main() {
 
   // Outside the send window: nothing runs, nothing is previewed
   {
-    const h = harness([fixtureProspect("p1")], { OUTREACH_TEST_PROSPECT_ID: "p1", OUTREACH_BOOKING_LINK: BOOKING }, SAT_1100_IST);
+    const h = harness([fixtureProspect("p1")], { OUTREACH_TEST_PROSPECT_ID: "p1", OUTREACH_BOOKING_LINK: BOOKING }, SAT_0800_IST);
     const res = await h.runtime.tick();
     assert.equal(res.summary?.ran, false);
     assert.equal(res.previewed, undefined);

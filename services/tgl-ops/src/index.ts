@@ -37,9 +37,9 @@ import {
 setupProcessErrorHandlers();
 
 // Scheduled Chief of Staff Jobs (node-cron configured for Asia/Kolkata)
-// Mon–Fri 09:00 IST: Daily Plan Dispatch & Morning Architect Hour Card
+// Every day 09:00 IST: Daily Plan Dispatch & Morning Architect Hour Card (agents work every day; decision of 13 Nov 2026)
 cron.schedule(
-  "0 9 * * 1-5",
+  "0 9 * * *",
   wrapCronJob("09:00 IST Plan Dispatch", async () => {
     await execute0900PlanDispatch();
   }),
@@ -130,9 +130,9 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
-// Mon–Fri 09:30 IST: Prospect Researcher Autonomous Run
+// Every day 09:30 IST: Prospect Researcher Autonomous Run
 cron.schedule(
-  "30 9 * * 1-5",
+  "30 9 * * *",
   wrapCronJob("09:30 IST Prospect Researcher Run", async () => {
     await runProspectResearch({ postToSlack: true });
   }),

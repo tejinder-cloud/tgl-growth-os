@@ -18,6 +18,7 @@ const MON_1000_IST = new Date("2026-03-09T04:30:00Z");
 const MON_0900_IST = new Date("2026-03-09T03:30:00Z");
 const MON_1730_IST = new Date("2026-03-09T12:00:00Z");
 const SAT_1100_IST = new Date("2026-03-14T05:30:00Z");
+const SAT_0800_IST = new Date("2026-03-14T02:30:00Z");
 
 function due(n: number, touch: DueTouch["touch"], dueAt: string): DueTouch {
   return { prospectId: `p${n}`, company: `Company ${n}`, touch, channel: "email", dueAt };
@@ -52,7 +53,8 @@ async function main() {
   assert.equal(isSendWindow(MON_1000_IST), true);
   assert.equal(isSendWindow(MON_0900_IST), false, "before 09:30 IST");
   assert.equal(isSendWindow(MON_1730_IST), false, "17:30 IST is closed");
-  assert.equal(isSendWindow(SAT_1100_IST), false, "weekend");
+  assert.equal(isSendWindow(SAT_1100_IST), true, "agents work every day, weekends included (13 Nov 2026)");
+  assert.equal(isSendWindow(SAT_0800_IST), false, "hours still apply on a weekend");
 
   // Env parsing
   assert.equal(isLive({}), false);
@@ -65,7 +67,7 @@ async function main() {
 
   // Outside the window nothing is listed or executed
   {
-    const p = ports({ now: () => SAT_1100_IST, items: [due(1, 1, "2026-03-09T00:00:00Z")] });
+    const p = ports({ now: () => SAT_0800_IST, items: [due(1, 1, "2026-03-09T00:00:00Z")] });
     const s = await runTick(p);
     assert.equal(s.ran, false);
     assert.equal(s.reason, "outside_window");
