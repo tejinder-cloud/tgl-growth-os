@@ -27,6 +27,7 @@ import { getSupabase } from "../prospect-researcher/db.js";
 import { makeExecute, type ExecutorPorts, type ProspectView } from "./execute.js";
 import { createResendSender, emailConfigIssues, fetchReceivedEmail, loadEmailConfig, type EmailSender } from "./email.js";
 import { createGhlClient, loadGhlConfig, type GhlClient } from "./ghl.js";
+import { cleanBusinessName } from "./names.js";
 import type { InboundDeps } from "./inbound.js";
 import { domainOf, renderOnePagerPdf, runProspectAudit, uploadOnePager, type OnePagerProspect } from "./onepager.js";
 import type { ReplyDeps } from "./reply.js";
@@ -64,7 +65,8 @@ export function toView(p: OutreachProspect): ViewWithWebsite {
   const dm = p.decision_maker;
   return {
     id: p.id,
-    company: p.company,
+    // The name a message and the one-pager use: listing keywords removed (names.ts). The stored row is unchanged.
+    company: cleanBusinessName(p.company),
     category: categoryOf(p),
     city: p.city,
     email: dm?.email || undefined,

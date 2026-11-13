@@ -72,6 +72,11 @@ export function resolveChannel(
 export function categoryLabel(category: string): string {
   const map: Record<string, string> = {
     dental_clinic: "dental implant clinic",
+    // The prospect researcher's own category keys.
+    cosmetic_dental: "dental clinic",
+    ivf_fertility: "IVF centre",
+    high_ticket_coaching: "coaching institute",
+    hospitals: "hospital",
     hospital: "multi-speciality hospital",
     ivf_center: "IVF centre",
     coaching_institute: "coaching institute",
