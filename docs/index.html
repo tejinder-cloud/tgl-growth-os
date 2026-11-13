@@ -42,6 +42,12 @@
   .grid>*{min-width:0}
   canvas{max-width:100%}
   .kpis{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:18px}
+  .rev{border-color:var(--terracotta,#C85A32);border-width:2px}
+  .revgoal{font-family:var(--font-display);font-size:20px;font-weight:700;margin:8px 0 12px}
+  .revtiles{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
+  .revtile .v{font-family:var(--font-display);font-size:30px;font-weight:700;line-height:1.1}
+  .revtile .l{font-size:12px;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+  .revtile .d{font-size:13px;color:var(--ink-2);margin-top:2px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:0 1px 0 rgba(0,0,0,.03)}
   .kpi .v{font-family:var(--font-display);font-size:32px;font-weight:700;line-height:1.1}
   .kpi .l{font-size:12px;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
@@ -102,6 +108,22 @@
   </header>
 
   <div class="err" id="err"></div>
+
+  <div class="card section rev" id="revCard">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+      <h2 style="margin:0">Revenue target</h2>
+      <div class="small muted" id="revWhen">—</div>
+    </div>
+    <div class="revgoal" id="revGoal">15 conversations and 1 paid retainer by 26 Nov 2026</div>
+    <div class="grid revtiles">
+      <div class="revtile"><div class="v" id="rAudReq">—</div><div class="l">audits requested</div></div>
+      <div class="revtile"><div class="v" id="rAudSent">—</div><div class="l">audits sent</div></div>
+      <div class="revtile"><div class="v" id="rCalls">—</div><div class="l">calls booked</div><div class="d" id="rCallsD">of 15</div></div>
+      <div class="revtile"><div class="v" id="rRet">—</div><div class="l">paid retainers</div><div class="d" id="rRetD">of 1</div></div>
+    </div>
+    <div class="progress" style="margin-top:12px"><span id="revBar" style="width:0%"></span></div>
+    <div class="small muted" style="margin-top:8px" id="revNote">The first priority since the decision of 12 Nov 2026. Counts are read from the service, the same ones the 09:00 card shows; a dash means they could not be read.</div>
+  </div>
 
   <div class="card section">
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
@@ -202,7 +224,7 @@
   const AGENTS=['chief-of-staff','web-builder','prospect-researcher','aeo-audit-engine','aeo-strategist','aeo-recommender','outreach-sequencer','sales-desk','finance','content-writer','people-ops','creative-director','video-team','repurposer-publisher','ads-analyst'];
   const PHASES=[
     {n:'Phase 0 · Foundations',from:1,to:5,gate:'Gate 0',gateDay:5,gateText:'Approve one task from a phone without opening a file.'},
-    {n:'Phase 1 · Revenue pod + audit engine',from:6,to:15,gate:'Gate 1',gateDay:15,gateText:'100 prospects, 50 touched, 5 audits delivered, 0 QA failures.'},
+    {n:'Phase 1 · Revenue pod + audit engine',from:6,to:15,gate:'Gate 1',gateDay:15,gateText:'100 prospects, at least 50 touched, at least 5 audits delivered, at least 1 conversation booked, 0 QA failures (decision of 11 Nov 2026).'},
     {n:'Phase 2 · TrueVisible v1 + AEO delivery',from:16,to:33,gate:'Gate 2',gateDay:33,gateText:'A stranger signs up, gets the day-1 audit, sees the dashboard, can be upsold untouched.'},
     {n:'Phase 3 · Marketing engine + Mission Control',from:34,to:46,gate:'Gate 3',gateDay:46,gateText:'4 posts a week; homepage and product page live; first ad-sourced trial.'},
     {n:'Phase 4 · TrueLead (parked) + AI doors',from:47,to:58,gate:'Gate 4',gateDay:58,gateText:'Three doors live, each with a pipeline and a scorecard line.'},
@@ -241,8 +263,29 @@
   }
   const pill=s=>`<span class="pill p-${s.k}">${s.t}</span>`;
 
+  const SERVICE='https://tgl-growth-os-production.up.railway.app';
+  async function loadRevenue(){
+    const show=(id,v)=>{ $(id).textContent=(typeof v==='number')?String(v):'—'; };
+    try{
+      const r=await fetch(SERVICE+'/ops/revenue',{cache:'no-store'}); if(!r.ok) throw new Error(r.status);
+      const d=await r.json(); const t=d.target||{};
+      $('revGoal').textContent=`${t.conversations} conversations and ${t.retainers} paid retainer${t.retainers===1?'':'s'} by ${istDate(t.due+'T12:00:00+05:30')} 2026`;
+      const today=dayKey(new Date()); const left=Math.round((new Date(t.due+'T00:00:00Z')-new Date(today+'T00:00:00Z'))/864e5);
+      $('revWhen').textContent=left>1?`${left} days left`:left===1?'1 day left':left===0?'due today':`${-left} days past the date`;
+      show('rAudReq',d.audits_requested); show('rAudSent',d.audits_sent); show('rCalls',d.calls_booked); show('rRet',d.retainers_won);
+      $('rCallsD').textContent=`of ${t.conversations}`; $('rRetD').textContent=`of ${t.retainers}`;
+      const pct=typeof d.calls_booked==='number'?Math.min(100,Math.round(d.calls_booked/t.conversations*100)):0;
+      $('revBar').style.width=pct+'%';
+    }catch(e){
+      const today=dayKey(new Date()); const left=Math.round((new Date('2026-11-26T00:00:00Z')-new Date(today+'T00:00:00Z'))/864e5);
+      $('revWhen').textContent=left>=0?`${left} days left`:`${-left} days past the date`;
+      $('revNote').textContent='Counts could not be read from the service just now, so each shows a dash. The 09:00 card in Slack carries the same counts.';
+    }
+  }
+
   async function load(){
     $('err').style.display='none';
+    loadRevenue();
     try{
       const [planText, issues, pulls] = await Promise.all([
         getText(RAW+'config/plan.yaml'),
@@ -324,10 +367,23 @@
       const spendByDay={}, spendByAgent={}; let spend7=0, calls7=0;
       await Promise.all(last14.flatMap(date=>AGENTS.map(async a=>{
         const t=await getText(`${RAW}logs/${date}/${a}.md`); if(!t) return;
-        let sum=0; for(const m of t.matchAll(/Cost:\s*\$([0-9.]+)/g)){ sum+=parseFloat(m[1]); if(last14.indexOf(date)>=7) calls7++; }
+        // Three formats are in use: "Cost: $x" (model calls), "Cost:** $x" (researcher run), "spend $x" (tracker, probes).
+        let sum=0; for(const m of t.matchAll(/(?:Cost:\**\s*|\bspend\s+)\$([0-9.]+)/gi)){ sum+=parseFloat(m[1]); if(last14.indexOf(date)>=7) calls7++; }
         if(sum>0){ spendByDay[date]=(spendByDay[date]||0)+sum; if(last14.indexOf(date)>=7){ spendByAgent[a]=(spendByAgent[a]||0)+sum; spend7+=sum; } }
       })));
-      $('kSpend').textContent=fmtUSD(spend7); $('kSpendD').textContent=`${calls7} model calls · about ₹${Math.round(spend7*84)}`;
+      // Free audits for prospects are logged as one file per website per day (logs/<date>/aeo-audit/<site>.json).
+      try{
+        const tree=await getJSON(`${API}git/trees/${BRANCH}?recursive=1`);
+        const files=(tree.tree||[]).map(x=>x.path).filter(p=>{ const m=p.match(/^logs\/(\d{4}-\d{2}-\d{2})\/aeo-audit\/[^/]+\.json$/); return m&&last14.includes(m[1]); });
+        await Promise.all(files.map(async p=>{
+          const date=p.slice(5,15); const t=await getText(RAW+p); if(!t) return;
+          let usd=0; try{ usd=Number(JSON.parse(t)?.summary?.totalCostUsd)||0; }catch(_){ usd=0; }
+          if(usd<=0) return;
+          spendByDay[date]=(spendByDay[date]||0)+usd;
+          if(last14.indexOf(date)>=7){ spendByAgent['aeo-audit-engine']=(spendByAgent['aeo-audit-engine']||0)+usd; spend7+=usd; }
+        }));
+      }catch(_){ /* the audit files are an addition; the log totals still show */ }
+      $('kSpend').textContent=fmtUSD(spend7); $('kSpendD').textContent=`about ₹${Math.round(spend7*84)} · logged spend only`;
       const prsByDay={}; for(const p of merged){ const k=dayKey(p.merged_at); prsByDay[k]=(prsByDay[k]||0)+1; }
       chart('velocity',{data:{labels:last14.map(istDate),datasets:[
         {type:'bar',label:'PRs merged',data:last14.map(k=>prsByDay[k]||0),backgroundColor:COLORS.teal,yAxisID:'y'},

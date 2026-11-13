@@ -12,6 +12,7 @@ import { auditRouter } from "./routes/audit.js";
 import { outreachRouter } from "./routes/outreach.js";
 import { aeoLeadRouter, automationLeadRouter } from "./routes/site-leads.js";
 import { homeStatsRouter } from "./routes/home-stats.js";
+import { opsRevenueRouter } from "./routes/ops-revenue.js";
 import { billingRouter } from "./routes/billing.js";
 import { financeRouter } from "./routes/finance.js";
 
@@ -146,6 +147,8 @@ export function createApp(signingSecret?: string) {
   // 11b. Home stats: read-only GET /home/stats for the Client Zero tiles. Counts and dates for TGL's own
   // tracker only; fails closed (503, no figures) when no provider is wired.
   app.use("/home", homeStatsRouter);
+  // GET /ops/revenue: public counts for the project dashboard's revenue strip. Counts only, no names.
+  app.use("/ops", opsRevenueRouter);
 
   // 12. Billing: Razorpay webhooks for TrueVisible Track (signature-checked; fails closed) (plan Day 26)
   app.use("/billing", billingRouter);

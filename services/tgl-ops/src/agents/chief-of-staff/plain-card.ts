@@ -267,13 +267,16 @@ export function buildScheduleSentence(routines: RoutineLike[], activeIssues: { n
 export interface MoneyInput {
   revenue: RevenueMetrics;
   spendRupees: number;
+  /** Audits produced since the revenue target was set (prospect_audits). When readable, it is the audit-request
+   * figure, so the Money line and the revenue line never disagree. The GHL count only sees website requests. */
+  revenueProgress?: RevenueProgress | null;
 }
 
 export function buildMoneySentence(m: MoneyInput, mode: CardMode): string {
   const r = m.revenue;
   const spendLabel = mode === "morning" ? "Yesterday's spend was" : "Today's spend was";
   return (
-    `${plural(r.auditRequests, "audit request", "audit requests")}, ` +
+    `${plural(m.revenueProgress ? m.revenueProgress.auditsRequested : r.auditRequests, "audit request", "audit requests")}, ` +
     `${plural(r.diagnosticCallsBooked, "call booked", "calls booked")}, ` +
     `${plural(r.proposalsSent, "proposal", "proposals")}, ` +
     `${plural(r.retainersWon, "retainer", "retainers")}, ` +
@@ -459,7 +462,7 @@ export function renderPlainCard(input: PlainCardInput): string {
     })}`
   );
   lines.push(`*${scheduleLabel}:* ${buildScheduleSentence(input.scheduledRoutines, input.activeIssues)}`);
-  lines.push(`*Money:* ${buildMoneySentence({ revenue: input.revenue, spendRupees: input.spendRupees }, input.mode)}`);
+  lines.push(`*Money:* ${buildMoneySentence({ revenue: input.revenue, spendRupees: input.spendRupees, revenueProgress: input.revenueProgress }, input.mode)}`);
   lines.push(renderNeedsSection(input.needs));
   return lines.join("\n");
 }
