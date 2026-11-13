@@ -11,6 +11,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { categoryLabel, type MessageContext } from "./sequence.js";
+import { cleanBusinessName, greetingName } from "./names.js";
 import type { RenderedMessage, TouchChannel } from "./types.js";
 
 export const TEMPLATE_TOUCH_COUNT = 5;
@@ -254,8 +255,9 @@ export async function verifyBundledTemplatesMatchRepo(
 /** Variables available to templates. A variable is present only when its source data exists. */
 export function buildTemplateVars(ctx: TemplateContext): Record<string, string> {
   const vars: Record<string, string> = {
-    first_name: (ctx.decisionMakerName || "").trim().split(/\s+/)[0] || "Team",
-    company: ctx.company,
+    // "Dr Yadav", "Asha", or "Hello" when only a role is on record ("Owner / Lead Doctor").
+    first_name: greetingName(ctx.decisionMakerName) || "Hello",
+    company: cleanBusinessName(ctx.company),
     city: ctx.city,
     category: categoryLabel(ctx.category),
   };
@@ -287,6 +289,18 @@ function fill(text: string, vars: Record<string, string>, missing: Set<string>):
   });
 }
 
+/**
+ * "a IVF centre" -> "an IVF centre". A filled-in category can start with a vowel sound. Acronyms follow the sound
+ * of their first letter (an IVF, an MRI, a CT); words starting uni, use, one or eu keep "a".
+ */
+export function fixArticles(text: string): string {
+  return text.replace(/\b([Aa]) ([A-Za-z][\w-]*)/g, (m, a: string, word: string) => {
+    const isAcronym = word.length > 1 && word === word.toUpperCase() && /[A-Z]/.test(word);
+    const vowelSound = isAcronym ? /^[AEFHILMNORSX]/.test(word) : /^[aeiou]/i.test(word) && !/^(uni|use|usu|one|once|eu|ur)/i.test(word);
+    return vowelSound ? `${a}n ${word}` : m;
+  });
+}
+
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
@@ -309,12 +323,13 @@ export function renderFromTemplates(set: TemplateSet, n: number, channel: TouchC
 
   const vars = buildTemplateVars(ctx);
   const missing = new Set<string>();
-  const text = fill(tpl.body, vars, missing);
+  // A template that already opens with "Hello {{first_name}}" must not read "Hello Hello" when there is no name.
+  const text = fixArticles(fill(tpl.body, vars, missing).replace(/\bHello,? Hello\b/g, "Hello"));
 
   let subject: string | undefined;
   if (channel === "Email") {
     if (tpl.subject) {
-      subject = fill(tpl.subject, vars, missing);
+      subject = fixArticles(fill(tpl.subject, vars, missing));
     } else {
       // Email fallback for a WhatsApp touch: reply-style subject on the touch 1 thread.
       const first = set.get(1);
