@@ -97,6 +97,31 @@ export function splitTextIntoChunks(text: string, maxLen = 2900): string[] {
   return chunks;
 }
 
+/** Slack refuses a whole message when any button value is longer than this. */
+export const SLACK_BUTTON_VALUE_MAX = 2000;
+
+/**
+ * The JSON every card button carries. Slack caps a button value at 2000 characters and rejects the entire
+ * message when one is longer, so a long summary (a prospect card listing eight businesses, say) is shortened
+ * here; the card text itself is unchanged. The start of the summary, which approval handling reads, is kept.
+ */
+export function buttonMetadata(meta: Record<string, unknown>): string {
+  const full = JSON.stringify(meta);
+  if (full.length <= SLACK_BUTTON_VALUE_MAX) return full;
+  const summary = typeof meta.summary === "string" ? meta.summary : "";
+  let keep = Math.max(0, summary.length - (full.length - SLACK_BUTTON_VALUE_MAX) - 1);
+  for (;;) {
+    const out = JSON.stringify({ ...meta, summary: keep > 0 ? `${summary.slice(0, keep)}…` : "" });
+    if (out.length <= SLACK_BUTTON_VALUE_MAX || keep === 0) {
+      if (out.length <= SLACK_BUTTON_VALUE_MAX) return out;
+      // Even without a summary it is too long: keep only what identifies the card.
+      const { agent, door, title, issue, pr, branch, linkedIssue, channel } = meta as Record<string, unknown>;
+      return JSON.stringify({ agent, door, title: String(title || "").slice(0, 300), issue, pr, branch, linkedIssue, channel });
+    }
+    keep = Math.max(0, keep - Math.max(20, Math.ceil((out.length - SLACK_BUTTON_VALUE_MAX) * 1.2)));
+  }
+}
+
 /**
  * Builds the standardized TGL Block Kit blocks for a card.
  */
@@ -116,7 +141,7 @@ export function buildCardBlocks(options: PostCardOptions): any[] {
     extraMeta,
   } = options;
 
-  const metadataPayload = JSON.stringify({
+  const metadataPayload = buttonMetadata({
     agent,
     door,
     title,

@@ -143,7 +143,10 @@ commandsRouter.post("/", async (req: Request, res: Response): Promise<void> => {
             targetCount: parsed.targetCount || 20,
             postToSlack: true,
           });
-          const replyText = `Prospect Researcher run complete for *${result.city}* (${result.category}): *${result.qualifiedCount}* qualified prospects sourced. Review card posted to #revenue.`;
+          // Say the card was posted only when Slack returned its message id.
+          const replyText = `Prospect Researcher run complete for *${result.city}* (${result.category}): *${result.qualifiedCount}* qualified prospects sourced. ${
+            result.cardTs ? "Review card posted to #revenue." : "The review card was NOT posted to #revenue; the prospects are saved and listed in the run log."
+          }`;
 
           if (responseUrl) {
             await fetch(responseUrl, {
