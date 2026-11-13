@@ -3,6 +3,8 @@ generated_at: 2026-11-02T15:14:05.174Z
 days_count: 61
 plan:
   - day: 8
+    status: completed
+    evidence: "PR #73, #74, #165, #175 merged; tracker daily since 4 Nov"
     agent: aeo-audit-engine
     door: aeo
     title: AEO Audit Engine SKILL.md + short-form engine
@@ -15,6 +17,8 @@ plan:
     depends_on: []
     architect_hour: Approve prompt rules; review 3 one-pagers (yours + 2 prospects).
   - day: 9
+    status: completed
+    evidence: "PR #80-#98 merged; TrueVisible MVP in truevisible-app"
     agent: aeo-audit-engine
     door: aeo
     title: TrueVisible MVP sprint kick-off & Full audit engine (10 prompts × 5
@@ -36,6 +40,8 @@ plan:
     architect_hour: "Architect-sprint: init truevisible-app repo, auth & wizard
       skeleton. Review TGL full audit baseline."
   - day: 10
+    status: completed
+    evidence: "PR #104, #131, #144 merged"
     agent: outreach-sequencer
     door: aeo
     title: Outreach Sequencer SKILL.md + 5-touch worker
@@ -50,6 +56,8 @@ plan:
       - 8
     architect_hour: Edit the five templates; connect LinkedIn in GrowthLab Engine.
   - day: 11
+    status: completed
+    evidence: "PR #113, #115 merged as draft; copy rewritten in the website sprint (issue #147)"
     agent: web-builder
     door: aeo
     title: /aeo landing page + audit form + Rahul Meta campaign (₹500/day)
@@ -64,6 +72,8 @@ plan:
       - 8
     architect_hour: Approve /aeo copy and ₹500/day Meta ad budget; submit WhatsApp templates.
   - day: 12
+    status: completed
+    evidence: "PR #132 merged"
     agent: sales-desk
     door: aeo
     title: Sales Desk SKILL.md + worker + proposal template
@@ -79,6 +89,8 @@ plan:
       - 10
     architect_hour: Approve proposal template (prices from SPEC §2).
   - day: 13
+    status: completed
+    evidence: "PR #142 merged 10 Nov"
     agent: finance
     door: core
     title: "Finance SKILL.md + v1: GST invoices & ledger"
@@ -94,7 +106,7 @@ plan:
   - day: 14
     agent: outreach-sequencer
     door: aeo
-    title: "Outreach live: 25/day + Delivery QA"
+    title: "Outreach live: 20/day + Delivery QA"
     brief: "Outreach live: 25/day; Delivery QA on every one-pager."
     definition_of_done:
       - 25 outbound personalized touches sent per day
@@ -111,15 +123,15 @@ plan:
     door: core
     title: Gate 1 Review & Cross-Door Scorecard v1
     brief: "Review; scorecard v1. Gate 1 verification: 100 prospects, ≥50 touched,
-      ≥5 audits delivered, 0 QA failures."
+      ≥5 audits delivered, ≥1 conversation booked, 0 QA failures (Architect, 11 Nov 2026)."
     definition_of_done:
       - Cross-door scorecard compiled with live metrics
-      - "Gate 1 verified: 100 prospects, >=50 touched, >=5 audits delivered, 0
-        QA failures"
+      - "Gate 1 verified: 100 prospects, >=50 touched, >=5 audits delivered, >=1
+        conversation booked, 0 QA failures"
       - Decision recorded and standup summary posted
     depends_on:
       - 14
-    architect_hour: "Gate 1: 100 prospects, ≥50 touched, ≥5 audits delivered, 0 QA failures."
+    architect_hour: "Gate 1: 100 prospects, ≥50 touched, ≥5 audits delivered, ≥1 conversation booked, 0 QA failures."
   - day: 16
     status: completed
     evidence: truevisible-app

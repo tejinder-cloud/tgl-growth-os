@@ -42,7 +42,10 @@ export async function gatherRecEvidence(sb: SupabaseClient, brandId: string, opt
   const last = must(await sb.from("v_visibility_daily").select("run_date").eq("brand_id", brandId).order("run_date", { ascending: false }).limit(1), "last run") as any[];
   if (!last.length) return null;
   const to = last[0].run_date as string;
-  const from = new Date(Date.parse(to + "T00:00:00Z") - (days - 1) * 86_400_000).toISOString().slice(0, 10);
+  // The window never starts before the first measured day — "Measured 4 Nov – 10 Nov" for one day of answers overstates it.
+  const first = must(await sb.from("v_visibility_daily").select("run_date").eq("brand_id", brandId).order("run_date", { ascending: true }).limit(1), "first run") as any[];
+  const windowStart = new Date(Date.parse(to + "T00:00:00Z") - (days - 1) * 86_400_000).toISOString().slice(0, 10);
+  const from = first[0]?.run_date > windowStart ? first[0].run_date as string : windowStart;
 
   const [market, comps, variants, prompts, vis, sites, urls] = await Promise.all([
     sb.from("products_icps").select("product, icp, location").eq("brand_id", brandId).order("created_at").limit(1),

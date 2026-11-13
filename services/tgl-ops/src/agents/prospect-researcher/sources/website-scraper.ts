@@ -5,6 +5,7 @@
  * and detects chain signals (5+ cities, locations/centres pages, funding).
  * Uses Apify cheerio-scraper when APIFY_API_TOKEN is present, falling back to direct fetch.
  */
+import { isIndividualPractitionerName, stripHonorific } from "../contact-rules.js";
 
 export interface ChainSignals {
   citiesFound: string[];
@@ -16,6 +17,8 @@ export interface ChainSignals {
 
 export interface ScrapedWebsiteResult {
   emails: string[];
+  /** Every address printed on the site, shared inboxes included. contact-rules.ts decides which may be used. */
+  publishedEmails: string[];
   doctorNames: string[];
   primaryDoctorName?: string;
   doctorRole?: string;
@@ -141,6 +144,7 @@ export async function scrapeClinicWebsite(
 ): Promise<ScrapedWebsiteResult> {
   const result: ScrapedWebsiteResult = {
     emails: [],
+    publishedEmails: [],
     doctorNames: [],
     pagesScraped: [],
     chainSignals: {
@@ -216,7 +220,7 @@ export async function scrapeClinicWebsite(
             }
             if (item.html) {
               combinedHtml += " " + item.html;
-              extractEmailsFromHtml(item.html, result.emails);
+              extractEmailsFromHtml(item.html, result.emails, result.publishedEmails);
               extractDoctorNamesFromHtml(item.html, result.doctorNames);
             }
           }
@@ -234,7 +238,7 @@ export async function scrapeClinicWebsite(
     if (rootHtml) {
       result.pagesScraped.push(rootDomainUrl);
       combinedHtml += " " + rootHtml;
-      extractEmailsFromHtml(rootHtml, result.emails);
+      extractEmailsFromHtml(rootHtml, result.emails, result.publishedEmails);
       extractDoctorNamesFromHtml(rootHtml, result.doctorNames);
 
       // Root domain subpages for locations / network
@@ -245,7 +249,7 @@ export async function scrapeClinicWebsite(
           if (html) {
             result.pagesScraped.push(url);
             combinedHtml += " " + html;
-            extractEmailsFromHtml(html, result.emails);
+            extractEmailsFromHtml(html, result.emails, result.publishedEmails);
             extractDoctorNamesFromHtml(html, result.doctorNames);
           }
         });
@@ -259,7 +263,7 @@ export async function scrapeClinicWebsite(
       if (deepHtml) {
         result.pagesScraped.push(baseUrl.toString());
         combinedHtml += " " + deepHtml;
-        extractEmailsFromHtml(deepHtml, result.emails);
+        extractEmailsFromHtml(deepHtml, result.emails, result.publishedEmails);
         extractDoctorNamesFromHtml(deepHtml, result.doctorNames);
 
         const subpageUrls = findCandidateSubpages(deepHtml, baseUrl);
@@ -269,7 +273,7 @@ export async function scrapeClinicWebsite(
             if (html) {
               result.pagesScraped.push(url);
               combinedHtml += " " + html;
-              extractEmailsFromHtml(html, result.emails);
+              extractEmailsFromHtml(html, result.emails, result.publishedEmails);
               extractDoctorNamesFromHtml(html, result.doctorNames);
             }
           });
@@ -281,6 +285,7 @@ export async function scrapeClinicWebsite(
 
   // Deduplicate emails and doctor names
   result.emails = Array.from(new Set(result.emails.map((e) => e.toLowerCase())));
+  result.publishedEmails = Array.from(new Set(result.publishedEmails.map((e) => e.toLowerCase())));
   result.doctorNames = deduplicateNames(result.doctorNames);
 
   if (result.doctorNames.length > 0) {
@@ -326,26 +331,24 @@ async function fetchHtmlWithTimeout(url: string, timeoutMs: number): Promise<str
 /**
  * Extracts non-generic email addresses from HTML (mailto: and text regex).
  */
-export function extractEmailsFromHtml(html: string, targetArray: string[]): void {
+export function extractEmailsFromHtml(html: string, targetArray: string[], publishedArray?: string[]): void {
   if (!html) return;
+  const keep = (email: string) => {
+    if (publishedArray && email.includes("@")) publishedArray.push(email);
+    if (isValidNonGenericEmail(email)) targetArray.push(email);
+  };
 
   // 1. mailto: links
   const mailtoRegex = /mailto:([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gi;
   let match: RegExpExecArray | null;
   while ((match = mailtoRegex.exec(html)) !== null) {
-    const email = cleanEmail(match[1]);
-    if (isValidNonGenericEmail(email)) {
-      targetArray.push(email);
-    }
+    keep(cleanEmail(match[1]));
   }
 
   // 2. Body email regex
   const textEmailRegex = /\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b/g;
   while ((match = textEmailRegex.exec(html)) !== null) {
-    const email = cleanEmail(match[1]);
-    if (isValidNonGenericEmail(email)) {
-      targetArray.push(email);
-    }
+    keep(cleanEmail(match[1]));
   }
 }
 
@@ -535,6 +538,17 @@ export function extractBrandToken(name: string, website?: string): { brand: stri
     } catch {
       // ignore
     }
+  }
+
+  // A person's own practice: the brand is the person's name, never the honorific ("dr." is not a brand, #184).
+  if (isIndividualPractitionerName(name)) {
+    const person = stripHonorific(name)
+      .split(/[|,(\-–:]/)[0]
+      .toLowerCase()
+      .replace(/[^a-z\s]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (person.length >= 3) return { brand: person, rootDomain };
   }
 
   // Normalize name by removing commas, punctuation, branch locations

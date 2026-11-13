@@ -20,6 +20,13 @@ import { runIssueTask } from "../runner/runner.js";
 import { handleSetupAction, handleSetupChangesSubmission } from "../agents/aeo-strategist/worker.js";
 import { handlePlanAction, handlePlanChangesSubmission } from "../agents/aeo-planner/worker.js";
 import { handlePlanItemDone, handlePlanItemDoneSubmission } from "../agents/aeo-planner/weekly.js";
+import {
+  handleProspectAuditAction,
+  handleProspectAuditModal,
+  isProspectAuditAction,
+  isProspectAuditModal,
+  prospectAuditModalResponse,
+} from "../agents/aeo-audit-engine/prospect-audit-review.js";
 
 export const interactionsRouter = Router();
 
@@ -42,7 +49,9 @@ interactionsRouter.post("/", async (req: Request, res: Response): Promise<void> 
 
     (async () => {
       try {
-        if (typeof action.action_id === "string" && action.action_id.startsWith("setup_")) {
+        if (isProspectAuditAction(action.action_id)) {
+          await handleProspectAuditAction(payload, action);
+        } else if (typeof action.action_id === "string" && action.action_id.startsWith("setup_")) {
           await handleSetupAction(payload, action);
         } else if (action.action_id === "plan_approve" || action.action_id === "plan_changes") {
           await handlePlanAction(payload, action);
@@ -66,6 +75,15 @@ interactionsRouter.post("/", async (req: Request, res: Response): Promise<void> 
 
   // 2. Handle Modal Submissions (Reject Reason submission)
   if (payload.type === "view_submission") {
+    if (isProspectAuditModal(payload.view?.callback_id)) {
+      // Field errors keep the box open; otherwise it closes and the send or the rerun happens after the reply.
+      const response = prospectAuditModalResponse(payload);
+      res.json(response);
+      if (response.response_action === "clear") {
+        handleProspectAuditModal(payload).catch((err) => console.error("[Prospect Audit Modal Error]", err));
+      }
+      return;
+    }
     if (payload.view?.callback_id === "planitem_done_modal") {
       res.json({ response_action: "clear" });
       handlePlanItemDoneSubmission(payload).catch((err) => console.error("[Plan Item Done Error]", err));

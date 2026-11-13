@@ -27,3 +27,10 @@ Evidence kinds: "static read" = file read on the branch; "file write" = file cha
 - The footer address last line is still [ARCHITECT TO SUPPLY] and renders nothing until supplied.
 
 Correction on the footer line above: tgl-theme/parts/footer.html was not read this session, so how it renders the address placeholder is unverified. The Creative Director should check it.
+
+
+## Update, 10 Nov 2026 16:45 IST (Strategist)
+Item 5 progress, evidence kind in brackets:
+- Stats provider wired: `src/agents/aeo-audit-engine/home-stats.ts` + composition root in `index.ts`; `GET /home/stats` reads the TGL brand's daily tracker runs from Supabase, 10-minute cache. [unit test on fixtures: `test-task147-home-stats.ts`, 5 cases; no production call yet]
+- Captures: AI answer and live board exist in `tgl-theme/assets/img/home/` and `assets/data/home-captures.json`. Audit PDF capture: not made, see `site/qa/home-2026-11-10/REVIEW.md` proposal 3. [live render]
+- Creative Director review with 390 px screenshots and Lighthouse mobile 98/98/96/100: `site/qa/home-2026-11-10/`. [live render in headless Chromium of the branch; not the production host]

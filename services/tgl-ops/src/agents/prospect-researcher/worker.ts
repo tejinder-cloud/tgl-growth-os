@@ -9,9 +9,16 @@ import { postLine } from "../../lib/post.js";
 import { getAlertsChannel } from "../../lib/cron-wrapper.js";
 import type { ProspectRecord, ResearchRunOptions, ResearchRunResult } from "./types.js";
 import { getNextRotation, advanceRotation, syncRotationStateFromRepo } from "./rotation.js";
-import { searchPlacesCandidates, verifyDomainDns, enrichPlaceDetails, type RawPlaceCandidate } from "./sources/places.js";
+import { searchPlacesCandidatesWide, verifyDomainDns, enrichPlaceDetails, type RawPlaceCandidate } from "./sources/places.js";
+import { PUBLISHED_EMAIL_SOURCE } from "./contact-rules.js";
 import { enrichCandidateSignals, isCandidateOrgSizeGe50 } from "./sources/enrichment.js";
-import { evaluateProspectRubric, checkPlaybookCDisqualification } from "./rubric.js";
+import { evaluateProspectRubric, evaluateProspectRubricWithProbe, checkPlaybookCDisqualification } from "./rubric.js";
+import { parseDim4Probe } from "./dim4.js";
+import { FIT_QUALIFIED_THRESHOLD, FIT_BENCH_FLOOR } from "./threshold.js";
+import { createDim4ProbeGovernor, type ProbeStats } from "./probe.js";
+import { rescoreBenchedProspects, type BenchRescoreResult } from "./bench-rescore.js";
+import { refreshOutdatedProbes } from "./probe-refresh.js";
+import { routeScoredCandidate } from "./bench-save.js";
 import { isProspectDuplicate, analyzeRejectionPatterns } from "./dedupe.js";
 import { loadAllProspects, upsertProspectRecords } from "./db.js";
 import { saveProspectsCsv, postTop25ReviewCard } from "./reports.js";
@@ -27,10 +34,21 @@ export interface ValidationFunnelMetrics {
   placeDetailsEnriched: number;
   placeDetailsFailed: number;
   emailVerified: number;
+  /** Owner-run businesses kept on the email they publish on their own website (13 Nov 2026 decision). */
+  publishedEmail?: number;
   phoneVerified: number;
   contactUnverified: number;
+  /** Listing searches made this run, and candidates whose search result already carried website and phone. */
+  searches?: number;
+  detailsFromSearch?: number;
+  /** Candidates scored at or above the qualified threshold (65 under rubric v2). Name kept for compatibility. */
   scoredGe70: number;
+  /** Candidates scored below the qualified threshold (benched or rejected). Name kept for compatibility. */
   scoredBelow70: number;
+  /** Candidates scored from FIT_BENCH_FLOOR (50) up to the qualified threshold and saved with status "bench". */
+  benched: number;
+  /** Candidates that passed Dimension 5 but could not be probed (cap, engine unavailable, engine error). */
+  probeSkipped: number;
   writeGatePassed: number;
   writeGateFailed: number;
   dedupedOut: number;
@@ -40,7 +58,7 @@ export interface ValidationFunnelMetrics {
 /**
  * Runs autonomous prospect research batch with zero tolerance for fabrication.
  * Every survivor must satisfy: Places API place_id, live DNS, Hunter/Apollo email status,
- * 5-dimension rubric score breakdown, and non-role-placeholder name.
+ * 5-dimension rubric score breakdown (v2, with the Dimension 4 probe record), and non-role-placeholder name.
  */
 export async function runProspectResearch(
   options?: ResearchRunOptions
@@ -66,6 +84,7 @@ export async function runProspectResearch(
       category: options?.category || "cosmetic_dental",
       discoveredCount: 0,
       qualifiedCount: 0,
+      benchedCount: 0,
       dedupedCount: 0,
       prospects: [],
       placesCallsUsed: 0,
@@ -90,6 +109,7 @@ export async function runProspectResearch(
       category: options?.category || "cosmetic_dental",
       discoveredCount: 0,
       qualifiedCount: 0,
+      benchedCount: 0,
       dedupedCount: 0,
       prospects: [],
       placesCallsUsed: 0,
@@ -124,7 +144,7 @@ export async function runProspectResearch(
   console.log(`\n==========================================================================`);
   console.log(`[Prospect Researcher Run] Target Metro & Category: ${city} × ${category}`);
   console.log(`[Prospect Researcher] Sourcing batch: ${city} × ${category} (Target: ${targetCount})`);
-  console.log(`Evidence Standard: Places place_id + DNS + Apollo/Hunter verified email + 5-dim reasons`);
+  console.log(`Evidence Standard: Places place_id + DNS + Apollo/Hunter verified email + 5-dim reasons (rubric v2, Dim 4 AI visibility probe)`);
   console.log(`==========================================================================`);
 
   // 2. Read past rejections & memory for learning
@@ -148,16 +168,53 @@ export async function runProspectResearch(
     contactUnverified: 0,
     scoredGe70: 0,
     scoredBelow70: 0,
+    benched: 0,
+    probeSkipped: 0,
     writeGatePassed: 0,
     writeGateFailed: 0,
     dedupedOut: 0,
     finalQualified: 0,
   };
 
+  // 3b. Rubric v2 rotation: benched candidates (nurture / bench, 50 to 69 under v1) are re-scored under v2
+  // BEFORE new discovery. One Dimension 4 probe per candidate, under the agent's daily cap.
+  const probeGovernor = createDim4ProbeGovernor({ testMode: isTest });
+  const benchResult: BenchRescoreResult = await rescoreBenchedProspects({
+    prospects: existingProspects,
+    probe: probeGovernor.probe,
+  });
+  let benchPromotedSaved = 0;
+  if (benchResult.eligible > 0) {
+    console.log(
+      `[Bench Re-score v2] ${benchResult.eligible} benched candidate(s): ${benchResult.promoted.length} promoted (>= ${FIT_QUALIFIED_THRESHOLD}), ${benchResult.stillBenched.length} still benched, ${benchResult.rejected.length} rejected, ${benchResult.notProbed.length} not probed (retry next run)`
+    );
+    if (benchResult.touched.length > 0) {
+      const benchWrite = await upsertProspectRecords(benchResult.touched, options);
+      if (benchWrite.persistedToSupabase || isTest) {
+        benchPromotedSaved = benchResult.promoted.length;
+      }
+    }
+  }
+
+  // 3c. Issue #184: qualified, unreviewed rows whose stored probe asked a generic question are re-scored on the
+  // specialty question before new discovery. Same governor, so the same daily cap applies.
+  const refreshResult = await refreshOutdatedProbes({ prospects: existingProspects, probe: probeGovernor.probe });
+  if (refreshResult.eligible > 0) {
+    console.log(
+      `[Probe Refresh] ${refreshResult.eligible} qualified row(s) had an outdated Dimension 4 question: ${refreshResult.kept.length} still qualified, ${refreshResult.benched.length} benched, ${refreshResult.rejected.length} rejected, ${refreshResult.notProbed.length} not probed (retry next run)`
+    );
+    if (refreshResult.touched.length > 0) {
+      await upsertProspectRecords(refreshResult.touched, options);
+    }
+  }
+
   // 4. Candidate Discovery via Google Places API (real network call)
-  const rawCandidates = await searchPlacesCandidates(city, category, options);
+  const search = await searchPlacesCandidatesWide(city, category, options);
+  const rawCandidates = search.candidates;
   funnel.discovered = rawCandidates.length;
-  console.log(`[Funnel Stage 1] Google Places API returned ${rawCandidates.length} raw candidates for '${category} in ${city}'`);
+  funnel.searches = search.queries.length;
+  funnel.detailsFromSearch = rawCandidates.filter((c) => c.placeDetailsEnriched).length;
+  console.log(`[Funnel Stage 1] Google Places API returned ${rawCandidates.length} distinct candidates for '${category} in ${city}' from ${search.queries.length} search(es): ${search.queries.join(" | ")}`);
 
   // Group candidates by normalized brand token and root domain to detect multi-unit chains
   for (const c of rawCandidates) {
@@ -175,7 +232,12 @@ export async function runProspectResearch(
     c.placesBrandCount = Math.max(domainMatches, brandMatches);
   }
 
-  const qualifiedProspects: ProspectRecord[] = [];
+  // Bench candidates promoted under v2 come first; new discovery fills the rest of the target.
+  const qualifiedProspects: ProspectRecord[] = [...benchResult.promoted];
+  const newQualifiedProspects: ProspectRecord[] = [];
+  // Candidates scored 50 to below 65 this run (issue #177): written with status "bench", kept OFF the qualified list,
+  // never on the review card or CSV, never notified, never handed to outreach.
+  const benchedProspects: ProspectRecord[] = [];
   let playwrightSearchesUsed = 0;
 
   // Filter candidates through Stage 1-3 (Place ID, Initial Playbook C, and DNS)
@@ -293,6 +355,7 @@ export async function runProspectResearch(
       category,
       discoveredCount: rawCandidates.length,
       qualifiedCount: 0,
+      benchedCount: 0,
       dedupedCount: 0,
       prospects: [],
       placesCallsUsed: getPlacesQuotaState(options).count,
@@ -310,7 +373,7 @@ export async function runProspectResearch(
     };
   }
 
-  // 5. Processing Loop: Website Scraping, Meta Ads, Contact Resolution, Rubric Scoring
+  // 5. Processing Loop: Website Scraping, Meta Ads, Contact Resolution, Deduplication, Rubric v2 Scoring
   for (const cand of dnsPassedCandidates) {
     if (qualifiedProspects.length >= targetCount) {
       break;
@@ -343,36 +406,26 @@ export async function runProspectResearch(
       !enrichedDetails.signals.is_large_org
     );
 
+    const isPublishedEmail = Boolean(
+      dm.verified && dm.email && dm.email.includes("@") && dm.source && dm.source.includes(PUBLISHED_EMAIL_SOURCE) && !enrichedDetails.signals.is_large_org
+    );
+
     if (isHunterEmail) {
       funnel.emailVerified++;
+    } else if (isPublishedEmail) {
+      funnel.publishedEmail = (funnel.publishedEmail || 0) + 1;
     } else if (isOwnerPhone) {
       funnel.phoneVerified++;
     } else {
       funnel.contactUnverified++;
       console.log(
-        `  • [Gate 6 Dropped] '${cand.name}': No verified contact (requires Hunter work email for large orgs or Places phone for owner-run clinics) (${dm.source})`
+        `  • [Gate 6 Dropped] '${cand.name}': No verified contact (requires a named work email for large orgs; a published email or Places phone for owner-run businesses) (${dm.source})`
       );
       continue;
     }
 
-    // Gate 7: Rubric Fit Scoring (>= 70 threshold with 5 distinct dimensions)
-    const rubricResult = evaluateProspectRubric({
-      company: cand.name,
-      domain: website,
-      category,
-      city,
-      signals: enrichedDetails.signals,
-      decisionMaker: enrichedDetails.decisionMaker,
-    });
-
-    if (!rubricResult.qualified || rubricResult.fitScore < 70) {
-      funnel.scoredBelow70++;
-      console.log(`  • [Gate 7 Dropped] '${cand.name}': fit score ${rubricResult.fitScore} below cutoff (70)`);
-      continue;
-    }
-    funnel.scoredGe70++;
-
-    // Gate 8: Deduplication against Supabase, GHL, and rejections/
+    // Gate 7: Deduplication against Supabase, GHL, and rejections/ (Playbook E: before scoring, so a duplicate never costs a probe)
+    // Candidates benched earlier in this run are included so the same business is never benched twice.
     const dedupeCheck = await isProspectDuplicate(
       {
         company: cand.name,
@@ -380,66 +433,120 @@ export async function runProspectResearch(
         email: enrichedDetails.decisionMaker.email,
         phone: enrichedDetails.decisionMaker.phone,
       },
-      [...existingProspects, ...qualifiedProspects],
+      [...existingProspects, ...qualifiedProspects, ...benchedProspects],
       options
     );
 
     if (dedupeCheck.isDuplicate) {
       funnel.dedupedOut++;
-      console.log(`  • [Gate 8 Deduplicated] '${cand.name}': ${dedupeCheck.reason}`);
+      console.log(`  • [Gate 7 Deduplicated] '${cand.name}': ${dedupeCheck.reason}`);
       continue;
     }
 
-    // Assemble authoritative ProspectRecord
-    const record: ProspectRecord = {
-      tenant_id: "tgl",
+    // Gate 8: Rubric v2 Fit Scoring (>= 65 qualifies, 50 to 64 is benched, below 50 or disqualified is rejected).
+    // The Dimension 4 probe runs only for a candidate that survived Playbook C and Dimension 5, once, under the daily cap.
+    const rubricResult = await evaluateProspectRubricWithProbe({
       company: cand.name,
+      domain: website,
       category,
       city,
-      website,
-      door: "aeo",
-      fit_score: rubricResult.fitScore,
-      fit_reasons: rubricResult.fitReasons,
-      decision_maker: enrichedDetails.decisionMaker,
       signals: enrichedDetails.signals,
-      status: "new",
-      source_refs: enrichedDetails.sourceRefs,
-      created_at: new Date().toISOString(),
-      rescored_at: new Date().toISOString(),
-    };
+      decisionMaker: enrichedDetails.decisionMaker,
+      probe: probeGovernor.probe,
+    });
 
-    // Gate 9: Hard write validation gate
-    const writeCheck = validateProspectRecord(record);
-    if (!writeCheck.valid) {
-      funnel.writeGateFailed++;
-      console.log(`  • [Gate 9 Dropped] '${cand.name}': Write gate rejected (${writeCheck.reason})`);
+    if (rubricResult.probeUnavailable) {
+      funnel.probeSkipped++;
+      console.log(`  • [Gate 8 Not Scored] '${cand.name}': Dimension 4 probe unavailable (${probeGovernor.stats.haltedReason || "engine call failed"}); retried on a later run`);
       continue;
     }
-    funnel.writeGatePassed++;
 
-    qualifiedProspects.push(record);
+    // Gate 8 routing + Gate 9 hard write validation (bench-save.ts). Assembles the authoritative ProspectRecord:
+    // status "new" when qualified, status "bench" (decision maker minimised) when scored 50 to 64.
+    const routed = routeScoredCandidate(
+      {
+        company: cand.name,
+        category,
+        city,
+        website,
+        evaluation: rubricResult,
+        decisionMaker: enrichedDetails.decisionMaker,
+        signals: enrichedDetails.signals,
+        sourceRefs: enrichedDetails.sourceRefs,
+      },
+      { qualified: qualifiedProspects, benched: benchedProspects }
+    );
+
+    if (routed.route === "rejected") {
+      funnel.scoredBelow70++;
+      console.log(
+        `  • [Gate 8 Dropped] '${cand.name}': ${rubricResult.disqualified ? "disqualified" : `fit score ${rubricResult.fitScore} below bench floor (${FIT_BENCH_FLOOR})`}`
+      );
+      continue;
+    }
+
+    if (routed.route === "qualified") {
+      funnel.scoredGe70++;
+    } else {
+      funnel.scoredBelow70++;
+    }
+
+    if (!routed.placed) {
+      funnel.writeGateFailed++;
+      console.log(`  • [Gate 9 Dropped] '${cand.name}': Write gate rejected (${routed.writeRejectedReason})`);
+      continue;
+    }
+
+    if (routed.route === "bench") {
+      funnel.benched++;
+      console.log(`  [BENCHED] '${routed.record!.company}' (Score: ${routed.record!.fit_score}): saved with status bench, no notification, no outreach hand-off`);
+      continue;
+    }
+
+    funnel.writeGatePassed++;
+    newQualifiedProspects.push(routed.record!);
     funnel.finalQualified = qualifiedProspects.length;
-    console.log(`  [QUALIFIED] [${qualifiedProspects.length}/${targetCount}]: '${record.company}' (Score: ${record.fit_score})`);
+    console.log(`  [QUALIFIED] [${qualifiedProspects.length}/${targetCount}]: '${routed.record!.company}' (Score: ${routed.record!.fit_score})`);
+  }
+
+  const probeShortfall = probeGovernor.shortfallReport();
+  if (probeShortfall) {
+    console.warn(`[Dim 4 Probe] ${probeShortfall}`);
   }
 
   console.log(`\n==========================================================================`);
   console.log(`FUNNEL VALIDATOR SUMMARY (${city} · ${category})`);
   console.log(`==========================================================================`);
+  console.log(`0. Benched re-scored under v2 (promoted):    ${benchResult.eligible} eligible / ${benchResult.promoted.length} promoted`);
   console.log(`1. Raw Candidates (Google Places API):       ${funnel.discovered}`);
   console.log(`2. Live DNS Passed / Failed:                ${funnel.dnsPassed} passed / ${funnel.dnsFailed} failed`);
   console.log(`3. Playbook C Disqualified (Chains):        ${funnel.playbookCDisqualified}`);
   console.log(`4. Place Details Enriched / Failed:         ${funnel.placeDetailsEnriched} enriched / ${funnel.placeDetailsFailed} failed`);
   console.log(`5. Contact Verified (Hunter Email / Phone):  ${funnel.emailVerified} email / ${funnel.phoneVerified} owner-phone / ${funnel.contactUnverified} dropped`);
-  console.log(`6. Fit Score >= 70 / Below 70:              ${funnel.scoredGe70} passed / ${funnel.scoredBelow70} sub-cutoff`);
+  console.log(`6. Fit Score >= ${FIT_QUALIFIED_THRESHOLD} / Below ${FIT_QUALIFIED_THRESHOLD}:              ${funnel.scoredGe70} passed / ${funnel.scoredBelow70} sub-cutoff (${funnel.benched} benched) / ${funnel.probeSkipped} not probed`);
   console.log(`7. Write Gate Validated / Dropped:          ${funnel.writeGatePassed} passed / ${funnel.writeGateFailed} failed`);
   console.log(`8. Deduplicated Out:                        ${funnel.dedupedOut}`);
   console.log(`--------------------------------------------------------------------------`);
   console.log(`TOTAL QUALIFIED SURVIVORS:               ${qualifiedProspects.length} / ${targetCount} target`);
+  console.log(`BENCHED THIS RUN (${FIT_BENCH_FLOOR} to ${FIT_QUALIFIED_THRESHOLD - 1}):              ${benchedProspects.length}`);
   console.log(`==========================================================================\n`);
 
-  // 6. Upsert records to Supabase & read-back verification
-  const writeResult = await upsertProspectRecords(qualifiedProspects, options);
-  const savedCount = writeResult.readBackCount;
+  // 6. Upsert new records to Supabase & read-back verification (bench rows were written right after re-scoring)
+  const writeResult = await upsertProspectRecords(newQualifiedProspects, options);
+  const savedCount = writeResult.readBackCount + benchPromotedSaved;
+
+  // 6b. Save candidates benched this run (status "bench"). They are not part of savedCount, the card or the CSV,
+  // and a failed bench write is logged only: nothing is posted to Slack for a benched candidate.
+  let benchSavedCount = 0;
+  if (benchedProspects.length > 0) {
+    const benchWriteResult = await upsertProspectRecords(benchedProspects, options);
+    benchSavedCount = benchWriteResult.readBackCount;
+    if (benchSavedCount < benchedProspects.length) {
+      console.warn(
+        `[Bench Save Notice] ${benchSavedCount} of ${benchedProspects.length} benched candidate(s) verified in public.prospects${benchWriteResult.error ? ` (${benchWriteResult.error})` : ""}`
+      );
+    }
+  }
 
   // Insert failure alert: if records were qualified but 0 saved in production, alert #alerts
   if (!isTest && qualifiedProspects.length > 0 && savedCount === 0) {
@@ -455,7 +562,7 @@ export async function runProspectResearch(
     advanceRotation(options);
   }
 
-  // 7. Generate CSV and post Top 25 review card (lists only rows inserted in that run)
+  // 7. Generate CSV and post Top 25 review card (lists only rows inserted in that run; never lists benched rows)
   const rowsToCard = isTest || savedCount > 0 ? qualifiedProspects : [];
   const csvLabel = `${city}-${category}`;
   const csvPath = saveProspectsCsv(rowsToCard, csvLabel, options);
@@ -475,6 +582,7 @@ export async function runProspectResearch(
   }
 
   // 8. Token and Cost Accounting
+  // The Dimension 4 probe cost is recorded separately under prospect-researcher by the probe governor (apiName gemini-dim4-probe).
   const estimatedInputTokens = 1200 + qualifiedProspects.length * 300;
   const estimatedOutputTokens = 300 + qualifiedProspects.length * 100;
   const runCostUsd =
@@ -514,7 +622,12 @@ export async function runProspectResearch(
   // 9. Format Daily Standup Log
   const shortfallReason =
     qualifiedProspects.length < targetCount
-      ? ` (Shortfall of ${targetCount - qualifiedProspects.length} accounts: ${funnel.discovered} candidates discovered via Places, ${funnel.dnsPassed} DNS alive, ${funnel.playbookCDisqualified} disqualified by Playbook C, ${funnel.placeDetailsEnriched} Place Details enriched, ${funnel.emailVerified} email verified via Hunter, ${funnel.phoneVerified} owner phones, ${funnel.scoredGe70} scored >= 70)`
+      ? ` (Shortfall of ${targetCount - qualifiedProspects.length} accounts: ${funnel.discovered} candidates discovered via Places, ${funnel.dnsPassed} DNS alive, ${funnel.playbookCDisqualified} disqualified by Playbook C, ${funnel.placeDetailsEnriched} Place Details enriched, ${funnel.emailVerified} email verified via Hunter, ${funnel.phoneVerified} owner phones, ${funnel.scoredGe70} scored >= ${FIT_QUALIFIED_THRESHOLD}, ${funnel.benched} benched${funnel.probeSkipped > 0 ? `, ${funnel.probeSkipped} not scored because the Dimension 4 probe was unavailable` : ""})`
+      : "";
+
+  const benchSummary =
+    benchResult.eligible > 0
+      ? ` Re-scored ${benchResult.eligible} benched candidate(s) under v2: ${benchResult.promoted.length} promoted, ${benchResult.stillBenched.length} still benched, ${benchResult.rejected.length} rejected, ${benchResult.notProbed.length} not probed.`
       : "";
 
   const standupLines = {
@@ -522,8 +635,8 @@ export async function runProspectResearch(
       qualifiedProspects.length > 0
         ? (qualifiedProspects.reduce((sum, p) => sum + p.fit_score, 0) / qualifiedProspects.length).toFixed(1)
         : "N/A"
-    }${shortfallReason}; Places API quota: ${quota.count}/95 calls.`,
-    blocked: funnel.discovered === 0 ? "Google Places API key unconfigured or rejected by upstream service." : "None.",
+    }${shortfallReason}; Places API quota: ${quota.count}/95 calls; Dim 4 probes: ${probeGovernor.stats.completed} ($${probeGovernor.stats.costUsd.toFixed(4)}).${benchSummary}`,
+    blocked: funnel.discovered === 0 ? "Google Places API key unconfigured or rejected by upstream service." : probeShortfall || "None.",
     need: cardTs ? `Architect review on Top 25 card in #revenue (ts: ${cardTs}).` : "None.",
     tomorrow: `Execute next metro in rotation (${getNextRotation(options).city} · ${getNextRotation(options).category}) at 09:30 IST.`,
   };
@@ -535,12 +648,17 @@ export async function runProspectResearch(
     city,
     category,
     qualifiedCount: qualifiedProspects.length,
+    benchedCount: benchedProspects.length,
+    benchSavedCount,
     targetCount,
     funnel,
     placesUsed: quota.count,
     costUsd: runCostUsd,
     cardTs,
     standupLines,
+    probeStats: probeGovernor.stats,
+    probeShortfall,
+    benchResult,
     options,
   });
 
@@ -549,6 +667,7 @@ export async function runProspectResearch(
     category,
     discoveredCount: rawCandidates.length,
     qualifiedCount: qualifiedProspects.length,
+    benchedCount: benchedProspects.length,
     dedupedCount: funnel.dedupedOut,
     prospects: qualifiedProspects,
     placesCallsUsed: quota.count,
@@ -567,6 +686,9 @@ export async function runProspectResearch(
 
 /**
  * Appends execution metrics to logs/<date>/prospect-researcher.md
+ * Note: lines about Dimension 4 probe spend deliberately avoid the word "Cost" followed by a dollar amount,
+ * because the cost ledger parser reads "Cost: $x" lines as LLM run cost. Probe spend is recorded in the ledger
+ * directly (apiName gemini-dim4-probe) by the probe governor.
  */
 function appendProspectResearcherLog(params: {
   dateStr: string;
@@ -574,12 +696,17 @@ function appendProspectResearcherLog(params: {
   city: string;
   category: string;
   qualifiedCount: number;
+  benchedCount: number;
+  benchSavedCount: number;
   targetCount: number;
   funnel: ValidationFunnelMetrics;
   placesUsed: number;
   costUsd: number;
   cardTs?: string;
   standupLines: { did: string; blocked: string; need: string; tomorrow: string };
+  probeStats: ProbeStats;
+  probeShortfall: string | null;
+  benchResult: BenchRescoreResult;
   options?: { testMode?: boolean };
 }): void {
   const isTest = params.options?.testMode === true || isTestMode();
@@ -592,16 +719,21 @@ function appendProspectResearcherLog(params: {
   const logContent = `
 ### Run — ${params.timeStr} IST (${params.city} · ${params.category})
 - **Scheduled Pair:** ${params.city} × ${params.category}
+- **Rubric:** v2 (qualified at ${FIT_QUALIFIED_THRESHOLD} or above, benched from ${FIT_BENCH_FLOOR})
 - **Qualified Accounts:** ${params.qualifiedCount} / ${params.targetCount}
-- **Validator Funnel:**
-  - Raw Candidates (Places API): ${params.funnel.discovered}
+- **Benched This Run (saved with status bench):** ${params.benchedCount} (${params.benchSavedCount} verified in the prospects table)
+- **Benched Re-score (v2, before discovery):** ${params.benchResult.eligible} eligible · ${params.benchResult.promoted.length} promoted · ${params.benchResult.stillBenched.length} still benched · ${params.benchResult.rejected.length} rejected · ${params.benchResult.notProbed.length} not probed
+- **Dim 4 Probes (${"gemini"}):** ${params.probeStats.completed} completed · ${params.probeStats.failed} failed · ${params.probeStats.skippedCap} skipped at daily cap · ${params.probeStats.skippedUnavailable} skipped, engine unavailable · probe spend $${params.probeStats.costUsd.toFixed(4)} USD
+${params.probeShortfall ? `- **Dim 4 Shortfall:** ${params.probeShortfall}\n` : ""}- **Validator Funnel:**
+  - Raw Candidates (Places API): ${params.funnel.discovered} (from ${params.funnel.searches ?? 1} searches; ${params.funnel.detailsFromSearch ?? 0} needed no separate details call)
   - Live DNS Passed: ${params.funnel.dnsPassed} (Failed: ${params.funnel.dnsFailed})
   - Playbook C Disqualified (Enterprise Chains): ${params.funnel.playbookCDisqualified}
   - Place Details Enriched: ${params.funnel.placeDetailsEnriched} (Failed: ${params.funnel.placeDetailsFailed})
   - Email Verified via Hunter: ${params.funnel.emailVerified}
+  - Published Business Email (owner-run only): ${params.funnel.publishedEmail ?? 0}
   - Places Phone Verified (Owner-Run <50 staff only): ${params.funnel.phoneVerified}
   - Contact Unverified / Dropped: ${params.funnel.contactUnverified}
-  - Fit Score >= 70: ${params.funnel.scoredGe70} (Sub-cutoff: ${params.funnel.scoredBelow70})
+  - Fit Score >= ${FIT_QUALIFIED_THRESHOLD}: ${params.funnel.scoredGe70} (Sub-cutoff: ${params.funnel.scoredBelow70}, of which benched: ${params.funnel.benched}, Not probed: ${params.funnel.probeSkipped})
   - Write Gate Validated: ${params.funnel.writeGatePassed} (Rejected: ${params.funnel.writeGateFailed})
 - **Places API Daily Quota:** ${params.placesUsed} / 95 calls
 - **Estimated Run Cost:** $${params.costUsd.toFixed(4)} USD
@@ -638,6 +770,14 @@ function appendProspectResearcherLog(params: {
  * Re-scores existing prospects with updated root domain chain detection,
  * enterprise chain rule enforcement (moving chain HQs like Max Saket to rejected),
  * and organisation size DM role rules (<50 staff vs ≥50 staff).
+ *
+ * Rubric v2: this weekly re-score never calls an engine. Dimension 4 is taken from the dim4_probe already stored
+ * on the row. A row with no stored probe (scored under v1, not yet probed) keeps its score and status unless it is
+ * disqualified; it is probed through the benched-candidate rotation or on its next discovery run, never here.
+ *
+ * Benched rows (issue #177, status nurture or bench) are read here too: a bench row that still scores from
+ * FIT_BENCH_FLOOR up to below the qualified threshold stays "bench"; one that now qualifies moves to "new" for
+ * Architect review (never straight to "reviewed" or outreach); one below the floor, or disqualified, is rejected.
  */
 export async function rescoreProspects(options?: { testMode?: boolean }): Promise<{
   totalRescored: number;
@@ -677,7 +817,8 @@ export async function rescoreProspects(options?: { testMode?: boolean }): Promis
     const isLargeOrg = isCandidateOrgSizeGe50({ name: p.company }, p.category, p.signals);
     p.signals.is_large_org = isLargeOrg;
 
-    // 3. Re-evaluate rubric
+    // 3. Re-evaluate rubric (v2). Dimension 4 comes from the stored probe, if any.
+    const storedProbe = parseDim4Probe(p.fit_reasons);
     const evalRes = evaluateProspectRubric({
       company: p.company,
       domain: p.website,
@@ -685,17 +826,32 @@ export async function rescoreProspects(options?: { testMode?: boolean }): Promis
       city: p.city,
       signals: p.signals,
       decisionMaker: p.decision_maker,
+      dim4Probe: storedProbe,
     });
+
+    const wasBenched = p.status === "bench" || p.status === "nurture";
 
     if (evalRes.disqualified) {
       p.fit_score = 0;
       p.status = "rejected";
       p.fit_reasons = evalRes.fitReasons;
       disqualifiedChains.push(`${p.company} (${evalRes.disqualificationReason || "Chain disqualified"})`);
+    } else if (!storedProbe) {
+      console.log(`[Rescore Notice] '${p.company}' has no Dimension 4 probe yet: score and status unchanged (${p.fit_score}, ${p.status}).`);
     } else {
       p.fit_score = evalRes.fitScore;
       p.fit_reasons = evalRes.fitReasons;
-      p.status = evalRes.qualified ? "reviewed" : "rejected";
+      if (evalRes.qualified) {
+        if (wasBenched) {
+          p.status = "new";
+        } else {
+          p.status = p.status === "handed_to_outreach" ? "handed_to_outreach" : "reviewed";
+        }
+      } else if (wasBenched && evalRes.fitScore >= FIT_BENCH_FLOOR) {
+        p.status = "bench";
+      } else {
+        p.status = "rejected";
+      }
     }
 
     p.rescored_at = new Date().toISOString();
@@ -707,7 +863,7 @@ export async function rescoreProspects(options?: { testMode?: boolean }): Promis
     await upsertProspectRecords(updatedRecords, options);
   }
 
-  const qualifiedCount = updatedRecords.filter((r) => r.fit_score >= 70 && r.status !== "rejected").length;
+  const qualifiedCount = updatedRecords.filter((r) => r.fit_score >= FIT_QUALIFIED_THRESHOLD && r.status !== "rejected").length;
 
   console.log(`[Rescore Complete] Re-scored ${updatedRecords.length} records: ${disqualifiedChains.length} disqualified as chains, ${qualifiedCount} qualified.`);
 

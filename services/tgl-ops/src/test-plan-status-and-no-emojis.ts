@@ -338,8 +338,12 @@ async function runPlanStatusAndNoEmojisSuite(): Promise<void> {
   if (!realPlanStatus.includes("*Plan Status")) {
     throw new Error(`Test 4 Failed: getPlanStatusAnswer did not load real plan status`);
   }
-  if (!realPlanStatus.includes("• *Day 8:*") || !realPlanStatus.includes("• *Day 9:*")) {
+  // Days 8-13 were recorded as completed on 11 Nov 2026 (PR #179); they must appear in the completed summary, not as pending.
+  if (!realPlanStatus.includes("Day 8") || !realPlanStatus.includes("Day 9")) {
     throw new Error(`Test 4 Failed: Expected Day 8 and Day 9 in real plan status`);
+  }
+  if (realPlanStatus.includes("• *Day 8:*") || realPlanStatus.includes("• *Day 9:*")) {
+    throw new Error(`Test 4 Failed: Day 8 and Day 9 are completed and must not be listed as pending`);
   }
   if (!realPlanStatus.includes("Day 16") || !realPlanStatus.includes("Day 17") || !realPlanStatus.includes("Day 18") || !realPlanStatus.includes("Day 19")) {
     throw new Error(`Test 4 Failed: Expected Days 16, 17, 18, 19 in completed summary: ${realPlanStatus}`);
@@ -351,6 +355,10 @@ async function runPlanStatusAndNoEmojisSuite(): Promise<void> {
   const day17 = breakdown.completedDays.find((d) => d.day === 17);
   const day18 = breakdown.completedDays.find((d) => d.day === 18);
   const day19 = breakdown.completedDays.find((d) => d.day === 19);
+  for (const n of [8, 9, 10, 11, 12, 13]) {
+    const d = breakdown.completedDays.find((x) => x.day === n);
+    if (!d || !d.evidence?.includes("PR #")) throw new Error(`Test 4 Failed: Day ${n} must be completed with PR evidence`);
+  }
   if (!day16 || !day16.evidence?.includes("truevisible-app")) {
     throw new Error(`Test 4 Failed: Day 16 must be completed with truevisible-app evidence`);
   }

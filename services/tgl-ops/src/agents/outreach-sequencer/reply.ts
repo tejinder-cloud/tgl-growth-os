@@ -1,5 +1,5 @@
 // services/tgl-ops/src/agents/outreach-sequencer/reply.ts
-// Inbound reply handling: parse the GHL webhook, classify intent deterministically (no LLM, no cost),
+// Inbound reply handling: parse the reply (GHL webhook, or an email received by this service through inbound.ts), classify intent deterministically (no LLM, no cost),
 // stop or defer the sequence, annotate GHL, and route to the Sales Desk.
 import { postLine } from "../../lib/post.js";
 import type { GhlClient } from "./ghl.js";
@@ -12,6 +12,8 @@ export interface ParsedReply {
   email?: string;
   text: string;
   messageId?: string;
+  /** The message was machine-sent (auto-reply headers). Never treated as a real answer. */
+  autoReply?: boolean;
 }
 
 const ACTION_INTENTS: ReplyIntent[] = ["meeting_request", "positive_interest", "question", "referral"];
@@ -79,6 +81,7 @@ export function parseGhlReplyPayload(body: any): ParsedReply | null {
     email: email && String(email).includes("@") ? String(email).trim() : undefined,
     text: clean,
     messageId: messageId ? String(messageId) : undefined,
+    autoReply: body.autoReply === true,
   };
 }
 
@@ -116,7 +119,9 @@ export async function handleReply(payload: any, deps: ReplyDeps): Promise<ReplyR
   const now = (deps.now || (() => new Date()))();
   const notify = deps.notify || ((channel: string, text: string) => postLine({ channel, text }));
   const channel = deps.salesDeskChannel || salesDeskChannel();
-  const intent = classifyIntent(parsed.text);
+  const classified = classifyIntent(parsed.text);
+  // An auto-reply is not an answer: it defers the next touch like an out-of-office, unless it is an opt-out.
+  const intent: ReplyIntent = parsed.autoReply && classified !== "opt_out" ? "out_of_office" : classified;
 
   let prospect = parsed.contactId ? await deps.store.findByGhlContactId(parsed.contactId) : null;
   if (!prospect && parsed.email) prospect = await deps.store.findByEmail(parsed.email);
@@ -124,7 +129,7 @@ export async function handleReply(payload: any, deps: ReplyDeps): Promise<ReplyR
   if (!prospect) {
     await notify(
       channel,
-      `*Prospect reply (unmatched)* intent: *${intent}* [${actionLabel(intent)}]\nGHL contact: ${parsed.contactId || "unknown"}${parsed.email ? ` | ${parsed.email}` : ""}\nNot matched to a running sequence; no sequence state changed.\n> ${clip(parsed.text, 600)}`
+      `*Prospect reply (unmatched)* intent: *${intent}* [${actionLabel(intent)}]\n${parsed.contactId ? `GHL contact: ${parsed.contactId}${parsed.email ? ` | ${parsed.email}` : ""}` : `From: ${parsed.email || "unknown"}`}\nNot matched to a running sequence; no sequence state changed.\n> ${clip(parsed.text, 600)}`
     );
     return { status: "routed", matched: false, intent, sequenceAction: "none" };
   }

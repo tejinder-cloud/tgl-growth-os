@@ -8,6 +8,8 @@ import { checkAgentCostCap, callAnthropicWithCostCap } from "../../lib/cost-cap.
 import { getAnthropicModel, getAnthropicPricing } from "../../lib/anthropic-pricing.js";
 export { getAnthropicModel, getAnthropicPricing };
 import type { GatheredData } from "./gather.js";
+import { buildPlainCardText } from "./plain-card-data.js";
+import { PROGRAMME_DAYS } from "./plain-card.js";
 
 export interface SynthesisResult {
   digestText: string;
@@ -17,6 +19,9 @@ export interface SynthesisResult {
   totalCostUsd: number;
   loggedCost: boolean;
 }
+
+// Pictographs, symbols, dingbats: the standup must never carry any.
+const EMOJI_REGEX = /(?:\p{Extended_Pictographic}|[\u{2600}-\u{26FF}\u{2700}-\u{27BF}])/u;
 
 /**
  * Loads the Chief of Staff SKILL.md to use as the system prompt.
@@ -36,18 +41,37 @@ export function loadChiefOfStaffSkillPrompt(): string {
     }
   }
 
-  return "You are the Chief of Staff at The Growth Lab. Terse, numerical, allergic to vague updates. Format per ORG.md §4, maximum 25 lines.";
+  return "You are the Chief of Staff at The Growth Lab. Plain-spoken and numerical. Every line is a sentence a non-technical owner can read.";
 }
 
 /**
- * Calls Anthropic to synthesize the 18:00 standup digest from gathered operational data.
- * Outputs the ORG.md §4 shape:
- * 1. Per-door headline numbers (or "no data yet")
- * 2. Blockers ranked (money > customer > irreversible > everything else)
- * 3. Approvals pending with links
- * 4. One line per reporting agent
- * Hard cap: 25 lines total.
- * Logs token cost to logs/<today>/chief-of-staff.md.
+ * Builds the plain-English 21:00 standup from the gathered material. Same shape as the
+ * 09:00 card: greeting line with pace and next gate, Today, Tomorrow, Money, Needs you.
+ * It always ends with the "Daily Standup Digest" sign-off line, which the catch-up and
+ * reply-polling logic use to find the post.
+ */
+export async function buildPlainStandupText(data: GatheredData, options?: { testMode?: boolean }): Promise<string> {
+  const isTest = options?.testMode === true || process.env.TGL_TEST_MODE === "1";
+  const card = await buildPlainCardText({
+    mode: "evening",
+    dateStr: data.date,
+    testMode: isTest,
+    material: data,
+  });
+  return withStandupSignOff(card, data);
+}
+
+function withStandupSignOff(text: string, data: GatheredData): string {
+  const signOff = `That is the Daily Standup Digest for ${data.date}, compiled at ${data.compileTime || "21:00"} IST.`;
+  if (text.includes("Daily Standup Digest")) return text;
+  return `${text}\n${signOff}`;
+}
+
+/**
+ * Calls Anthropic to put the 21:00 standup into plain words, starting from the deterministic
+ * plain-English card (which already carries every fact). If the model drifts from the shape,
+ * or adds an emoji, the deterministic card is posted instead.
+ * Hard cap: 25 lines total. Logs token cost to logs/<today>/chief-of-staff.md.
  */
 export async function synthesizeStandupDigest(
   data: GatheredData,
@@ -57,26 +81,24 @@ export async function synthesizeStandupDigest(
   const modelName = getAnthropicModel();
   const { priceInPerMTok, priceOutPerMTok } = getAnthropicPricing();
 
+  const draftCard = await buildPlainStandupText(data, { testMode: isTest });
+
   const systemPrompt = loadChiefOfStaffSkillPrompt() + `
 
-MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
-- You must output strictly plain text / Slack mrkdwn for the standup digest.
-- DENSITY & LENGTH CONSTRAINT:
-  • Be terse, numerical, and compact. Target output length is approximately 350–450 tokens (~20–25 lines).
-  • Zero preamble, conversational filler, or commentary. Output ONLY the final standup digest.
-  • Every agent line must be a single compact bullet: '• *@<agent>*: <terse did> · <tomorrow>' (max 20 words per line).
-  • Every blocker must be a single compact bullet: '• [<Rank>] <who>: <what>' (max 15 words).
-- Shape:
-  1. Header: "*The Growth Lab — Daily Standup Digest | ${data.date} ${data.compileTime || "18:00"} IST*"
-  2. Per-Door Headline Numbers (AEO, AI, TrueLead, Core): either real count/metric or "no data yet".
-  3. Revenue Line: "• *Revenue:* <audit requests> audit requests · <diagnostic calls booked> diagnostic calls booked · <proposals sent> proposals sent · <retainers won> retainers won · ₹<rupees invoiced> invoiced" (zeros shown as 0, not dash).
-  4. Blockers: list every open issue labelled status:blocked or status:needs-brief with number, title and age, and every open review card older than 2 hours. If those queries return nothing, output strictly "• None reported".
-  5. Pending Approvals: list each card from #approvals without decisions/ line, with direct link. If none, "• None pending."
-  6. Open Proposals & Warnings: list open proposals (#<num> [@<agent>]: <title>) where approve converts to plan entry. Flag any agent at >=80% of daily cost cap. State any carried forward plan entries.
-  7. Agent Standup Lines: strictly one single terse line per reporting agent (Did · Tomorrow).
-- HARD CAP: The entire message MUST be 25 lines or fewer. Count your lines carefully.
-- FACTUAL FIDELITY: Never invent a number, metric, or status not present in the material.
-- NO EMOJIS: Use strictly plain text and bold only (no emoji characters anywhere).
+MANDATORY OUTPUT FORMAT & CONSTRAINTS (plain-English standup):
+- Output strictly plain text / Slack mrkdwn (bold labels only). No emojis anywhere.
+- You are given a DRAFT CARD that already holds every fact. Return it with light smoothing only.
+- Keep this exact shape, in this order:
+  1. Line 1: "Good evening. Day N of 90 — on track / X days behind / X days ahead (Next gate: <gate>, expected <date>)." Do not change N, the pace or the gate.
+  1b. The "*Revenue target" line from the draft, word for word. Never reword it or change a number in it.
+  2. "*Today:*" two or three plain sentences: tracker answers and how often our brand was named, researcher candidates and how many qualified, merged pull requests by title, cards approved.
+  3. "*Tomorrow:*" the scheduled runs and any active issue.
+  4. "*Money:*" audit requests, calls booked, proposals, retainers, rupees invoiced, and today's spend in rupees.
+  5. "*Needs you:*" a numbered list. Each item is an action, then an arrow (→), then the expected outcome in one sentence. Keep only the links an action needs. If the list is empty, write exactly "Nothing else needs you."
+  6. A last line that contains the words "Daily Standup Digest".
+- Do not add an Open Issues count, a Carried or Blocked line, or reference links.
+- FACTUAL FIDELITY: never invent or alter a number, title, date or status. If a fact is not in the draft, leave it out.
+- HARD CAP: 25 lines or fewer. No preamble, no commentary.
 `;
 
   let digestText = "";
@@ -87,9 +109,8 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
   const costCheck = await checkAgentCostCap("chief-of-staff");
   if (!costCheck.allowed) {
     console.warn(`[Chief of Staff] Daily cost cap exceeded ($${costCheck.currentSpend.toFixed(2)} >= $${costCheck.cap.toFixed(2)}). Using deterministic synthesis.`);
-    digestText = generateDeterministicDigest(data);
     return {
-      digestText: enforceLineCap(digestText, 25),
+      digestText: enforceLineCap(draftCard, 25),
       model: modelName,
       inputTokens: 0,
       outputTokens: 0,
@@ -109,7 +130,7 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
           messages: [
             {
               role: "user",
-              content: `Synthesize the 18:00 IST Standup Digest from today's gathered operational material:\n\n${data.rawSummaryText}`,
+              content: `Return the 21:00 IST standup for ${data.date}, smoothing the DRAFT CARD below into plain sentences without changing any fact.\n\nDRAFT CARD:\n${draftCard}\n\nSUPPORTING MATERIAL (for reference only):\n${data.rawSummaryText}`,
             },
           ],
         },
@@ -129,20 +150,29 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
 
       if (!digestText) {
         console.warn("[Anthropic WARNING] Anthropic response text was empty; falling back to deterministic synthesis.");
-        digestText = generateDeterministicDigest(data);
+        digestText = draftCard;
       }
     } catch (err: any) {
       console.warn("[Anthropic] API call failed; falling back to deterministic synthesis:", err.message);
-      digestText = generateDeterministicDigest(data);
+      digestText = draftCard;
       inputTokens = 850;
       outputTokens = 220;
     }
   } else {
     console.log("[Anthropic] ANTHROPIC_API_KEY not configured; using deterministic synthesis for test/dry-run");
-    digestText = generateDeterministicDigest(data);
+    digestText = draftCard;
     inputTokens = 850;
     outputTokens = 220;
   }
+
+  // Guard the shape: fall back to the deterministic card if the model drifted or used an emoji.
+  // The revenue-target line must survive the smoothing exactly: it is the number the company is being run on.
+  const targetLine = draftCard.split("\n").find((l) => l.startsWith("*Revenue target")) || "";
+  if (!isPlainShape(digestText, "evening") || EMOJI_REGEX.test(digestText) || (targetLine && !digestText.includes(targetLine))) {
+    console.warn("[Chief of Staff] Model output left the plain-English shape; using the deterministic card.");
+    digestText = draftCard;
+  }
+  digestText = withStandupSignOff(digestText, data);
 
   // Enforce 25 lines hard cap
   digestText = enforceLineCap(digestText, 25);
@@ -186,96 +216,25 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (ORG.md §4):
 }
 
 /**
- * Deterministic fallback synthesis adhering strictly to ORG.md §4 and the 25-line cap.
+ * True when the text has the plain-English shape: greeting with day and pace on line 1,
+ * the labelled sections in order, and none of the removed lines.
  */
-function generateDeterministicDigest(data: GatheredData): string {
-  const lines: string[] = [];
-
-  lines.push(`*The Growth Lab — Daily Standup Digest | ${data.date} ${data.compileTime || "18:00"} IST*`);
-  lines.push("──────────────────────────────────────────");
-
-  // 1. Doors headline
-  lines.push("*Product Doors:*");
-  lines.push("• *AEO:* no data yet | *AI:* no data yet | *TrueLead:* no data yet | *Core:* operational");
-
-  // Revenue line
-  const rev = data.revenueMetrics || {
-    auditRequests: 0,
-    diagnosticCallsBooked: 0,
-    proposalsSent: 0,
-    retainersWon: 0,
-    rupeesInvoiced: 0,
-  };
-  lines.push(`• *Revenue:* ${rev.auditRequests} audit requests · ${rev.diagnosticCallsBooked} diagnostic calls booked · ${rev.proposalsSent} proposals sent · ${rev.retainersWon} retainers won · ₹${rev.rupeesInvoiced} invoiced`);
-
-  // 2. Blockers: open issues labeled status:blocked or status:needs-brief, review cards > 2h
-  lines.push("\n*Blockers:*");
-  const blockerLines: string[] = [];
-
-  for (const b of data.blockedIssues || []) {
-    const ageStr = b.ageDays > 0 ? `${b.ageDays}d` : `${b.ageHours || 0}h`;
-    blockerLines.push(`• #${b.number} (${b.title}, ${ageStr}): ${b.label}`);
+export function isPlainShape(text: string, mode: "morning" | "evening"): boolean {
+  const hello = mode === "morning" ? "Good morning." : "Good evening.";
+  const first = text.split("\n")[0] || "";
+  if (!first.startsWith(`${hello} Day `) || !new RegExp(` of ${PROGRAMME_DAYS} — `).test(first)) return false;
+  const activity = mode === "morning" ? "Yesterday:" : "Today:";
+  const schedule = mode === "morning" ? "Today:" : "Tomorrow:";
+  const order = [activity, schedule, "Money:", "Needs you:"];
+  let from = 0;
+  for (const label of order) {
+    const idx = text.indexOf(label, from);
+    if (idx < 0) return false;
+    from = idx + label.length;
   }
-
-  for (const rc of data.olderReviewCards || []) {
-    blockerLines.push(`• Review card: *${rc.title}* (@${rc.agent}, ${rc.ageHours ?? 2}h)`);
-  }
-
-  if (blockerLines.length === 0) {
-    lines.push("• None reported");
-  } else {
-    for (const bl of blockerLines) {
-      lines.push(bl);
-    }
-  }
-
-  // 3. Approvals Pending
-  lines.push("\n*Approvals Pending:*");
-  if (data.openApprovals.length === 0) {
-    lines.push("• _None pending._");
-  } else {
-    for (const a of data.openApprovals.slice(0, 3)) {
-      lines.push(`• *${a.title}* (@${a.agent}, ${a.ageHours ?? 0}h) — <${a.permalink}|View card>`);
-    }
-  }
-
-  // 4. Open Proposals & Warnings
-  if (data.openProposals && data.openProposals.length > 0) {
-    lines.push("\n*Open Proposals:*");
-    for (const p of data.openProposals.slice(0, 2)) {
-      lines.push(`• *#${p.number}* (@${p.agent}): ${p.title.replace(/^\[PROPOSAL\]:\s*/i, "")}`);
-    }
-  }
-
-  const over80 = (data.agentCostStatuses || []).filter((s) => s.isOver80Percent);
-  if (over80.length > 0) {
-    for (const s of over80) {
-      lines.push(`• *@${s.agent}* at ${Math.round(s.percentage)}% of daily cost cap ($${s.currentSpendUsd.toFixed(2)} / $${s.capUsd.toFixed(2)})`);
-    }
-  }
-
-  if (data.carriedForwardPlanEntries && data.carriedForwardPlanEntries.length > 0) {
-    for (const c of data.carriedForwardPlanEntries.slice(0, 2)) {
-      lines.push(`• *Carried forward:* Day ${c.day} (@${c.agent}) "${c.title.slice(0, 35)}"`);
-    }
-  }
-
-  // 5. One line per reporting agent
-  lines.push("\n*Agent Reports:*");
-  if (data.logs.length === 0) {
-    lines.push("• _No agent logs recorded today._");
-  } else {
-    for (const log of data.logs.slice(0, 4)) {
-      const firstLine = log.content.split("\n")[0].replace(/^[-•#\s]+/, "").slice(0, 60);
-      lines.push(`• *\`@${log.agent}\`*: ${firstLine || "Work logged"}`);
-    }
-  }
-
-  // 6. Health & Infrastructure
-  lines.push(`• *Intake:* intake last read ${data.intakeLastReadTime || "never"}`);
-
-  lines.push("\n_Active agents: reply in-thread with your 4 lines: Did · Blocked · Need · Tomorrow._");
-  return lines.join("\n");
+  // The old card's labels must be gone; a Needs-you sentence may still say a day "was carried forward".
+  if (/Open Issues:|Carried \/ Blocked:|Carried Items:/i.test(text)) return false;
+  return true;
 }
 
 /**

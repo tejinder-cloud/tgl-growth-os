@@ -1,7 +1,8 @@
 // services/tgl-ops/src/agents/prospect-researcher/types.ts
 
 export type ProspectDoor = "aeo" | "truelead" | "ai";
-export type ProspectStatus = "new" | "reviewed" | "rejected" | "handed_to_outreach";
+// "nurture" and "bench" are the Playbook F hold states (score 50 to below the qualified threshold).
+export type ProspectStatus = "new" | "reviewed" | "rejected" | "handed_to_outreach" | "nurture" | "bench";
 
 export interface DecisionMaker {
   name: string;
@@ -9,6 +10,8 @@ export interface DecisionMaker {
   email: string;
   phone?: string;
   source: string;
+  /** False when no contact route passed the work-contact rules (contact-rules.ts). Absent on rows written before #184. */
+  verified?: boolean;
 }
 
 export interface ProspectSignals {
@@ -16,16 +19,27 @@ export interface ProspectSignals {
   meta_ad_count: number;
   gbp_reviews: number;
   gbp_owner_replies: boolean;
+  /** Retired from scoring under rubric v2 (hiring criterion removed). Kept so stored v1 rows still parse. */
   hiring_marketing: boolean;
+  /** Retired from scoring under rubric v2 (v1 Dimension 4 scale signal). Kept so stored v1 rows still parse. */
   review_surge: boolean;
   branch_count: number;
   ad_library_url?: string;
+  /** Rubric v2 Dimension 2: Google Ads observed for the prospect. */
+  google_ads_active?: boolean;
+  /** Rubric v2 Dimension 2: paid directory listings observed (e.g. "Practo", "Justdial", "MakeMyTrip"). */
+  paid_directory_listings?: string[];
+  /** Rubric v2 Dimension 2: website rebuilt in the last 12 months. */
+  site_rebuilt_last_12m?: boolean;
   chain_evidence?: string[];
   places_brand_count?: number;
   is_large_org?: boolean;
   brand_prefix?: string;
   root_domain_hosts_other_branches?: boolean;
   registered_hq_metro?: string;
+  /** Google Places primary type ("dental_clinic") and its display name, used to phrase the Dimension 4 question. */
+  place_primary_type?: string;
+  place_primary_type_label?: string;
   raw_signals?: Record<string, any>;
 }
 
@@ -82,6 +96,8 @@ export interface ResearchRunResult {
   category: string;
   discoveredCount: number;
   qualifiedCount: number;
+  /** Candidates scored 50 to below the qualified threshold this run and saved with status "bench". Not part of `prospects`. */
+  benchedCount?: number;
   dedupedCount: number;
   prospects: ProspectRecord[];
   placesCallsUsed: number;

@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-12",
+  "posted": true,
+  "standupTs": "1794486600.660159",
+  "channel": "C0ASF13879Q",
+  "compiledAt": "2026-11-12T12:20:24.404Z",
+  "digestText": "Good evening. Day 13 of 68 — 8 days behind (Next gate: Gate 1 at Day 15, originally due 11 Nov).\n*Today:* The citation tracker collected 48 answers and our brand was named in 6 of them. The prospect researcher looked at 20 candidates and 2 qualified. 8 pull requests were merged (\"feat(aeo-audit): Claude as an optional fourth assistant in prospect audits\", \"fix(aeo-audit): a short name is not counted inside a longer business name\", \"fix(aeo-audit): prospect rank is read against names found anywhere in the answer, not only bold ones\" and 5 more), and no cards were approved.\n*Tomorrow:* These runs are scheduled: the chief of staff at 09:00, the chief of staff at 17:50, the chief of staff at 18:00, the chief of staff at 18:15, the chief of staff, the prospect researcher at 09:30, and 7 more. No issue is in progress.\n*Money:* 0 audit requests, 0 calls booked, 0 proposals, 0 retainers, ₹0 invoiced. Today's spend was ₹45.65.\n*Needs you:*\n1. Reply \"go\" in #architect to start Day 14 (Outreach live: 20/day + Delivery QA) → the agent receives its brief and the plan starts catching up.\nThat is the Daily Standup Digest for 2026-11-12, compiled at 17:50 IST.",
+  "synthesis": {
+    "model": "claude-sonnet-5-5",
+    "inputTokens": 3855,
+    "outputTokens": 1279,
+    "totalCostUsd": 0.0307,
+    "costLine": "Standup compilation: 3855 input, 1279 output (claude-sonnet-5-5) · Cost: $0.0307 USD"
+  },
+  "source": "cron",
+  "postedAt": "2026-11-12T12:30:00.860Z",
+  "threadPromptTs": "1794486600.782259"
+}

@@ -192,7 +192,36 @@ import { runAgencyGraceCheck } from "./agents/aeo-billing/agency.js";
 import { checkWordPressConnections, runImplementer } from "./agents/aeo-execution/worker.js";
 import { runPlanner } from "./agents/aeo-planner/worker.js";
 import { runCompetitorIntel } from "./agents/aeo-competitors/worker.js";
-import { postHealthList, runConcierge } from "./agents/aeo-concierge/worker.js";
+import { postHealthList, relayDataRequests, runConcierge } from "./agents/aeo-concierge/worker.js";
+import { issueInvoices } from "./agents/aeo-billing/invoices-worker.js";
+import { runSiteHealth } from "./agents/aeo-site-health/worker.js";
+
+// Hourly: site health for verified brands not checked in the last ~6 hours (noindex, unreachable, crawlers blocked)
+cron.schedule(
+  "48 * * * *",
+  wrapCronJob("TrueVisible site health", async () => {
+    await runSiteHealth();
+  }),
+  { timezone: config.timezone }
+);
+
+// Every 10 minutes: GST tax invoices for paid invoice rows without one (plan Day 32b)
+cron.schedule(
+  "3,13,23,33,43,53 * * * *",
+  wrapCronJob("TrueVisible tax invoices", async () => {
+    await issueInvoices();
+  }),
+  { timezone: config.timezone }
+);
+
+// Every 10 minutes: data-erasure requests → #alerts (plan Day 32)
+cron.schedule(
+  "*/10 * * * *",
+  wrapCronJob("TrueVisible data requests", async () => {
+    await relayDataRequests();
+  }),
+  { timezone: config.timezone }
+);
 
 // Hourly 10:00–19:00 IST: journey emails (finish setup, trial day 3/5, after the trial, away 14+ days, managed offer) — Day 31
 cron.schedule(
@@ -289,6 +318,25 @@ cron.schedule(
 );
 
 import { runCitationTracking, runFirstAudits, runGeminiExperimentJob } from "./agents/aeo-audit-engine/worker.js";
+import { supabaseHomeStatsProvider } from "./agents/aeo-audit-engine/home-stats.js";
+import { setHomeStatsProvider } from "./routes/home-stats.js";
+import { setRevenueCountsProvider } from "./routes/ops-revenue.js";
+import { readRevenueProgress } from "./agents/chief-of-staff/plain-card-data.js";
+import { getRevenueMetrics } from "./lib/revenue.js";
+
+// GET /home/stats (Home page Client Zero tiles): TGL's own tracker counts and dates, 10-minute cache.
+// No Supabase configured means no provider, and the route answers 503 so every tile keeps its dash.
+{ const sb = getSupabaseForBilling(); if (sb) setHomeStatsProvider(supabaseHomeStatsProvider(sb)); }
+// GET /ops/revenue: the same counts as the 09:00 card's revenue line. A count that cannot be read stays null.
+setRevenueCountsProvider(async () => {
+  const [progress, revenue] = await Promise.all([readRevenueProgress(), getRevenueMetrics().catch(() => null)]);
+  return {
+    auditsRequested: progress ? progress.auditsRequested : null,
+    auditsSent: progress ? progress.auditsSent : null,
+    callsBooked: revenue ? revenue.diagnosticCallsBooked : null,
+    retainersWon: revenue ? revenue.retainersWon : null,
+  };
+});
 
 // Every 30 min: Gemini cost experiment — runs once a day after today's Gemini answers exist, only while
 // AEO_GEMINI_EXPERIMENT_MODELS is set (Architect decision 4 Nov 2026). Writes public.experiments only.
@@ -431,15 +479,22 @@ export { app };
 // ---------------------------------------------------------------------------
 // Outreach Sequencer live wiring (PLAN-D10b)
 // ---------------------------------------------------------------------------
-import { buildReplyDeps, createOutreachRuntime, fileLogWriter, tickCron, type OutreachRuntime } from "./agents/outreach-sequencer/live.js";
+import { buildInboundDeps, buildReplyDeps, createOutreachRuntime, fileLogWriter, tickCron, type OutreachRuntime } from "./agents/outreach-sequencer/live.js";
 import { loadOutreachTemplatesAsync, verifyBundledTemplatesMatchRepo } from "./agents/outreach-sequencer/templates.js";
-import { setOutreachReplyDeps } from "./routes/outreach.js";
+import { setOutreachInboundDeps, setOutreachReplyDeps } from "./routes/outreach.js";
 
 // POST /outreach/ghl-reply: the handler needs the real store and GHL client, supplied once at boot.
 try {
   setOutreachReplyDeps(buildReplyDeps());
 } catch (err: any) {
   console.error("[Outreach] Reply handler not wired:", err?.message || err);
+}
+
+// POST /outreach/resend-events and /outreach/unsubscribe: email received, bounced or unsubscribed with no GHL in the path.
+try {
+  setOutreachInboundDeps(buildInboundDeps());
+} catch (err: any) {
+  console.error("[Outreach] Inbound email handler not wired:", err?.message || err);
 }
 
 // Daily tick, Mon-Fri 09:30-17:30 IST. The send-window rule inside runTick refuses anything outside it.

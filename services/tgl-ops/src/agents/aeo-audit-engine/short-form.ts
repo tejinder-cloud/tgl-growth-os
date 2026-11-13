@@ -3,6 +3,8 @@
 // for a target brand, reading answers and citations deterministically.
 // Enforces the Iron Law of Honesty: refuses unverified setups, displays exact cell ranks,
 // counts actual answer frequencies, generates matrix-driven next steps, and records excerpts.
+// The five audited prompts are chosen by buyer intent (decision/comparison first, then consideration,
+// then the rest), and branded prompts (containing the brand name) are never audited.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -15,14 +17,19 @@ import {
   type EngineId,
 } from "./types.js";
 import { loadEngineConfig, askEngine } from "./engines.js";
-import { analyzeAnswer, analyzeCitation } from "./analyze.js";
+import { analyzeAnswer, analyzeCitation, firstIndexOf, namesFor } from "./analyze.js";
 import {
   loadVerifiedBrandProfile,
   type VerifiedBrandProfile,
   type SetupStatus,
 } from "./setup-profile.js";
+import { generateMatrixNextSteps } from "./next-steps.js";
+import { businessNamesInAnswer } from "./named-businesses.js";
+import { nameMatchesProspect } from "../prospect-researcher/dim4.js";
 import { putFileInRepo } from "../../lib/github-client.js";
 import { isTestMode } from "../../config.js";
+
+export { generateMatrixNextSteps };
 
 export type MatrixBadge = "Named #1" | "Named #2" | "Named #3" | "Mentioned" | "—";
 
@@ -32,6 +39,59 @@ export function getCellBadge(analysis: AnswerAnalysis): MatrixBadge {
   if (analysis.position === 2) return "Named #2";
   if (analysis.position === 3) return "Named #3";
   return "Mentioned";
+}
+
+/** Number of prompts audited in a short-form audit. */
+export const AUDIT_PROMPT_COUNT = 5;
+
+/** Minimal prompt shape needed for selection (VerifiedPrompt satisfies it). */
+export interface SelectablePrompt {
+  text: string;
+  journey_phase?: string;
+}
+
+function normaliseForMatch(s: string): string {
+  return s.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+/**
+ * A prompt is branded when its text contains the brand name (case-insensitive, whitespace-normalised).
+ */
+export function isBrandedPrompt(promptText: string, brandName: string): boolean {
+  const brand = normaliseForMatch(brandName || "");
+  if (!brand) return false;
+  return normaliseForMatch(promptText).includes(brand);
+}
+
+/**
+ * Buyer-intent rank of a journey phase: lower is audited first.
+ * 0 = decision or comparison, 1 = consideration, 2 = everything else (awareness, unknown, missing).
+ */
+export function journeyPhaseRank(phase?: string | null): number {
+  const p = (phase || "").trim().toLowerCase();
+  if (p === "decision" || p === "comparison") return 0;
+  if (p === "consideration") return 1;
+  return 2;
+}
+
+/**
+ * Chooses the prompts to audit by buyer intent instead of taking the first five:
+ * 1. Branded prompts (containing the brand name) are excluded.
+ * 2. Remaining prompts are ordered decision/comparison, then consideration, then the rest.
+ * 3. Order within a phase is the input order (stable).
+ * Returns up to `count` prompts; callers decide what to do when fewer are available.
+ */
+export function selectAuditPrompts<T extends SelectablePrompt>(
+  prompts: T[],
+  brandName: string,
+  count: number = AUDIT_PROMPT_COUNT
+): T[] {
+  return prompts
+    .filter((p) => !isBrandedPrompt(p.text, brandName))
+    .map((p, order) => ({ p, order, rank: journeyPhaseRank(p.journey_phase) }))
+    .sort((a, b) => a.rank - b.rank || a.order - b.order)
+    .slice(0, count)
+    .map((x) => x.p);
 }
 
 export interface PromptEngineResult {
@@ -59,11 +119,18 @@ export interface PromptAuditResult {
 }
 
 export interface MatrixNextSteps {
+  /** Engine with the fewest mentions of the brand (empty when the matrix has no engines). */
   weakestEngine: string;
   weakestEngineMentions: number;
+  /** Engines that named the brand in none of the prompts. */
+  zeroMentionEngines: string[];
   queriesLost: number[];
+  /** Prompt indexes of the two weakest queries. */
+  weakestQueries: number[];
+  /** Competitor named in the most answers; empty string when no competitor was named. */
   winningCompetitor: string;
   winningCompetitorCount: number;
+  /** Most-cited non-brand domain; empty string when nothing was cited. */
   topCitationGap: string;
   formattedText: string;
 }
@@ -95,16 +162,47 @@ export interface ShortFormAuditResult {
   };
   nextSteps: MatrixNextSteps;
   rawAnswersJsonPath?: string;
+  /** "prospect" for a free first audit run without a verified setup profile; absent or "client" otherwise. */
+  auditKind?: "client" | "prospect";
+  /** The engines whose answers are in this result, in column order. */
+  engines?: EngineId[];
+  /** Optional engines that could not be asked. Their column is left out; nothing is reported for them. */
+  skippedEngines?: { engine: EngineId; reason: string }[];
+}
+
+/** A prospect with no setup profile: the business as it would like to be named, and its website. */
+export interface ProspectAuditTarget {
+  name: string;
+  website: string;
+  /** Other ways the business is written, if known. */
+  variants?: string[];
+  /**
+   * Optional second reading of the names found across all answers: given every name, returns the ones that are
+   * real businesses of the prospect's kind (or null when it cannot say). Names it drops are removed from
+   * "who was named instead" and no longer count toward position. It can only remove names, never add one.
+   */
+  nameFilter?: (names: string[]) => Promise<string[] | null>;
 }
 
 export interface ShortFormOptions {
   prompts?: string[];
   engines?: EngineId[];
+  /**
+   * Engines in `engines` that the audit can do without. If one cannot be configured or fails, it is dropped from
+   * this audit (no column, no counts) and the audit goes on; any other engine failing stops the audit as before.
+   */
+  optionalEngines?: EngineId[];
   usdInrRate?: number;
   testMode?: boolean;
   engineMock?: (engine: EngineId, prompt: string) => Promise<EngineAnswer>;
   saveRawJson?: boolean;
   supabase?: any;
+  /**
+   * Prospect audit (decisions/2026-11-12.md): run without a verified setup profile for this business.
+   * Requires exactly AUDIT_PROMPT_COUNT non-branded `prompts`. The result is marked auditKind "prospect";
+   * the caller posts it for the Architect's review and never sends it to the prospect.
+   */
+  prospect?: ProspectAuditTarget;
 }
 
 /**
@@ -117,7 +215,7 @@ export function extractPromptExcerpt(
   brandName: string
 ): PromptExcerpt {
   // Prefer Perplexity or Gemini as primary excerpt source, or ChatGPT if others absent
-  const preferredEngines: EngineId[] = ["perplexity", "gemini", "chatgpt"];
+  const preferredEngines: EngineId[] = ["perplexity", "gemini", "chatgpt", "claude"];
   let pickedEngine: EngineId = "perplexity";
   let pickedResult = engineResults.perplexity;
 
@@ -138,7 +236,8 @@ export function extractPromptExcerpt(
   const badge = pickedResult ? pickedResult.badge : "—";
 
   // Clean and condense to a 1-line factual proof
-  let excerptText = rawText.replace(/\r?\n|\r/g, " ").replace(/\s+/g, " ").trim();
+  // Markdown markers (bold asterisks, heading hashes) are layout, not words: they are dropped from the excerpt.
+  let excerptText = rawText.replace(/\r?\n|\r/g, " ").replace(/\*+|(?:^|\s)#{1,6}\s/g, " ").replace(/\s+/g, " ").trim();
   if (excerptText.length > 130) {
     excerptText = excerptText.slice(0, 127).trim() + "...";
   }
@@ -150,67 +249,77 @@ export function extractPromptExcerpt(
   };
 }
 
-/**
- * Generates dynamic, matrix-driven next steps based strictly on matrix outcomes.
- * Identifies weakest engine, lost/outranked queries, winning competitor, and top citation gaps.
- */
-export function generateMatrixNextSteps(
-  results: PromptAuditResult[],
-  summary: ShortFormAuditResult["summary"],
-  brandName: string
-): MatrixNextSteps {
-  // 1. Weakest engine
-  const engineEntries = (Object.entries(summary.mentionsByEngine) as [EngineId, number][]).sort(
-    (a, b) => a[1] - b[1]
-  );
-  const weakest = engineEntries[0] || ["chatgpt", 0];
-  const engineNameMap: Record<EngineId, string> = {
-    chatgpt: "ChatGPT",
-    gemini: "Gemini",
-    perplexity: "Perplexity",
-  };
-  const weakestEngineName = engineNameMap[weakest[0]] || weakest[0];
-
-  // 2. Lost or outranked queries (brand absent or ranked > 1)
-  const queriesLost: number[] = [];
-  for (const r of results) {
-    const isLostOrOutranked = Object.values(r.engineResults).some(
-      (er) => !er.analysis.mentioned || (er.analysis.position !== null && er.analysis.position > 1)
-    );
-    if (isLostOrOutranked) {
-      queriesLost.push(r.promptIndex);
-    }
+function prospectHost(website: string): string {
+  try {
+    const clean = (website || "").trim();
+    if (!clean) return "";
+    return new URL(/^https?:\/\//i.test(clean) ? clean : `https://${clean}`).hostname.replace(/^www\./, "").toLowerCase();
+  } catch {
+    return "";
   }
+}
 
-  // 3. Winning competitor
-  const sortedComps = Object.entries(summary.competitorMentions).sort((a, b) => b[1] - a[1]);
-  const winningCompetitor = sortedComps[0] ? sortedComps[0][0] : "competing operators";
-  const winningCompetitorCount = sortedComps[0] ? sortedComps[0][1] : 0;
+/**
+ * Reads one engine answer for a prospect. `mentioned` uses the same brand matching as client audits; position
+ * counts the businesses the answer names before the prospect; competitorsMentioned are the other names found.
+ */
+export function analyzeProspectAnswer(text: string, lens: BrandLens, allowed?: Set<string>): AnswerAnalysis {
+  const base = analyzeAnswer(text, lens);
+  const isOwn = (n: string) => [lens.name, ...lens.variants].some((v) => v && nameMatchesProspect(n, v));
+  const named = businessNamesInAnswer(text).filter((n) => !allowed || allowed.has(n.name) || isOwn(n.name));
+  const isProspect = (n: string) => [lens.name, ...lens.variants].some((v) => v && nameMatchesProspect(n, v));
+  const own = named.filter((n) => isProspect(n.name));
+  const others = named.filter((n) => !isProspect(n.name));
+  const mentioned = base.mentioned || own.length > 0;
+  let position: number | null = null;
+  if (own.length > 0) {
+    const at = Math.min(...own.map((n) => n.index));
+    position = 1 + others.filter((o) => o.index < at).length;
+  } else if (base.mentioned) {
+    // Named in running text, not as a listed business: counted as a mention with no rank.
+    position = others.length > 0 ? Math.max(4, others.length + 1) : 1;
+  }
+  return { mentioned, position, competitorsMentioned: others.map((o) => o.name) };
+}
 
-  // 4. Citation gap
-  const topCitations = Object.entries(summary.citationDomains)
-    .filter(([dom]) => !dom.includes("thegrowthlab"))
-    .sort((a, b) => b[1] - a[1]);
-  const topCitationGap = topCitations[0] ? topCitations[0][0] : "directory listings";
+/**
+ * Ranks the prospect in one answer against a known list of other businesses, wherever in the text they appear
+ * (bold, numbered or plain sentence). `mentioned` is decided exactly as in analyzeProspectAnswer, so the second
+ * pass never changes whether an answer counts as naming the prospect; only who else was named, and the order.
+ */
+export function rankProspectAnswer(text: string, lens: BrandLens, otherNames: string[]): AnswerAnalysis {
+  const isOwn = (n: string) => [lens.name, ...lens.variants].some((v) => v && nameMatchesProspect(n, v));
+  const ownIndexes = businessNamesInAnswer(text).filter((n) => isOwn(n.name)).map((n) => n.index);
+  const inText = firstIndexOf(text, namesFor(lens));
+  if (inText >= 0) ownIndexes.push(inText);
+  const brandAt = ownIndexes.length > 0 ? Math.min(...ownIndexes) : -1;
 
-  // 5. Dynamic text
-  const lostQueriesLabel = queriesLost.length > 0 ? `Queries ${queriesLost.join(", ")}` : "evaluated queries";
-  const formattedText =
-    `Visibility score is ${summary.visibilityScorePercent}% across ${results.length * 3} model answers. ` +
-    `Primary gap is ${weakestEngineName} (${weakest[1]}/${results.length} mentions), where ${winningCompetitor} ` +
-    `captured top placement across ${lostQueriesLabel} with ${winningCompetitorCount} answer mentions. ` +
-    `To advance visibility toward 90%+, deploy comparison entity schemas targeting ${winningCompetitor}, ` +
-    `seed verified citations on ${topCitationGap}, and optimize structured data for counselling conversion keywords.`;
-
+  // Longest names first, and each match is blanked out before shorter names are looked for. Otherwise a fragment
+  // such as "Nursing Academy" is "found" inside "Mantram Nursing Academy" and "Kanika's Nursing Academy" and is
+  // reported as a business in its own right (first live case: 12 Nov 2026, listed in 7 of 15 answers).
+  let remaining = text;
+  const found: { name: string; at: number }[] = [];
+  const longestFirst = otherNames.filter((n) => !isOwn(n)).sort((a, b) => b.length - a.length);
+  for (const name of longestFirst) {
+    const at = firstIndexOf(remaining, [name]);
+    if (at < 0) continue;
+    found.push({ name, at });
+    remaining = blankOut(remaining, name);
+  }
+  found.sort((a, b) => a.at - b.at);
   return {
-    weakestEngine: weakestEngineName,
-    weakestEngineMentions: weakest[1],
-    queriesLost,
-    winningCompetitor,
-    winningCompetitorCount,
-    topCitationGap,
-    formattedText,
+    mentioned: brandAt >= 0,
+    position: brandAt >= 0 ? 1 + found.filter((c) => c.at < brandAt).length : null,
+    competitorsMentioned: found.map((c) => c.name),
   };
+}
+
+/** Replaces every whole-word occurrence of `name` with spaces of the same length, so indexes in the text do not move. */
+function blankOut(text: string, name: string): string {
+  const n = name.trim().replace(/\s+/g, " ");
+  if (n.length < 3) return text;
+  const pattern = n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/ /g, "\\s+").replace(/['’]/g, "['’]");
+  return text.replace(new RegExp(`(^|[^a-z0-9\\u0900-\\u097F])(${pattern})(?=$|[^a-z0-9\\u0900-\\u097F])`, "gi"), (_m, lead: string, hit: string) => lead + " ".repeat(hit.length));
 }
 
 /**
@@ -223,7 +332,32 @@ export async function runShortFormAudit(
 ): Promise<ShortFormAuditResult> {
   // Gate check: verify setup profile
   let verifiedProfile: VerifiedBrandProfile;
-  if ("setupStatus" in lensOrProfile && lensOrProfile.setupStatus) {
+  const prospect = options?.prospect;
+  if (prospect) {
+    const prompts = (options?.prompts || []).map((p) => (p || "").trim()).filter(Boolean);
+    if (prompts.length !== AUDIT_PROMPT_COUNT) {
+      throw new Error(`Prospect audit for "${prospect.name}" needs exactly ${AUDIT_PROMPT_COUNT} questions (got ${prompts.length}). Audit refused.`);
+    }
+    const branded = prompts.filter((p) => isBrandedPrompt(p, prospect.name));
+    if (branded.length > 0) {
+      throw new Error(`Prospect audit for "${prospect.name}" was given ${branded.length} question(s) containing the business name. Audit refused.`);
+    }
+    const host = prospectHost(prospect.website);
+    if (!prospect.name.trim() || !host) {
+      throw new Error(`Prospect audit needs a business name and a website. Audit refused.`);
+    }
+    verifiedProfile = {
+      brandId: "",
+      tenantId: "tgl",
+      name: prospect.name.trim(),
+      primaryDomain: host,
+      domains: [host],
+      variants: Array.from(new Set([prospect.name.trim(), ...(prospect.variants || [])].filter(Boolean))),
+      setupStatus: "prospect_unverified",
+      competitors: [],
+      prompts: prompts.map((text, i) => ({ id: `prospect-${i + 1}`, text, language: "en", journey_phase: "decision" })) as any,
+    };
+  } else if ("setupStatus" in lensOrProfile && lensOrProfile.setupStatus) {
     if (lensOrProfile.setupStatus !== "verified") {
       throw new Error(
         `Brand setup profile for "${lensOrProfile.name}" is not verified (status: ${lensOrProfile.setupStatus}). Audit refused.`
@@ -249,28 +383,34 @@ export async function runShortFormAudit(
     })),
   };
 
-  // Buyer prompts strictly from verified setup profile
-  const prompts =
-    options?.prompts && options.prompts.length === 5
-      ? options.prompts
-      : verifiedProfile.prompts.slice(0, 5).map((p) => p.text);
+  // Buyer prompts strictly from the verified setup profile, chosen by buyer intent:
+  // decision/comparison, then consideration, then the rest; branded prompts excluded.
+  let prompts: string[];
+  let phases: Array<string | undefined>;
+  if (options?.prompts && options.prompts.length === AUDIT_PROMPT_COUNT) {
+    prompts = options.prompts;
+    phases = prompts.map((text) => verifiedProfile.prompts.find((p) => p.text === text)?.journey_phase);
+  } else {
+    const selected = selectAuditPrompts(verifiedProfile.prompts, verifiedProfile.name, AUDIT_PROMPT_COUNT);
+    prompts = selected.map((p) => p.text);
+    phases = selected.map((p) => p.journey_phase);
+  }
 
-  if (prompts.length < 5) {
+  if (prompts.length < AUDIT_PROMPT_COUNT) {
+    const brandedCount = verifiedProfile.prompts.filter((p) => isBrandedPrompt(p.text, verifiedProfile.name)).length;
     throw new Error(
-      `Verified setup profile for "${verifiedProfile.name}" has fewer than 5 buyer prompts (${prompts.length}/5). Audit refused.`
+      `Verified setup profile for "${verifiedProfile.name}" has fewer than 5 non-branded buyer prompts (${prompts.length}/5; ${brandedCount} branded prompt(s) excluded). Audit refused.`
     );
   }
 
-  const engines = options?.engines || API_ENGINES;
+  let engines: EngineId[] = [...(options?.engines || API_ENGINES)];
+  const optional = new Set<EngineId>(options?.optionalEngines || []);
+  const skipped = new Map<EngineId, string>();
   const auditedAt = new Date().toISOString();
   const rate = options?.usdInrRate || Number(process.env.USD_INR_RATE || "85");
 
   const results: PromptAuditResult[] = [];
-  const mentionsByEngine: Record<EngineId, number> = {
-    chatgpt: 0,
-    gemini: 0,
-    perplexity: 0,
-  };
+  const mentionsByEngine = Object.fromEntries(engines.map((e) => [e, 0])) as Record<EngineId, number>;
   const competitorMentions: Record<string, number> = {};
   const citationDomains: Record<string, number> = {};
   let totalMentions = 0;
@@ -282,23 +422,34 @@ export async function runShortFormAudit(
     const engineResults: Record<EngineId, PromptEngineResult> = {} as any;
 
     for (const engine of engines) {
+      if (skipped.has(engine)) continue;
       let answer: EngineAnswer;
 
-      if (options?.engineMock) {
-        answer = await options.engineMock(engine, prompt);
-      } else if (options?.testMode) {
-        answer = mockEngineAnswer(engine, prompt, lens, promptIndex);
-      } else {
-        const { config: engineCfg, missing } = loadEngineConfig(engine);
-        if (!engineCfg) {
-          throw new Error(
-            `Engine ${engine} cannot run: missing environment variables [${missing.join(", ")}]`
-          );
+      try {
+        if (options?.engineMock) {
+          answer = await options.engineMock(engine, prompt);
+        } else if (options?.testMode) {
+          answer = mockEngineAnswer(engine, prompt, lens, promptIndex);
+        } else {
+          const { config: engineCfg, missing } = loadEngineConfig(engine);
+          if (!engineCfg) {
+            throw new Error(
+              `Engine ${engine} cannot run: missing environment variables [${missing.join(", ")}]`
+            );
+          }
+          answer = await askEngine(engineCfg, prompt);
         }
-        answer = await askEngine(engineCfg, prompt);
+      } catch (err: any) {
+        if (!optional.has(engine)) throw err;
+        // An optional engine that fails once is not asked again in this audit, and is left out of it entirely.
+        skipped.set(engine, String(err?.message || err).slice(0, 200));
+        console.warn(`[Audit] optional engine ${engine} dropped from this audit: ${skipped.get(engine)}`);
+        continue;
       }
 
-      const analysis = analyzeAnswer(answer.text, lens);
+      // A prospect has no tracked competitor list, so position and "who was named instead" are read from the
+      // answer itself: the businesses it names, in order of appearance.
+      const analysis = prospect ? analyzeProspectAnswer(answer.text, lens) : analyzeAnswer(answer.text, lens);
       const citations = answer.citations
         .map((c) => analyzeCitation(c, lens))
         .filter((c): c is CitationAnalysis => c !== null);
@@ -337,10 +488,64 @@ export async function runShortFormAudit(
     results.push({
       promptIndex,
       prompt,
-      journeyPhase: verifiedProfile.prompts[i]?.journey_phase,
+      journeyPhase: phases[i],
       engineResults,
       excerpt,
     });
+  }
+
+  // An optional engine that dropped out part-way leaves no trace in the figures: its earlier answers are removed
+  // and every count is taken again from what remains. What it cost before failing stays in the total.
+  if (skipped.size > 0) {
+    engines = engines.filter((e) => !skipped.has(e));
+    for (const key of Object.keys(mentionsByEngine)) delete (mentionsByEngine as Record<string, number>)[key];
+    for (const e of engines) mentionsByEngine[e] = 0;
+    for (const key of Object.keys(competitorMentions)) delete competitorMentions[key];
+    for (const key of Object.keys(citationDomains)) delete citationDomains[key];
+    totalMentions = 0;
+    for (const r of results) {
+      for (const e of skipped.keys()) delete (r.engineResults as Partial<Record<EngineId, PromptEngineResult>>)[e];
+      for (const er of Object.values(r.engineResults)) {
+        if (er.analysis.mentioned) {
+          totalMentions++;
+          mentionsByEngine[er.engine] = (mentionsByEngine[er.engine] || 0) + 1;
+        }
+        for (const comp of new Set(er.analysis.competitorsMentioned)) competitorMentions[comp] = (competitorMentions[comp] || 0) + 1;
+        for (const dom of new Set(er.citations.map((c) => c.domain))) citationDomains[dom] = (citationDomains[dom] || 0) + 1;
+      }
+      r.excerpt = extractPromptExcerpt(r.promptIndex, r.engineResults, lens.name);
+    }
+  }
+
+  // Prospect audits, second pass. The first pass read each answer on its own and only saw names an answer put in
+  // bold or in a numbered list. Engines differ: one bolds every name, another writes them in plain sentences. So
+  // the names found anywhere are now looked for in every answer's text, and the prospect's rank in an answer is
+  // the number of those businesses mentioned before it, plus one. Without this an answer that opened with a
+  // rival in plain text showed the prospect as "Named #1" (first live case: 12 Nov 2026).
+  // The optional name check runs first; names it drops leave the counts and the ranking.
+  if (prospect) {
+    let names = Object.keys(competitorMentions);
+    if (prospect.nameFilter && names.length > 0) {
+      let kept: string[] | null = null;
+      try {
+        kept = await prospect.nameFilter(names);
+      } catch (err: any) {
+        console.warn(`[Prospect Audit] name check failed, keeping the rule-based list: ${err?.message || err}`);
+      }
+      if (kept) {
+        const allowed = new Set(kept);
+        names = names.filter((n) => allowed.has(n));
+      }
+    }
+    for (const key of Object.keys(competitorMentions)) delete competitorMentions[key];
+    for (const r of results) {
+      for (const er of Object.values(r.engineResults)) {
+        er.analysis = rankProspectAnswer(er.text, lens, names);
+        er.badge = getCellBadge(er.analysis);
+        for (const comp of new Set(er.analysis.competitorsMentioned)) competitorMentions[comp] = (competitorMentions[comp] || 0) + 1;
+      }
+      r.excerpt = extractPromptExcerpt(r.promptIndex, r.engineResults, lens.name);
+    }
   }
 
   const totalQueries = prompts.length * engines.length;
@@ -357,7 +562,7 @@ export async function runShortFormAudit(
     totalCostInr,
   };
 
-  const nextSteps = generateMatrixNextSteps(results, summary, lens.name);
+  const nextSteps = generateMatrixNextSteps(results, summary, lens.name, Boolean(prospect));
 
   const auditResult: ShortFormAuditResult = {
     brand: {
@@ -377,12 +582,25 @@ export async function runShortFormAudit(
     results,
     summary,
     nextSteps,
+    auditKind: prospect ? "prospect" : "client",
+    engines,
+    ...(skipped.size > 0 ? { skippedEngines: [...skipped.entries()].map(([engine, reason]) => ({ engine, reason })) } : {}),
   };
 
   // Store raw answers under logs/<date>/aeo-audit/<domain>.json so every number is traceable
   if (options?.saveRawJson !== false) {
-    const rawJsonPath = await saveRawAuditJson(auditResult);
-    auditResult.rawAnswersJsonPath = rawJsonPath;
+    if (prospect) {
+      // The answers are already paid for: a failed trace write must not lose a prospect audit. It is logged and the
+      // result goes on without a trace path.
+      try {
+        auditResult.rawAnswersJsonPath = await saveRawAuditJson(auditResult);
+      } catch (err: any) {
+        console.warn(`[Prospect Audit] raw answers not saved for ${auditResult.brand.primaryDomain}: ${err?.message || err}`);
+      }
+    } else {
+      const rawJsonPath = await saveRawAuditJson(auditResult);
+      auditResult.rawAnswersJsonPath = rawJsonPath;
+    }
   }
 
   return auditResult;
@@ -426,6 +644,9 @@ export async function saveRawAuditJson(result: ShortFormAuditResult): Promise<st
         position: r.engineResults.perplexity?.analysis.position,
         mentioned: r.engineResults.perplexity?.analysis.mentioned,
       },
+      ...(r.engineResults.claude
+        ? { claude: { badge: r.engineResults.claude.badge, position: r.engineResults.claude.analysis.position, mentioned: r.engineResults.claude.analysis.mentioned } }
+        : {}),
       excerpt: r.excerpt,
     })),
     rawAnswers: result.results.flatMap((r) =>

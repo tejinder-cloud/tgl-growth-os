@@ -78,6 +78,8 @@ export async function runImplementer(fetchImpl: typeof fetch = fetch): Promise<n
         : a.detail?.step === "publish" ? await publish(site, a, wp.config.endpoint) : await draft(sb, site, a, wp.config.endpoint);
       await sb.from("actions").update({ ...patch, performed_at: new Date().toISOString() }).eq("id", a.id);
       if (patch.status === "done" && a.recommendation_id) await sb.from("recommendations").update({ status: "done" }).eq("id", a.recommendation_id);
+      // Live changes: clear the site's page cache so visitors and crawlers see them now (best effort).
+      if (patch.status === "done" && site.has("wp_clear_cache")) await site.call("wp_clear_cache", {}).catch(() => null);
     } catch (err: any) {
       await sb.from("actions").update({ status: "failed", performed_at: new Date().toISOString(), detail: { ...a.detail, error: String(err?.message ?? err).slice(0, 300) } }).eq("id", a.id);
     }

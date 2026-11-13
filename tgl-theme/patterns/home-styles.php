@@ -8,7 +8,7 @@
 ?>
 <!-- wp:html -->
 <style>
-.tgl-home{--h-ink:#1B1A17;--h-cream:#F6F0E1;--h-coral:#C8553D;--h-teal:#2F7F7A;color:var(--h-ink)}
+.tgl-home{--h-ink:#1B1A17;--h-cream:#F6F0E1;--h-coral:#C8553D;--h-coral-text:#B94B35;--h-teal:#2F7F7A;color:var(--h-ink)}
 .tgl-home section{padding:56px 20px}
 .tgl-home .h-wrap{max-width:1080px;margin:0 auto}
 .tgl-home .h-pill{display:inline-block;border:2px solid var(--h-ink);border-radius:999px;padding:4px 14px;font-size:.75rem;letter-spacing:.08em;font-weight:700;margin-bottom:16px}
@@ -22,7 +22,7 @@
 .tgl-home .h-hero-form{display:grid;gap:12px;max-width:560px}
 .tgl-home .h-field label{display:block;font-weight:700;margin-bottom:4px}
 .tgl-home .h-field input{width:100%;box-sizing:border-box;padding:12px;border:2px solid var(--h-ink);border-radius:8px;background:#fff;color:var(--h-ink);font:inherit}
-.tgl-home .h-err{color:var(--h-coral);font-size:.875rem;min-height:1em;margin:4px 0 0}
+.tgl-home .h-err{color:var(--h-coral-text);font-size:.875rem;min-height:1em;margin:4px 0 0}
 .tgl-home .h-micro{font-size:.875rem;margin:0}
 .tgl-home .h-hero-link{display:inline-block;margin-top:16px}
 .tgl-home .h-hp{position:absolute;left:-9999px;height:0;overflow:hidden}
@@ -44,7 +44,7 @@
 .tgl-home .h-doors{display:grid;gap:20px;grid-template-columns:1fr}
 .tgl-home .h-door{border:2px solid var(--h-ink);border-radius:12px;padding:24px 20px;background:#fff}
 .tgl-home .h-door--aeo{border-color:var(--h-coral)}
-.tgl-home .h-door--aeo .h-eyebrow,.tgl-home .h-door--aeo a{color:var(--h-coral)}
+.tgl-home .h-door--aeo .h-eyebrow,.tgl-home .h-door--aeo a{color:var(--h-coral-text)}
 .tgl-home .h-door--auto{border-color:var(--h-teal)}
 .tgl-home .h-door--auto .h-eyebrow,.tgl-home .h-door--auto a{color:var(--h-teal)}
 /* agents (teal) */

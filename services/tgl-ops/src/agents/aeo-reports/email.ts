@@ -16,7 +16,9 @@ function delta(now: Ratio, prev: Ratio | null): string {
 export type Email = { subject: string; text: string; html: string };
 export type Block = { title?: string; lines: string[] };
 
-export function render(blocks: Block[], cta: { label: string; url: string }, footerUrl: string, cta2?: { label: string; url: string }): { text: string; html: string } {
+export function render(blocks: Block[], cta: { label: string; url: string }, footerUrl: string, cta2?: { label: string; url: string }, opts: { aboutAnswers?: boolean } = {}): { text: string; html: string } {
+  // The "answers come from each AI's API" note belongs on emails that report answers, not on receipts or site checks.
+  const note = opts.aboutAnswers === false ? "" : "Answers come from each AI's API with web search on. ";
   const text = [...blocks.flatMap((b) => [...(b.title ? [b.title] : []), ...b.lines, ""]), `${cta.label}: ${cta.url}`, ...(cta2 ? [`${cta2.label}: ${cta2.url}`] : []), "", "— your TrueVisible team", "", `Change which emails you get: ${footerUrl}`].join("\n");
   const html = `<!doctype html><html><body style="margin:0;background:#F7F3EC;font-family:Arial,Helvetica,sans-serif;color:#2B2420">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px">
@@ -26,7 +28,7 @@ ${blocks.map((b) => `<tr><td style="padding:8px 24px">${b.title ? `<p style="mar
 <tr><td style="padding:16px 24px"><a href="${esc(cta.url)}" style="display:inline-block;background:#D9644A;color:#ffffff;text-decoration:none;font-weight:bold;padding:12px 20px;border-radius:999px">${esc(cta.label)}</a>${cta2 ? ` <a href="${esc(cta2.url)}" style="display:inline-block;margin-left:8px;color:#2B2420;text-decoration:none;font-weight:bold;padding:11px 19px;border:1px solid #2B2420;border-radius:999px">${esc(cta2.label)}</a>` : ""}</td></tr>
 <tr><td style="padding:8px 24px 24px;font-size:15px">— your TrueVisible team</td></tr>
 </table>
-<p style="font-size:12px;color:#6B625B;margin:12px 0 0">Answers come from each AI's API with web search on. <a href="${esc(footerUrl)}" style="color:#6B625B">Change which emails you get</a></p>
+<p style="font-size:12px;color:#6B625B;margin:12px 0 0">${note}<a href="${esc(footerUrl)}" style="color:#6B625B">Change which emails you get</a></p>
 </td></tr></table></body></html>`;
   return { text, html };
 }

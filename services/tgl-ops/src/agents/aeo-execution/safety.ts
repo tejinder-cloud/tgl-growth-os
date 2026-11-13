@@ -8,11 +8,12 @@ const ALLOW = [
   /^wp_ability_rank_math_get_[a-z_]+$/,
   /^wp_(get|update)_post_meta$/,
   /^wp_rm_(get|update)_post_seo$/,   // Easy MCP AI's Rank Math integration (Settings → Integrations → Rank Math)
+  /^wp_clear_cache$/,                // so visitors and crawlers see a change at once
 ];
 /** Post meta the Implementer may write: Rank Math's SEO title and meta description, nothing else. */
 export const WRITABLE_META = new Set(["rank_math_title", "rank_math_description"]);
 /** Bumped when the allowlist grows, so connections are re-checked and the new tools' schemas stored. */
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 const DENY = /(delete|trash|remove|destroy|purge|empty|reset|deactivate|uninstall)/i;
 
 /** Per-call limits on top of the allowlist. */

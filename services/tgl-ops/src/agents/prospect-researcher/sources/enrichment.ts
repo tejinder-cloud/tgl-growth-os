@@ -1,6 +1,7 @@
 // services/tgl-ops/src/agents/prospect-researcher/sources/enrichment.ts
 import { sanitizeDecisionMaker, isRolePlaceholderName } from "../guardrails.js";
 import type { DecisionMaker, ProspectSignals } from "../types.js";
+import { PUBLISHED_EMAIL_SOURCE, assessWorkEmail, isIndividualPractitionerName, pickPublishedEmail } from "../contact-rules.js";
 import type { RawPlaceCandidate } from "./places.js";
 import { checkMetaAdLibrary } from "./meta-ads.js";
 import { scrapeClinicWebsite } from "./website-scraper.js";
@@ -106,6 +107,12 @@ export function isCandidateOrgSizeGe50(
   const normName = candidate.name.toLowerCase();
   const cat = (category || "").toLowerCase();
 
+  // A person's own practice ("Dr. A Sharma | Laparoscopic Surgeon") is owner-run whatever category the rotation
+  // found it under and however many reviews it has. Only a real second location makes it more than that (#184).
+  if (isIndividualPractitionerName(candidate.name)) {
+    return Boolean(candidate.placesBrandCount && candidate.placesBrandCount >= 2);
+  }
+
   // Category hospitals or multi-speciality hospitals are ≥50 staff
   if (
     cat === "hospitals" ||
@@ -161,6 +168,7 @@ export async function enrichCandidateSignals(
   let websiteDoctorName: string | undefined;
   let websiteDoctorRole: string | undefined;
   let websiteEmails: string[] = [];
+  let websitePublishedEmails: string[] = [];
   const chainEvidence: string[] = [];
 
   if (candidate.website) {
@@ -169,6 +177,7 @@ export async function enrichCandidateSignals(
       websiteDoctorName = scraped.primaryDoctorName;
       websiteDoctorRole = scraped.doctorRole;
       websiteEmails = scraped.emails;
+      websitePublishedEmails = scraped.publishedEmails || [];
 
       if (scraped.chainSignals?.evidence && scraped.chainSignals.evidence.length > 0) {
         chainEvidence.push(...scraped.chainSignals.evidence);
@@ -198,7 +207,8 @@ export async function enrichCandidateSignals(
     websiteDoctorName,
     websiteDoctorRole,
     websiteEmails,
-    options
+    options,
+    websitePublishedEmails
   );
   if (decisionMaker.source) {
     sourceRefs.push(decisionMaker.source);
@@ -227,6 +237,8 @@ export async function enrichCandidateSignals(
     places_brand_count: candidate.placesBrandCount,
     is_large_org: orgSizeGe50,
     brand_prefix: candidate.brandPrefix,
+    place_primary_type: candidate.primaryType,
+    place_primary_type_label: candidate.primaryTypeLabel,
     root_domain_hosts_other_branches: Boolean(
       (candidate.website && isSubBranchUrl(candidate.website)) ||
       chainEvidence.some((e) => /locations?\/centres?|hospital-network|other branches/i.test(e))
@@ -261,7 +273,8 @@ async function findVerifiedDecisionMaker(
   websiteDoctorName?: string,
   websiteDoctorRole?: string,
   websiteEmails: string[] = [],
-  options?: { testMode?: boolean }
+  options?: { testMode?: boolean },
+  websitePublishedEmails: string[] = []
 ): Promise<DecisionMaker & { verified: boolean }> {
   const domain = extractDomain(candidate.website || "");
 
@@ -345,6 +358,16 @@ async function findVerifiedDecisionMaker(
       console.warn(`[Hunter Domain Search Error on ${domain}]:`, err.message || err);
     }
 
+    // Work-contact rule (#184): only an address on the prospect's own website domain, not on a free-mail provider
+    // and not a shared inbox, may be verified and stored. "Deliverable" alone does not make it the prospect's.
+    for (let i = candidateEmailPool.length - 1; i >= 0; i--) {
+      const check = assessWorkEmail(candidateEmailPool[i].email, candidate.website);
+      if (!check.ok) {
+        console.log(`  • [Contact Rule] discarded one candidate email for '${candidate.name}': ${check.reason}`);
+        candidateEmailPool.splice(i, 1);
+      }
+    }
+
     // Sort candidate emails by priorityScore descending
     candidateEmailPool.sort((a, b) => b.priorityScore - a.priorityScore);
 
@@ -420,6 +443,28 @@ async function findVerifiedDecisionMaker(
     };
   }
 
+  // Option A2: published business email, owner-run businesses only (Architect decision, 13 Nov 2026).
+  // The address the business prints on its own website, a shared inbox or free-mail address included.
+  // Larger organisations still need a named work email.
+  if (!orgSizeGe50) {
+    const published = await resolvePublishedEmail(websitePublishedEmails, candidate.website);
+    if (published) {
+      const sanitized = sanitizeDecisionMaker(
+        {
+          name: websiteDoctorName || "Owner / Lead Doctor",
+          role: websiteDoctorRole || "Owner / Lead Doctor",
+          email: published.email,
+          phone: candidate.phone,
+          source: `${PUBLISHED_EMAIL_SOURCE} (${published.kind === "own_domain" ? "own domain" : "free-mail, shown on own website"}; ${published.check})${
+            candidate.phone && candidate.phone.trim().length >= 8 ? " + places:phone (verified business line)" : ""
+          }`,
+        },
+        candidate.name
+      );
+      return { ...sanitized, verified: true };
+    }
+  }
+
   // Option B: Architect Decision for Owner-Run Businesses (<50 staff) ONLY
   // For owner-run clinics, an authoritative verified contact is the business phone from Google Places.
   // Decision-maker = owner/doctor.
@@ -451,6 +496,30 @@ async function findVerifiedDecisionMaker(
     source: orgSizeGe50 ? "unverified:large_org_requires_hunter_email" : "unverified:no_contact_found",
     verified: false,
   };
+}
+
+/**
+ * Picks the published address and, when the verifier is configured, checks the inbox exists so a dead address
+ * never reaches outreach. An "undeliverable" verdict drops it; a verifier error keeps it, marked unchecked.
+ */
+async function resolvePublishedEmail(
+  emails: string[],
+  website: string | undefined
+): Promise<{ email: string; kind: "own_domain" | "free_mail"; check: string } | null> {
+  const picked = pickPublishedEmail(emails, website);
+  if (!picked) return null;
+  if (!HUNTER_API_KEY) return { email: picked.email, kind: picked.kind, check: "deliverability not checked" };
+  try {
+    const res = await fetch(`https://api.hunter.io/v2/email-verifier?email=${encodeURIComponent(picked.email)}&api_key=${HUNTER_API_KEY}`);
+    const data = (await res.json()) as any;
+    const result = data?.data?.result;
+    console.log(`[Hunter Verifier Response] published email: HTTP ${res.status}: result=${result}`);
+    if (result === "undeliverable") return null;
+    if (result === "deliverable" || result === "risky") return { email: picked.email, kind: picked.kind, check: `verifier: ${result}` };
+  } catch (err: any) {
+    console.warn("[Hunter Email Verifier Error on a published email]:", err?.message || err);
+  }
+  return { email: picked.email, kind: picked.kind, check: "deliverability not checked" };
 }
 
 function isGenericEmail(email: string): boolean {

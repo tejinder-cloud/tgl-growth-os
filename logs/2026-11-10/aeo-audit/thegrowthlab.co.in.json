@@ -1,0 +1,1000 @@
+{
+  "brand": {
+    "name": "The Growth Lab",
+    "primaryDomain": "thegrowthlab.co.in",
+    "domains": [
+      "thegrowthlab.co.in"
+    ],
+    "variants": [
+      "Growth Lab"
+    ],
+    "category": "AI visibility (AEO/GEO) and AI automation",
+    "setupStatus": "verified",
+    "setupVerifiedAt": "2026-11-04T10:08:23.803+00:00",
+    "setupVerifiedBy": "Tejinder Singh"
+  },
+  "auditedAt": "2026-11-10T11:37:35.511Z",
+  "promptsCount": 5,
+  "enginesCount": 3,
+  "totalQueries": 15,
+  "summary": {
+    "totalMentions": 0,
+    "visibilityScorePercent": 0,
+    "mentionsByEngine": {
+      "chatgpt": 0,
+      "gemini": 0,
+      "perplexity": 0
+    },
+    "competitorMentions": {},
+    "citationDomains": {
+      "developers.google.com": 4,
+      "business.adobe.com": 1,
+      "hubspot.com": 1,
+      "blog.hubspot.com": 1,
+      "thryv.com": 1,
+      "salesforce.com": 1,
+      "amsive.com": 1,
+      "aiseo.solutions": 3,
+      "indiamart.com": 1,
+      "digistreetmedia.com": 1,
+      "topseocompanyinindia.com": 1,
+      "teamai.com": 1,
+      "doodleweb.io": 1,
+      "mediasathi.com": 1,
+      "sitesetu.com": 1,
+      "sunilpratapsingh.com": 1,
+      "questdigital.co.in": 1,
+      "nakama.in": 1,
+      "aeomint.com": 1,
+      "scribblersindia.com": 1,
+      "thebilliongame.com": 1,
+      "digipuush.com": 1,
+      "rajeshrnair.com": 1,
+      "growthsparx.com": 1,
+      "help.openai.com": 3,
+      "growth-rocket.com": 1,
+      "primores.org": 1,
+      "lilachbullock.com": 1,
+      "nameryn.com": 1,
+      "reddit.com": 1,
+      "quqi.io": 1,
+      "apnatool.in": 1,
+      "aeloapp.io": 1,
+      "dev.to": 1,
+      "support.google.com": 1,
+      "hospitalsuccess.com": 1,
+      "typza.com": 1,
+      "hdmall.co.th": 1,
+      "bloomagency.in": 1,
+      "gtmlab.ai": 1,
+      "rank.ai": 1,
+      "higoodie.com": 1,
+      "aicitationmonitor.com": 1,
+      "webflow.uberall.com": 1,
+      "developers.openai.com": 1,
+      "mgiwebzone.com": 1,
+      "onlinecoaching4u.in": 1,
+      "unveilrai.com": 1,
+      "uiux.studio": 1,
+      "niftysite.co": 1,
+      "digitalpatron.in": 1,
+      "hostinger.com": 1,
+      "airanklab.com": 1,
+      "seomator.com": 1
+    },
+    "totalCostUsd": 0.1555,
+    "totalCostInr": 14.76
+  },
+  "nextSteps": {
+    "weakestEngine": "ChatGPT",
+    "weakestEngineMentions": 0,
+    "queriesLost": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "winningCompetitor": "competing operators",
+    "winningCompetitorCount": 0,
+    "topCitationGap": "developers.google.com",
+    "formattedText": "Visibility score is 0% across 15 model answers. Primary gap is ChatGPT (0/5 mentions), where competing operators captured top placement across Queries 1, 2, 3, 4, 5 with 0 answer mentions. To advance visibility toward 90%+, deploy comparison entity schemas targeting competing operators, seed verified citations on developers.google.com, and optimize structured data for counselling conversion keywords."
+  },
+  "matrix": [
+    {
+      "promptIndex": 1,
+      "prompt": "What is AEO and why does my business need AI visibility?",
+      "journeyPhase": "awareness",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "AEO means **Answer Engine Optimization**: making your business’s information clear and credible enough that AI tools and search..."
+      }
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "How much does an AEO or GEO service cost in India?",
+      "journeyPhase": "awareness",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "In India, a **typical AEO/GEO retainer is roughly ₹25,000–₹1.5 lakh per month**. Smaller, limited-scope packages can start arou..."
+      }
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "ChatGPT aur Gemini mein apne business ka naam kaise dikhayein?",
+      "journeyPhase": "awareness",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "ChatGPT aur Gemini mein business dikhane ke liye **koi registration form ya guaranteed shortcut nahi hai**. Aapko apne business..."
+      }
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How can a hospital or clinic get recommended by ChatGPT and Gemini?",
+      "journeyPhase": "awareness",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There’s no guaranteed way to make ChatGPT or Gemini recommend a hospital or clinic. The practical goal is to make your care, cr..."
+      }
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "How can a coaching institute in Chandigarh show up in ChatGPT answers?",
+      "journeyPhase": "awareness",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "A coaching institute in Chandigarh can improve its chances of appearing in ChatGPT answers by making its information **easy to..."
+      }
+    }
+  ],
+  "rawAnswers": [
+    {
+      "promptIndex": 1,
+      "prompt": "What is AEO and why does my business need AI visibility?",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "**AEO** usually means **Answer Engine Optimization**: making your business’s information easy for AI-powered search and answer tools—such as Google’s AI features, ChatGPT, or Copilot—to find, understand, and potentially mention or cite when people ask questions.\n\n**AI visibility** is whether your business shows up accurately in those answers—not just whether your website ranks in a list of links.\n\n### Why it may matter for your business\nPeople may ask AI tools questions like “Who’s a good [service] near me?” or “What’s the best option for [need]?” If your business isn’t represented clearly in the information those tools use, you could be missing a chance to get considered. Visibility also matters because an AI answer might describe your business incorrectly or leave it out altogether.\n\n### What to do\nStart with the fundamentals:\n\n- Keep your website clear, useful, current, and easy for search engines to access.\n- Explain what you do, who you serve, where you operate, and what makes you different.\n- Publish direct, trustworthy answers to common customer questions.\n- Keep business details consistent across your site and reputable directories.\n- Track whether AI answers mention your business—and whether the details are right.\n\nAEO is **not a guaranteed shortcut or a replacement for SEO**. Google’s guidance for AI search features emphasizes accessible, helpful content, while Bing says even SEO or generative-engine optimization can’t guarantee rankings, citations, or AI visibility. ([developers.google.com](https://developers.google.com/search/docs/appearance/ai-features?product=breeze&utm_source=openai))\n\n**In short:** AEO helps you compete to be found and represented in AI-generated answers. It’s worth paying attention to if your customers use AI tools to research or compare businesses—but prioritize solid website and business information over promises of guaranteed AI placements.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "developers.google.com",
+          "url": "https://developers.google.com/search/docs/appearance/ai-features?product=breeze&utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011609
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "What is AEO and why does my business need AI visibility?",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "### What is AEO?\n\n**AEO** stands for **Answer Engine Optimization** (often also used interchangeably with **AI Engine Optimization** or closely related to **GEO — Generative Engine Optimization**). \n\nWhile traditional SEO (Search Engine Optimization) focuses on getting your website to rank at the top of a page of search results (the traditional \"10 blue links\"), **AEO focuses on making your brand and content the direct, authoritative source cited by AI systems.**\n\nInstead of browsing multiple websites, users increasingly ask conversational questions to \"answer engines\"—such as:\n* **Generative Search Engines:** Google AI Overviews, Microsoft Copilot, Perplexity.ai\n* **AI Chatbots:** ChatGPT, Claude, Google Gemini\n* **Voice Assistants:** Siri, Alexa, Google Assistant\n\nAEO is the practice of structuring, writing, and distributing your brand’s information so that these large language models (LLMs) and retrieval-augmented generation (RAG) engines retrieve, summarize, and recommend *your* business as the definitive answer.\n\n---\n\n### How AEO Differs from Traditional SEO\n\n| Feature | Traditional SEO | AEO (Answer Engine Optimization) |\n| :--- | :--- | :--- |\n| **Goal** | Rank high on search engine result pages (SERPs) | Be cited or recommended as the direct answer by AI |\n| **Format** | Keywords, title tags, meta descriptions, backlinks | Semantic entities, direct Q&A formats, structured data, brand authority |\n| **User Journey** | Search query $\\to$ scroll list of links $\\to$ click link $\\to$ read page | Conversational prompt $\\to$ AI synthesizes an answer with 2–4 citations |\n| **Metric of Success**| Organic clicks, impressions, keyword rankings | Share of model (how often AI names you), citation rate, sentiment |\n\n---\n\n### Why Your Business Needs AI Visibility\n\n#### 1. The Rise of \"Zero-Click\" Searches\nA massive percentage of searches are now resolved on the search page itself. When Google shows an **AI Overview** at the top of the screen, users often get the exact information they need without scrolling down to organic links. If your content isn’t selected to feed that AI summary, your traditional top-3 organic ranking may yield significantly less traffic than it used to.\n\n#### 2. Buyer Journeys Are Moving to Chatbots\nBuyers—both B2C and B2B—are increasingly using tools like ChatGPT and Perplexity as research assistants:\n* *\"What are the best CRM platforms for a 20-person legal firm?\"*\n* *\"Compare the top industrial packaging suppliers in the Midwest.\"*\n* *\"Which local dentist offers sedation for anxious patients near me?\"*\n\nIf an AI tool does not recognize your brand or understand your offerings, **your business will be completely omitted from the buyer’s shortlist.**\n\n#### 3. AI Traffic Delivers Exceptionally High Intent\nWhen an AI engine recommends a product or service, it has already done the heavy lifting of filtering, vetting, and comparing options for the user. When a user clicks a citation link generated by an AI answer, they are typically much further down the sales funnel and closer to a purchase decision than someone casually clicking through search results.\n\n#### 4. Protecting Your Brand Narrative\nAI models train on vast amounts of web data. If your business doesn't have a clear, authoritative digital footprint, AI models might:\n* Hallucinate incorrect pricing, discontinued services, or wrong hours.\n* Surface outdated reviews or competitor claims.\n* Fail to mention you when discussing your specific niche.\n\nAEO ensures that the data LLMs ingest about your company is accurate, consistent, and positive.\n\n#### 5. Early-Mover Advantage\nMost businesses are still optimizing exclusively for 2018-era SEO (keyword stuffing, blog volume, generic backlinks). Because AI visibility depends heavily on consensus across the web, brand mentions, and structured knowledge, establishing your presence in AI engines early creates a strong competitive moat that is difficult for competitors to displace later.\n\n---\n\n### How to Start Building AI Visibility\n\n1. **Answer Questions Directly:** Use a clear \"Question-and-Answer\" format. Provide concise, direct answers (40–60 words) right below headings before diving into detailed explanations.\n2. **Implement Structured Data (Schema Markup):** Use schema (e.g., Organization, FAQ, Product, LocalBusiness) so search engines and AI crawlers can map your business data cleanly.\n3. **Build Entity Authority:** AI relies heavily on knowledge graphs. Ensure your company’s name, address, key executives, and primary offerings are consistent across Wikipedia/Wikidata, Crunchbase, industry directories, and review platforms.\n4. **Prioritize Third-Party Mentions & PR:** LLMs trust consensus. If multiple reputable industry publications, forums (like Reddit), and review sites recommend your software or service, AI models will synthesize that consensus into their answers.\n5. **Publish Original Research and Data:** AI models frequently cite the original source of proprietary statistics, surveys, and unique frameworks.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [],
+      "costUsd": 0.0067
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "What is AEO and why does my business need AI visibility?",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "AEO means **Answer Engine Optimization**: making your business’s information clear and credible enough that AI tools and search features can understand it and include it in answers to customers’ questions. It builds on SEO, but focuses more on being mentioned or cited in answers than on ranking in a list of links.[1][5]\n\n**Why AI visibility matters:** potential customers may use tools such as ChatGPT, Gemini, or Perplexity to research options before visiting a business’s website. If your business is missing—or described inaccurately—in relevant answers, you may miss a chance to make their shortlist. AI visibility can also shape awareness even when someone doesn’t click through to your site.[2][3]\n\nA practical starting point is to make your website and public business profiles consistent and specific: clearly explain what you offer, who it serves, where you operate, and what distinguishes you. Publish useful, well-organized answers to common customer questions, and monitor whether AI responses mention your business accurately. AEO complements SEO; it doesn’t replace it.[1][4][7]",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "business.adobe.com",
+          "url": "https://business.adobe.com/blog/aeo-vs-geo",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "hubspot.com",
+          "url": "https://www.hubspot.com/products/marketing/aeo-guide",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "blog.hubspot.com",
+          "url": "https://blog.hubspot.com/marketing/aeo-analysis-tools",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thryv.com",
+          "url": "https://www.thryv.com/blog/answer-engine-optimization-business-visibility-ai-search/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "salesforce.com",
+          "url": "https://www.salesforce.com/marketing/aeo/?bc=OTH",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "blog.hubspot.com",
+          "url": "https://blog.hubspot.com/marketing/best-ai-visibility-tools",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "amsive.com",
+          "url": "https://www.amsive.com/insights/seo/answer-engine-optimization-aeo-evolving-your-seo-strategy-in-the-age-of-ai-search/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "hubspot.com",
+          "url": "https://www.hubspot.com/aeo-tool-for-manufacturing",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "hubspot.com",
+          "url": "https://www.hubspot.com/aeo-tool-for-saas",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "blog.hubspot.com",
+          "url": "https://blog.hubspot.com/marketing/ai-visibility-score",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0017
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "How much does an AEO or GEO service cost in India?",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "**In India, AEO/GEO services typically cost about ₹25,000–₹1.5 lakh per month**, depending on how much content, technical work and ongoing monitoring are included. The market is still new, and many agencies bundle AEO/GEO with SEO rather than price it separately.\n\n| Scope | Indicative cost |\n|---|---:|\n| Basic audit or setup project | **₹35,000–₹1.25 lakh one-time** |\n| Limited monthly work for a small business | **₹20,000–₹50,000/month** |\n| More substantial AEO/GEO programme | **₹50,000–₹1.5 lakh/month** |\n| Enterprise or multi-market programme | **₹1.5 lakh+/month** |\n\nThese are indicative ranges, not a standardized rate card: for example, agencies publicly list monthly plans around **₹56,888 and ₹86,888**, while other published pricing guides put broader programmes at **₹50,000–₹1.5 lakh or more**. Check whether quoted prices are **before GST** and whether they include implementation, content creation and SEO—or just an audit and recommendations. ([aiseo.solutions](https://aiseo.solutions/aeo-services/?utm_source=openai))\n\n**Rule of thumb:** For a small or mid-sized business, budget around **₹50,000–₹1 lakh/month** for meaningful ongoing work. Ask for specific deliverables—such as pages updated, technical changes implemented, content published, and visibility tracked—rather than paying extra for an “AI optimization” label on ordinary SEO.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "aiseo.solutions",
+          "url": "https://aiseo.solutions/aeo-services/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011586
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "How much does an AEO or GEO service cost in India?",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "The cost of **AEO (Answer Engine Optimization)** and **GEO (Generative Engine Optimization)** services in India typically ranges from **₹25,000 to ₹1,50,000+ per month** (approximately **$300 to $1,800 USD**), depending on whether the service is bundled with traditional SEO, the size of your brand, and the depth of content and entity optimization needed.\n\n---\n\n### Typical Pricing Tiers in India\n\n| Tier | Monthly Retainer (INR) | Equivalent (USD) | Best Suited For |\n| :--- | :--- | :--- | :--- |\n| **Starter / Small Business** | ₹20,000 – ₹35,000 | $250 – $420 | Local businesses, single-product startups, baseline entity setup |\n| **Growth / Mid-Tier** | ₹40,000 – ₹75,000 | $500 – $900 | Mid-sized B2B, eCommerce, SaaS targeting competitive queries across AI tools |\n| **Advanced / Enterprise** | ₹80,000 – ₹2,00,000+ | $1,000 – $2,500+ | Large brands requiring heavy digital PR, multi-entity mapping, and ongoing prompt tracking |\n\n*Note: For comparison, agencies in the US and Europe charge **$3,000 to $10,000+ per month** for comparable GEO programs, which is why many global brands outsource AEO/GEO to Indian agencies.*\n\n---\n\n### Common Billing Models\n\n1. **Monthly Retainer (Most Common):** \n   * Retainers cover regular citation monitoring, prompt audits, comparison-format content production, and third-party mentions. \n   * Typical contracts run on 3- to 6-month commitments.\n2. **One-Time AEO/GEO Audit & Setup:**\n   * Costs between **₹15,000 and ₹40,000** ($180 – $500).\n   * Usually includes an initial prompt benchmark test across Perplexity, ChatGPT, and Gemini, a Knowledge Graph/Schema review, crawler diagnostics (`robots.txt`, `llms.txt`), and an actionable roadmap.\n3. **SEO + GEO Hybrid Packages:**\n   * Many Indian agencies do not sell GEO purely standalone because generative engines rely heavily on crawled, indexed, and authoritative pages. A combined package usually costs **₹50,000 to ₹1,00,000 per month**.\n\n---\n\n### What an AEO / GEO Service Includes\nA comprehensive GEO/AEO scope typically covers:\n* **Entity & Knowledge Graph Setup:** Optimizing `Organization`, `Service`, and `FAQ` schema with verified `sameAs` links to major platforms (Wikidata, Crunchbase, LinkedIn, industry directories).\n* **Crawler Access & Machine-Readable Data:** Ensuring bots like `GPTBot`, `PerplexityBot`, and `Google-Extended` have full access, and adding structured files like `llms.txt`.\n* **Direct-Answer Content Production:** Creating comparison pages, listicles, clear factual statements, and high-citation reference materials that models can quote directly.\n* **Off-Site Mentions & Digital PR:** Securing brand presence on sources LLMs query during live search (Reddit, Quora, G2, Clutch, niche publications).\n* **Prompt-Level Tracking & Benchmarking:** Regular tracking of 30–100+ buyer prompts across engines (ChatGPT Search, Gemini, Perplexity, Google AI Overviews) to measure citation frequency.\n\n---\n\n### Factors That Influence the Cost\n* **Content Volume:** Generative engines favor in-depth comparison charts, original statistics, and clear expert statements. A plan requiring 8–10 structured articles/month will fall toward the higher end.\n* **Competitiveness of Industry:** Highly saturated niches (SaaS, FinTech, Legal, Health) require heavy external authority building for an AI engine to select your brand over established competitors.\n* **Current Technical Foundation:** If your site does not have clean schema, fast indexing, or good crawlability, remediation work will add to initial onboarding costs.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "indiamart.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "digistreetmedia.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "topseocompanyinindia.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "teamai.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "topseocompanyinindia.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indiamart.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "doodleweb.io",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mediasathi.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "sitesetu.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "digistreetmedia.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "sunilpratapsingh.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "questdigital.co.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.049574
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "How much does an AEO or GEO service cost in India?",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "In India, a **typical AEO/GEO retainer is roughly ₹25,000–₹1.5 lakh per month**. Smaller, limited-scope packages can start around **₹15,000–₹25,000/month**, while complex or enterprise programs may cost **₹1.5 lakh to ₹2.75 lakh or more monthly**.[1][3][5]\n\nOne-time options include **audits, often around ₹5,000–₹50,000**, and focused implementation sprints; the price depends on scope.[2][3]\n\nAs a quick budgeting guide:\n- **Small site or local business:** ₹15,000–₹50,000/month\n- **Growing business:** ₹50,000–₹1.5 lakh/month\n- **Large, competitive, or multi-market program:** ₹1.5 lakh+/month\n\nAsk providers what the fee actually includes—such as pages optimized, new content, technical work, reporting, and whether conventional SEO is bundled. Published prices vary widely and are not a standardized market rate.[3][5]",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "nakama.in",
+          "url": "https://www.nakama.in/journal/geo-aeo-pricing",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "aeomint.com",
+          "url": "https://aeomint.com/pricing/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "scribblersindia.com",
+          "url": "https://www.scribblersindia.com/blog/aeo-pricing-in-india/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thebilliongame.com",
+          "url": "https://thebilliongame.com/blog/aeo-pricing-india",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "digipuush.com",
+          "url": "https://digipuush.com/blog/aeo-services-cost-india",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "rajeshrnair.com",
+          "url": "https://rajeshrnair.com/seo-aeo-geo-services/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thebilliongame.com",
+          "url": "https://thebilliongame.com/blog/best-aeo-geo-agencies",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "aiseo.solutions",
+          "url": "https://aiseo.solutions/aeo-services/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thebilliongame.com",
+          "url": "https://thebilliongame.com/blog/aeo-consultant-vs-aeo-agency",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "growthsparx.com",
+          "url": "https://growthsparx.com/services/aeo-geo.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0017
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "ChatGPT aur Gemini mein apne business ka naam kaise dikhayein?",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "Agar aap chahte hain ki **log ChatGPT ya Gemini se poochhen to aapka business nazar aaye**, to koi ek “listing” ya button nahi hai jo visibility guarantee kare. Yeh steps karein:\n\n### 1. Google par apni business listing sahi karein\n- **Google Business Profile** banayein ya claim karke verify karein.\n- Business ka naam, category, address/service area, phone, hours, website aur photos sahi aur updated rakhein.\n- Gemini/Google ki AI responses mein local business ki visibility ke liye Business Profile madadgar ho sakti hai, lekin dikhna guaranteed nahi hai. ([developers.google.com](https://developers.google.com/search/docs/fundamentals/ai-optimization-guide?autm_content=blog_emails&utm_source=openai))\n\n### 2. Apni website ko AI/search ke liye accessible banayein\n- Website public ho—login ya CAPTCHA ke peeche na ho.\n- Homepage par saaf likhein: **business ka naam, kya service dete hain, kis shehar/area mein kaam karte hain, contact details**.\n- Google Search Console mein website verify karke check karein ki pages index ho rahe hain.\n- Local business website par **LocalBusiness structured data** add karna useful ho sakta hai; yeh business details samajhne mein Google ki madad karta hai. ([developers.google.com](https://developers.google.com/search/docs/appearance/?utm_source=openai))\n\n### 3. ChatGPT Search ko website crawl karne dein\nApne web developer/hosting provider se kahen ki `robots.txt`, firewall aur CDN mein **OAI-SearchBot** block na ho. Misal:\n\n```txt\nUser-agent: OAI-SearchBot\nAllow: /\n```\n\nOpenAI ke mutabik OAI-SearchBot ChatGPT Search mein websites surface karne ke liye use hota hai. Isse eligibility mein madad milti hai, **ranking ya appearance ki guarantee nahi**. ([help.openai.com](https://help.openai.com/en/articles/9237897-chatgpt-search?utm_source=openai))\n\n### 4. Business ki online jaankari consistent rakhein\nApni website, Google Business Profile aur doosri reputable directories par naam, phone aur address ek jaise rakhein. Services, prices/areas, FAQs aur customer reviews ki asli, updated information bhi publish karein.\n\n**Short version:** Gemini ke liye pehle Google Business Profile + Google indexing; ChatGPT ke liye public website + OAI-SearchBot access. Dono mein visibility system ke results par depend karti hai—koi pakka “submit business” shortcut nahi.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "developers.google.com",
+          "url": "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide?autm_content=blog_emails&utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "developers.google.com",
+          "url": "https://developers.google.com/search/docs/appearance/?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "help.openai.com",
+          "url": "https://help.openai.com/en/articles/9237897-chatgpt-search?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011832
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "ChatGPT aur Gemini mein apne business ka naam kaise dikhayein?",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "ChatGPT aur Google Gemini jaise AI tools mein apne business ka naam laane ki process ko **GEO (Generative Engine Optimization)** ya **AI SEO** kaha jata hai. \n\nAI models kisi ek jagah se data nahi uthate, balki internet par maujood websites, reviews, search engines (Google aur Bing), aur public discussions ko scan karke answers dete hain.\n\nApne business ko ChatGPT aur Gemini mein recommend karwane ke liye niche diye gaye steps follow karein:\n\n---\n\n### 1. Google Gemini ke liye (Google Ecosystem)\nGemini direct Google Search aur Google ke tools se real-time data leta hai, isliye iske liye:\n* **Google Business Profile (GBP) optimize karein:** Agar aapka local business hai, to sabse pehle Google Map/Google Business par profile banayein aur use 100% complete karein (Address, Phone, Timings, Category, Photos).\n* **Positive Google Reviews jama karein:** Gemini local queries (jaise *\"Best bakery near me\"*) ke liye sabse pehle achhe rating aur reviews wale businesses recommend karta hai. Reviews ka regular reply bhi karein.\n* **Website par Structured Data (Schema Markup):** Apni website par `LocalBusiness` ya `Organization` schema markup lagayein, taaki Google ke AI ko samajh aaye ki aapka business kis baare mein hai.\n\n---\n\n### 2. ChatGPT ke liye (Bing & Web Sources)\nChatGPT internet browsing ke liye **Bing Search engine** aur popular web directories ka sahara leta hai:\n* **Bing Places par register karein:** Jaise Google Business Profile hota hai, waise hi [Bing Places for Business](https://www.bingplaces.com/) par apna business free mein add karein.\n* **Bing Webmaster Tools:** Apni website ko Bing Webmaster Tools mein submit karein taaki ChatGPT ka search crawler use index kar sake.\n* **Third-Party Review Sites par profile banayein:** ChatGPT Trustpilot, Yelp, Justdial, IndiaMART, Clutch, ya G2 jaise portals ko bohot refer karta hai. In platforms par apne business ki profile active rakhein.\n\n---\n\n### 3. Dono ke liye common strategies (General AI SEO / GEO)\n\n#### A. \"Listicles\" aur Blogs mein shamil ho (Third-party Mentions)\nJab koi AI se puchhta hai *\"Top 5 digital marketing agencies in Mumbai\"*, to AI internet par maujood blogs/articles ko padhta hai:\n* Dusre popular bloggers ya websites se contact karein jo aapki industry ke \"Best [Product/Service] in [City]\" jaise articles likhte hain aur unme apna naam add karwayein.\n\n#### B. Quora aur Reddit par presence banayein\nAI models Reddit aur Quora jaise forums se genuine user opinions uthate hain:\n* Agar log Reddit ya Quora par aapke brand ya product ki taareef karte hain, to AI tools use ek \"trusted recommendation\" maante hain.\n\n#### C. Website par Conversational & FAQ Content daalein\n* Log AI se sawal-jawab ke style mein baat karte hain (jaise: *\"Kaunsi car rental service sabse sasti hai?\"*).\n* Apni website par ek accha **FAQ section** banayein jisme wahi common sawal aur unke clear jawab likhe hon jo log aksar puchte hain.\n* Apna **\"About Us\"** page bohot clear rakhein—aap kya karte hain, kahan serve karte hain aur aapka USP (Unique Selling Proposition) kya hai.\n\n#### D. Digital PR aur Brand Mentions\n* Local news websites, press releases, ya industry news portals mein agar aapke business ka zikr (mention) hota hai, to AI ke liye aapke brand ki **Authority** badh jaati hai.\n\n---\n\n### Quick Summary:\n| Kahan Show Hona Hai? | Sabse Zaroori Step |\n| :--- | :--- |\n| **Gemini** | Google Business Profile, Google Reviews, Google Indexing |\n| **ChatGPT** | Bing Places, Bing SEO, Popular Review Sites (Trustpilot etc.) |\n| **Dono (AI Models)** | Third-party blogs (\"Top 10\" lists), Reddit/Quora mentions, Clear website FAQs |\n\nYe koi ek raat ka kaam nahi hai. Internet par aapke business ka **Digital Footprint** jitna mazboot aur reliable hoga, ChatGPT aur Gemini aapko utna hi zyada recommend karenge.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [],
+      "costUsd": 0.006881
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "ChatGPT aur Gemini mein apne business ka naam kaise dikhayein?",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "ChatGPT aur Gemini mein business dikhane ke liye **koi registration form ya guaranteed shortcut nahi hai**. Aapko apne business ki sahi, ek-jaisi aur bharosemand jaankari website aur anya public sources par deni hoti hai; AI phir bhi aapko dikhane ki guarantee nahi deta.[2][8]\n\n- **Website saaf rakhein:** Homepage par business ka naam, aap kya service/product dete hain, kis tarah ke customers ke liye hai, aur kaun-se shehron/areas mein kaam karte hain—ye sab seedhi bhasha mein likhein.[8]\n- **Business listings milayein:** Google Business Profile, maps, industry directories aur review sites par naam, phone, address aur website ek jaise rakhein.[5][8]\n- **Asli reviews aur independent mentions badhayein:** Khush customers se imaandaar reviews maangein; relevant directories, local publications aur industry sites par business ka zikr hone dein. Sirf apni website par likhi baat ke muqable mein independent references bhi madad kar sakte hain.[8]\n- **Customer ke sawalon ka jawab dein:** Website par FAQs aur upyogi pages banayein—jaise pricing, service area, process aur kis problem ka hal dete hain.\n- **Har mahine jaanch karein:** ChatGPT aur Gemini mein “\\[service\\] in \\[city\\] ke liye achhe options kaun-se hain?” jaise sawal brand ka naam diye bina poochhein. Fresh chat mein kai baar test karein aur dekhein ki kaun-se businesses aur sources ka zikr aata hai; AI ke jawab alag-alag ho sakte hain.[1][6]\n\nMaqsad sirf AI ko apna naam batana nahi, balki web par business ke baare mein **sahi aur kai bharosemand jagahon se milti-julti jaankari** banana hai.[2][8]",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "growth-rocket.com",
+          "url": "https://www.growth-rocket.com/blog/check-if-chatgpt-mentions-my-business/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "primores.org",
+          "url": "https://www.primores.org/blog/how-can-chatgpt-recommend-my-business/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "lilachbullock.com",
+          "url": "https://www.lilachbullock.com/ai-se-logo-kaise-banaye/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "nameryn.com",
+          "url": "https://nameryn.com/guides/how-to-give-chatgpt-and-gemini-a-custom-name/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "reddit.com",
+          "url": "https://www.reddit.com/r/localseo/comments/1xsgm0s/what_are_the_most_simple_steps_you_can_take_to/",
+          "channelType": "forum",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "quqi.io",
+          "url": "https://www.quqi.io/blog/check-if-chatgpt-mentions-your-brand-2026",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "apnatool.in",
+          "url": "https://apnatool.in/tools/business-name-generator.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "aeloapp.io",
+          "url": "https://aeloapp.io/en/knowledge/chatgpt-doesnt-know-my-company/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "dev.to",
+          "url": "https://dev.to/aurvikon/how-to-check-if-chatgpt-recommends-your-brand-a-repeatable-method-plus-the-math-1980",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "dev.to",
+          "url": "https://dev.to/nomira_digital_eb55e35542/how-to-get-your-business-recommended-by-chatgpt-9-steps-3gb7",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00127
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How can a hospital or clinic get recommended by ChatGPT and Gemini?",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "There’s **no application or guaranteed way to make ChatGPT or Gemini recommend a hospital or clinic**. The practical goal is to make the organization’s information easy to find, verify, and compare—and to earn a trustworthy, consistent presence across the sources these systems can draw on.\n\n### What to do\n\n1. **Make every location’s basic facts accurate and consistent.**  \n   Maintain the organization’s website and eligible Google Business Profile listings with the correct name, address, phone, website, hours, services, and appointment information. Google says Gemini can use public Google Maps information—including business details, ratings, websites, and hours—when helping people find places. ([support.google.com](https://support.google.com/gemini/answer/16622866?co=GENIE.Platform%3DAndroid&hl=en&utm_source=openai))\n\n2. **Build a useful page for each location and specialty.**  \n   Clearly state what care is offered, who it’s for, where it’s available, how to book, and whether referrals or insurance are needed. Keep physician profiles, credentials, languages, and affiliations current. Make the pages public, readable on mobile, and free of login or technical barriers.\n\n3. **Check that ChatGPT can access the public site.**  \n   OpenAI says sites that block **OAI-SearchBot** won’t appear in ChatGPT search answers, and that search placement is not guaranteed. Ask your web or security team to check both `robots.txt` and firewall/CDN settings; allowing the crawler is about eligibility, not a promise of recommendation. ([help.openai.com](https://help.openai.com/en/articles/9237897-chatgpt-search?utm_source=openai))\n\n4. **Use clear, machine-readable business information.**  \n   Add appropriate structured data to location pages and ensure it matches what patients can see on the page. Google says LocalBusiness structured data can communicate details such as hours and departments; it helps Google understand the information but does not guarantee a particular placement. ([developers.google.com](https://developers.google.com/search/docs/appearance/structured-data/local-business?facet2=management&utm_source=openai))\n\n5. **Build a credible wider presence.**  \n   Keep reputable directories, health-system affiliations, professional profiles, and local listings accurate and consistent. Encourage honest patient feedback through compliant processes, but don’t offer incentives, pressure patients, or disclose patient information in review responses. Google requires Business Profile information to accurately represent the location. ([support.google.com](https://support.google.com/business/answer/13762416?hl=en&utm_source=openai))\n\n6. **Measure whether you’re showing up—and where.**  \n   Test realistic prompts such as “urgent care near [neighborhood] open Saturday” or “cardiology clinic in [city that treats [condition].” Try different locations and wording; recommendations can vary with the query and location. Track ChatGPT referrals in analytics—OpenAI says those links include `utm_source=chatgpt.com`—and monitor Google Search and Maps visibility. ([help.openai.com](https://help.openai.com/en/articles/12627856-publishers-and-developers-faq%23%3A~%3Atext%3DChatGPT%2520automatically%2520includes%2520the%2520UTM%2520parameter%2520utm_source%253Dchatgpt.com%2520in%2520referral%2520URLs%252C%2520enabling%2520clear%2520tracking%2520and%2520analysis%2520of%2520inbound%2520traffic%2520from%2520ChatGPT%2520search%2520results?utm_source=openai))\n\n**In short:** prioritize accurate local listings, strong location and service pages, accessible public content, and trustworthy third-party information. For Gemini, Google Maps and Business Profile accuracy are especially relevant; for ChatGPT search, make sure your public site is crawlable by OAI-SearchBot. Neither platform promises inclusion or a specific ranking.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "support.google.com",
+          "url": "https://support.google.com/gemini/answer/16622866?co=GENIE.Platform%3DAndroid&hl=en&utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "help.openai.com",
+          "url": "https://help.openai.com/en/articles/9237897-chatgpt-search?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "developers.google.com",
+          "url": "https://developers.google.com/search/docs/appearance/structured-data/local-business?facet2=management&utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "support.google.com",
+          "url": "https://support.google.com/business/answer/13762416?hl=en&utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "help.openai.com",
+          "url": "https://help.openai.com/en/articles/12627856-publishers-and-developers-faq%23%3A~%3Atext%3DChatGPT%2520automatically%2520includes%2520the%2520UTM%2520parameter%2520utm_source%253Dchatgpt.com%2520in%2520referral%2520URLs%252C%2520enabling%2520clear%2520tracking%2520and%2520analysis%2520of%2520inbound%2520traffic%2520from%2520ChatGPT%2520search%2520results?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021834
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How can a hospital or clinic get recommended by ChatGPT and Gemini?",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Getting recommended by AI platforms like **ChatGPT** and **Google Gemini** requires a strategy known as **Generative Engine Optimization (GEO)** or **AI Optimization (AIO)**. \n\nUnlike traditional search engines that simply display a list of links, LLMs act as answer engines. They synthesize data from **real-time web search results (Bing for ChatGPT, Google for Gemini)**, **authoritative third-party databases**, and **local map listings**.\n\nHere is a step-by-step roadmap to make your hospital or clinic the top recommendation:\n\n---\n\n### 1. Optimize Local Data Ecosystems (Especially for Gemini)\nWhen users ask for clinic or hospital recommendations, queries are usually geo-targeted (e.g., *\"Best pediatrician in Austin\"* or *\"Urgent care near me\"*). Both models tap heavily into map and directory ecosystems.\n\n* **For Gemini:** Gemini pulls data directly from **Google Maps and Google Business Profile (GBP)**. \n  * Ensure your GBP profiles for the main facility, departments (e.g., ER, Women's Health), and individual practitioners are claimed, verified, and complete.\n  * Populate all fields: primary categories, subcategories, exact hours, accepted insurances, wheelchair accessibility, and photos.\n* **For ChatGPT:** ChatGPT frequently uses **Bing Search** and third-party aggregators. Ensure your facility is claimed on **Bing Places for Business**, **Apple Maps**, and **Yelp**.\n* **Consistent NAP (Name, Address, Phone):** Discrepancies in your address or phone number across directories dilute an LLM’s confidence in your entity.\n\n---\n\n### 2. Leverage Healthcare-Specific Directories\nAI models rely on structured, high-trust healthcare databases to confirm medical credentials and reputations. Ensure robust, accurate profiles on:\n* **Healthgrades, Vitals, and WebMD Care**\n* **Zocdoc**\n* **Doximity** (for physician bios and peer endorsements)\n* **National Provider Identifier (NPI) Registry**\n\nWhen LLMs browse the web to cross-reference doctor specializations and clinical acceptance, they cite these sources directly.\n\n---\n\n### 3. Earn External Accreditations and Third-Party Citations\nLLMs are designed with safety guardrails around health information (often aligned with Google's **E-E-A-T**: Experience, Expertise, Authoritativeness, and Trustworthiness). When asked for the \"best\" hospital, they rarely trust a hospital’s own website; they cite independent evaluators.\n\nFocus on visibility and strong performance in:\n* **Hospital Quality & Safety Ratings:** CMS 5-Star Quality Ratings, The Leapfrog Group Hospital Safety Grades, and Joint Commission accreditations.\n* **Media & Industry Rankings:** *U.S. News & World Report Best Hospitals*, *Newsweek World’s Best Hospitals*, or local \"Top Doctors\" issues in regional magazines.\n* **Academic & Research Citations:** If your hospital conducts clinical trials or publishes studies, link them prominently. AI engines frequently cite PubMed, university affiliations, and clinical research.\n\n---\n\n### 4. Implement Structured Data (Medical Schema Markup)\nLLMs and search crawlers parse structured data to understand your exact services without ambiguity. On your website, implement **Schema.org** markup, specifically:\n* `Hospital` or `MedicalClinic`\n* `MedicalSpecialty` (e.g., Cardiology, Oncology, Pediatrics)\n* `Physician` (including degrees, board certifications, and languages spoken)\n* `MedicalProcedure` and `MedicalCondition` (the specific treatments offered)\n* `acceptedPaymentMethod` and insurance plans accepted\n\nThis makes it easy for AI to answer specific user prompts like: *\"Which hospital in Denver accepts Blue Cross and has a 24/7 pediatric emergency room?\"*\n\n---\n\n### 5. Drive High-Volume, Detailed Patient Reviews\nLLMs do not just look at star ratings—they perform **sentiment analysis** on the text of reviews to match user intent.\n\n* **Encourage descriptive reviews:** Reviews that say *\"Dr. Smith was amazing with my knee replacement surgery and the physical therapy team at this clinic got me walking in two weeks\"* teach AI models that your clinic is top-tier for *knee replacements*.\n* **Respond to reviews:** Responding professionally to both positive and negative reviews shows activity and trustworthiness.\n* **Diversify review platforms:** Don't collect reviews exclusively on Google. Get patient feedback on Healthgrades, Facebook, and WebMD.\n\n---\n\n### 6. Create Condition- and Specialty-Specific Web Content\nWhen people ask ChatGPT or Gemini for a recommendation, they often describe symptoms or specific conditions (e.g., *\"Where should I go for complex spinal surgery in Chicago?\"*).\n\n* **Build dedicated condition/treatment pages:** Instead of a generic \"Orthopedics\" page, have distinct pages for *Anterior Hip Replacement*, *Spinal Fusion*, and *Rotator Cuff Repair*.\n* **Author Bios with Credentials:** Ensure content is bylined or reviewed by credentialed medical professionals (e.g., *\"Medically reviewed by Jane Doe, MD, Board-Certified Neurologist\"*), including links to their Doximity/LinkedIn or academic credentials.\n* **Add FAQ Sections:** Answer common patient questions directly (e.g., recovery times, candidate criteria, cost estimates). LLMs frequently scrape FAQ formats to provide direct conversational answers.\n\n---\n\n### Quick Comparison: How They Differ\n\n| Factor | Google Gemini | ChatGPT |\n| :--- | :--- | :--- |\n| **Primary Search Engine** | Google Search & Google Knowledge Graph | Microsoft Bing Search |\n| **Map/Local Data Source** | Google Maps & Google Business Profile | Bing Places, Apple Maps, Yelp, aggregators |\n| **Preferred Citations** | Google-indexed sites, YouTube medical channels | General web consensus, major medical portals, Wikipedia |\n\n### Actionable Next Steps\n1. **Audit your current visibility:** Test prompts in both ChatGPT and Gemini (e.g., *\"What are the top 3 clinics for [specialty] in [city]?\"*).\n2. **Inspect the sources:** Look at the sources/links the AI cites in its response to see which directories, news articles, or review platforms your competitors are appearing on.\n3. **Close the citation gaps:** Get listed or mentioned on whichever third-party sites the AI consulted to build its list.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [],
+      "costUsd": 0.008752
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How can a hospital or clinic get recommended by ChatGPT and Gemini?",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There’s no guaranteed way to make ChatGPT or Gemini recommend a hospital or clinic. The practical goal is to make your care, credentials, locations, and access details easy for AI systems to find, verify, and accurately describe.[1][4]\n\n- **Make your website specific and clear.** Create a page for each major service and location. State what you treat, which clinicians provide care, who is eligible, how to book, and practical details such as hours, insurance, languages, and prices where relevant. Put key facts in readable page text, not only in images or PDFs.[2][3]\n- **Keep listings consistent.** Align your name, address, phone number, hours, specialties, and clinician details across your website, Google Business Profile, hospital directories, insurer directories, and relevant professional listings. Correct or remove outdated profiles.[1][8]\n- **Make clinical information trustworthy.** Publish useful patient-facing answers, name qualified authors and reviewers, keep clinician credentials current, and clearly document accreditations. Seek accurate, independent mentions from credible organizations and publications.[1][2]\n- **Use technical basics.** Ensure important pages load, are internally linked and included in your sitemap; check that relevant AI and search crawlers aren’t blocked. Add appropriate structured data for your organization, clinicians, locations, and services—but don’t expect schema alone to produce recommendations.[1][2][5]\n- **Build an ethical review process.** Invite patients to leave honest reviews without filtering, buying, or scripting them. Respond professionally and never disclose patient information.[1]\n- **Measure what happens.** Test a fixed set of realistic patient questions in ChatGPT and Gemini each month. Record whether you’re named, whether details are accurate, and which sources or competitors appear; use gaps to prioritize updates.[1][5]\n\nStart with one high-priority service and its location page, then expand. These steps can improve visibility and accuracy, but no provider can control or guarantee an AI-generated recommendation.[4]",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "hospitalsuccess.com",
+          "url": "https://hospitalsuccess.com/guides/ai-visibility-for-doctors-and-hospitals/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "typza.com",
+          "url": "https://www.typza.com/insights/how-private-hospitals-get-recommended-by-ai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "hdmall.co.th",
+          "url": "https://hdmall.co.th/work-with-us/en/resources/aeo-hospitals-clinics/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bloomagency.in",
+          "url": "https://bloomagency.in/hospital-visibility-chatgpt-gemini-google-ai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "gtmlab.ai",
+          "url": "https://www.gtmlab.ai/blog/get-healthcare-brand-recommended-by-chatgpt",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "rank.ai",
+          "url": "https://www.rank.ai/guides/healthcare-marketing/ai-and-medical-seo",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "hdmall.co.th",
+          "url": "https://hdmall.co.th/work-with-us/en/resources/healthcare-marketing-trends-2027/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "higoodie.com",
+          "url": "https://higoodie.com/blog/aeo-for-healthcare-guide/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "aicitationmonitor.com",
+          "url": "https://aicitationmonitor.com/blog/ai-visibility-for-healthcare",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "webflow.uberall.com",
+          "url": "https://webflow.uberall.com/en-us/resources/blog/healthcare-marketing-strategies",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00127
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "How can a coaching institute in Chandigarh show up in ChatGPT answers?",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "A coaching institute can improve its chances of being mentioned in ChatGPT answers by making its information **public, crawlable, clear, and independently verifiable**. There’s no way to guarantee a listing or pay for an ordinary recommendation: ChatGPT says placement isn’t guaranteed and depends on factors such as relevance and reliability. ([help.openai.com](https://help.openai.com/en/articles/9237897-chatgpt-search?utm_source=openai))\n\n### What to do\n\n1. **Make sure ChatGPT can access your website.** Ask your web developer to check that `OAI-SearchBot` isn’t blocked in `robots.txt`, your hosting provider, or your CDN. OpenAI identifies this crawler as being used to surface websites in ChatGPT search; allowing it is separate from allowing `GPTBot`. ([developers.openai.com](https://developers.openai.com/api/docs/bots?wvideo=akzb57a5z3&utm_source=openai))\n\n2. **Publish specific, useful pages.** Have a clear page for each course—such as JEE, NEET, UPSC, or IELTS—with the Chandigarh location, teaching format, batch dates, fees or how to request them, faculty details, and contact information. Keep claims factual and dated, especially results and success rates.\n\n3. **Build a consistent local presence.** Use the same institute name, address, phone number, and website across your site and public business listings. Keep your Google Business Profile up to date, and collect genuine student reviews without offering incentives for positive ratings. A Google Business Profile helps establish the institute’s local presence in Google Search and Maps; it does not guarantee a ChatGPT mention. ([developers.google.com](https://developers.google.com/search/help/site-appearance-faq?authuser=451499271&utm_source=openai))\n\n4. **Make your site easy to interpret.** Put key details in ordinary page text—not only in images or social posts—and keep pages accessible without a login. Ask your developer about `LocalBusiness` or suitable organization structured data: it can describe business details to search engines, but it does not guarantee ChatGPT visibility. ([developers.google.com](https://developers.google.com/search/docs/appearance/structured-data/local-business?utm_source=openai))\n\n5. **Earn credible mentions elsewhere.** Accurate coverage or listings from local education directories, schools, professional associations, and news outlets can give people—and search systems—more than your own claims to assess. Avoid fake reviews, copied articles, and mass-produced “best coaching institute” pages.\n\n6. **Check whether it’s working.** Try ChatGPT Search with queries a prospective student might use, such as “best NEET coaching in Chandigarh” or “JEE coaching near Sector 34 Chandigarh.” Review the cited sources and track visits referred from ChatGPT in your website analytics. Results can vary by query and location, so test several prompts over time. ([help.openai.com](https://help.openai.com/en/articles/9237897-chatgpt-search?utm_source=openai))\n\nIf you share the institute’s website and the courses it offers, I can suggest a more specific visibility checklist.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "help.openai.com",
+          "url": "https://help.openai.com/en/articles/9237897-chatgpt-search?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "developers.openai.com",
+          "url": "https://developers.openai.com/api/docs/bots?wvideo=akzb57a5z3&utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "developers.google.com",
+          "url": "https://developers.google.com/search/help/site-appearance-faq?authuser=451499271&utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "developers.google.com",
+          "url": "https://developers.google.com/search/docs/appearance/structured-data/local-business?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011747
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "How can a coaching institute in Chandigarh show up in ChatGPT answers?",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Getting your coaching institute recommended by ChatGPT falls under a discipline called **GEO (Generative Engine Optimization)** or **AEO (AI Engine Optimization)**. \n\nChatGPT answers questions about local recommendations (e.g., *\"What are the best IELTS/UPSC institutes in Chandigarh?\"*) in two ways:\n1. **Real-time Web Search (Retrieval):** ChatGPT uses search engines (primarily Bing) to find recent \"Top 10\" roundups, forum discussions, and directories.\n2. **Pre-trained Knowledge:** It recalls entities, brands, and reputations that were frequently cited across authoritative websites, news, and discussion boards during its training.\n\nTo ensure ChatGPT recommends your institute, focus on the following strategies:\n\n---\n\n### 1. Get Featured on High-Authority \"Top 10\" & Review Aggregators\nWhen users ask ChatGPT for recommendations, it almost always queries the web for roundups. If your institute is consistently listed among the top 5–10 in those roundups, ChatGPT will synthesize that information and mention you.\n* **Education portals:** Ensure your institute has verified, high-rating profiles with detailed course info on portals like **Shiksha, Collegedunia, Justdial, Sulekha, and UrbanPro**.\n* **PR & Local Roundups:** Reach out to regional publishers, education bloggers, and news sites (e.g., *Tribune India*, *Hindustan Times Chandigarh*, local city blogs) to be included in articles like *\"Top 7 UPSC Coaching Centers in Sector 34, Chandigarh\"*.\n\n---\n\n### 2. Build Unbiased Visibility on Reddit and Quora\nLLMs heavily rely on community forums to determine public sentiment and \"real user recommendations.\"\n* **Reddit (`r/Chandigarh`):** Students frequently ask, *\"Which is the best institute for IELTS/JEE in Chandigarh?\"* If real alumni and students naturally recommend your institute in these threads, ChatGPT picks up that consensus during live web searches.\n* **Quora:** Answer queries like *\"Is [Your Institute] good for NEET in Chandigarh?\"* or *\"Top institutes in Sector 34\"*. Keep the answers objective, factual, and informative.\n\n---\n\n### 3. Establish Clear \"Entity\" Signals and Local SEO\nChatGPT needs to recognize your institute as a distinct, credible local **entity**.\n* **Specify Locations Clearly:** In Chandigarh, coaching is heavily clustered (e.g., Sector 34, Sector 15). Ensure your site, Google Business Profile, and listings explicitly state your sector, landmarks, and city across all platforms (NAP: Name, Address, Phone consistency).\n* **Implement Schema Markup:** Add **`EducationalOrganization`** and **`Course`** Schema markup to your website's code. This helps search engine crawlers and AI bots immediately understand what exams you teach, fee structures, duration, and ratings.\n\n---\n\n### 4. Create Direct, Answer-Engine-Friendly Content\nWhen ChatGPT crawls the web to answer specific user questions, it looks for clean, concise text that directly addresses the query.\n* Create dedicated pages targeting specific queries (e.g., *\"Best IELTS Coaching in Chandigarh Sector 34 – Batches, Fees & Results\"*).\n* Add an **FAQ section** with direct questions and answers:\n  * *What is the average batch size?*\n  * *What is the success rate/selection record?*\n  * *What are the course fees?*\n* Write in clear, matter-of-fact language rather than heavy sales copy. AI engines prefer structured lists and factual tables.\n\n---\n\n### 5. Drive High-Volume, Detailed Student Reviews\nAI systems look at review **sentiment** and **specificity**, not just star ratings.\n* Encourage students to mention the **specific exam, teacher name, and city** in their Google and platform reviews.\n  * *Weak review:* \"Great coaching, 5 stars!\"\n  * *Strong review for AI:* \"Joined their 6-month UPSC Prelims batch in Sector 34 Chandigarh. The sociology faculty and test series helped me clear the exam.\"\n\n---\n\n### Actionable First Steps:\n1. **Audit your current standing:** Open ChatGPT and type: *\"What are the best [your exam, e.g., CLAT/IELTS] coaching institutes in Chandigarh?\"* See who it mentions and look at the source links ChatGPT provides.\n2. **Target those specific sources:** Note the websites, blogs, or directories ChatGPT cited to generate that answer, and make sure your institute gets added or featured on those exact platforms.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [],
+      "costUsd": 0.007259
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "How can a coaching institute in Chandigarh show up in ChatGPT answers?",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "A coaching institute in Chandigarh can improve its chances of appearing in ChatGPT answers by making its information **easy to find, easy to quote, and independently trustworthy**. There’s no submission button or guaranteed ranking; ChatGPT Search can select sources based on relevance and reliability when it searches the web.[8]\n\n- **Check crawler access.** Ask your web developer to ensure `OAI-SearchBot` isn’t blocked by `robots.txt`, your hosting provider, or security settings. Make important text—including course details and FAQs—readable in the page itself, not available only after JavaScript loads.[8]\n- **Create clear pages for each course and centre.** State the exam, location, duration, fees, batch dates, faculty, class format, contact details, and verifiable results. Use straightforward headings and answer questions directly, such as “What is the fee for NEET coaching in Chandigarh?”[1][2]\n- **Strengthen local credibility.** Complete your Google Business Profile, invite genuine students to leave reviews, and keep your institute’s name, address, phone number, courses, and fees consistent across your website and reputable directories.[1][2]\n- **Build independent mentions.** Seek accurate coverage or listings from credible local news, education directories, and other relevant sites. A website’s own claims are more persuasive when trustworthy external sources also mention the institute.[1][2]\n- **Make the site discoverable.** Ensure key pages can be indexed by search engines, load well on mobile, and use suitable structured data where appropriate. These steps can help systems find and interpret your information, but don’t guarantee a ChatGPT mention.[2][8]\n- **Track real student questions.** Test prompts such as “Which IIT-JEE coaching institutes in Chandigarh offer weekend batches?” and “Compare NEET coaching fees in Chandigarh.” Record whether your institute appears, whether the facts are accurate, and which sources are cited; update missing or outdated information.[2][9]\n\nStart with the institute’s Google listing, course pages, and FAQ. Keep facts current, and avoid fabricated reviews or unsupported “best institute” claims.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "mgiwebzone.com",
+          "url": "https://www.mgiwebzone.com/coaching-institute-ai-search-visibility/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "onlinecoaching4u.in",
+          "url": "https://www.onlinecoaching4u.in/best-aeo-tools-coaching-institutes-india",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "unveilrai.com",
+          "url": "https://unveilrai.com/feeds/service/seo-company-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "aiseo.solutions",
+          "url": "https://aiseo.solutions/seo-for-schools/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "uiux.studio",
+          "url": "https://uiux.studio/blog/ai-for-coaching-institutes-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "niftysite.co",
+          "url": "https://niftysite.co/blog/coaches-ai-search-visibility",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "digitalpatron.in",
+          "url": "https://digitalpatron.in/services/digital-marketing/chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "hostinger.com",
+          "url": "https://www.hostinger.com/in/tutorials/how-to-rank-in-chatgpt/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "airanklab.com",
+          "url": "https://www.airanklab.com/blog/chatgpt-mein-business-dikhta-hai-ya-nahi-free-check",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "seomator.com",
+          "url": "https://seomator.com/features/chatgpt-visibility-tracker",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00181
+    }
+  ]
+}

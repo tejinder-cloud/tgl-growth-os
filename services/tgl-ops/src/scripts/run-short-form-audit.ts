@@ -24,6 +24,15 @@ export async function runShortFormAuditCli(
   const brandName = customBrand || "The Growth Lab";
   const domain = customDomain || "thegrowthlab.co.in";
 
+  // Honesty check 0: mock engine answers exist only for tests. Outside TGL_TEST_MODE the audit asks the real
+  // engines, whatever the caller passes; a mock PDF must never reach a channel as if it were an audit.
+  const inTestProcess = process.env.TGL_TEST_MODE === "1";
+  const requestedTestMode = options?.testMode !== undefined ? options.testMode : inTestProcess;
+  if (requestedTestMode && !inTestProcess) {
+    throw new Error("Mock audit answers are only available under TGL_TEST_MODE=1. Live audits call the engines.");
+  }
+  const testMode = requestedTestMode;
+
   console.log(`Verifying brand setup profile for: ${brandName} (${domain})...`);
 
   // Honesty check 1: setup profile verification gate
@@ -39,7 +48,7 @@ export async function runShortFormAuditCli(
   console.log(`Running AEO Short-Form Audit for: ${verifiedProfile.name} (${verifiedProfile.primaryDomain})...`);
 
   const auditResult = await runShortFormAudit(verifiedProfile, {
-    testMode: options?.testMode !== undefined ? options.testMode : true,
+    testMode,
     saveRawJson: true,
     supabase: options?.supabase,
   });
@@ -55,7 +64,7 @@ export async function runShortFormAuditCli(
   }
 
   const outDir = path.join(process.cwd(), "artifacts", "audits");
-  const outFile = path.join(outDir, `${brandName.toLowerCase().replace(/\s+/g, "-")}-aeo-audit.pdf`);
+  const outFile = path.join(outDir, `${brandName.toLowerCase().replace(/\s+/g, "-")}-aeo-audit${testMode ? "-TEST-FIXTURE" : ""}.pdf`);
 
   const pdfResult = await generateAuditPdf(auditResult, outFile);
   console.log(`- PDF generated: ${outFile} (${(pdfResult.sizeBytes / 1024).toFixed(1)} KB, limit 2MB)`);

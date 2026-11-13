@@ -7,7 +7,7 @@ import type { RunKind, TrackerStore } from "./store.js";
 import { API_ENGINES, type EngineConfig, type EngineId } from "./types.js";
 
 export const AGENT = "aeo-audit-engine";
-const LABEL: Record<EngineId, string> = { chatgpt: "ChatGPT", gemini: "Gemini", perplexity: "Perplexity" };
+const LABEL: Record<EngineId, string> = { chatgpt: "ChatGPT", gemini: "Gemini", perplexity: "Perplexity", claude: "Claude" };
 
 export interface TrackerDeps {
   store: TrackerStore;
@@ -56,11 +56,16 @@ export async function runTracker(d: TrackerDeps): Promise<TrackerSummary> {
     // Engines run in parallel; prompts run one after another within an engine (gentle on rate limits).
     const results = await Promise.all(configs.map(async (cfg): Promise<EngineOutcome> => {
       // Audits ask only what this engine hasn't answered today (new prompts after a setup change, or a retry) — never pay twice.
-      const answered = kind === "audit" ? await d.store.answeredPromptIds(b.id, d.runDate, cfg.engine) : new Set<string>();
+      // Never pay twice in a day: a run of either kind still going for this engine is left to finish, and only
+      // prompts not yet answered today (by the first audit or an earlier run) are asked.
+      if (d.store.hasRunningRun && await d.store.hasRunningRun(b.id, d.runDate, cfg.engine)) {
+        return { brand: b.name, brandId: b.id, engine: cfg.engine, ok: 0, total: 0, mentioned: 0, usd: 0, status: "skipped", note: "already running" };
+      }
+      if (kind === "daily" && await d.store.hasCompletedRun(b.id, d.runDate, cfg.engine)) return { brand: b.name, brandId: b.id, engine: cfg.engine, ok: 0, total: 0, mentioned: 0, usd: 0, status: "skipped", note: "already ran today" };
+      const answered = await d.store.answeredPromptIds(b.id, d.runDate, cfg.engine);
       const todo = b.prompts.filter((p) => !answered.has(p.id));
       const base = { brand: b.name, brandId: b.id, engine: cfg.engine, ok: 0, total: todo.length, mentioned: 0, usd: 0 };
       if (!todo.length) return { ...base, status: "skipped", note: "all prompts already answered today" };
-      if (kind === "daily" && await d.store.hasCompletedRun(b.id, d.runDate, cfg.engine)) return { ...base, status: "skipped", note: "already ran today" };
       if (d.canSpend && !(await d.canSpend())) { stoppedByCap = true; return { ...base, status: "skipped", note: "daily cost cap" }; }
 
       let runId: string;

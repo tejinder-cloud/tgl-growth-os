@@ -10,8 +10,9 @@ import { cardsRouter } from "./routes/cards.js";
 import { githubEventsRouter } from "./routes/github-events.js";
 import { auditRouter } from "./routes/audit.js";
 import { outreachRouter } from "./routes/outreach.js";
-import { aeoRouter } from "./routes/aeo.js";
+import { aeoLeadRouter, automationLeadRouter } from "./routes/site-leads.js";
 import { homeStatsRouter } from "./routes/home-stats.js";
+import { opsRevenueRouter } from "./routes/ops-revenue.js";
 import { billingRouter } from "./routes/billing.js";
 import { financeRouter } from "./routes/finance.js";
 
@@ -137,13 +138,17 @@ export function createApp(signingSecret?: string) {
   // 10. Outreach API: GHL inbound-reply webhook (shared-secret header, fails closed)
   app.use("/outreach", outreachRouter);
 
-  // 11. AEO lead API: public POST /aeo/lead behind the /aeo audit form. Origin allow-list, honeypot,
-  // per-IP rate limit; fails closed (503) when the GHL env is not configured.
-  app.use("/aeo", aeoRouter);
+  // 11. Website lead APIs (launch package, 11 Nov 2026): POST /aeo/lead behind the audit form and
+  // POST /automation/lead behind the AI-automation enquiry. Origin allow-list, honeypot, per-IP rate
+  // limit; save to site_leads first ("ok": true only after the row exists), GoHighLevel second, card third.
+  app.use("/aeo", aeoLeadRouter);
+  app.use("/automation", automationLeadRouter);
 
   // 11b. Home stats: read-only GET /home/stats for the Client Zero tiles. Counts and dates for TGL's own
   // tracker only; fails closed (503, no figures) when no provider is wired.
   app.use("/home", homeStatsRouter);
+  // GET /ops/revenue: public counts for the project dashboard's revenue strip. Counts only, no names.
+  app.use("/ops", opsRevenueRouter);
 
   // 12. Billing: Razorpay webhooks for TrueVisible Track (signature-checked; fails closed) (plan Day 26)
   app.use("/billing", billingRouter);
