@@ -26,6 +26,8 @@ export interface TouchRecord {
   message_id?: string;
   dry_run: boolean;
   attachment_url?: string;
+  /** What carried the message: this service's own email provider, or GoHighLevel. Absent on older records. */
+  via?: "resend" | "ghl";
 }
 
 export interface AuditSummary {
@@ -57,7 +59,7 @@ export interface OutreachState {
   audit?: AuditSummary;
   /** Consecutive failed audit / one-pager builds for the current touch. */
   audit_attempts?: number;
-  /** Consecutive failed GHL sends for the current touch. */
+  /** Consecutive failed sends for the current touch. */
   send_failures?: number;
   pause_reason?: string;
   last_reply_message_id?: string;

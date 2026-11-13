@@ -466,15 +466,22 @@ export { app };
 // ---------------------------------------------------------------------------
 // Outreach Sequencer live wiring (PLAN-D10b)
 // ---------------------------------------------------------------------------
-import { buildReplyDeps, createOutreachRuntime, fileLogWriter, tickCron, type OutreachRuntime } from "./agents/outreach-sequencer/live.js";
+import { buildInboundDeps, buildReplyDeps, createOutreachRuntime, fileLogWriter, tickCron, type OutreachRuntime } from "./agents/outreach-sequencer/live.js";
 import { loadOutreachTemplatesAsync, verifyBundledTemplatesMatchRepo } from "./agents/outreach-sequencer/templates.js";
-import { setOutreachReplyDeps } from "./routes/outreach.js";
+import { setOutreachInboundDeps, setOutreachReplyDeps } from "./routes/outreach.js";
 
 // POST /outreach/ghl-reply: the handler needs the real store and GHL client, supplied once at boot.
 try {
   setOutreachReplyDeps(buildReplyDeps());
 } catch (err: any) {
   console.error("[Outreach] Reply handler not wired:", err?.message || err);
+}
+
+// POST /outreach/resend-events and /outreach/unsubscribe: email received, bounced or unsubscribed with no GHL in the path.
+try {
+  setOutreachInboundDeps(buildInboundDeps());
+} catch (err: any) {
+  console.error("[Outreach] Inbound email handler not wired:", err?.message || err);
 }
 
 // Daily tick, Mon-Fri 09:30-17:30 IST. The send-window rule inside runTick refuses anything outside it.
