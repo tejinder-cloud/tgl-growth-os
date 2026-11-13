@@ -1,7 +1,7 @@
 // services/tgl-ops/src/agents/outreach-sequencer/execute.ts
 // Per-touch executor for the 5-touch sequence (SKILL.md Playbooks A and C). It implements TickPorts.execute
 // from worker.ts: load the prospect's sequence state, build the audit and one-pager when the touch needs
-// them, render the message, send through GHL when live, and persist the new state.
+// them, render the message, send when live (this service's own email, or GHL), and persist the new state.
 //
 // Everything that touches the outside world (Supabase, GHL, the audit engine, PDF storage) is injected
 // through ExecutorPorts, so these rules can be exercised offline. The composition root adapts the real
@@ -11,7 +11,7 @@
 //   1. Stale or non-active sequences are skipped, never sent (reply, opt-out, pause, completed).
 //   2. The one-pager touch (ONE_PAGER_TOUCH, touch 3) is held, never sent bare: if the audit, the PDF or its signed URL is missing, the touch is held.
 //   3. The audit and PDF are cached in the sequence state, so a retry never pays for a second audit.
-//   4. Dry run builds and renders everything but does not contact GHL and does not advance the sequence.
+//   4. Dry run builds and renders everything but contacts no sender and does not advance the sequence.
 //   5. Three consecutive failures on a touch pause the sequence (worker.ts posts the single #alerts line).
 //   6. With ports.auditEveryTouch (the file templates quote the prospect's own audit from touch 1), every touch
 //      builds the audit first; without it only touches 3 and 4 do, as before.
@@ -37,6 +37,10 @@ export interface OutboundMessage {
   message: RenderedMessage;
   /** Signed URL of the prospect's one-pager. Present on the one-pager touch only. */
   attachmentUrl?: string;
+  /** The prospect, for a sender that addresses the person directly instead of through a GHL contact. */
+  prospectId: string;
+  company: string;
+  toEmail?: string;
 }
 
 export type RenderPort = (touch: number, channel: TouchChannel, ctx: MessageContext & { email?: string }) => RenderedMessage;
@@ -57,10 +61,10 @@ export interface ExecutorPorts {
   buildOnePager: (prospect: ProspectView) => Promise<{ audit: AuditSummary; path: string }>;
   /** Signed URL (7 days) for a stored one-pager. */
   signOnePagerUrl: (path: string) => Promise<string>;
-  /** Create or update the GHL contact and return its id. */
-  upsertContact: (prospect: ProspectView) => Promise<string>;
-  /** Send one message through GHL. Only called in live mode. */
-  sendMessage: (msg: OutboundMessage) => Promise<{ messageId?: string }>;
+  /** Create or update the GHL contact and return its id. Returns "" when no GHL contact is needed for this send. */
+  upsertContact: (prospect: ProspectView, channel: TouchChannel) => Promise<string>;
+  /** Send one message. Only called in live mode. `via` says what carried it. */
+  sendMessage: (msg: OutboundMessage) => Promise<{ messageId?: string; via?: "resend" | "ghl" }>;
 }
 
 function errMessage(err: unknown): string {
@@ -156,12 +160,20 @@ export function makeExecute(ports: ExecutorPorts): (item: DueTouch, mode: SendMo
     }
 
     try {
-      let contactId = state.ghl_contact_id;
+      let contactId = state.ghl_contact_id || "";
       if (!contactId) {
-        contactId = await ports.upsertContact(prospect);
-        state = { ...state, ghl_contact_id: contactId };
+        contactId = await ports.upsertContact(prospect, channel);
+        if (contactId) state = { ...state, ghl_contact_id: contactId };
       }
-      const sent = await ports.sendMessage({ contactId, channel, message, attachmentUrl });
+      const sent = await ports.sendMessage({
+        contactId,
+        channel,
+        message,
+        attachmentUrl,
+        prospectId: prospect.id,
+        company: prospect.company,
+        toEmail: prospect.email,
+      });
 
       const record: TouchRecord = {
         n: item.touch,
@@ -170,6 +182,7 @@ export function makeExecute(ports: ExecutorPorts): (item: DueTouch, mode: SendMo
         message_id: sent.messageId,
         dry_run: false,
         attachment_url: attachmentUrl,
+        ...(sent.via ? { via: sent.via } : {}),
       };
       const touches = state.touches.filter((t) => !(t.dry_run && t.n === item.touch)).concat(record);
       const done = item.touch >= TOTAL_TOUCHES;
@@ -186,7 +199,7 @@ export function makeExecute(ports: ExecutorPorts): (item: DueTouch, mode: SendMo
       await ports.saveState(prospect.id, next);
       return { status: "sent", attachmentUrl };
     } catch (err) {
-      const reason = `GHL send failed: ${errMessage(err)}`;
+      const reason = `send failed: ${errMessage(err)}`;
       const failed = withFailure(state, "send_failures", reason);
       await ports.saveState(prospect.id, failed.state);
       return { status: "held", reason, attempts: failed.attempts };

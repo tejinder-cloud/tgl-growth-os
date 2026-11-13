@@ -1,16 +1,18 @@
 // services/tgl-ops/src/agents/outreach-sequencer/live.ts
 // Composition root for the Outreach Sequencer (PLAN-D10b). The modules from PR #104 (worker, execute, reply,
 // templates, ghl, store, onepager) are ports-and-rules code with no I/O of their own. This file connects them to
-// the real world: Supabase prospects, GHL (email; WhatsApp only when GHL_WA_PHONE_ID is set), the short-form audit
+// the real world: Supabase prospects, email (this service's own provider when OUTREACH_EMAIL_VIA=resend, otherwise
+// GHL), WhatsApp through GHL only when GHL_WA_PHONE_ID is set, the short-form audit
 // engine, Supabase Storage for the one-pager, Slack, and the templates in agents/outreach-sequencer/templates.
 //
 // Safety: everything stays dry-run until OUTREACH_LIVE=1 (enforced in worker.ts runTick). A dry run never contacts
-// GHL and never advances a sequence. This file adds no send path of its own.
+// a sender and never advances a sequence. This file adds no send path of its own.
 //
 // Environment read here:
 //   OUTREACH_LIVE                 "1" sends for real; anything else is a dry run (worker.ts)
 //   GHL_WA_PHONE_ID               when set, WhatsApp touches go out on WhatsApp; unset, they fall back to email
-//   GHL_API_KEY, GHL_LOCATION_ID  GHL access (ghl.ts); required only when live
+//   GHL_API_KEY, GHL_LOCATION_ID  GHL access (ghl.ts); required only when live and GHL carries a channel
+//   OUTREACH_EMAIL_VIA            "resend": email touches leave from this service (email.ts lists its variables)
 //   OUTREACH_BOOKING_LINK         fills {{booking_link}} when a template uses it
 //   OUTREACH_SENDER_NAME          sender sign-off passed to the renderer (default "The Growth Lab")
 //   OUTREACH_TEMPLATES_DIR        override for agents/outreach-sequencer/templates (templates.ts)
@@ -23,7 +25,9 @@ import path from "node:path";
 import { postLine } from "../../lib/post.js";
 import { getSupabase } from "../prospect-researcher/db.js";
 import { makeExecute, type ExecutorPorts, type ProspectView } from "./execute.js";
+import { createResendSender, emailConfigIssues, fetchReceivedEmail, loadEmailConfig, type EmailSender } from "./email.js";
 import { createGhlClient, loadGhlConfig, type GhlClient } from "./ghl.js";
+import type { InboundDeps } from "./inbound.js";
 import { domainOf, renderOnePagerPdf, runProspectAudit, uploadOnePager, type OnePagerProspect } from "./onepager.js";
 import type { ReplyDeps } from "./reply.js";
 import { SEQUENCE, TOTAL_TOUCHES, istDateKey, resolveChannel } from "./sequence.js";
@@ -225,6 +229,10 @@ export interface WiringOptions {
   store?: ProspectStore;
   /** Pass a client to use it. Omit to build one from GHL_API_KEY / GHL_LOCATION_ID on first use. */
   ghl?: GhlClient;
+  /** Pass a sender to use it. Omit to build the Resend sender from the environment on first use. */
+  emailSender?: EmailSender;
+  /** fetch used by the default sender and the received-email reader. */
+  fetchImpl?: typeof fetch;
 }
 
 /**
@@ -242,6 +250,24 @@ export function buildReplyDeps(opts: WiringOptions = {}): ReplyDeps {
     }
   }
   return { store: opts.store || createSupabaseStore(), ghl, now: opts.now };
+}
+
+/**
+ * Dependencies for POST /outreach/resend-events and the unsubscribe link. No GHL client is built when email runs
+ * through this service: a reply must be handled even if GHL is not configured at all.
+ */
+export function buildInboundDeps(opts: WiringOptions = {}): InboundDeps {
+  const env = opts.env || process.env;
+  const cfg = loadEmailConfig(env);
+  const fetchImpl = opts.fetchImpl || fetch;
+  return {
+    store: opts.store || createSupabaseStore(),
+    ghl: opts.ghl,
+    now: opts.now,
+    fetchReceived: (id) => fetchReceivedEmail(id, cfg, fetchImpl),
+    sender: opts.emailSender || (cfg.apiKey && cfg.from ? createResendSender(cfg, fetchImpl) : undefined),
+    forwardTo: cfg.forwardTo,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -287,6 +313,14 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
   const senderName = (env.OUTREACH_SENDER_NAME || "").trim() || DEFAULT_SENDER_NAME;
   const bookingLink = (env.OUTREACH_BOOKING_LINK || "").trim() || undefined;
   const waOn = whatsappEnabled(env);
+  const emailCfg = loadEmailConfig(env);
+  const ownEmail = emailCfg.via === "resend";
+
+  let senderCache: EmailSender | undefined = opts.emailSender;
+  const emailSender = (): EmailSender => {
+    if (!senderCache) senderCache = createResendSender(emailCfg, opts.fetchImpl || fetch);
+    return senderCache;
+  };
 
   let ghlCache: GhlClient | undefined = opts.ghl;
   const ghl = (): GhlClient => {
@@ -326,7 +360,9 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
       return { audit: summary, path: storagePath };
     },
     signOnePagerUrl: signUrl,
-    async upsertContact(prospect) {
+    async upsertContact(prospect, channel) {
+      // Email from this service addresses the person directly; no GHL contact is created for it.
+      if (ownEmail && channel === "Email") return "";
       const v = prospect as ViewWithWebsite;
       const res = await ghl().upsertContact({
         name: v.decisionMakerName,
@@ -339,6 +375,19 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
       return res.contactId;
     },
     async sendMessage(msg) {
+      if (ownEmail && msg.channel === "Email") {
+        if (!msg.toEmail) throw new Error("prospect has no work email");
+        const sent = await emailSender().send({
+          prospectId: msg.prospectId,
+          to: msg.toEmail,
+          subject: msg.message.subject || "",
+          text: msg.message.text,
+          html: msg.message.html,
+          attachmentUrl: msg.attachmentUrl,
+          attachmentFilename: `${msg.company.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "your"}-ai-visibility-report.pdf`,
+        });
+        return { messageId: sent.messageId, via: "resend" as const };
+      }
       const res = await ghl().sendMessage({
         contactId: msg.contactId,
         channel: msg.channel,
@@ -347,7 +396,7 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
         text: msg.message.text,
         attachmentUrls: msg.attachmentUrl ? [msg.attachmentUrl] : undefined,
       });
-      return { messageId: res.messageId };
+      return { messageId: res.messageId, via: "ghl" as const };
     },
   };
 
@@ -395,8 +444,12 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
       issues.push("a template uses {{booking_link}} but OUTREACH_BOOKING_LINK is not set");
     }
     if (isLive(env)) {
-      const cfg = loadGhlConfig(env);
-      if (!cfg.apiKey || !cfg.locationId) issues.push("OUTREACH_LIVE=1 but GHL_API_KEY or GHL_LOCATION_ID is not set");
+      if (ownEmail && !opts.emailSender) issues.push(...emailConfigIssues(emailCfg));
+      // GHL is needed only for what it still carries: email when not moved, and WhatsApp when switched on.
+      if (!ownEmail || waOn) {
+        const cfg = loadGhlConfig(env);
+        if (!cfg.apiKey || !cfg.locationId) issues.push("OUTREACH_LIVE=1 but GHL_API_KEY or GHL_LOCATION_ID is not set");
+      }
     }
     return issues;
   }

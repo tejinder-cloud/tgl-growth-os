@@ -77,6 +77,7 @@ Rules:
 
 ## 4. Tools & Access
 1. **GoHighLevel API** (`GHL_API_KEY`, `GHL_LOCATION_ID`, optional `GHL_API_BASE`, `GHL_API_VERSION`, `GHL_EMAIL_FROM`): contact upsert, conversation messages (Email, WhatsApp) with attachments, tags, notes.
+   From 13 Nov 2026 email can leave from the service itself instead (`OUTREACH_EMAIL_VIA=resend`, with `RESEND_API_KEY`, `OUTREACH_EMAIL_FROM`, `OUTREACH_REPLY_TO`, `OUTREACH_FORWARD_REPLIES_TO`, `RESEND_WEBHOOK_SECRET`): no GHL contact is created for an email touch; replies, bounces and spam complaints arrive at `POST /outreach/resend-events`; every email carries a signed unsubscribe link (`/outreach/unsubscribe`). GHL then carries WhatsApp only.
 2. **GrowthLab Engine** (`agents/aeo-audit-engine` `runShortFormAudit`): the audit behind touch 3.
 3. **Supabase** (`prospects` table, tenant `'tgl'`; Storage bucket for one-pagers): sequence state is kept in `prospects.signals.outreach`; no new table or plugin.
 4. **Slack** (`postLine`): Sales Desk routing and `#alerts`.
