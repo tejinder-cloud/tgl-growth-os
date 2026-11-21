@@ -89,7 +89,7 @@ export interface ExchangeResult {
   scopes: string[];
 }
 
-export async function exchangeCode(cfg: GoogleBookingConfig, code: string, fetchImpl: typeof fetch = fetch): Promise<ExchangeResult> {
+export async function exchangeCode(cfg: GoogleBookingConfig, code: string, fetchImpl: typeof fetch = fetch, redirectPath: string = CALLBACK_PATH): Promise<ExchangeResult> {
   const res = await fetchImpl("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -97,7 +97,7 @@ export async function exchangeCode(cfg: GoogleBookingConfig, code: string, fetch
       code,
       client_id: cfg.clientId,
       client_secret: cfg.clientSecret,
-      redirect_uri: cfg.publicUrl + CALLBACK_PATH,
+      redirect_uri: cfg.publicUrl + redirectPath,
       grant_type: "authorization_code",
     }),
   });
