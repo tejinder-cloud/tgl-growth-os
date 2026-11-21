@@ -385,6 +385,16 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
       const storagePath = await storeOnePager(op, summary);
       return { audit: summary, path: storagePath };
     },
+    async onSent({ prospect, touch, channel, message }) {
+      const v = prospect as ViewWithWebsite;
+      const lines = [`Outreach ${channel.toLowerCase()} sent: ${v.company}${v.email ? ` (${v.email})` : ""}, touch ${touch}.`];
+      if (message.subject) lines.push(`Subject: ${message.subject}`);
+      lines.push("", message.text);
+      await postLine({ channel: (env.SALES_DESK_CHANNEL_ID || "#revenue").trim(), text: lines.join("\n"), unfurl_links: false, unfurl_media: false });
+    },
+    async onGuard({ prospect, touch, problems }) {
+      await alert(`*Outreach email held: ${prospect.company}, touch ${touch}.* The last check found: ${problems.join("; ")}. Nothing was sent; the sequence is paused.`);
+    },
     async runAudit(prospect) {
       return audit(toOnePagerProspect(prospect as ViewWithWebsite));
     },
