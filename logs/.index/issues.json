@@ -1,11 +1,11 @@
 {
   "13": {
     "channel": "C073SJJ22P9",
-    "ts": "1795145410.305529",
+    "ts": "1795231810.182699",
     "agent": "chief-of-staff",
     "door": "core",
     "title": "Plan Status Card — Day 13",
-    "updatedAt": "2026-11-20T03:30:10.373Z",
+    "updatedAt": "2026-11-21T03:30:10.245Z",
     "cardType": "plan",
     "linkedIssueNumber": 13,
     "threadTimestamps": [
@@ -19,7 +19,8 @@
       "1794886210.849769",
       "1794972610.339149",
       "1795059010.338619",
-      "1795145410.305529"
+      "1795145410.305529",
+      "1795231810.182699"
     ]
   },
   "14": {
@@ -417,6 +418,19 @@
     ],
     "updatedAt": "2026-11-12T07:38:36.570Z"
   },
+  "204": {
+    "channel": "C073SJJ22P9",
+    "ts": "1795145410.305529",
+    "agent": "chief-of-staff",
+    "door": "core",
+    "title": "Plan Status Card — Day 13",
+    "cardType": "plan",
+    "linkedIssueNumber": 204,
+    "threadTimestamps": [
+      "1795145410.305529"
+    ],
+    "updatedAt": "2026-11-20T10:49:29.414Z"
+  },
   "thread:1794308956.168819": {
     "channel": "#doors-aeo",
     "ts": "1794308956.168819",
@@ -609,12 +623,23 @@
   "thread:1795145410.305529": {
     "channel": "C073SJJ22P9",
     "ts": "1795145410.305529",
+    "issueNumber": 204,
+    "linkedIssueNumber": 204,
+    "cardType": "plan",
+    "agent": "chief-of-staff",
+    "door": "core",
+    "title": "Plan Status Card — Day 13",
+    "updatedAt": "2026-11-20T10:49:29.414Z"
+  },
+  "thread:1795231810.182699": {
+    "channel": "C073SJJ22P9",
+    "ts": "1795231810.182699",
     "issueNumber": 13,
     "linkedIssueNumber": 13,
     "cardType": "plan",
     "agent": "chief-of-staff",
     "door": "core",
     "title": "Plan Status Card — Day 13",
-    "updatedAt": "2026-11-20T03:30:10.373Z"
+    "updatedAt": "2026-11-21T03:30:10.245Z"
   }
 }
