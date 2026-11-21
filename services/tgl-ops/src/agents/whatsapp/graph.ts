@@ -55,14 +55,21 @@ export interface WaAccount {
   numbers: { id: string; display: string; name?: string; quality?: string }[];
 }
 
-export async function listAccounts(ctx: WaContext): Promise<WaAccount[]> {
+/** What Meta answered to each lookup, so a refusal is visible on the screen. Never contains the token. */
+export type LookupNote = { call: string; ok: boolean; detail: string };
+
+export async function listAccounts(ctx: WaContext, notes: LookupNote[] = []): Promise<WaAccount[]> {
   const seen = new Map<string, WaAccount>();
+  const note = (call: string, ok: boolean, detail: string) => notes.push({ call, ok, detail: detail.slice(0, 300) });
+  const msg = (e: unknown) => (e as Error)?.message || String(e);
   for (const edge of ["owned_whatsapp_business_accounts", "client_whatsapp_business_accounts"]) {
     try {
       const r = await call(ctx, `/${ctx.businessId}/${edge}?fields=id,name&limit=50`);
       for (const a of r.data || []) if (!seen.has(a.id)) seen.set(a.id, { id: String(a.id), name: String(a.name || a.id), numbers: [] });
-    } catch {
+      note(edge, true, `${(r.data || []).length} account(s)`);
+    } catch (e) {
       // the token may lack business_management; the token's own grants below still list its accounts
+      note(edge, false, msg(e));
     }
   }
   // Accounts granted to this token (system user assets, Embedded Signup), however the business owns them.
@@ -70,9 +77,12 @@ export async function listAccounts(ctx: WaContext): Promise<WaAccount[]> {
   try {
     const dbg = await call(ctx, `/debug_token?input_token=${encodeURIComponent(ctx.token)}`);
     const ids = new Set<string>();
+    const scopes: string[] = [];
     for (const g of dbg?.data?.granular_scopes || []) {
+      scopes.push(`${g.scope}${g.target_ids ? `(${(g.target_ids as unknown[]).length})` : ""}`);
       if (String(g.scope || "").startsWith("whatsapp_business")) for (const id of g.target_ids || []) ids.add(String(id));
     }
+    note("token grants", true, `${dbg?.data?.is_valid === false ? "token NOT valid; " : ""}scopes: ${scopes.join(", ") || "none"}; WhatsApp account ids: ${[...ids].join(", ") || "none"}`);
     for (const id of ids) {
       if (seen.has(id)) continue;
       try {
@@ -82,15 +92,16 @@ export async function listAccounts(ctx: WaContext): Promise<WaAccount[]> {
         seen.set(id, { id, name: id, numbers: [] });
       }
     }
-  } catch {
-    // keep what the business edges returned
+  } catch (e) {
+    note("token grants", false, msg(e));
   }
   for (const a of seen.values()) {
     try {
       const r = await call(ctx, `/${a.id}/phone_numbers?fields=id,display_phone_number,verified_name,quality_rating`);
       a.numbers = (r.data || []).map((n: any) => ({ id: String(n.id), display: String(n.display_phone_number || ""), name: n.verified_name, quality: n.quality_rating }));
-    } catch {
+    } catch (e) {
       a.numbers = [];
+      note(`numbers of ${a.id}`, false, msg(e));
     }
   }
   return [...seen.values()];
