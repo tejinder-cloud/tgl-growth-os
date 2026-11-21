@@ -41,14 +41,17 @@ async function main() {
   const created: any[] = [];
   let failCreate = false;
   const calBusy: { start: string; end: string }[] = [];
+  const present: string[] = [];
+  const declined: string[] = [];
   const cal: CalendarPort = {
-    async listBusy() {
-      return calBusy;
+    async read() {
+      return { busy: calBusy, present, declined };
     },
     async createEvent(ev) {
       if (failCreate) throw new Error("Google said no");
       created.push(ev);
       calBusy.push({ start: ev.start, end: ev.end });
+      present.push(`ev${created.length}`);
       return { eventId: `ev${created.length}`, htmlLink: "", meetUrl: "https://meet.google.com/abc-defg-hij" };
     },
   };
@@ -120,6 +123,16 @@ async function main() {
   const bot = await svc.book({ ...good, start: "2026-11-23T11:00:00.000Z", website: "http://spam" });
   assert.equal(bot.ok, false);
   assert.equal(await store.countBooked(), 2);
+
+  // Guest declines ev1; ev2's event is removed by hand. Both bookings become cancelled and #revenue is told.
+  assert.equal(await svc.sync(), 0, "nothing to cancel yet");
+  declined.push("ev1");
+  present.splice(present.indexOf("ev2"), 1);
+  assert.equal(await svc.sync(), 2);
+  assert.equal(await store.countBooked(), 0, "calls booked stays true");
+  assert.ok(notes.some((n) => /^Booking cancelled: Neha, Luma Fertility, .*The guest declined/.test(n)));
+  assert.ok(notes.some((n) => /The event was removed from the calendar/.test(n)));
+  assert.equal(await svc.sync(), 0, "never cancelled twice");
 
   // Not connected: closed, honestly.
   connected = false;

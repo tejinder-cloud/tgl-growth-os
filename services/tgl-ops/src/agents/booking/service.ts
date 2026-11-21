@@ -3,10 +3,10 @@
 import crypto from "node:crypto";
 import { freeSlots, isOfferedSlot, SLOT_MINUTES, type Busy, type DaySlots } from "./slots.js";
 import { SlotTakenError, type BookingStore } from "./store.js";
-import type { CreatedEvent, NewEvent } from "./google.js";
+import type { CalendarRead, CreatedEvent, NewEvent } from "./google.js";
 
 export interface CalendarPort {
-  listBusy(timeMin: string, timeMax: string): Promise<Busy[]>;
+  read(timeMin: string, timeMax: string): Promise<CalendarRead>;
   createEvent(ev: NewEvent): Promise<CreatedEvent>;
 }
 
@@ -78,7 +78,7 @@ export function createBookingService(deps: BookingDeps) {
     if (!cal) return { open: false, days: [] };
     const now = deps.now();
     const w = window(now);
-    return { open: true, days: freeSlots(now, await cal.listBusy(w.min, w.max), deps.holidays) };
+    return { open: true, days: freeSlots(now, (await cal.read(w.min, w.max)).busy, deps.holidays) };
   }
 
   async function bookNow(input: BookingInput): Promise<BookingOutcome> {
@@ -92,7 +92,7 @@ export function createBookingService(deps: BookingDeps) {
 
     const now = deps.now();
     const w = window(now);
-    const busy = await cal.listBusy(w.min, w.max);
+    const busy = (await cal.read(w.min, w.max)).busy;
     if (!isOfferedSlot(v.start, now, busy, deps.holidays)) {
       return { ok: false, status: 409, error: "slot_taken", message: "That time was just taken. Please pick another.", days: freeSlots(now, busy, deps.holidays) };
     }
@@ -154,11 +154,35 @@ export function createBookingService(deps: BookingDeps) {
     return { ok: true, start: v.start, end, meetUrl: created.meetUrl };
   }
 
+  /**
+   * Marks upcoming bookings cancelled when the guest declined or the event was removed from the calendar, and
+   * tells #revenue. Keeps "calls booked" true. Returns how many were cancelled.
+   */
+  async function sync(): Promise<number> {
+    const cal = await deps.calendar();
+    if (!cal) return 0;
+    const now = deps.now();
+    const upcoming = await deps.store.listUpcomingBooked(now.toISOString());
+    if (upcoming.length === 0) return 0;
+    const last = Math.max(...upcoming.map((b) => new Date(b.ends_at).getTime()));
+    const read = await cal.read(now.toISOString(), new Date(last + 60000).toISOString());
+    let n = 0;
+    for (const b of upcoming) {
+      if (!b.event_id) continue;
+      const why = read.declined.includes(b.event_id) ? "the guest declined" : !read.present.includes(b.event_id) ? "the event was removed from the calendar" : "";
+      if (!why) continue;
+      await deps.store.release(b.id);
+      n++;
+      await deps.notify(`Booking cancelled: ${b.guest_name}, ${b.company}, ${istLabel(b.starts_at)}. ${why[0].toUpperCase()}${why.slice(1)}; the slot is open again.`).catch(() => {});
+    }
+    return n;
+  }
+
   function book(input: BookingInput): Promise<BookingOutcome> {
     const run = chain.then(() => bookNow(input));
     chain = run.catch(() => {});
     return run;
   }
 
-  return { slots, book };
+  return { slots, book, sync };
 }

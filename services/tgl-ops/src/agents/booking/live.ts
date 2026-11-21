@@ -2,7 +2,7 @@
 // Real wiring for the booking service: Supabase store, Google Calendar, outreach link, #revenue.
 import { postLine } from "../../lib/post.js";
 import { createSupabaseStore, getOutreachState } from "../outreach-sequencer/store.js";
-import { accessToken, createEvent, listBusy, loadGoogleBookingConfig, configIssues } from "./google.js";
+import { accessToken, createEvent, readCalendar, loadGoogleBookingConfig, configIssues } from "./google.js";
 import { loadHolidays } from "./slots.js";
 import { createBookingService, type BookingDeps, type CalendarPort, type OutreachLink } from "./service.js";
 import { createSupabaseBookingStore, type BookingStore } from "./store.js";
@@ -23,7 +23,7 @@ export function makeCalendarProvider(store: BookingStore, env: NodeJS.ProcessEnv
     }
     const token = cached.token;
     return {
-      listBusy: (min, max) => listBusy(token, min, max, fetchImpl),
+      read: (min, max) => readCalendar(token, min, max, fetchImpl),
       createEvent: (ev) => createEvent(token, ev, fetchImpl),
     };
   };

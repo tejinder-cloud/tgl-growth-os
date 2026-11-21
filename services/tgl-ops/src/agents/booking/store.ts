@@ -32,6 +32,8 @@ export interface BookingStore {
   markBooked(id: string, eventId: string, meetUrl: string): Promise<void>;
   release(id: string): Promise<void>;
   countBooked(): Promise<number>;
+  /** Booked rows starting at or after `fromIso`. */
+  listUpcomingBooked(fromIso: string): Promise<BookingRow[]>;
 }
 
 export function createSupabaseBookingStore(): BookingStore {
@@ -70,6 +72,11 @@ export function createSupabaseBookingStore(): BookingStore {
       if (error) throw new Error(`Counting bookings failed: ${error.message}`);
       return count || 0;
     },
+    async listUpcomingBooked(fromIso) {
+      const { data, error } = await sb().from("bookings").select("*").eq("tenant_id", "tgl").eq("status", "booked").gte("starts_at", fromIso);
+      if (error) throw new Error(`Reading bookings failed: ${error.message}`);
+      return (data || []) as BookingRow[];
+    },
   };
 }
 
@@ -99,6 +106,9 @@ export function createMemoryBookingStore(): BookingStore & { rows: BookingRow[];
     },
     async countBooked() {
       return self.rows.filter((r) => r.status === "booked").length;
+    },
+    async listUpcomingBooked(fromIso: string) {
+      return self.rows.filter((r) => r.status === "booked" && new Date(r.starts_at).getTime() >= new Date(fromIso).getTime());
     },
   };
   return self;

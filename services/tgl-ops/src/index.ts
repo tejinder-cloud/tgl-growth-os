@@ -299,6 +299,16 @@ import { getSupabase as getSupabaseForBilling } from "./agents/prospect-research
 // On boot: copy RAZORPAY_KEY_SECRET into Vault so the database can verify checkout signatures (plan Day 26)
 { const sb = getSupabaseForBilling(); if (sb && !process.env.TGL_TEST_MODE) syncRazorpaySecret(sb).catch(() => {}); }
 
+// Every 30 minutes: a booking whose guest declined, or whose event was removed, is marked cancelled and #revenue is told.
+cron.schedule(
+  "10,40 * * * *",
+  wrapCronJob("Booking cancellations check", async () => {
+    const { bookingService } = await import("./agents/booking/live.js");
+    await bookingService().sync();
+  }),
+  { timezone: config.timezone }
+);
+
 // Every 15 minutes: first GA4 sync for a property connected since the last check
 cron.schedule(
   "*/15 * * * *",

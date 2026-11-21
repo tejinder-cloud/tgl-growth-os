@@ -130,12 +130,20 @@ export async function accessToken(cfg: GoogleBookingConfig, refreshToken: string
 
 const CAL = "https://www.googleapis.com/calendar/v3/calendars/primary/events";
 
+export interface CalendarRead {
+  busy: Busy[];
+  /** Event ids of our bookings that are still on the calendar. */
+  present: string[];
+  /** Event ids of our bookings whose guest declined. */
+  declined: string[];
+}
+
 /**
- * Busy times on the bookings calendar between two instants. An event counts as busy unless it is cancelled,
- * marked "free", or is one of our bookings that the guest declined (so a declined slot opens again).
+ * Reads the bookings calendar between two instants. An event counts as busy unless it is cancelled, marked
+ * "free", or is one of our bookings that the guest declined (so a declined slot opens again).
  */
-export async function listBusy(token: string, timeMin: string, timeMax: string, fetchImpl: typeof fetch = fetch): Promise<Busy[]> {
-  const busy: Busy[] = [];
+export async function readCalendar(token: string, timeMin: string, timeMax: string, fetchImpl: typeof fetch = fetch): Promise<CalendarRead> {
+  const out: CalendarRead = { busy: [], present: [], declined: [] };
   let pageToken = "";
   for (let i = 0; i < 10; i++) {
     const q = new URLSearchParams({ timeMin, timeMax, singleEvents: "true", orderBy: "startTime", maxResults: "250" });
@@ -144,17 +152,26 @@ export async function listBusy(token: string, timeMin: string, timeMax: string, 
     const body: any = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(`Google Calendar read failed (${res.status}): ${body?.error?.message || "unknown"}`);
     for (const ev of body.items || []) {
-      if (ev.status === "cancelled" || ev.transparency === "transparent") continue;
+      if (ev.status === "cancelled") continue;
       const ours = ev.extendedProperties?.private?.tgl_booking === "1";
-      if (ours && (ev.attendees || []).some((a: any) => !a.self && !a.organizer && a.responseStatus === "declined")) continue;
+      if (ours) out.present.push(String(ev.id));
+      if (ev.transparency === "transparent") continue;
+      if (ours && (ev.attendees || []).some((a: any) => !a.self && !a.organizer && a.responseStatus === "declined")) {
+        out.declined.push(String(ev.id));
+        continue;
+      }
       const start = ev.start?.dateTime || (ev.start?.date ? `${ev.start.date}T00:00:00+05:30` : "");
       const end = ev.end?.dateTime || (ev.end?.date ? `${ev.end.date}T00:00:00+05:30` : "");
-      if (start && end) busy.push({ start, end });
+      if (start && end) out.busy.push({ start, end });
     }
     pageToken = body.nextPageToken || "";
     if (!pageToken) break;
   }
-  return busy;
+  return out;
+}
+
+export async function listBusy(token: string, timeMin: string, timeMax: string, fetchImpl: typeof fetch = fetch): Promise<Busy[]> {
+  return (await readCalendar(token, timeMin, timeMax, fetchImpl)).busy;
 }
 
 export interface NewEvent {
