@@ -5,6 +5,7 @@
 // GET /pipeline/logout          ends the session
 // GET /pipeline/whatsapp        connect TGL's WhatsApp Business app number (coexistence)
 // POST /pipeline/whatsapp/exchange  completes it with Meta's signup code
+// GET /pipeline/whatsapp/console     templates (list, create) and sending one template message
 import { Router, type Request, type Response } from "express";
 import { configIssues, exchangeCode, loadGoogleBookingConfig, makeState, verifyState } from "../agents/booking/google.js";
 import { allowedEmails, boardAuthUrl, BOARD_CALLBACK_PATH, cookieValue, makeSession, readSession, sessionSecret, SESSION_COOKIE, SESSION_DAYS } from "../agents/pipeline/auth.js";
@@ -13,6 +14,8 @@ import { dealStore } from "../agents/pipeline/live.js";
 import type { Deal } from "../agents/pipeline/stages.js";
 import { completeConnection, loadMetaConfig, metaConfigIssues, supabaseConnectStore, type ConnectStore } from "../agents/whatsapp/connect.js";
 import { connectPage } from "../agents/whatsapp/connect-page.js";
+import { consolePage } from "../agents/whatsapp/console-page.js";
+import { createTemplate, listAccounts, listTemplates, MetaError, normaliseIndianOrE164, resolveToken, sendTemplate, validateTemplate, waContext } from "../agents/whatsapp/graph.js";
 
 export const pipelineRouter = Router();
 
@@ -143,5 +146,110 @@ pipelineRouter.post("/whatsapp/exchange", async (req: Request, res: Response) =>
   } catch (err) {
     console.error("[WhatsApp Connect] failed:", (err as Error).message);
     res.status(500).json({ ok: false, message: "The connection could not be saved. Nothing was sent to anyone." });
+  }
+});
+
+// --- WhatsApp screen: templates and sending (signed-in, allowed account only) ---
+
+let waToken: () => Promise<string | null> = () => resolveToken();
+let waFetch: typeof fetch = fetch;
+export function setWhatsAppConsoleForTests(o: { token?: () => Promise<string | null>; fetchImpl?: typeof fetch } | null): void {
+  waToken = o?.token || (() => resolveToken());
+  waFetch = o?.fetchImpl || fetch;
+}
+
+async function waCtx(req: Request, res: Response) {
+  noStore(res);
+  const email = signedIn(req);
+  if (!email) {
+    res.status(401).json({ ok: false, message: "Sign in to the pipeline first." });
+    return null;
+  }
+  const token = await waToken().catch(() => null);
+  if (!token) {
+    res.status(503).json({ ok: false, message: "No WhatsApp token yet: add WHATSAPP_SYSTEM_TOKEN in Railway, or connect the number." });
+    return null;
+  }
+  return { email, ctx: waContext(token, process.env, waFetch) };
+}
+
+function metaFail(res: Response, err: unknown) {
+  const m = err instanceof MetaError ? err : null;
+  if (!m) console.error("[WhatsApp] failed:", (err as Error).message);
+  res.status(m ? 502 : 500).json({ ok: false, message: m ? `Meta: ${m.message}` : "The request failed. Nothing was sent." });
+}
+
+const META_ID = /^\d{5,25}$/;
+
+pipelineRouter.get("/whatsapp/console", async (req: Request, res: Response) => {
+  noStore(res);
+  const email = signedIn(req);
+  if (!email) return void res.redirect(302, "/pipeline");
+  const token = await waToken().catch(() => null);
+  res.status(200).type("html").send(consolePage(email, Boolean(token)));
+});
+
+pipelineRouter.get("/whatsapp/api/accounts", async (req: Request, res: Response) => {
+  const w = await waCtx(req, res);
+  if (!w) return;
+  try {
+    res.json({ ok: true, accounts: await listAccounts(w.ctx) });
+  } catch (err) {
+    metaFail(res, err);
+  }
+});
+
+pipelineRouter.get("/whatsapp/api/templates", async (req: Request, res: Response) => {
+  const w = await waCtx(req, res);
+  if (!w) return;
+  const waba = String(req.query.waba || "");
+  if (!META_ID.test(waba)) return void res.status(400).json({ ok: false, message: "Pick an account." });
+  try {
+    res.json({ ok: true, templates: await listTemplates(w.ctx, waba) });
+  } catch (err) {
+    metaFail(res, err);
+  }
+});
+
+pipelineRouter.post("/whatsapp/api/templates", async (req: Request, res: Response) => {
+  const w = await waCtx(req, res);
+  if (!w) return;
+  if (!String(req.headers["content-type"] || "").includes("application/json")) return void res.status(415).json({ ok: false, message: "JSON only." });
+  const b = (req.body || {}) as any;
+  if (!META_ID.test(String(b.waba || ""))) return void res.status(400).json({ ok: false, message: "Pick an account." });
+  const t = {
+    name: String(b.name || "").trim(),
+    category: String(b.category || "") as "MARKETING" | "UTILITY",
+    language: String(b.language || "en"),
+    body: String(b.body || ""),
+    examples: Array.isArray(b.examples) ? b.examples.map(String) : [],
+    footer: b.footer ? String(b.footer) : undefined,
+    quickReplies: Array.isArray(b.quickReplies) ? b.quickReplies.map(String).slice(0, 3) : [],
+  };
+  const invalid = validateTemplate(t);
+  if (invalid) return void res.status(400).json({ ok: false, message: invalid });
+  try {
+    res.json({ ok: true, template: await createTemplate(w.ctx, String(b.waba), t) });
+  } catch (err) {
+    metaFail(res, err);
+  }
+});
+
+pipelineRouter.post("/whatsapp/api/send", async (req: Request, res: Response) => {
+  const w = await waCtx(req, res);
+  if (!w) return;
+  if (!String(req.headers["content-type"] || "").includes("application/json")) return void res.status(415).json({ ok: false, message: "JSON only." });
+  const b = (req.body || {}) as any;
+  const to = normaliseIndianOrE164(String(b.to || ""));
+  if (!META_ID.test(String(b.phone_number_id || ""))) return void res.status(400).json({ ok: false, message: "This account has no number to send from." });
+  if (!to) return void res.status(400).json({ ok: false, message: "Enter a valid WhatsApp number." });
+  if (!/^[a-z0-9_]{1,512}$/.test(String(b.name || ""))) return void res.status(400).json({ ok: false, message: "Pick a template." });
+  const values = Array.isArray(b.values) ? b.values.map((v: unknown) => String(v).slice(0, 1024)) : [];
+  try {
+    const out = await sendTemplate(w.ctx, String(b.phone_number_id), to, { name: String(b.name), language: String(b.language || "en") }, values);
+    console.log(`[WhatsApp] template ${b.name} sent by ${w.email}: ${out.messageId}`);
+    res.json({ ok: true, ...out });
+  } catch (err) {
+    metaFail(res, err);
   }
 });
