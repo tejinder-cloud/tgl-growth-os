@@ -21,7 +21,11 @@ async function main() {
     const u = String(url);
     calls.push({ method: init?.method || "GET", url: u, body: init?.body ? JSON.parse(init.body) : undefined });
     const j = (status: number, body: any) => ({ ok: status < 400, status, json: async () => body }) as any;
-    if (u.includes("/owned_whatsapp_business_accounts")) return j(200, { data: [{ id: "102499279250735", name: "The Growth Lab" }] });
+    if (u.includes("/owned_whatsapp_business_accounts")) return j(200, { data: [] });
+    if (u.includes("/debug_token")) return j(200, { data: { granular_scopes: [{ scope: "whatsapp_business_management", target_ids: ["102499279250735", "222"] }, { scope: "business_management" }] } });
+    if (/\/222\/phone_numbers/.test(u)) return j(200, { data: [{ id: "1487662067754793", display_phone_number: "+1 555 142 9904", verified_name: "Test Number" }] });
+    if (/\/102499279250735\?fields/.test(u)) return j(200, { id: "102499279250735", name: "The Growth Lab" });
+    if (/\/222\?fields/.test(u)) return j(200, { id: "222", name: "Test WhatsApp Business Account" });
     if (u.includes("/client_whatsapp_business_accounts")) return j(200, { data: [] });
     if (u.includes("/phone_numbers")) return j(200, { data: [{ id: "110035615150329", display_phone_number: "+91 98720 09997", verified_name: "The Growth Lab" }] });
     if (u.includes("/message_templates") && init?.method === "POST") return j(200, { id: "T1", status: "PENDING", category: "MARKETING" });
@@ -45,7 +49,9 @@ async function main() {
     assert.doesNotMatch(page, /<script[^>]+src=/, "no outside scripts");
 
     const acc: any = await (await fetch(`${base}/pipeline/whatsapp/api/accounts`, { headers: { cookie } })).json();
-    assert.equal(acc.accounts[0].numbers[0].display, "+91 98720 09997");
+    assert.equal(acc.accounts.length, 2, "accounts granted to the token are listed even when the business lists none");
+    assert.equal(acc.accounts[0].name, "The Growth Lab");
+    assert.equal(acc.accounts[1].numbers[0].display, "+1 555 142 9904");
     const tp: any = await (await fetch(`${base}/pipeline/whatsapp/api/templates?waba=102499279250735`, { headers: { cookie } })).json();
     assert.equal(tp.templates[0].placeholders, 1);
 

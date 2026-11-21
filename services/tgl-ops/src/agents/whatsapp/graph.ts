@@ -61,9 +61,29 @@ export async function listAccounts(ctx: WaContext): Promise<WaAccount[]> {
     try {
       const r = await call(ctx, `/${ctx.businessId}/${edge}?fields=id,name&limit=50`);
       for (const a of r.data || []) if (!seen.has(a.id)) seen.set(a.id, { id: String(a.id), name: String(a.name || a.id), numbers: [] });
-    } catch (err) {
-      if (edge === "owned_whatsapp_business_accounts") throw err;
+    } catch {
+      // the token may lack business_management; the token's own grants below still list its accounts
     }
+  }
+  // Accounts granted to this token (system user assets, Embedded Signup), however the business owns them.
+  // Meta lists them on debug_token as the target ids of the WhatsApp scopes.
+  try {
+    const dbg = await call(ctx, `/debug_token?input_token=${encodeURIComponent(ctx.token)}`);
+    const ids = new Set<string>();
+    for (const g of dbg?.data?.granular_scopes || []) {
+      if (String(g.scope || "").startsWith("whatsapp_business")) for (const id of g.target_ids || []) ids.add(String(id));
+    }
+    for (const id of ids) {
+      if (seen.has(id)) continue;
+      try {
+        const a = await call(ctx, `/${id}?fields=id,name`);
+        seen.set(id, { id, name: String(a.name || id), numbers: [] });
+      } catch {
+        seen.set(id, { id, name: id, numbers: [] });
+      }
+    }
+  } catch {
+    // keep what the business edges returned
   }
   for (const a of seen.values()) {
     try {
