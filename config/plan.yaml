@@ -104,6 +104,8 @@ plan:
     depends_on: []
     architect_hour: Create Razorpay; set founder salary line and reserve account.
   - day: 14
+    status: completed
+    evidence: "PR #196, #201, #202, #203, #204 merged; first live emails 21 Nov (Resend message ids in prospects.signals.outreach); 5 a day by the Architect's decision (13 Nov), not 20"
     agent: outreach-sequencer
     door: aeo
     title: "Outreach live: 20/day + Delivery QA"

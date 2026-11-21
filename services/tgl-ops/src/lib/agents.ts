@@ -112,6 +112,8 @@ export function doesCronRunOnDate(schedule: string, dateStr: string): boolean {
  * Checks if an agent has at least one routine scheduled to run on dateStr.
  */
 export function isAgentScheduledOnDate(agent: AgentRecord, dateStr: string): boolean {
+  // An agent that only works when it is given work (an issue, a PR to review) has nothing to report on idle days.
+  if ((agent as any).silence_check === false) return false;
   if (!agent.routines || agent.routines.length === 0) {
     return false;
   }
