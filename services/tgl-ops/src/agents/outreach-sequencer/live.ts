@@ -389,6 +389,12 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
       const storagePath = await storeOnePager(op, summary);
       return { audit: summary, path: storagePath };
     },
+    async runAudit(prospect) {
+      return audit(toOnePagerProspect(prospect as ViewWithWebsite));
+    },
+    async storeOnePager(prospect, summary) {
+      return storeOnePager(toOnePagerProspect(prospect as ViewWithWebsite), summary);
+    },
     signOnePagerUrl: signUrl,
     async upsertContact(prospect, channel) {
       // Email from this service addresses the person directly; no GHL contact is created for it.

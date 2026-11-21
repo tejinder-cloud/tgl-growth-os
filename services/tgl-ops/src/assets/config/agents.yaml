@@ -177,6 +177,8 @@
   trigger: "Issue labeled for:web-builder, mention @web-builder"
   reviewer: "Creative Director"
   status: active
+  # Works only when given work (an issue, a PR to review): no "No report" flag on idle days.
+  silence_check: false
   autorun: true
   daily_cost_cap_usd: 12.00
   runner_limits:
@@ -203,6 +205,8 @@
   trigger: "Review requests from Web Builder/Content Writer, mention @creative-director"
   reviewer: "Architect"
   status: active
+  # Works only when given work (an issue, a PR to review): no "No report" flag on idle days.
+  silence_check: false
   daily_cost_cap_usd: 1.00
   routines:
     - name: daily_pr_review

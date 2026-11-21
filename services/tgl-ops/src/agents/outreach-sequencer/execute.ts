@@ -59,6 +59,12 @@ export interface ExecutorPorts {
   saveState: (prospectId: string, state: OutreachState) => Promise<void>;
   /** Run the short-form audit, render the one-page PDF and upload it. Returns the audit summary and storage path. */
   buildOnePager: (prospect: ProspectView) => Promise<{ audit: AuditSummary; path: string }>;
+  /**
+   * Optional split of buildOnePager: the paid audit, then the PDF upload. When both are given, the audit is saved
+   * before the upload, so a storage failure never makes the next attempt pay for the same audit again.
+   */
+  runAudit?: (prospect: ProspectView) => Promise<AuditSummary>;
+  storeOnePager?: (prospect: ProspectView, audit: AuditSummary) => Promise<string>;
   /** Signed URL (7 days) for a stored one-pager. */
   signOnePagerUrl: (path: string) => Promise<string>;
   /** Create or update the GHL contact and return its id. Returns "" when no GHL contact is needed for this send. */
@@ -105,7 +111,17 @@ export function makeExecute(ports: ExecutorPorts): (item: DueTouch, mode: SendMo
 
     if (needsAudit) {
       try {
-        if (!state.audit || !state.onepager_path) {
+        if (ports.runAudit && ports.storeOnePager) {
+          if (!state.audit) {
+            state = { ...state, audit: await ports.runAudit(prospect) };
+            // Persist at once so a failure further down never repeats the paid audit.
+            await ports.saveState(prospect.id, state);
+          }
+          if (!state.onepager_path) {
+            state = { ...state, onepager_path: await ports.storeOnePager(prospect, state.audit as AuditSummary) };
+            await ports.saveState(prospect.id, state);
+          }
+        } else if (!state.audit || !state.onepager_path) {
           const built = await ports.buildOnePager(prospect);
           state = { ...state, audit: built.audit, onepager_path: built.path };
           // Persist at once so a failure further down never repeats the paid audit.

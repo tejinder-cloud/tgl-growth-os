@@ -84,7 +84,17 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-function article(phrase: string): string {
+const ACRONYMS = ["nclex", "neet", "jee", "ielts", "pte", "toefl", "gre", "gmat", "sat", "upsc", "ssc", "clat", "cuet", "ctet", "norcet", "gnm", "anm", "bsc", "msc", "mba", "bba", "ca", "cs", "cma", "ivf", "iui", "icsi", "hr", "it", "ai", "seo"];
+
+/** "nclex coaching centre" -> "NCLEX coaching centre". Only whole words from a fixed list change. */
+export function fixAcronyms(phrase: string): string {
+  return phrase.replace(/[A-Za-z]+/g, (w) => (ACRONYMS.includes(w.toLowerCase()) ? w.toUpperCase() : w));
+}
+
+export function article(phrase: string): string {
+  const first = phrase.trim().split(/\s+/)[0] || "";
+  // An acronym said letter by letter: "an NCLEX", "an IVF", "a JEE".
+  if (first.length > 1 && first === first.toUpperCase() && /^[A-Z]/.test(first)) return /^[AEFHILMNORSX]/.test(first) ? "an" : "a";
   return /^[aeiou]/i.test(phrase) && !/^(uni|use|eu|one)/i.test(phrase) ? "an" : "a";
 }
 
@@ -94,10 +104,11 @@ export function buildProspectAuditEmail(row: Pick<ProspectAuditRow, "business_na
   const asked = assistantsAsked(row.summary);
   const first = greetingName(row.contact_name);
   const where = (row.city || "").trim() || "India";
+  const phrase = fixAcronyms(row.category_phrase);
   const paragraphs = [
     first ? `Hi ${first},` : "Hi,",
     "Thank you for asking. Your one-page AI visibility check is attached.",
-    `We asked ${asked} five questions a customer would ask about ${article(row.category_phrase)} ${row.category_phrase} in ${where}. The report shows where they named ${row.business_name}, who they named instead, and which websites they took their answers from.`,
+    `We asked ${asked} five questions a customer would ask about ${article(phrase)} ${phrase} in ${where}. The report shows where they named ${row.business_name}, who they named instead, and which websites they took their answers from.`,
     link
       ? `If you'd like to know what to fix first, reply to this email or pick a time here: ${link}`
       : "If you'd like to know what to fix first, reply to this email and we'll set up a 20-minute call.",
