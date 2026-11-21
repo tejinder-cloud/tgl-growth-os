@@ -58,6 +58,17 @@ export interface WaAccount {
 /** What Meta answered to each lookup, so a refusal is visible on the screen. Never contains the token. */
 export type LookupNote = { call: string; ok: boolean; detail: string };
 
+/** One WhatsApp account by its id, with its numbers. For accounts Meta does not list under the business. */
+export async function accountById(ctx: WaContext, id: string): Promise<WaAccount> {
+  const a = await call(ctx, `/${id}?fields=id,name`);
+  const r = await call(ctx, `/${id}/phone_numbers?fields=id,display_phone_number,verified_name,quality_rating`);
+  return {
+    id: String(a.id || id),
+    name: String(a.name || id),
+    numbers: (r.data || []).map((n: any) => ({ id: String(n.id), display: String(n.display_phone_number || ""), name: n.verified_name, quality: n.quality_rating })),
+  };
+}
+
 export async function listAccounts(ctx: WaContext, notes: LookupNote[] = []): Promise<WaAccount[]> {
   const seen = new Map<string, WaAccount>();
   const note = (call: string, ok: boolean, detail: string) => notes.push({ call, ok, detail: detail.slice(0, 300) });

@@ -15,7 +15,7 @@ import type { Deal } from "../agents/pipeline/stages.js";
 import { completeConnection, loadMetaConfig, metaConfigIssues, supabaseConnectStore, type ConnectStore } from "../agents/whatsapp/connect.js";
 import { connectPage } from "../agents/whatsapp/connect-page.js";
 import { consolePage } from "../agents/whatsapp/console-page.js";
-import { createTemplate, listAccounts, listTemplates, MetaError, normaliseIndianOrE164, resolveToken, sendTemplate, validateTemplate, waContext } from "../agents/whatsapp/graph.js";
+import { accountById, createTemplate, listAccounts, listTemplates, MetaError, normaliseIndianOrE164, resolveToken, sendTemplate, validateTemplate, waContext } from "../agents/whatsapp/graph.js";
 
 export const pipelineRouter = Router();
 
@@ -195,6 +195,22 @@ pipelineRouter.get("/whatsapp/api/accounts", async (req: Request, res: Response)
   try {
     const notes: { call: string; ok: boolean; detail: string }[] = [];
     const accounts = await listAccounts(w.ctx, notes);
+    // Accounts named by id (WHATSAPP_ACCOUNT_IDS in Railway, or ?add= from the screen), for accounts Meta does not
+    // list under the business.
+    const extra = new Set<string>([
+      ...String(process.env.WHATSAPP_ACCOUNT_IDS || "").split(/[,\s]+/),
+      ...String(req.query.add || "").split(/[,\s]+/),
+    ].filter((x) => META_ID.test(x)));
+    for (const id of extra) {
+      if (accounts.some((a) => a.id === id)) continue;
+      try {
+        const a = await accountById(w.ctx, id);
+        accounts.push(a);
+        notes.push({ call: `account ${id}`, ok: true, detail: `${a.name}, ${a.numbers.length} number(s)` });
+      } catch (err) {
+        notes.push({ call: `account ${id}`, ok: false, detail: String((err as Error).message).slice(0, 300) });
+      }
+    }
     res.json({ ok: true, accounts, notes });
   } catch (err) {
     metaFail(res, err);
