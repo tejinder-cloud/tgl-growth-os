@@ -1,3 +1,4 @@
+import { handlePipelineAction, handlePipelineModal, isPipelineAction, isPipelineModal, pipelineModalResponse } from "../agents/pipeline/slack.js";
 import { Router, type Request, type Response } from "express";
 import { config } from "../config.js";
 import { slackClient, openModal, getActorDisplayName } from "../lib/slack-client.js";
@@ -49,7 +50,10 @@ interactionsRouter.post("/", async (req: Request, res: Response): Promise<void> 
 
     (async () => {
       try {
-        if (isProspectAuditAction(action.action_id)) {
+        if (isPipelineAction(action.action_id)) {
+          const { liveSlackPorts } = await import("../agents/pipeline/live.js");
+          await handlePipelineAction(payload, action, await liveSlackPorts());
+        } else if (isProspectAuditAction(action.action_id)) {
           await handleProspectAuditAction(payload, action);
         } else if (typeof action.action_id === "string" && action.action_id.startsWith("setup_")) {
           await handleSetupAction(payload, action);
@@ -75,6 +79,16 @@ interactionsRouter.post("/", async (req: Request, res: Response): Promise<void> 
 
   // 2. Handle Modal Submissions (Reject Reason submission)
   if (payload.type === "view_submission") {
+    if (isPipelineModal(payload.view?.callback_id)) {
+      const response = pipelineModalResponse(payload);
+      res.json(response);
+      if (response.response_action === "clear") {
+        import("../agents/pipeline/live.js")
+          .then(async ({ liveSlackPorts }) => handlePipelineModal(payload, await liveSlackPorts()))
+          .catch((err) => console.error("[Pipeline Modal Error]", err));
+      }
+      return;
+    }
     if (isProspectAuditModal(payload.view?.callback_id)) {
       // Field errors keep the box open; otherwise it closes and the send or the rerun happens after the reply.
       const response = prospectAuditModalResponse(payload);

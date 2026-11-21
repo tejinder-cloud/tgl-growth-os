@@ -193,6 +193,12 @@ export function leadHandler(kind: SiteLeadKind) {
       return;
     }
 
+    // 1b. The pipeline: an audit request is a deal at "Audit requested". Never fatal.
+    if (kind === "aeo") {
+      const { safely } = await import("../agents/pipeline/live.js");
+      await safely("audit requested", (pl) => pl.auditRequested({ company: lead.business_name, name: lead.name, email: lead.email, city: lead.city }, rowId));
+    }
+
     // 2. GoHighLevel, when configured. A failure here is recorded and alerted, never shown to the visitor.
     let ghl: SiteGhlResult | null = null;
     let ghlError: string | null = null;

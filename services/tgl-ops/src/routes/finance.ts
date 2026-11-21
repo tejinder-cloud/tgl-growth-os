@@ -12,7 +12,7 @@ import { handleDealWon, normalizeDealWon } from "../agents/finance/deal-won.js";
 import { loadConfig } from "../agents/finance/invoice.js";
 import { runCollections } from "../agents/finance/collections.js";
 import type { FetchLike } from "../agents/finance/providers.js";
-import type { InvoiceStatus } from "../agents/finance/types.js";
+import type { DealWon, InvoiceStatus } from "../agents/finance/types.js";
 
 export const financeRouter = Router();
 
@@ -34,6 +34,11 @@ function authorised(req: Request): boolean {
   return !!secret && safeEq(got, secret);
 }
 const guard = (req: Request, res: Response): boolean => { if (authorised(req)) return true; res.status(401).json({ ok: false }); return false; };
+
+/** The same Deal Won handling as the webhook, for a deal won in our own pipeline (agents/pipeline). */
+export async function financeDealWon(deal: DealWon) {
+  return handleDealWon({ cfg: loadConfig(), ledger: getLedger(), fetch: httpFetch, now: () => new Date(), notify: (t) => notifier(t) }, deal);
+}
 
 financeRouter.post("/deal-won", async (req: Request, res: Response) => {
   if (!guard(req, res)) return;

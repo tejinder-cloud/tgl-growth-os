@@ -549,6 +549,10 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
     if (live && isSendWindow(at)) {
       try {
         const enrolled = await enrolNewProspects(store, at, dailyCap(env));
+        for (const p of enrolled) {
+          const { safely } = await import("../pipeline/live.js");
+          await safely("in outreach", (pl) => pl.outreachStarted({ company: cleanBusinessName(p.company), name: p.decision_maker?.name, email: p.decision_maker?.email, city: p.city }, p.id));
+        }
         if (enrolled.length > 0) {
           result.enrolled = enrolled;
           await writeLog(istDateKey(at), `### Enrolled ${at.toISOString()}\n${enrolled.map((p) => `- ${p.company} (${p.id})`).join("\n")}\n`);

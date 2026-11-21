@@ -26,6 +26,9 @@ export interface BookingDeps {
   outreach?: OutreachLink;
   notify: (text: string) => Promise<void>;
   hostName: string;
+  /** Pipeline signals; never change the booking's answer. */
+  onBooked?: (b: { bookingId: string; start: string; name: string; email: string; company: string; prospectId?: string | null }) => Promise<void>;
+  onCancelled?: (bookingId: string) => Promise<void>;
 }
 
 export interface BookingInput {
@@ -142,6 +145,7 @@ export function createBookingService(deps: BookingDeps) {
 
     // After-effects never change the answer: the event exists and the guest has Google's invite.
     if (prospect && deps.outreach) await deps.outreach.stop(prospect.id, now).catch(() => {});
+    if (deps.onBooked) await deps.onBooked({ bookingId: id, start: v.start, name: v.name, email: v.email, company: v.company, prospectId: prospect?.id || null }).catch(() => {});
     const lines = [
       `Call booked: ${v.name}, ${v.company}, ${istLabel(v.start)}.`,
       `Email: ${v.email}.`,
@@ -172,6 +176,7 @@ export function createBookingService(deps: BookingDeps) {
       const why = read.declined.includes(b.event_id) ? "the guest declined" : !read.present.includes(b.event_id) ? "the event was removed from the calendar" : "";
       if (!why) continue;
       await deps.store.release(b.id);
+      if (deps.onCancelled) await deps.onCancelled(b.id).catch(() => {});
       n++;
       await deps.notify(`Booking cancelled: ${b.guest_name}, ${b.company}, ${istLabel(b.starts_at)}. ${why[0].toUpperCase()}${why.slice(1)}; the slot is open again.`).catch(() => {});
     }
