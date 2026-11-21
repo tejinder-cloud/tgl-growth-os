@@ -28,8 +28,14 @@ async function main() {
     const page = await fetch(`${base}/book`);
     assert.equal(page.status, 200);
     const html = await page.text();
-    assert.match(html, /Book a 20-minute call with Tejinder Singh/);
-    assert.doesNotMatch(html, /<script[^>]+src=|<link[^>]+href=/, "no outside scripts or styles");
+    assert.match(html, /Book a call with <span class="acc">Tejinder.<\/span>/);
+    assert.doesNotMatch(html, /<(script|link)[^>]+(src|href)="https?:/, "no outside scripts, styles or fonts");
+    const logo = await fetch(`${base}/book/assets/logo.png`);
+    assert.equal(logo.status, 200);
+    assert.equal(logo.headers.get("content-type"), "image/png");
+    assert.equal((await fetch(`${base}/book/assets/dm-sans-latin.woff2`)).status, 200);
+    assert.equal((await fetch(`${base}/book/assets/..%2Fapp.ts`)).status, 404, "only the fixed list");
+    assert.equal((await fetch(`${base}/book/assets/secret.env`)).status, 404);
 
     const slots: any = await (await fetch(`${base}/book/slots`)).json();
     assert.equal(slots.open, true);
