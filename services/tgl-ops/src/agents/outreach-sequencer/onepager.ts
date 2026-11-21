@@ -1,6 +1,7 @@
 // services/tgl-ops/src/agents/outreach-sequencer/onepager.ts
 // Builds the per-prospect one-pager: short-form AEO audit (5 prompts x 3 engines) -> summary -> single-page PDF.
 // Every figure in the PDF comes from the audit result. The PDF writer is dependency-free.
+import { isQuotableCompetitor, weakestQuery, type QuoteContext } from "./competitors.js";
 import {
   runShortFormAudit,
   type ShortFormAuditResult,
@@ -53,16 +54,46 @@ function topKeys(rec: Record<string, number>, limit: number): string[] {
     .map(([k]) => k);
 }
 
-export function summarizeAudit(result: ShortFormAuditResult): AuditSummary {
-  return {
+/**
+ * The audit as the emails may quote it. Competitors are only names that read as a business (competitors.ts); the
+ * counts beside them come straight from the same run. weakest_query is a question where no engine named the prospect.
+ */
+export function summarizeAudit(result: ShortFormAuditResult, ctx?: QuoteContext): AuditSummary {
+  const quotable = (n: string) => (ctx ? isQuotableCompetitor(n, ctx) : true);
+  const comps: Record<string, number> = {};
+  for (const [name, count] of Object.entries(result.summary.competitorMentions)) if (quotable(name)) comps[name] = count;
+  const top = topKeys(comps, 3);
+  const competitor_mentions: Record<string, number> = {};
+  for (const n of top) competitor_mentions[n] = comps[n];
+  const weak = weakestQuery(result, quotable, top[0]);
+  const summary: AuditSummary = {
     visibility_percent: result.summary.visibilityScorePercent,
     mentions: result.summary.totalMentions,
     total_queries: result.totalQueries,
     mentions_by_engine: { ...result.summary.mentionsByEngine },
-    top_competitors: topKeys(result.summary.competitorMentions, 3),
+    top_competitors: top,
     top_cited_domains: topKeys(result.summary.citationDomains, 3),
     audited_at: result.auditedAt,
   };
+  if (top.length > 0) summary.competitor_mentions = competitor_mentions;
+  if (weak.query) summary.weakest_query = weak.query;
+  if (weak.competitor) summary.weakest_competitor = weak.competitor;
+  return summary;
+}
+
+/** The model check the Slack-requested audits already use: drops places, exams, treatments and headings. */
+async function defaultNameFilter(names: string[], looking: { phrase: string; where: string }): Promise<string[] | null> {
+  if (process.env.TGL_TEST_MODE === "1") return null;
+  const { checkNamedBusinesses } = await import("../aeo-audit-engine/prospect-audit-brief.js");
+  const { callStructuredTool } = await import("../../lib/anthropic-structured.js");
+  const checked = await checkNamedBusinesses(names, looking, async (o) => {
+    const res = await callStructuredTool<any>({ system: o.system, messages: [{ role: "user", content: o.user }], tool: o.tool as any, maxTokens: o.maxTokens ?? 800, agent: "outreach-sequencer" });
+    return { data: res.data, usd: res.usd };
+  });
+  if (!checked) return null;
+  // A reply that drops every one of several names is more likely a bad reply than a true reading.
+  if (checked.keep.length === 0 && names.length >= 3) return null;
+  return checked.keep;
 }
 
 export async function runProspectAudit(
@@ -72,12 +103,13 @@ export async function runProspectAudit(
   // An outreach prospect has no setup profile: this is a prospect audit (decisions/2026-11-12.md).
   // Without the prospect option the audit engine refuses every business that is not a verified client.
   const lens = buildBrandLens(p);
+  const looking = { phrase: categoryLabel(p.category), where: p.city };
   const result = await runShortFormAudit(lens, {
     ...options,
     prompts: buildAuditPrompts(p),
-    prospect: { name: p.company, website: p.website, variants: lens.variants },
+    prospect: { name: p.company, website: p.website, variants: lens.variants, nameFilter: (names) => defaultNameFilter(names, looking) },
   });
-  return { result, summary: summarizeAudit(result) };
+  return { result, summary: summarizeAudit(result, { company: p.company, city: p.city }) };
 }
 
 // ---------------------------------------------------------------------------
@@ -148,8 +180,10 @@ export function onePagerLines(p: OnePagerProspect, a: AuditSummary): PdfLine[] {
     add(`${engine}: named in ${count} of ${perEngine} answers`, 11, false, 2);
   }
 
-  add("Names that appeared most in the answers", 13, true, 14);
-  add(a.top_competitors.length ? a.top_competitors.join(", ") : "No competitor names were detected in these answers.");
+  // Only names that read as a business; an audit stored before 21 Nov can hold places or treatments here.
+  const names = a.top_competitors.filter((n) => isQuotableCompetitor(n, { company: p.company, city: p.city }));
+  add("Businesses named most in the answers", 13, true, 14);
+  add(names.length ? names.join(", ") : "No other business was named often enough to list.");
 
   add("Sources the assistants cited most", 13, true, 14);
   add(a.top_cited_domains.length ? a.top_cited_domains.join(", ") : "No citations were returned in these answers.");

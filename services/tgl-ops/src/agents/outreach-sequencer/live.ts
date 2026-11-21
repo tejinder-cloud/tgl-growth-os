@@ -193,14 +193,10 @@ export function fileLogWriter(env: NodeJS.ProcessEnv = process.env): (dateKey: s
 // ---------------------------------------------------------------------------
 
 async function defaultAudit(p: OnePagerProspect): Promise<AuditSummary> {
-  const { result, summary } = await runProspectAudit(p);
-  // Templates may quote the top competitor's count; it comes straight from the audit, never estimated.
-  const counts = result.summary.competitorMentions;
-  const competitorMentions: Record<string, number> = {};
-  for (const name of summary.top_competitors) {
-    if (typeof counts[name] === "number") competitorMentions[name] = counts[name];
-  }
-  return Object.keys(competitorMentions).length > 0 ? { ...summary, competitor_mentions: competitorMentions } : summary;
+  // Competitors, their counts and the weakest question come from the same run, filtered to names that read as a
+  // business (competitors.ts). Nothing is estimated.
+  const { summary } = await runProspectAudit(p);
+  return summary;
 }
 
 async function defaultStoreOnePager(p: OnePagerProspect, summary: AuditSummary, env: NodeJS.ProcessEnv): Promise<string> {

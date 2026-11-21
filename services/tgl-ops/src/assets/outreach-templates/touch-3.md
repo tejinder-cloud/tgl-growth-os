@@ -3,11 +3,11 @@ touch: 3
 channel: email
 day: 4
 attachment: one-pager audit PDF (held, never sent bare)
-subject: "The five answers, quoted"
+subject: "Your AI visibility report: {{company}}"
 ---
-{{first_name}}, attached is one page: five customer questions, what each engine answered about {{company}} and {{top_competitor}}, every line quoted from a real answer on {{audit_date}}.
+{{first_name}}, attached is one page from the check on {{audit_date}}: how often ChatGPT, Gemini and Perplexity named {{company}} when a customer in {{city}} asked for a {{category}}{{#if top_competitor}}, and who they named instead{{/if}}.
 
-The one I would fix first: "{{weakest_query}}". {{top_competitor}} is named there and {{company}} is not.
+{{#if weakest_competitor}}The one I would fix first: "{{weakest_query}}". {{weakest_competitor}} is named there and {{company}} is not.{{/if}}{{#if weakest_query_only}}The one I would fix first: "{{weakest_query}}". No engine named {{company}} there.{{/if}}
 
 Twenty minutes to walk through it, at a time of your choosing: {{booking_link}}
 
