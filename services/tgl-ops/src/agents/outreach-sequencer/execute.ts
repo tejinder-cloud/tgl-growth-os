@@ -15,6 +15,7 @@
 //   5. Three consecutive failures on a touch pause the sequence (worker.ts posts the single #alerts line).
 //   6. With ports.auditEveryTouch (the file templates quote the prospect's own audit from touch 1), every touch
 //      builds the audit first; without it only touches 3 and 4 do, as before.
+import { checkMessage } from "./guard.js";
 import { ONE_PAGER_TOUCH, SEQUENCE, TOTAL_TOUCHES, dueAtForTouch, renderTouch, resolveChannel, type MessageContext } from "./sequence.js";
 import type { AuditSummary, OutreachState, RenderedMessage, TouchChannel, TouchRecord } from "./types.js";
 import { MAX_HOLD_ATTEMPTS, type DueTouch, type ExecuteResult, type SendMode } from "./worker.js";
@@ -65,6 +66,10 @@ export interface ExecutorPorts {
    */
   runAudit?: (prospect: ProspectView) => Promise<AuditSummary>;
   storeOnePager?: (prospect: ProspectView, audit: AuditSummary) => Promise<string>;
+  /** Called after a live send, with exactly what was sent (posted to #revenue so every email can be read). */
+  onSent?: (info: { prospect: ProspectView; touch: number; channel: TouchChannel; message: RenderedMessage }) => Promise<void>;
+  /** Called when the last check holds a message (posted to #alerts). */
+  onGuard?: (info: { prospect: ProspectView; touch: number; problems: string[] }) => Promise<void>;
   /** Signed URL (7 days) for a stored one-pager. */
   signOnePagerUrl: (path: string) => Promise<string>;
   /** Create or update the GHL contact and return its id. Returns "" when no GHL contact is needed for this send. */
@@ -191,6 +196,15 @@ export function makeExecute(ports: ExecutorPorts): (item: DueTouch, mode: SendMo
       return { status: "held", reason: `touch ${ONE_PAGER_TOUCH} has no one-pager attachment`, attempts: state.audit_attempts };
     }
 
+    // Last check: every claim about who was named, and every count, must match the prospect's own audit.
+    const problems = checkMessage(`${message.subject ? message.subject + "\n" : ""}${message.text}`, { company: prospect.company, city: prospect.city, audit: state.audit });
+    if (problems.length > 0) {
+      const reason = `held by the last check: ${problems.join("; ")}`;
+      await ports.saveState(prospect.id, { ...state, state: "paused", pause_reason: `touch ${item.touch}: ${reason}` });
+      if (ports.onGuard) await ports.onGuard({ prospect, touch: item.touch, problems }).catch(() => {});
+      return { status: "held", reason };
+    }
+
     try {
       let contactId = state.ghl_contact_id || "";
       if (!contactId) {
@@ -229,6 +243,7 @@ export function makeExecute(ports: ExecutorPorts): (item: DueTouch, mode: SendMo
         state: done ? "completed" : "active",
       };
       await ports.saveState(prospect.id, next);
+      if (ports.onSent) await ports.onSent({ prospect, touch: item.touch, channel, message }).catch(() => {});
       return { status: "sent", attachmentUrl };
     } catch (err) {
       const reason = `send failed: ${errMessage(err)}`;
