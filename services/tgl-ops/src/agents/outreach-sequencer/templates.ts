@@ -8,6 +8,7 @@
 //      for an audit figure.
 //   2. Every message carries the opt-out line (a STOP instruction).
 //   3. No emojis.
+import { isQuotableCompetitor } from "./competitors.js";
 import fs from "node:fs";
 import path from "node:path";
 import { categoryLabel, type MessageContext } from "./sequence.js";
@@ -264,22 +265,35 @@ export function buildTemplateVars(ctx: TemplateContext): Record<string, string> 
   const a = ctx.audit;
   if (a) {
     vars.brand_mentions = String(a.mentions);
+    vars.total_answers = String(a.total_queries);
     vars.audit_date = a.audited_at.slice(0, 10);
-    const top = a.top_competitors?.[0];
+    // Checked again here: an audit stored before 21 Nov can hold places or treatments as "competitors".
+    const quoteCtx = { company: ctx.company, city: ctx.city };
+    const top = (a.top_competitors || []).find((n) => isQuotableCompetitor(n, quoteCtx));
     if (top) {
       vars.top_competitor = top;
       const count = a.competitor_mentions?.[top];
       if (typeof count === "number") vars.competitor_mentions = String(count);
     }
-    if (a.weakest_query) vars.weakest_query = a.weakest_query;
+    if (a.weakest_query) {
+      vars.weakest_query = a.weakest_query;
+      if (a.weakest_competitor && isQuotableCompetitor(a.weakest_competitor, quoteCtx)) vars.weakest_competitor = a.weakest_competitor;
+      else vars.weakest_query_only = "yes";
+    } else {
+      vars.no_weakest_query = "yes";
+    }
   }
   if (ctx.bookingLink) vars.booking_link = ctx.bookingLink;
   if (ctx.email) vars.work_email = ctx.email;
   return vars;
 }
 
+/** {{#if name}}...{{/if}} keeps its text only when the variable has stored data. Not nested. */
+const CONDITIONAL = /\{\{#if ([a-z_]+)\}\}([\s\S]*?)\{\{\/if\}\}/g;
+
 function fill(text: string, vars: Record<string, string>, missing: Set<string>): string {
-  return text.replace(PLACEHOLDER, (_m, name: string) => {
+  const kept = text.replace(CONDITIONAL, (_m, name: string, inner: string) => (vars[name] ? inner : ""));
+  return kept.replace(/\n{3,}/g, "\n\n").replace(PLACEHOLDER, (_m, name: string) => {
     const v = vars[name];
     if (v === undefined || v === "") {
       missing.add(name);

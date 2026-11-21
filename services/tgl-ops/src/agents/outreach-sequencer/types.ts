@@ -42,6 +42,8 @@ export interface AuditSummary {
   competitor_mentions?: Record<string, number>;
   /** Buyer prompt where the prospect fared worst in the same audit run. Feeds {{weakest_query}}. */
   weakest_query?: string;
+  /** A quotable competitor named in the answers to weakest_query, if any. Feeds {{weakest_competitor}}. */
+  weakest_competitor?: string;
 }
 
 /** Sequence state persisted in prospects.signals.outreach */
