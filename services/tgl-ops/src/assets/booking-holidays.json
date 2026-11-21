@@ -1,0 +1,10 @@
+{
+  "_note": "Dates (YYYY-MM-DD, IST) when no call slots are offered. Saturdays and Sundays are always off. Add festival dates here once you have decided them.",
+  "holidays": [
+    { "date": "2026-12-25", "name": "Christmas" },
+    { "date": "2027-01-26", "name": "Republic Day" },
+    { "date": "2027-08-15", "name": "Independence Day" },
+    { "date": "2027-10-02", "name": "Gandhi Jayanti" },
+    { "date": "2027-12-25", "name": "Christmas" }
+  ]
+}

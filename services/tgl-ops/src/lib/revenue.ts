@@ -79,6 +79,16 @@ export async function getRevenueMetrics(env: NodeJS.ProcessEnv = process.env): P
     }
   }
 
+  // 1b. Calls booked on our own booking page (/book), added to any still counted in GHL.
+  if (!isTestMode()) {
+    try {
+      const { bookingStore } = await import("../agents/booking/live.js");
+      result.diagnosticCallsBooked += await bookingStore().countBooked();
+    } catch (err: any) {
+      console.warn(`[Revenue] Bookings count warning:`, err.message || err);
+    }
+  }
+
   // 2. Read rupees invoiced from Finance ledger
   const candidateLedgerFiles = [
     path.join(config.repoRoot, "finance/ledger.json"),
