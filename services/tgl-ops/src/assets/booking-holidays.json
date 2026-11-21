@@ -1,10 +1,20 @@
 {
-  "_note": "Dates (YYYY-MM-DD, IST) when no call slots are offered. Saturdays and Sundays are always off. Add festival dates here once you have decided them.",
+  "_note": "Dates (YYYY-MM-DD, IST) when no call slots are offered. Saturdays and Sundays are always off. Major festivals and national days, from the Central Government gazetted list (DoPT O.M. 16 Jul 2026 for 2027). Moon-sighted dates (Id) can move by a day; check closer to the date.",
   "holidays": [
+    { "date": "2026-11-24", "name": "Guru Nanak Jayanti" },
     { "date": "2026-12-25", "name": "Christmas" },
     { "date": "2027-01-26", "name": "Republic Day" },
+    { "date": "2027-03-10", "name": "Id-ul-Fitr" },
+    { "date": "2027-03-23", "name": "Holi" },
+    { "date": "2027-03-26", "name": "Good Friday" },
+    { "date": "2027-04-15", "name": "Ram Navami" },
+    { "date": "2027-05-17", "name": "Id-ul-Zuha (Bakrid)" },
     { "date": "2027-08-15", "name": "Independence Day" },
+    { "date": "2027-08-25", "name": "Janmashtami" },
     { "date": "2027-10-02", "name": "Gandhi Jayanti" },
+    { "date": "2027-10-09", "name": "Dussehra" },
+    { "date": "2027-10-29", "name": "Diwali" },
+    { "date": "2027-11-14", "name": "Guru Nanak Jayanti" },
     { "date": "2027-12-25", "name": "Christmas" }
   ]
 }
