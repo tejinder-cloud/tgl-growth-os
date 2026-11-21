@@ -50,6 +50,8 @@ async function main() {
 
     const acc: any = await (await fetch(`${base}/pipeline/whatsapp/api/accounts`, { headers: { cookie } })).json();
     assert.equal(acc.accounts.length, 2, "accounts granted to the token are listed even when the business lists none");
+    assert.ok(acc.notes.some((n: any) => n.call === "token grants" && /WhatsApp account ids: 102499279250735, 222/.test(n.detail)), "Meta's answers are shown");
+    assert.ok(!JSON.stringify(acc.notes).includes("TOKEN"), "the token is never shown");
     assert.equal(acc.accounts[0].name, "The Growth Lab");
     assert.equal(acc.accounts[1].numbers[0].display, "+1 555 142 9904");
     const tp: any = await (await fetch(`${base}/pipeline/whatsapp/api/templates?waba=102499279250735`, { headers: { cookie } })).json();

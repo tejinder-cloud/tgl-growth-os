@@ -25,6 +25,7 @@ table{width:100%;border-collapse:collapse;font-size:.88rem}th,td{text-align:left
 <main><h1>WhatsApp</h1><p class="muted">Message templates and sending, through the WhatsApp Cloud API. Every result shown is Meta's own answer.</p>
 ${tokenReady ? "" : `<p class="msg err">No WhatsApp token yet. Add WHATSAPP_SYSTEM_TOKEN in Railway, or connect the number first.</p>`}
 <label>Account and number<select id="acct"></select></label>
+<details id="diag" style="margin-top:8px"><summary class="muted">What Meta answered</summary><ul id="diagList" class="muted"></ul></details>
 <div class="grid">
 <section class="card"><h2>Templates</h2><button class="light" id="reload">Refresh</button>
 <table><thead><tr><th>Name</th><th>Status</th><th>Category</th><th>Text</th></tr></thead><tbody id="tpls"><tr><td colspan="4" class="muted">Pick an account</td></tr></tbody></table>
@@ -61,7 +62,7 @@ ${tokenReady ? "" : `<p class="msg err">No WhatsApp token yet. Add WHATSAPP_SYST
   function renderVals(){var t=picked(),box=document.getElementById('vals');box.innerHTML='';if(!t)return;for(var i=1;i<=t.placeholders;i++){var l=document.createElement('label');l.textContent='Value for {{'+i+'}}';var inp=document.createElement('input');inp.name='v'+i;inp.required=true;l.appendChild(inp);box.appendChild(l);}}
   document.getElementById('sendTpl').onchange=renderVals;
   document.getElementById('reload').onclick=loadTpls;acct.onchange=loadTpls;
-  api('accounts').then(function(j){accounts=j.accounts||[];acct.innerHTML='';if(!accounts.length){var none=document.createElement('option');none.textContent='Meta lists no WhatsApp account for this token. Assign one to the system user.';acct.appendChild(none);return;}accounts.forEach(function(a){(a.numbers.length?a.numbers:[{id:'',display:'no number'}]).forEach(function(n){var o=document.createElement('option');o.value=a.id+'|'+n.id;o.textContent=a.name+': '+n.display+(n.name?' ('+n.name+')':'');acct.appendChild(o);});});loadTpls();})
+  api('accounts').then(function(j){accounts=j.accounts||[];acct.innerHTML='';var dl=document.getElementById('diagList');dl.innerHTML='';(j.notes||[]).forEach(function(n){var li=document.createElement('li');li.textContent=(n.ok?'OK ':'Refused ')+n.call+': '+n.detail;dl.appendChild(li);});if(!accounts.length)document.getElementById('diag').open=true;if(!accounts.length){var none=document.createElement('option');none.textContent='Meta lists no WhatsApp account for this token. Assign one to the system user.';acct.appendChild(none);return;}accounts.forEach(function(a){(a.numbers.length?a.numbers:[{id:'',display:'no number'}]).forEach(function(n){var o=document.createElement('option');o.value=a.id+'|'+n.id;o.textContent=a.name+': '+n.display+(n.name?' ('+n.name+')':'');acct.appendChild(o);});});loadTpls();})
     .catch(function(e){var o=document.createElement('option');o.textContent=e.message;acct.appendChild(o);});
   document.getElementById('create').onsubmit=function(ev){ev.preventDefault();var f=ev.target;var lines=function(s){return s.split('\\n').map(function(x){return x.trim();}).filter(Boolean);};
     api('templates',{method:'POST',body:JSON.stringify({waba:cur().waba,name:f.name.value.trim(),category:f.category.value,language:f.language.value,body:f.body.value,examples:lines(f.examples.value),footer:f.footer.value.trim(),quickReplies:lines(f.buttons.value)})})

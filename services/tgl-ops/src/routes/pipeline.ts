@@ -193,7 +193,9 @@ pipelineRouter.get("/whatsapp/api/accounts", async (req: Request, res: Response)
   const w = await waCtx(req, res);
   if (!w) return;
   try {
-    res.json({ ok: true, accounts: await listAccounts(w.ctx) });
+    const notes: { call: string; ok: boolean; detail: string }[] = [];
+    const accounts = await listAccounts(w.ctx, notes);
+    res.json({ ok: true, accounts, notes });
   } catch (err) {
     metaFail(res, err);
   }
