@@ -395,6 +395,23 @@ export async function upsertProspectRecords(
 }
 
 /**
+ * A card decision applies only to the rows that card put up for review (status "new"). Benched and rejected rows,
+ * and prospects already in a sequence, keep their status: an approval once moved them all to "reviewed", which
+ * would revive benched rows and drop running sequences out of the outreach tick.
+ */
+export const CARD_DECISION_FROM_STATUSES = ["new"] as const;
+
+export function scopeStatusUpdate<Q extends { eq(col: string, v: string): Q; in(col: string, v: readonly string[]): Q }>(
+  query: Q,
+  filter: { city?: string; category?: string }
+): Q {
+  let q = query.in("status", CARD_DECISION_FROM_STATUSES);
+  if (filter.city) q = q.eq("city", filter.city);
+  if (filter.category) q = q.eq("category", filter.category);
+  return q;
+}
+
+/**
  * Updates the status of prospects in Supabase.
  */
 export async function updateProspectStatus(
@@ -415,12 +432,7 @@ export async function updateProspectStatus(
       .update({ status: newStatus })
       .eq("tenant_id", "tgl");
 
-    if (filter.city) {
-      query = query.eq("city", filter.city);
-    }
-    if (filter.category) {
-      query = query.eq("category", filter.category);
-    }
+    query = scopeStatusUpdate(query, filter);
     const { count, error } = await query;
     if (error) {
       console.warn(`[Supabase Status Update Warning]:`, error.message);

@@ -34,8 +34,8 @@ import type { ReplyDeps } from "./reply.js";
 import { SEQUENCE, TOTAL_TOUCHES, istDateKey, resolveChannel } from "./sequence.js";
 import { createSupabaseStore, getOutreachState, type OutreachProspect, type ProspectStore } from "./store.js";
 import { loadTemplates, makeTemplateRenderer, resolveTemplatesDir, type TemplateSet } from "./templates.js";
-import type { AuditSummary, RenderedMessage } from "./types.js";
-import { isLive, isSendWindow, runTick, type DueTouch, type TickPorts, type TickSummary, type TouchNumber } from "./worker.js";
+import type { AuditSummary, OutreachState, RenderedMessage } from "./types.js";
+import { dailyCap, isLive, isSendWindow, runTick, type DueTouch, type TickPorts, type TickSummary, type TouchNumber } from "./worker.js";
 
 export const DEFAULT_TICK_CRON = "30 9-16 * * *";
 export const DEFAULT_SENDER_NAME = "The Growth Lab";
@@ -296,6 +296,8 @@ export interface TickResult {
   summary: TickSummary | null;
   issues: string[];
   previewed?: PreviewResult;
+  /** Prospects whose sequence this tick started. */
+  enrolled?: OutreachProspect[];
 }
 
 export interface OutreachRuntime {
@@ -304,6 +306,28 @@ export interface OutreachRuntime {
   preview(prospectId: string): Promise<PreviewResult>;
   /** Problems that would make a live send fail or render badly. Empty when clean. */
   preflight(): string[];
+}
+
+/**
+ * Starts the sequence for prospects the Architect approved (status reviewed, door aeo, fit 70+, an email address).
+ * At most `perDay` new prospects a day, counted by enrolled_at in IST, so new starts never crowd out follow-ups.
+ * Touch 1 is due at once; the status moves to handed_to_outreach.
+ */
+export async function enrolNewProspects(store: ProspectStore, at: Date, perDay: number): Promise<OutreachProspect[]> {
+  const today = istDateKey(at);
+  const already = (await store.loadSequenced()).filter((p) => {
+    const s = getOutreachState(p);
+    return s?.enrolled_at && istDateKey(new Date(s.enrolled_at)) === today;
+  }).length;
+  const room = Math.max(0, perDay - already);
+  if (room === 0) return [];
+  const picks = await store.loadEnrollable(room);
+  const iso = at.toISOString();
+  for (const p of picks) {
+    const state: OutreachState = { state: "active", enrolled_at: iso, next_touch: 1, next_due_at: iso, touches: [] };
+    await store.saveState(p.id, state, "handed_to_outreach");
+  }
+  return picks;
 }
 
 export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntime {
@@ -507,6 +531,21 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
     }
 
     if (issues.length > 0) return result;
+
+    // Enrol approved prospects first, so their touch 1 is due in this same tick. Live only: a dry run never
+    // changes a prospect's status.
+    if (live && isSendWindow(at)) {
+      try {
+        const enrolled = await enrolNewProspects(store, at, dailyCap(env));
+        if (enrolled.length > 0) {
+          result.enrolled = enrolled;
+          await writeLog(istDateKey(at), `### Enrolled ${at.toISOString()}\n${enrolled.map((p) => `- ${p.company} (${p.id})`).join("\n")}\n`);
+        }
+      } catch (err) {
+        console.warn(`[Outreach] Enrolment failed: ${(err as Error).message}`);
+        await alert(`*Outreach enrolment failed.* ${(err as Error).message}. Prospects already in a sequence are unaffected.`);
+      }
+    }
 
     const summary = await runTick(tickPorts);
     result.summary = summary;
