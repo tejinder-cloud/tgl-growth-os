@@ -15,6 +15,8 @@ export interface DealStore {
   /** Call booked, the call's end has passed, not yet asked about. */
   listCallsToAsk(before: string): Promise<Deal[]>;
   counts(): Promise<{ proposalsSent: number; won: number }>;
+  /** Every deal, newest first. */
+  list(): Promise<Deal[]>;
 }
 
 const OPEN: Stage[] = ["in_outreach", "audit_requested", "replied", "call_booked", "call_done", "proposal_sent"];
@@ -69,6 +71,11 @@ export function createSupabaseDealStore(): DealStore {
       }
       return { proposalsSent, won };
     },
+    async list() {
+      const { data, error } = await sb().from("deals").select("*").eq("tenant_id", "tgl").order("updated_at", { ascending: false }).limit(500);
+      if (error) throw new Error(`Reading deals failed: ${error.message}`);
+      return (data || []) as Deal[];
+    },
   };
 }
 
@@ -104,6 +111,9 @@ export function createMemoryDealStore(): DealStore & { rows: Deal[] } {
     },
     async counts() {
       return { proposalsSent: rows.filter((r) => r.history.some((h) => h.stage === "proposal_sent")).length, won: rows.filter((r) => r.stage === "won").length };
+    },
+    async list() {
+      return [...rows].reverse();
     },
   };
 }

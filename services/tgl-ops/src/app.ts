@@ -16,6 +16,7 @@ import { opsRevenueRouter } from "./routes/ops-revenue.js";
 import { billingRouter } from "./routes/billing.js";
 import { financeRouter } from "./routes/finance.js";
 import { bookRouter } from "./routes/book.js";
+import { pipelineRouter } from "./routes/pipeline.js";
 
 /**
  * Creates and configures the Express app.
@@ -159,6 +160,8 @@ export function createApp(signingSecret?: string) {
 
   // 13b. Booking page: /book, free slots, booking, and the one-time Google sign-in for the bookings calendar.
   app.use("/book", bookRouter);
+  // 13c. Private sales pipeline board (Google sign-in; PIPELINE_ALLOWED_EMAILS only).
+  app.use("/pipeline", pipelineRouter);
 
   // 14. Global Error Handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
