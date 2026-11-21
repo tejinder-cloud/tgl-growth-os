@@ -26,6 +26,7 @@ async function main() {
     if (/\/222\/phone_numbers/.test(u)) return j(200, { data: [{ id: "1487662067754793", display_phone_number: "+1 555 142 9904", verified_name: "Test Number" }] });
     if (/\/102499279250735\?fields/.test(u)) return j(200, { id: "102499279250735", name: "The Growth Lab" });
     if (/\/222\?fields/.test(u)) return j(200, { id: "222", name: "Test WhatsApp Business Account" });
+    if (/\/1392003416260536\?fields/.test(u)) return j(200, { id: "1392003416260536", name: "unknown" });
     if (u.includes("/client_whatsapp_business_accounts")) return j(200, { data: [] });
     if (u.includes("/phone_numbers")) return j(200, { data: [{ id: "110035615150329", display_phone_number: "+91 98720 09997", verified_name: "The Growth Lab" }] });
     if (u.includes("/message_templates") && init?.method === "POST") return j(200, { id: "T1", status: "PENDING", category: "MARKETING" });
@@ -54,6 +55,9 @@ async function main() {
     assert.ok(!JSON.stringify(acc.notes).includes("TOKEN"), "the token is never shown");
     assert.equal(acc.accounts[0].name, "The Growth Lab");
     assert.equal(acc.accounts[1].numbers[0].display, "+1 555 142 9904");
+    const byId: any = await (await fetch(`${base}/pipeline/whatsapp/api/accounts?add=1392003416260536,notanid`, { headers: { cookie } })).json();
+    assert.ok(byId.accounts.some((a: any) => a.id === "1392003416260536"), "an account added by id is listed");
+    assert.ok(byId.notes.some((n: any) => n.call === "account 1392003416260536" && n.ok));
     const tp: any = await (await fetch(`${base}/pipeline/whatsapp/api/templates?waba=102499279250735`, { headers: { cookie } })).json();
     assert.equal(tp.templates[0].placeholders, 1);
 
