@@ -11,161 +11,96 @@
     ],
     "setupStatus": "prospect_unverified"
   },
-  "auditedAt": "2026-11-21T07:09:27.988Z",
+  "auditedAt": "2026-11-21T09:07:30.747Z",
   "promptsCount": 5,
   "enginesCount": 3,
   "totalQueries": 15,
   "summary": {
-    "totalMentions": 1,
-    "visibilityScorePercent": 6.7,
+    "totalMentions": 0,
+    "visibilityScorePercent": 0,
     "mentionsByEngine": {
-      "chatgpt": 1,
+      "chatgpt": 0,
       "gemini": 0,
       "perplexity": 0
     },
     "competitorMentions": {
-      "Sir Ganga Ram Hospital": 3,
-      "Ferticity IVF": 1,
-      "Fortis Bloom IVF at Fortis La Femme": 2,
-      "Advance Fertility & Gynaecology Centre": 1,
-      "Live-birth rates": 2,
-      "ART registration": 4,
-      "National ART & Surrogacy Registry": 2,
-      "Noida": 10,
-      "Dr. Abha Majumdar": 1,
-      "Max Institute of Fertility & IVF": 1,
-      "Genetic Testing": 6,
-      "Dr. Surveen Ghumman Sindhu": 2,
-      "Fortis Bloom IVF Centre / Fortis La Femme": 1,
-      "Apollo Fertility": 8,
-      "Nova IVF Fertility": 5,
-      "Dr. Sonia Malik": 2,
-      "Milann Fertility Centre": 1,
-      "Transparent": 4,
-      "Cloudnine Fertility": 2,
-      "SCI IVF Hospital": 1,
-      "Indira IVF": 5,
-      "Dr. Shivani Sachdev Gour": 1,
-      "Dr. Rita Bakshi": 1,
-      "Lab Standards & In-House Embryologists": 1,
-      "Proximity and Commute": 1,
-      "ICSI": 8,
-      "Transparent Pricing": 4,
-      "Doctor Continuity": 2,
-      "Regulatory Compliance": 1,
-      "Nova IVF": 5,
-      "ART Fertility Clinics": 6,
-      "Bloom IVF at Fortis La Femme": 1,
-      "Your doctor and lab team": 1,
-      "In-House": 4,
-      "Success rates for people like you": 1,
-      "Full cost": 1,
-      "Registration and care": 1,
-      "I can’t see your exact location": 1,
-      "South Delhi": 4,
-      "Fortis Bloom IVF": 2,
-      "Fortis La Femme": 5,
-      "East Delhi": 2,
-      "Yashoda Fertility & IVF": 1,
-      "Several Delhi areas": 1,
-      "Medicover Fertility": 1,
-      "Delhi IVF & Fertility Research Centre": 1,
-      "Notable Specialists": 1,
-      "Max Institute of Reproductive Medicine": 1,
-      "Birla Fertility & IVF": 4,
+      "Fortis La Femme": 7,
+      "Sir Ganga Ram Hospital": 2,
+      "Max Healthcare / Max IVF": 1,
       "Fortis Bloom IVF Centre": 3,
-      "Origyn Fertility & IVF": 1,
-      "Jaypee Hospital Fertility Centre": 1,
-      "Travel Distance": 1,
-      "Lab Quality": 2,
-      "Lab Infrastructure": 3,
-      "Nova IVF’s Rajouri Garden centre": 1,
-      "ART Fertility": 2,
-      "Practical next step": 1,
-      "Embryology Lab Standards": 2,
-      "Advance Fertility & Gynecology Centre": 1,
-      "Lead Specialist": 1,
+      "Apollo Fertility": 6,
+      "Birla Fertility & IVF": 4,
+      "Nova IVF Fertility": 5,
+      "Cloudnine Fertility": 1,
+      "Indira IVF": 4,
+      "Gunjan IVF World": 1,
+      "ART Fertility Clinics": 7,
+      "Advance Fertility & Gynaecology Centre": 2,
+      "Delhi IVF & Fertility Centre": 1,
+      "SCI IVF Hospital": 1,
+      "Max Institute of Fertility & IVF": 1,
+      "Medanta – The Medicity": 3,
+      "Medanta Fertility Clinic": 1,
+      "Delhi IVF & Fertility Research Centre": 2,
+      "Seeds of Innocence": 1,
+      "Max Multi Speciality Centre / Max Healthcare": 1,
+      "AIIMS": 2,
+      "Sant Parmanand Hospital’s IVF centre": 1,
+      "Max Fertility / Max Healthcare": 1,
       "Gaudium IVF": 1,
-      "Max Healthcare / Max Multi Speciality Centre": 1,
-      "Standard IVF Success": 1,
-      "Donor Egg IVF": 1,
-      "Recommended Next Step": 1,
-      "Itemized Financial Transparency": 1,
-      "Dr. Kaberi Banerjee / AFGC": 1,
-      "Little Angel IVF": 1,
-      "My practical take": 1,
-      "Consultation & Diagnostics": 1,
-      "Base IVF Procedure": 1,
-      "Injections / Stimulation Drugs": 1,
-      "Frozen Embryo Transfer": 2,
-      "Embryo Freezing & 1-Year Storage": 1,
-      "Total Realistic Cost": 1,
-      "Max Super Speciality Hospital": 1,
-      "Medanta – The Medicity": 2,
-      "Be wary of guarantees": 1,
-      "Max Healthcare / Max Multi Speciality": 1,
-      "Fortis Healthcare / Bloom IVF": 1,
-      "Southend Fertility & IVF": 1,
-      "AIIMS New Delhi": 1,
-      "Advance Fertility & Surrogacy Centre": 1,
-      "Registration Under the ART Act": 1,
-      "National ART and Surrogacy Board": 1,
-      "Doctor-Led Continuity of Care": 1,
-      "Pushing Donor Gametes Immediately": 1,
-      "Overuse of Unproven \"Add-ons\"": 1
+      "Milann Fertility Centre": 1
     },
     "citationDomains": {
-      "registry.artsurrogacy.gov.in": 4,
+      "registry.artsurrogacy.gov.in": 5,
       "proivf.com": 3,
-      "indiraivf.com": 4,
-      "bloomivf.com": 4,
+      "bloomivf.com": 5,
+      "indiraivf.com": 5,
       "littleangelivf.com": 1,
       "slideshare.net": 1,
       "gunjanivfworld.com": 1,
+      "babyjoyivf.com": 2,
       "urvarafertilitycentre.com": 1,
-      "artfertilityclinics.in": 4,
+      "artfertilityclinics.in": 3,
       "medigence.com": 3,
-      "apollofertility.com": 7,
+      "infertilitydost.com": 2,
+      "worldfertilityservices.com": 1,
+      "apollofertility.com": 6,
+      "youtube.com": 1,
+      "delhi-ivf.com": 2,
       "hospidio.com": 2,
       "medmonks.com": 1,
       "crossborderscare.com": 1,
       "novaivffertility.com": 1,
       "justdial.com": 1,
       "reviews.birdeye.com": 1,
-      "drnaliniguptaivf.com": 5,
-      "worldfertilityservices.com": 1,
-      "vaidam.com": 1,
-      "infertilitydost.com": 1,
-      "drkaberibanerjee.com": 1,
-      "drpoonamgoyal.in": 1,
-      "gaudiumivfcentre.com": 1,
       "practo.com": 1,
-      "medijourney.co.in": 1,
-      "babyjoyivf.com": 2,
-      "youtube.com": 2,
+      "trustpilot.com": 1,
+      "drnaliniguptaivf.com": 4,
       "fertilitydost.com": 2,
       "trustindex.io": 1,
       "crystaivf.com": 2,
       "oneworldfertility.com": 1,
-      "karetrip.com": 1,
-      "fertiltree.com": 1,
-      "pristyncare.com": 1,
-      "fromcelltosoul.com": 1,
-      "mirofertility.com": 1,
+      "mirofertility.com": 3,
+      "drpankajtalwar.com": 1,
+      "bachanivf.com": 1,
+      "arodya.com": 1,
       "ivftreatmentcost.in": 1,
       "ivffinder.com": 2,
       "impactguru.com": 1,
-      "dgehs.delhi.gov.in": 1,
+      "sphdelhi.org": 1,
+      "qai.org.in": 1,
+      "delhiivf.com": 1,
       "pregawish.com": 1,
       "deccanexpress.co.in": 1
     },
-    "totalCostUsd": 0.247,
-    "totalCostInr": 23.44
+    "totalCostUsd": 0.2173,
+    "totalCostInr": 20.63
   },
   "nextSteps": {
-    "weakestEngine": "Gemini",
+    "weakestEngine": "ChatGPT",
     "weakestEngineMentions": 0,
     "zeroMentionEngines": [
+      "ChatGPT",
       "Gemini",
       "Perplexity"
     ],
@@ -180,10 +115,10 @@
       1,
       2
     ],
-    "winningCompetitor": "Noida",
-    "winningCompetitorCount": 10,
+    "winningCompetitor": "Fortis La Femme",
+    "winningCompetitorCount": 7,
     "topCitationGap": "apollofertility.com",
-    "formattedText": "Dr Prerna Gupta was named in 1 of 15 answers (6.7%). Gemini and Perplexity did not name Dr Prerna Gupta in any of the 5 questions. Noida was named most often instead, in 10 of 15 answers. The questions where Dr Prerna Gupta did worst: \"Best IVF centre in Delhi NCR\" (0 of 3 assistants named Dr Prerna Gupta); \"Top IVF centre near me in Delhi NCR\" (0 of 3 assistants named Dr Prerna Gupta)."
+    "formattedText": "Dr Prerna Gupta was named in 0 of 15 answers (0%). ChatGPT, Gemini and Perplexity did not name Dr Prerna Gupta in any of the 5 questions. Fortis La Femme was named most often instead, in 7 of 15 answers. The questions where Dr Prerna Gupta did worst: \"Best IVF centre in Delhi NCR\" (0 of 3 assistants named Dr Prerna Gupta); \"Top IVF centre near me in Delhi NCR\" (0 of 3 assistants named Dr Prerna Gupta)."
   },
   "matrix": [
     {
@@ -208,7 +143,7 @@
       "excerpt": {
         "engine": "perplexity",
         "badge": "—",
-        "text": "There’s no single “best” IVF centre for everyone—the right choice depends on your diagnosis, age, budget and how much individua..."
+        "text": "There isn’t one objectively “best” IVF centre in Delhi NCR—the right choice depends on your diagnosis, age, budget, location, a..."
       }
     },
     {
@@ -233,7 +168,7 @@
       "excerpt": {
         "engine": "perplexity",
         "badge": "—",
-        "text": "A convenient shortlist is Apollo Fertility or Nova IVF —both have multiple clinics across Delhi NCR, so the best option depends..."
+        "text": "“Near me” depends on your part of Delhi NCR. Apollo Fertility and Nova IVF have centres across several areas, so they’re practi..."
       }
     },
     {
@@ -258,7 +193,7 @@
       "excerpt": {
         "engine": "perplexity",
         "badge": "—",
-        "text": "There isn’t a reliable, independent ranking that establishes one Delhi-NCR IVF centre as having both the best reviews and the b..."
+        "text": "There isn’t enough comparable, independently verified data to name one Delhi-NCR clinic as having the best IVF results . If you..."
       }
     },
     {
@@ -283,7 +218,7 @@
       "excerpt": {
         "engine": "perplexity",
         "badge": "—",
-        "text": "In Delhi NCR, budget about ₹2–3.5 lakh for a private IVF cycle once medicines and common add-ons are included ; a fresh cycle p..."
+        "text": "In Delhi NCR, budget roughly ₹2–3.5 lakh for a private IVF cycle once medicines and common add-ons are included. The advertised..."
       }
     },
     {
@@ -291,9 +226,9 @@
       "prompt": "Which IVF centre in Delhi NCR should I trust",
       "journeyPhase": "decision",
       "chatgpt": {
-        "badge": "Named #2",
-        "position": 2,
-        "mentioned": true
+        "badge": "—",
+        "position": null,
+        "mentioned": false
       },
       "gemini": {
         "badge": "—",
@@ -306,9 +241,9 @@
         "mentioned": false
       },
       "excerpt": {
-        "engine": "chatgpt",
-        "badge": "Named #2",
-        "text": "There isn’t enough reliable public information to name one “best” IVF centre in Delhi NCR. As a starting shortlist—not an endor..."
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one IVF centre in Delhi NCR that is best for everyone. A sensible shortlist to consult could include a hospital-bas..."
       }
     }
   ],
@@ -319,19 +254,12 @@
       "engine": "chatgpt",
       "model": "gpt-6-luna",
       "badge": "—",
-      "text": "There isn’t a reliable public ranking that can identify one **“best”** IVF centre for everyone. A practical shortlist to compare in Delhi is **Sir Ganga Ram Hospital**, **Fortis Bloom IVF at Fortis La Femme**, **Advance Fertility & Gynaecology Centre**, and **Ferticity IVF**—all appear in the government ART registry search results. That’s a starting list, **not a ranking or guarantee of outcomes**. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n\nBefore choosing, ask each centre for:\n- **Live-birth rates** for patients in your age group using their own eggs—not just pregnancy-test or “success” rates.\n- The **total likely cost**, including medicines, freezing and any extra procedures.\n- Who will manage your case and whether the clinic has the relevant **ART registration**. You can check the National ART & Surrogacy Registry. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n\nIf you share your **area in NCR** (Delhi, Gurgaon, Noida, etc.) and the patient’s **age**, I can narrow the shortlist.",
+      "text": "There isn’t a reliable way to name one **“best”** IVF centre for everyone—your age, diagnosis, and previous treatment matter. **Fortis Bloom IVF at Fortis La Femme, Greater Kailash II** is one reasonable centre to consider: it appears in India’s official ART clinic registry. That confirms a registry listing, **not** that it has the highest success rate. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n\nBefore choosing, consult at two centres and ask each for:\n- **Live-birth rates** for patients in your age group using their own eggs—not just “pregnancy rates”\n- Their plan for your specific diagnosis, and what they would do if the first cycle fails\n- A written, itemised estimate covering medication, procedures, freezing, and storage\n- The clinic’s current ART registration for the exact branch where treatment will happen\n\nIf you share your age, where in Delhi NCR you’re based, and whether you’ve had previous IVF, I can help narrow the options.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "Sir Ganga Ram Hospital",
-          "Ferticity IVF",
-          "Fortis Bloom IVF at Fortis La Femme",
-          "Advance Fertility & Gynaecology Centre",
-          "Live-birth rates",
-          "ART registration",
-          "National ART & Surrogacy Registry",
-          "Noida"
+          "Fortis La Femme"
         ]
       },
       "citations": [
@@ -343,7 +271,7 @@
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.021629
+      "costUsd": 0.021759
     },
     {
       "promptIndex": 1,
@@ -351,38 +279,25 @@
       "engine": "gemini",
       "model": "gemini-3.8-flash",
       "badge": "—",
-      "text": "Choosing the best IVF center in Delhi NCR depends on individual factors such as specific fertility challenges (e.g., recurrent implantation failure, male factor infertility, advanced maternal age), budget, and convenience of location for frequent monitoring visits.\n\nHere are the top-rated and most reputable IVF centers in Delhi NCR, categorized by hospital-based units and specialized fertility chains.\n\n---\n\n### 1. Premier Hospital-Based Fertility Centers\n*Best for patients with underlying medical conditions (PCOS, thyroid issues, autoimmune disorders, endometriosis) or those needing comprehensive multi-specialty care.*\n\n* **Sir Ganga Ram Hospital (Old Rajinder Nagar, Delhi)**\n  * **Highlights:** One of the earliest and most ethical IVF programs in India. Highly respected for complex cases and recurrent IVF failures.\n  * **Key Specialist:** Dr. Abha Majumdar (a pioneer in Indian reproductive medicine).\n* **Max Institute of Fertility & IVF (Panchsheel Park & Saket, Delhi)**\n  * **Highlights:** Equipped with advanced embryology labs, offering PGT-A (genetic testing), blastocyst culture, and fertility preservation.\n  * **Key Specialist:** Dr. Surveen Ghumman Sindhu.\n* **Fortis Bloom IVF Centre / Fortis La Femme (Greater Kailash-II, Delhi)**\n  * **Highlights:** Collaboration between Fortis and Bloom IVF, known for high clinical standards, donor programs, and personalized stimulation protocols.\n  * **Key Specialists:** Dr. Hrishikesh Pai, Dr. Nandita Palshetkar.\n* **Apollo Fertility (Moti Nagar, Lajpat Nagar & Noida)**\n  * **Highlights:** Standardized clinical protocols backed by the Apollo ecosystem. Excellent infrastructure for diagnostic laparoscopy and hysteroscopy alongside ART (Assisted Reproductive Technology).\n\n---\n\n### 2. Leading Specialized Fertility Clinics & Chains\n*Best for dedicated embryology labs, dedicated patient counseling, and standardized pricing packages.*\n\n* **Nova IVF Fertility (Vasant Vihar, Gurugram, & Noida)**\n  * **Highlights:** One of India’s largest fertility chains with standardized international protocols. Excellent labs equipped with time-lapse incubators and specialized male infertility treatments (MACS, TESA/PESA).\n  * **Key Specialist:** Dr. Sonia Malik (Vasant Vihar).\n* **Milann Fertility Centre (Greater Kailash-II, Delhi)**\n  * **Highlights:** Founded by Padma Shri Dr. Kamini Rao; well-regarded for ethical protocols, transparent communication, and personalized embryology handling.\n* **Cloudnine Fertility (Gurugram, Punjabi Bagh, Patparganj, Noida)**\n  * **Highlights:** Seamless transition from fertility treatment to maternity and neonatal care. Ideal for couples seeking end-to-end care under one roof.\n* **SCI IVF Hospital (Kailash Colony, Delhi & Sector 63, Noida)**\n  * **Highlights:** High volume of domestic and international patients, offering advanced reproductive treatments and surrogacy guidance under ART regulations.\n  * **Key Specialist:** Dr. Shivani Sachdev Gour.\n* **Indira IVF (Multiple branches: Dwarka, Tilak Nagar, Noida, Gurugram)**\n  * **Highlights:** The largest fertility chain in India, known for affordability and high-tech closed working chambers. A suitable choice for couples seeking cost-effective treatment.\n\n---\n\n### Key Specialists to Consider in Delhi NCR\n* **Dr. Abha Majumdar** – Sir Ganga Ram Hospital\n* **Dr. Sonia Malik** – Nova IVF Fertility, Vasant Vihar\n* **Dr. Surveen Ghumman Sindhu** – Max Healthcare, Panchsheel Park / Saket\n* **Dr. Shivani Sachdev Gour** – SCI Healthcare, Kailash Colony\n* **Dr. Rita Bakshi** – International Fertility Centre (Green Park)\n\n---\n\n### How to Choose the Right Center for You\n\n1. **Lab Standards & In-House Embryologists:**\n   The success of an IVF cycle depends as much on the **embryologist and lab environment** (clean room classifications, air handling units) as on the prescribing doctor. Ask if the center has a full-time, experienced embryologist.\n2. **Proximity and Commute:**\n   During the stimulation phase, you will need follicle monitoring ultrasounds and blood draws every 2–3 days early in the morning. Pick a clinic within a manageable distance.\n3. **Transparent Pricing:**\n   Verify what is included in the package. Ask specifically about:\n   * Cost of hormonal injections/medications (often 30–50% of the total cost).\n   * ICSI charges, blastocyst culture fees, and embryo freezing/storage charges for subsequent years.\n4. **Doctor Continuity:**\n   Clarify whether your primary specialist will perform the egg retrieval and embryo transfer, or if duty/fellowship doctors handle the procedures.\n5. **Regulatory Compliance:**\n   Ensure the clinic is fully registered under India's **Assisted Reproductive Technology (ART) Act, 2021**, ensuring strict adherence to legal and safety norms.",
+      "text": "Delhi NCR is one of India’s leading hubs for reproductive medicine, offering access to world-class embryology laboratories, high-tech genetic screening (such as PGT-A and PGT-M), and renowned reproductive endocrinologists. \n\nBecause IVF success depends on individual factors (age, underlying conditions, and lab quality), there is no single \"best\" clinic for everyone. However, the most reputed and consistently recommended IVF centres in Delhi NCR can be categorized as follows:\n\n---\n\n### 1. Top Hospital-Based IVF Departments\n*Best suited for patients with complex medical issues (e.g., severe endometriosis, cardiac/renal conditions, or prior surgical complications) who require multi-specialty hospital backup.*\n\n* **Sir Ganga Ram Hospital (Department of IVF & Reproductive Medicine, New Delhi)**\n  * **Highlights:** One of the oldest and most pioneering IVF departments in North India (led by veteran specialists like Dr. Abha Majumdar). Known for ethical practices, research-backed protocols, and handling difficult/repeatedly failed cases.\n* **Max Healthcare / Max IVF (Saket, Panchsheel Park, & Gurugram)**\n  * **Highlights:** Offers cutting-edge fertility treatments integrated with high-risk obstetrics and neonatal intensive care (NICU). Led by senior specialists (e.g., Dr. Surveen Ghumman Sindhu).\n* **Fortis Bloom IVF Centre (Fortis La Femme, GK-2 & FMRI, Gurugram)**\n  * **Highlights:** Associated with Bloom IVF Group, one of India’s most established fertility networks. Features advanced embryology labs equipped for ICSI, IMSI, and blastocyst cultures.\n* **Apollo Fertility (Moti Nagar, Gurugram, & Noida)**\n  * **Highlights:** Backed by the Apollo Hospitals network, providing transparent protocols, standardized lab quality, and dedicated reproductive genetics support.\n\n---\n\n### 2. Leading Specialized Fertility Clinics & Chains\n*Best suited for dedicated fertility care, patient-focused environments, and modern outpatient setups.*\n\n* **Birla Fertility & IVF / CK Birla Hospital (Multiple locations: Punjabi Bagh, Lajpat Nagar, Gurugram)**\n  * **Highlights:** Part of the CK Birla Group, known for clinical transparency, fixed-cost treatment packages without hidden fees, and state-of-the-art lab infrastructure.\n* **Nova IVF Fertility (Vasant Vihar, Lajpat Nagar, Gurugram, Noida)**\n  * **Highlights:** One of India’s largest specialized IVF networks. Known for stringent adherence to international embryology protocols, time-lapse embryo imaging, and extensive donor/surrogacy compliance.\n* **Cloudnine Fertility (Punjabi Bagh, Kailash Colony, Gurugram, Noida)**\n  * **Highlights:** Renowned for maternal and child healthcare, offering seamless continuity from conception to delivery. Excellent embryology setups and patient comfort.\n* **Indira IVF (Multiple centres across Delhi, Noida, Ghaziabad, Gurugram)**\n  * **Highlights:** India’s largest fertility chain by volume. Known for standardized closed working chambers, affordable pricing tiers, and accessible EMI/financing options.\n* **Gunjan IVF World (Noida, Indirapuram, Ghaziabad)**\n  * **Highlights:** Highly regarded in the East Delhi/Noida/Ghaziabad belt for personalized doctor-patient interaction and transparent success rates.\n\n---\n\n### Key Questions to Ask Before Finalizing a Centre\n\n1. **Who will handle your cycle?** Ensure that senior fertility specialists handle the consultations, egg retrieval, and embryo transfer rather than junior duty doctors.\n2. **In-house Embryology Lab:** Ask if the clinic has a dedicated, full-time embryologist and an in-house cleanroom lab (Class 10,000 air quality), rather than outsourcing lab work.\n3. **Advanced Technologies Available:** Inquire if they offer advanced solutions suited to your case, such as:\n   * **Blastocyst Culture (Day 5 transfer)**\n   * **ICSI / IMSI** (for male factor infertility)\n   * **PGT-A / PGT-M** (genetic screening of embryos)\n   * **Laser-Assisted Hatching**\n4. **All-Inclusive Cost Estimates:** Clarify what the quoted package covers (medications, freezing charges, blastocyst culture, anesthesia, and subsequent frozen embryo transfers usually carry additional costs).\n5. **Location & Travel Time:** An IVF cycle requires 4–6 clinic visits within a two-week stimulation window for follicular monitoring and blood tests. Choosing a centre that is logistically manageable reduces cycle stress.\n\n**Recommendation:** Shortlist 2 to 3 centres and book an initial consultation. Evaluate the transparency of the doctors, whether they push immediate IVF or investigate root causes first, and choose the team that gives you the highest clinical confidence.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
           "Sir Ganga Ram Hospital",
-          "Dr. Abha Majumdar",
-          "Max Institute of Fertility & IVF",
-          "Genetic Testing",
-          "Dr. Surveen Ghumman Sindhu",
-          "Fortis Bloom IVF Centre / Fortis La Femme",
+          "Max Healthcare / Max IVF",
+          "Fortis La Femme",
+          "Fortis Bloom IVF Centre",
           "Apollo Fertility",
-          "Noida",
+          "Birla Fertility & IVF",
           "Nova IVF Fertility",
-          "Dr. Sonia Malik",
-          "Milann Fertility Centre",
-          "Transparent",
           "Cloudnine Fertility",
-          "SCI IVF Hospital",
           "Indira IVF",
-          "Dr. Shivani Sachdev Gour",
-          "Dr. Rita Bakshi",
-          "Lab Standards & In-House Embryologists",
-          "Proximity and Commute",
-          "ICSI",
-          "Transparent Pricing",
-          "Doctor Continuity",
-          "Regulatory Compliance"
+          "Gunjan IVF World"
         ]
       },
       "citations": [],
-      "costUsd": 0.007787
+      "costUsd": 0.006568
     },
     {
       "promptIndex": 1,
@@ -390,24 +305,13 @@
       "engine": "perplexity",
       "model": "openai/gpt-6-luna",
       "badge": "—",
-      "text": "There’s no single “best” IVF centre for everyone—the right choice depends on your diagnosis, age, budget and how much individual attention you want. A practical shortlist to explore includes **Apollo Fertility**, **Nova IVF**, **ART Fertility Clinics**, **Bloom IVF at Fortis La Femme**, and **Indira IVF**; these have Delhi-NCR locations and offer a range of fertility treatments.[1][3][8][10]\n\nBefore deciding, compare clinics on:\n- **Your doctor and lab team:** Ask who will manage your treatment and whether the clinic has an in-house embryology lab.\n- **Success rates for people like you:** Request age-specific *live-birth* outcomes per embryo transfer or treatment cycle, and ask how the clinic calculates them.\n- **Full cost:** Get an itemized estimate covering medicines, tests, ICSI, freezing, storage and any genetic testing; advertised starting prices may not include everything.[1][10]\n- **Registration and care:** Verify the clinic’s ART registration and ask about counselling, monitoring and follow-up.\n\nBook consultations with two or three centres and compare their written treatment plans—not just headline success rates or online rankings.",
+      "text": "There isn’t one objectively “best” IVF centre in Delhi NCR—the right choice depends on your diagnosis, age, budget, location, and the clinic’s outcomes for patients like you. For a shortlist, consider **Fortis Bloom IVF** or **ART Fertility Clinics** for specialist-led care, and **Indira IVF** or **Nova IVF** for multiple NCR locations; these are options to compare, not a ranking of proven success rates.[1][2][3]\n\nBefore choosing, ask each centre for:\n- **Live-birth rates** for your age group and diagnosis—not just pregnancy rates—and whether figures are per transfer or per started cycle.\n- A complete written estimate, including medication, tests, freezing/storage, and any add-on procedures.\n- Who will manage your treatment, what the embryology lab provides, and whether the centre is currently registered under India’s ART framework.\n\nTreat advertised success-rate claims cautiously: results can use different definitions and patient groups, so they may not be directly comparable.[1]",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "Apollo Fertility",
-          "Nova IVF",
           "ART Fertility Clinics",
-          "Indira IVF",
-          "Bloom IVF at Fortis La Femme",
-          "Your doctor and lab team",
-          "In-House",
-          "Success rates for people like you",
-          "Full cost",
-          "ICSI",
-          "Genetic Testing",
-          "Registration and care",
-          "ART registration"
+          "Indira IVF"
         ]
       },
       "citations": [
@@ -419,15 +323,15 @@
           "competitorsMentioned": []
         },
         {
-          "domain": "indiraivf.com",
-          "url": "https://www.indiraivf.com/blog/10-best-ivf-centres-in-delhi-ncr",
+          "domain": "bloomivf.com",
+          "url": "https://www.bloomivf.com/blog/top-10-best-ivf-centres-in-delhi-2026/",
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "bloomivf.com",
-          "url": "https://www.bloomivf.com/blog/top-10-best-ivf-centres-in-delhi-2026/",
+          "domain": "indiraivf.com",
+          "url": "https://www.indiraivf.com/blog/10-best-ivf-centres-in-delhi-ncr",
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
@@ -454,6 +358,13 @@
           "competitorsMentioned": []
         },
         {
+          "domain": "babyjoyivf.com",
+          "url": "https://www.babyjoyivf.com/top-10-best-ivf-centres-in-delhi-with-highest-success-rate/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
           "domain": "urvarafertilitycentre.com",
           "url": "https://urvarafertilitycentre.com/blog/top-ivf-centres-in-north-india",
           "channelType": null,
@@ -473,16 +384,9 @@
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
-        },
-        {
-          "domain": "apollofertility.com",
-          "url": "https://www.apollofertility.com/blog/ivf/top-fertility-clinics-delhi-ncr",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.00177
+      "costUsd": 0.00174
     },
     {
       "promptIndex": 2,
@@ -490,22 +394,13 @@
       "engine": "chatgpt",
       "model": "gpt-6-luna",
       "badge": "—",
-      "text": "“Best” depends on your diagnosis and age, and **I can’t see your exact location**. A practical shortlist to start with:\n\n- **South Delhi:** Fortis Bloom IVF, **Fortis La Femme, Greater Kailash II**. It appears in the national ART registry as a Level 2 clinic. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n- **East Delhi:** **Yashoda Fertility & IVF, Karkardooma**—also listed as Level 2 in the registry. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n- **Several Delhi areas:** **Medicover Fertility** has registry-listed locations in Panchsheel Park, Dwarka and Rohini. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n- **Noida:** Apollo Fertility lists a Delhi–NCR/Noida centre; confirm the exact branch’s current ART registration before booking. ([apollofertility.com](https://www.apollofertility.com/our-hospitals?utm_source=openai))\n\nTreat this as a **starting shortlist, not a ranking**—clinic success-rate claims aren’t directly comparable. At your consultation, ask for the clinic’s **live-birth rate per started cycle**, broken down by your age and whether it uses your own eggs, plus a written estimate of total costs. Verify the **specific branch** in India’s ART registry. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n\nTell me your area—such as Gurgaon, Noida, Faridabad, Ghaziabad, or a Delhi neighborhood—and I can narrow this to nearby options.",
+      "text": "I can’t see your exact location, so I can’t tell which is *nearest*. In the meantime, these are reasonable Delhi-NCR centres to shortlist—not a definitive ranking:\n\n- **South Delhi / Lajpat Nagar:** Advance Fertility & Gynaecology Centre (AFGC), Ring Road, Lajpat Nagar IV. AFGC also lists locations in Noida and Gurgaon. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n- **South Delhi / Navjeevan Vihar:** Ferticity IVF Clinics. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n- **Greater Kailash II:** Fortis Bloom IVF at Fortis La Femme. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n- **North Delhi / Malka Ganj:** Ridge IVF at Gouri Hospitals. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n\nThe national ART registry lists these Delhi clinics; that confirms a registry listing, **not** that one is “best” or guarantees a particular outcome. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n\nBefore choosing, ask each clinic for its **age-specific live-birth rates**, a written, itemized treatment estimate, and which doctor will oversee your care. Be cautious of guaranteed-success claims.\n\nTell me your area—such as a Gurgaon sector, Noida sector, or Delhi neighborhood—and I can narrow this to the closest options.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "I can’t see your exact location",
-          "South Delhi",
-          "Fortis Bloom IVF",
-          "Fortis La Femme",
-          "East Delhi",
-          "Yashoda Fertility & IVF",
-          "Several Delhi areas",
-          "Medicover Fertility",
-          "Noida",
-          "Apollo Fertility",
-          "ART registration"
+          "Advance Fertility & Gynaecology Centre",
+          "Fortis La Femme"
         ]
       },
       "citations": [
@@ -515,16 +410,9 @@
           "channelType": "reference",
           "brandMentioned": null,
           "competitorsMentioned": []
-        },
-        {
-          "domain": "apollofertility.com",
-          "url": "https://www.apollofertility.com/our-hospitals?utm_source=openai",
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.021818
+      "costUsd": 0.02178
     },
     {
       "promptIndex": 2,
@@ -532,36 +420,71 @@
       "engine": "gemini",
       "model": "gemini-3.8-flash",
       "badge": "—",
-      "text": "Delhi NCR is one of India’s leading hubs for Assisted Reproductive Technology (ART), home to world-class fertility clinics equipped with modern embryology labs, genetic testing facilities (like PGT-A/SR), and renowned fertility specialists.\n\nDepending on your exact location in the NCR, here are the **top-rated and most reputable IVF centres**:\n\n---\n\n### **1. Top Centres in South & Central Delhi**\n\n* **Delhi IVF & Fertility Research Centre (Connaught Place / Bengali Market)**\n  * **Highlights:** One of India’s oldest fertility clinics (established in 1989), headed by Dr. Anoop Gupta. Highly experienced in complex, recurrent implantation failure, and advanced maternal age cases.\n  * **Best for:** Patients seeking legacy experience and specialized third-party reproductive care.\n\n* **Nova IVF Fertility (Vasant Vihar & East of Kailash)**\n  * **Highlights:** Backed by international protocols and top-tier embryology laboratories. Offers advanced procedures such as ICSI, MACS (Magnetic Activated Cell Sorting for sperm), and pre-implantation genetic diagnosis.\n  * **Notable Specialists:** Dr. Parul Katiyar, Dr. Ashwini S.\n\n* **Max Institute of Reproductive Medicine (Saket & Panchsheel)**\n  * **Highlights:** Ideal if you prefer a multi-speciality hospital setup where tertiary medical backup, high-risk obstetrics, and endocrinology support are integrated on-site.\n  * **Notable Specialists:** Dr. Surveen Ghumman Sindhu, Dr. Tanya Buckshee Rohatgi.\n\n---\n\n### **2. Top Centres in Gurugram (Gurgaon)**\n\n* **Birla Fertility & IVF (Sector 14 & Golf Course Road)**\n  * **Highlights:** Known for transparent, all-inclusive pricing with clinical protocols backed by global standards. Offers cutting-edge sperm selection and blastocyst culturing.\n  * **Best for:** Clear financial planning, high patient satisfaction, and compassionate care.\n\n* **Fortis Bloom IVF Centre (Fortis Memorial Research Institute, Sector 44)**\n  * **Highlights:** Led by pioneers Dr. Hrishikesh Pai and Dr. Nandita Palshetkar. Equipped with advanced clean-room embryology suites and multi-speciality emergency backup.\n\n* **ART Fertility Clinics (Sector 54, Golf Course Road)**\n  * **Highlights:** An international chain known for strict academic protocols, customized stimulation regimens, and highly advanced reproductive genetics.\n\n---\n\n### **3. Top Centres in West & North Delhi**\n\n* **Origyn Fertility & IVF (Pitampura & Rohini)**\n  * **Highlights:** Founded by Dr. Rashmi Sharma, it has built a strong reputation in North and North-West Delhi for handling cases with low ovarian reserve and repeated IVF failures.\n\n* **Apollo Fertility (Moti Nagar & Punjabi Bagh)**\n  * **Highlights:** Backed by the trusted Apollo Healthcare ecosystem. Features dedicated labs for andrology, cryopreservation, and advanced embryology.\n\n* **Indira IVF (Patel Nagar & Tilak Nagar)**\n  * **Highlights:** One of India’s largest IVF networks. Offers affordable, standardized package-based treatments with closed working chambers and micro-fluidics sperm sorters.\n\n---\n\n### **4. Top Centres in Noida & East Delhi**\n\n* **Jaypee Hospital Fertility Centre (Sector 128, Noida)**\n  * **Highlights:** Multi-speciality hospital setup with advanced reproductive medicine infrastructure, led by seasoned specialists. Excellent for patients with comorbid conditions like severe endometriosis or thyroid disorders.\n\n* **Cloudnine Fertility / Hospital (Sector 51, Noida & Patparganj)**\n  * **Highlights:** Focused exclusively on mother and child care, ensuring seamless continuity from conception through delivery.\n\n* **Zeeva Clinic / IVF (Sector 104, Noida)**\n  * **Highlights:** Led by Dr. Shweta Goswami, known for high patient transparency, personalized protocol design, and ethical counselling.\n\n---\n\n### **How to Choose the Best Centre for Your Needs**\n\n1. **Travel Distance:** During an active IVF stimulation cycle, you will need ultrasound scans (follicular monitoring) every 2–3 days. Picking a clinic within a **30–45 minute commute** reduces stress significantly.\n2. **Lab Quality (Embryology Lab):** More than the doctor alone, IVF success depends heavily on the **embryologist** and lab infrastructure (air handling units, laminar flow, laser-assisted hatching, and benchtop incubators).\n3. **Fee Transparency:** Always ask whether package costs include stimulation injections, ICSI, blastocyst culture, freezing/cryostorage, and embryo transfer, or if those are billed separately.\n4. **Speciality Support:** If you have severe medical conditions (such as severe PCOS, diabetes, heart conditions, or severe endometriosis), prioritize an IVF unit attached to a **tertiary hospital** (like Max, Apollo, or Fortis).\n\n*Tip: Book initial consultations with 2 different clinics to compare their proposed treatment plans, transparency, and how comfortable you feel with the team before starting a cycle.*",
+      "text": "Delhi NCR has several nationally renowned fertility hospitals and dedicated IVF chains. Because proximity matters for monitoring, frequent ultrasounds, and injections, clinics can be organized by their major networks and regions:\n\n---\n\n### 1. Renowned Dedicated Fertility Chains (Multiple NCR Locations)\n\n* **Nova IVF Fertility**\n  * **Locations:** Lajpat Nagar, Rajouri Garden, Gurugram (Sector 14), Noida (Sector 62).\n  * **Highlights:** High-standard embryology labs, international protocol standards, pre-implantation genetic testing (PGT), and assisted hatching.\n* **Birla Fertility & IVF**\n  * **Locations:** Lajpat Nagar, Dwarka, Punjabi Bagh, Gurugram (Sector 14 & 47), Noida (Sector 18).\n  * **Highlights:** High success rates, transparent upfront package pricing, and advanced male & female fertility treatment.\n* **Apollo Fertility**\n  * **Locations:** Moti Nagar, Lajpat Nagar, Noida (Sector 18), Gurugram (Sector 14).\n  * **Highlights:** Backed by the Apollo Hospitals network; fully equipped labs for ICSI, laser-assisted hatching, and blastocyst culture.\n* **Indira IVF**\n  * **Locations:** South Extension, Shahdara, Dwarka, Tilak Nagar, Noida, Ghaziabad, Faridabad.\n  * **Highlights:** One of India’s largest networks; known for making IVF accessible with affordable financing/EMI options and high treatment volume.\n\n---\n\n### 2. Top Specialized IVF Clinics Led by Veteran Specialists\n\n* **Advance Fertility & Gynaecology Centre (Dr. Kaberi Banerjee)**\n  * **Locations:** Lajpat Nagar IV, Greater Kailash (CR Park), Noida (Sector 20).\n  * **Best For:** Complex cases, repeated IVF failure, and older maternal age.\n* **Delhi IVF & Fertility Centre (Dr. Anoop Gupta)**\n  * **Locations:** Bengali Market (Connaught Place), Lajpat Nagar, Rohini.\n  * **Best For:** One of the oldest dedicated IVF centres in North India (established in the 1990s) with extensive case experience.\n* **SCI IVF Hospital (Dr. Shivani Sachdev Gour)**\n  * **Locations:** Kailash Colony (South Delhi) & Sector 63 (Noida).\n  * **Best For:** Advanced reproductive technology, embryo banking, and third-party reproduction expertise.\n* **ART Fertility Clinics**\n  * **Locations:** Defence Colony (South Delhi) and Sector 29 (Gurugram).\n  * **Best For:** International-grade clinical protocols, heavily researched embryology tech, and precision diagnostics.\n\n---\n\n### 3. Top Multi-Specialty Hospital IVF Departments\n*Ideal for cases involving pre-existing medical conditions (cardiac, endocrine, severe endometriosis, or high-risk obstetric monitoring).*\n\n* **Fortis Bloom IVF Centre:** Fortis La Femme (Greater Kailash II), Fortis Memorial Research Institute (FMRI Gurugram), and Shalimar Bagh.\n* **Max Institute of Fertility & IVF:** Max Super Speciality Hospital (Saket / Panchsheel Park and Vaishali, Ghaziabad).\n* **Medanta Fertility Clinic:** Medanta – The Medicity (Sector 38, Gurugram).\n\n---\n\n### How to Pick the Best Centre for Your Needs:\n1. **Travel Distance:** During an IVF cycle, 4 to 7 clinic visits are needed for follicular monitoring scans and blood tests within a 2-week window. A center within a 30–45 minute commute is ideal.\n2. **In-House Embryology Lab:** Ensure the clinic maintains its own Class 10,000 cleanroom embryology lab rather than sharing or outsourcing embryo processing.\n3. **Doctor Continuity:** Confirm whether the senior IVF specialist conducts consultations and embryo transfers personally, rather than rotating between duty doctors.\n4. **Transparent Package Breakdown:** Request an itemized estimate covering medications, stimulation, egg retrieval, freezing charges, and embryo transfer to avoid unexpected add-on costs.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "Genetic Testing",
-          "Delhi IVF & Fertility Research Centre",
           "Nova IVF Fertility",
-          "ICSI",
-          "Notable Specialists",
-          "Max Institute of Reproductive Medicine",
-          "Dr. Surveen Ghumman Sindhu",
-          "Transparent",
           "Birla Fertility & IVF",
-          "Fortis Bloom IVF Centre",
-          "ART Fertility Clinics",
-          "Origyn Fertility & IVF",
           "Apollo Fertility",
           "Indira IVF",
-          "Noida",
-          "East Delhi",
-          "Jaypee Hospital Fertility Centre",
-          "Cloudnine Fertility",
-          "Travel Distance",
-          "Lab Quality",
-          "Lab Infrastructure"
+          "Advance Fertility & Gynaecology Centre",
+          "Delhi IVF & Fertility Centre",
+          "SCI IVF Hospital",
+          "ART Fertility Clinics",
+          "Fortis La Femme",
+          "Fortis Bloom IVF Centre",
+          "Max Institute of Fertility & IVF",
+          "Medanta – The Medicity",
+          "Medanta Fertility Clinic"
         ]
       },
-      "citations": [],
-      "costUsd": 0.007402
+      "citations": [
+        {
+          "domain": "infertilitydost.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "worldfertilityservices.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "apollofertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indiraivf.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "youtube.com",
+          "url": null,
+          "channelType": "video",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "delhi-ivf.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.020393
     },
     {
       "promptIndex": 2,
@@ -569,17 +492,14 @@
       "engine": "perplexity",
       "model": "openai/gpt-6-luna",
       "badge": "—",
-      "text": "A convenient shortlist is **Apollo Fertility** or **Nova IVF**—both have multiple clinics across Delhi NCR, so the best option depends on your neighborhood. Apollo lists centres in Delhi, Noida and Indirapuram; Nova lists locations including Noida, Gurugram, Ghaziabad, Rohini and South/West Delhi.[8][9]\n\nOther options to compare include **Fortis La Femme** in Greater Kailash II and **ART Fertility Clinics**, with locations in Delhi, Gurugram, Faridabad and Greater Noida.[1][6]\n\nBefore choosing, compare the specific doctor and embryology lab, ask for a written estimate of the full treatment cycle (including medicines and add-ons), and request the clinic’s age- and diagnosis-specific live-birth outcomes. IVF costs vary; Apollo lists a range of ₹1–2.5 lakh per cycle, but confirm current pricing and what is included directly with each centre.[5]\n\nShare your area or nearest metro station—such as Noida, Gurgaon, Dwarka, Rohini or South Delhi—and a budget range, and I can narrow this to nearby clinics.",
+      "text": "“Near me” depends on your part of Delhi NCR. **Apollo Fertility** and **Nova IVF** have centres across several areas, so they’re practical places to start: Apollo lists clinics in Delhi, Noida and Indirapuram, while Nova lists locations including Noida, Ghaziabad, Gurugram, Rohini and South Delhi.[8][9]\n\nOther options include **Fortis La Femme** in Greater Kailash II and **ART Fertility Clinics** in Defence Colony, Gurgaon, Faridabad and Greater Noida.[1][6]\n\nBefore choosing, compare the specific doctor and embryology lab, ask what the quoted IVF price includes, and request the clinic’s success-rate figures for patients with a similar age and diagnosis. Published “top” lists aren’t a guarantee of treatment outcomes. Share your neighbourhood or PIN code and I can narrow this to nearby centres.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
           "Apollo Fertility",
-          "Nova IVF",
-          "Noida",
           "Fortis La Femme",
-          "ART Fertility Clinics",
-          "South Delhi"
+          "ART Fertility Clinics"
         ]
       },
       "citations": [
@@ -654,7 +574,7 @@
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.00181
+      "costUsd": 0.00178
     },
     {
       "promptIndex": 3,
@@ -662,27 +582,39 @@
       "engine": "chatgpt",
       "model": "gpt-6-luna",
       "badge": "—",
-      "text": "**There isn’t enough public, independently comparable data to name one Delhi-NCR centre as having the best IVF results.** Reviews are easier to compare than outcomes—but they don’t tell you your chance of a live birth.\n\nIf you mean **review profile**, **Nova IVF’s Rajouri Garden centre** is one reasonable place to include in a shortlist: a review aggregator currently reports **4.9/5 from 1,012 Google reviews**. **ART Fertility, Delhi** is listed at **4.7/5 from 484 Google reviews**. These are review signals, not proof of better clinical results. ([reviews.birdeye.com](https://reviews.birdeye.com/nova-ivf-fertility-centre-best-ivf-center-in-rajouri-garden-delhi-176948576709283?utm_source=openai))\n\nBefore choosing, ask each clinic for its **live-birth rate**—not just its pregnancy rate—for patients in your age group and with a similar diagnosis. Ask how it counts outcomes (per cycle started or per embryo transfer), whether the figures include cancellations and miscarriages, and whether they’re independently audited. Also meet the doctor who would actually manage your cycle, and get a written, itemized estimate.\n\n**Practical next step:** book consultations at two centres, take the same medical records to both, and compare their treatment plan, outcome figures, and total expected cost. If you tell me your preferred area (Delhi, Noida, Gurugram, Ghaziabad, or Faridabad) and age range, I can narrow the shortlist.",
+      "text": "**If you want one place to start, consider ART Fertility Clinics in South Delhi**: a recent listing showed **4.7/5 from 484 Google reviews**. **Delhi IVF & Fertility Research Centre** is another option to compare; a clinic directory listed **4.5/5 from 590 reviews** and Level 2 ART registration. These are review snapshots—not evidence that either has better IVF results. ([reviews.birdeye.com](https://reviews.birdeye.com/art-fertility-clinics-best-ivf-center-in-new-delhi-176952792823516?utm_source=openai))\n\nI **can’t responsibly name a centre with the “best results”** from the public figures I found: they aren’t comparable clinic-by-clinic live-birth outcomes. IVF odds vary substantially with factors such as age and diagnosis, and a clinic’s advertised success rate may not tell you which patients or treatment cycles were counted. ([practo.com](https://www.practo.com/delhi/in-vitro-fertilization-ivf/procedure?utm_source=openai))\n\nBefore choosing, ask each centre for its **live-birth rate per started cycle** for your age group—not just pregnancy rate—and whether the figure includes cancelled cycles and all embryo transfers from that retrieval. Also check the clinic’s current registration in India’s National ART & Surrogacy Registry. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n\n**Practical approach:** book consultations with two or three centres, meet the doctor who would actually oversee your care, and compare the written treatment plan and full-cycle cost. If you share your age, area of NCR, and any prior IVF history, I can help narrow the shortlist.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "Nova IVF’s Rajouri Garden centre",
-          "ART Fertility",
-          "Practical next step",
-          "Noida"
+          "ART Fertility Clinics",
+          "Delhi IVF & Fertility Research Centre"
         ]
       },
       "citations": [
         {
           "domain": "reviews.birdeye.com",
-          "url": "https://reviews.birdeye.com/nova-ivf-fertility-centre-best-ivf-center-in-rajouri-garden-delhi-176948576709283?utm_source=openai",
+          "url": "https://reviews.birdeye.com/art-fertility-clinics-best-ivf-center-in-new-delhi-176952792823516?utm_source=openai",
           "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": "https://www.practo.com/delhi/in-vitro-fertilization-ivf/procedure?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "registry.artsurrogacy.gov.in",
+          "url": "https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai",
+          "channelType": "reference",
           "brandMentioned": null,
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.021765
+      "costUsd": 0.021906
     },
     {
       "promptIndex": 3,
@@ -690,110 +622,30 @@
       "engine": "gemini",
       "model": "gemini-3.8-flash",
       "badge": "—",
-      "text": "Because IVF success depends heavily on individual medical factors (maternal age, ovarian reserve/AMH, sperm quality, and uterine health), no single clinic is universally the best for everyone. However, based on **independent patient reviews, embryology lab standards, doctor expertise, and clinical transparency**, the following centres in Delhi NCR consistently rank at the top:\n\n---\n\n### 1. Top Doctor-Led Specialty Clinics (Best for Personalized Care & Complex Cases)\n\n*   **Advance Fertility & Gynecology Centre (Lajpat Nagar, South Delhi)**\n    *   **Lead Specialist:** Dr. Kaberi Banerjee (AIIMS, Guys & St. Thomas, London).\n    *   **Why It Stands Out:** Widely recognized as one of the best-reviewed individual clinics in Delhi. Patients frequently praise Dr. Banerjee for directly overseeing scans and transfer procedures rather than delegating entirely to junior doctors.\n    *   **Specialty:** Recurrent implantation failure (RIF), poor ovarian reserve, and donor cycles.\n*   **Gaudium IVF (Janakpuri & Kailash Colony)**\n    *   **Lead Specialist:** Dr. Manika Khanna.\n    *   **Why It Stands Out:** One of the highest patient volumes and consistent positive reviews for handling repeat IVF failures. They have an advanced in-house embryology unit and genetic testing capabilities.\n    *   **Specialty:** Previous failed IVF cycles, severe male factor infertility.\n\n---\n\n### 2. High-Tech & Evidence-Based Fertility Chains\n\n*   **ART Fertility Clinics (Defence Colony, New Delhi & Sector 38, Gurugram)**\n    *   **Why It Stands Out:** Modeled on European embryology standards with strict adherence to cleanroom environments, AI-driven embryo selection, and research-backed protocols. They hold some of the highest verified reviews on Google and Practo for transparency and non-pushy consultations.\n    *   **Specialty:** Customized stimulation protocols, blastocyst culture, and male infertility (micro-TESE).\n*   **Nova IVF Fertility (Vasant Kunj, Lajpat Nagar, & Gurugram)**\n    *   **Why It Stands Out:** One of India’s most established chains with standardized protocols. Their labs maintain stringent international quality controls, which translates to dependable success rates (typically 55–65% for standard self-egg cycles).\n    *   **Specialty:** PGT-A (genetic testing of embryos), blastocyst culture, and fertility preservation.\n*   **Birla Fertility & IVF (Lajpat Nagar, Dwarka, & Gurugram)**\n    *   **Why It Stands Out:** Part of the CK Birla Healthcare group. Known for fixed-price transparent billing (avoiding hidden add-on costs) and empathetic patient care.\n\n---\n\n### 3. Top Hospital-Based IVF Units (Best for High-Risk Pregnancies & Medical Complications)\n\nIf you have pre-existing conditions like autoimmune disease, severe endometriosis, thyroid disorders, or a history of recurrent miscarriages, a hospital-based unit is often the safest:\n\n*   **Max Healthcare / Max Multi Speciality Centre (Panchsheel Park & Saket)**\n    *   **Key Doctors:** Dr. Surveen Ghumman, Dr. Anuradha Kapur.\n    *   **Why It Stands Out:** High clinical accountability, cleanroom labs, and immediate access to top-tier endocrinologists, hematologists, and maternal-fetal medicine specialists.\n*   **Fortis Bloom IVF Centre (Fortis La Femme, Greater Kailash II)**\n    *   **Key Doctors:** Dr. Hrishikesh Pai, Dr. Nandita Palshetkar.\n    *   **Why It Stands Out:** Decades-old reputation, pioneer in assisted reproduction in India, and strong backing for high-risk maternal delivery.\n\n---\n\n### Realistic Overview of \"Results\" (Success Rates)\n\nWhen reviewing advertised success rates, keep the following benchmarks in mind:\n*   **Standard IVF Success (Age <35, self eggs):** Typically **50% to 65%** per embryo transfer.\n*   **Standard IVF Success (Age 38–40+):** Typically drops to **20% to 35%** due to natural chromosomal egg abnormalities.\n*   **Donor Egg IVF:** Around **65% to 75%** regardless of maternal age.\n\n*Be cautious of any clinic claiming a flat \"80%–90% guaranteed success rate.\" Such figures usually represent cumulative rates over multiple cycles, or include donor eggs, rather than the success of a single fresh cycle.*\n\n---\n\n### How to Make Your Final Choice\n\n1.  **Embryology Lab Standards:** Inquire about their lab quality (e.g., Cleanroom Class 10000, modular setup, benchtop incubators). An IVF clinic’s success depends largely on its embryologists and lab conditions.\n2.  **Doctor Continuity:** Ask if your primary consultant will handle your scans, egg retrieval, and embryo transfer, or if procedures are rotated among resident doctors.\n3.  **Itemized Financial Transparency:** Ensure the quote covers medications, blastocyst culture, freezing/cryopreservation, and ICSI.\n4.  **Recommended Next Step:** Book an initial consultation with two contrasting options—such as a specialist doctor clinic (e.g., **Dr. Kaberi Banerjee / AFGC**) and a high-tech center (e.g., **ART Fertility** or **Nova IVF**). Compare their proposed stimulation protocols, diagnostic thoroughness, and transparency before committing.",
+      "text": "When evaluating IVF centres in Delhi NCR for both **positive patient reviews** and **clinical results (success rates)**, no single clinic is universally \"the best,\" because IVF success depends heavily on age, ovarian reserve, and specific fertility diagnoses. \n\nHowever, Delhi NCR is home to several top-tier centres that consistently rank highest for advanced embryology labs, clinical transparency, and doctor expertise.\n\n---\n\n### 1. Renowned Doctor-Led Specialist Clinics (Best for Personalized Care & Complex Cases)\n\n* **Advanced Fertility & Gynecology Centre (Lajpat Nagar)**\n  * **Lead Specialist:** Dr. Kaberi Banerjee\n  * **Reputation & Reviews:** Widely regarded as one of the best clinics for complex or multiple failed IVF cycles. Patients routinely praise Dr. Banerjee for directly overseeing cycles rather than handing cases off to junior associates.\n  * **Strengths:** High blastocyst transfer success rates, strong donor/surrogacy protocols, and transparent counseling.\n* **Delhi IVF & Fertility Research Centre (Bengali Market / Central Delhi)**\n  * **Lead Specialist:** Dr. Anoop Gupta\n  * **Reputation & Reviews:** Operating since 1993, this is one of the oldest dedicated fertility centres in North India. It has delivered tens of thousands of babies and carries strong credibility among older couples.\n  * **Strengths:** Decades of empirical experience with low ovarian reserve and male-factor infertility.\n* **Seeds of Innocence (Malviya Nagar, Jagriti Enclave, Noida)**\n  * **Lead Specialist:** Dr. Gauri Agarwal\n  * **Reputation & Reviews:** Highly rated for combining clinical empathy with strong genetic screening (PGT-A/PGT-M) inside their own diagnostic labs.\n  * **Strengths:** Strong focus on reducing recurrent miscarriages through pre-implantation genetic diagnosis.\n\n---\n\n### 2. Hospital-Backed IVF Departments (Best for High-Risk & Medical Backing)\n\nIf you have underlying health conditions (e.g., severe endometriosis, thyroid disorders, autoimmune conditions, or cardiac history), hospital-backed centres provide immediate critical care backup.\n\n* **Bloom IVF at Fortis La Femme (Greater Kailash-II)**\n  * **Lead Specialists:** Dr. Hrishikesh Pai & Dr. Nandita Palshetkar\n  * **Reputation & Reviews:** Pioneers of IVF in India with exceptional clinical outcomes. The hospital setting provides high-end labor and delivery backup for high-risk pregnancies.\n* **Max Multi Speciality Centre / Max Healthcare (Saket & Panchsheel Park)**\n  * **Lead Specialist:** Dr. Surveen Ghumman Sindhu\n  * **Reputation & Reviews:** Known for high ethical standards and zero commercial pushiness. Highly rated for couples seeking an evidence-based, conservative medical approach before jumping straight to invasive protocols.\n\n---\n\n### 3. Established Specialized Fertility Networks (Best for Standardized Protocols & Infrastructure)\n\n* **Birla Fertility & IVF (Lajpat Nagar, Punjabi Bagh, Gurugram)**\n  * **Reputation & Reviews:** Rapidly built a very positive reputation across NCR for transparent, all-inclusive pricing (minimal hidden costs) and patient counseling.\n  * **Strengths:** Modern cleanrooms, cutting-edge embryology equipment, and patient-first treatment design.\n* **Nova IVF Fertility (Vasant Vihar, Gurugram, Noida)**\n  * **Reputation & Reviews:** Consistently rated well for following international protocols and strict embryology lab benchmarks.\n  * **Strengths:** Excellent freeze-thaw survival rates for embryos and transparent tracking.\n* **Apollo Fertility (Kailash Colony, Dwarka, Sector 18 Noida)**\n  * **Reputation & Reviews:** Backed by the Apollo brand, patients consistently cite good nursing care, detailed ultrasound monitoring, and thorough andrology diagnostics.\n\n---\n\n### Understanding \"Success Rates\" Before You Choose\n\n1. **Beware of Unrealistic Claims:** Under the Indian Assisted Reproductive Technology (Regulation) Act, clinics cannot advertise false or misleading success rates. Standard IVF clinical pregnancy rates globally range between **45% and 65% per cycle** for women under 35, tapering down with advanced maternal age. Any clinic claiming \"90%–100% guaranteed success\" is relying on marketing spin or cumulative multiple-donor cycles.\n2. **Meet the Embryologist / Inquire About the Lab:** The doctor handles the stimulation and transfer, but the embryologist and the lab environment (HEPA air quality, incubators, ICSI technology) account for over 50% of your IVF outcome.\n3. **Doctor Availability:** In large commercial chains, you may consult a senior doctor once, but daily scans and egg retrievals might be handled by rotating staff. At clinics like **Advanced Fertility (Dr. Kaberi Banerjee)** or hospital units like **Fortis Bloom**, ask specifically whether your lead consultant will perform the procedure personally.\n\n**Recommendation:** Shortlist **2 to 3 centres** (e.g., *Dr. Kaberi Banerjee / Advanced Fertility* for dedicated personal care, *Bloom IVF at Fortis* for hospital backing, and *Birla Fertility* for clean standardized protocols), book initial second-opinion consultations, and choose the doctor who offers clear, non-pressured diagnostic logic for your specific case.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "Embryology Lab Standards",
-          "South Delhi",
-          "Advance Fertility & Gynecology Centre",
-          "Lead Specialist",
-          "Gaudium IVF",
-          "In-House",
-          "Genetic Testing",
-          "ART Fertility Clinics",
-          "Nova IVF Fertility",
-          "Birla Fertility & IVF",
-          "Transparent",
-          "Max Healthcare / Max Multi Speciality Centre",
+          "Delhi IVF & Fertility Research Centre",
+          "Seeds of Innocence",
           "Fortis La Femme",
-          "Fortis Bloom IVF Centre",
-          "Standard IVF Success",
-          "Donor Egg IVF",
-          "Lab Quality",
-          "Doctor Continuity",
-          "ICSI",
-          "Nova IVF",
-          "ART Fertility",
-          "Recommended Next Step",
-          "Itemized Financial Transparency",
-          "Dr. Kaberi Banerjee / AFGC"
+          "Max Multi Speciality Centre / Max Healthcare",
+          "Birla Fertility & IVF",
+          "Nova IVF Fertility",
+          "Apollo Fertility"
         ]
       },
       "citations": [
         {
-          "domain": "apollofertility.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "drnaliniguptaivf.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "worldfertilityservices.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "vaidam.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "infertilitydost.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "drkaberibanerjee.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "drpoonamgoyal.in",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "gaudiumivfcentre.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "practo.com",
+          "domain": "trustpilot.com",
           "url": null,
           "channelType": "directory",
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "medijourney.co.in",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "artfertilityclinics.in",
+          "domain": "delhi-ivf.com",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
@@ -807,14 +659,21 @@
           "competitorsMentioned": []
         },
         {
-          "domain": "youtube.com",
+          "domain": "apollofertility.com",
           "url": null,
-          "channelType": "video",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "infertilitydost.com",
+          "url": null,
+          "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.068085
+      "costUsd": 0.023627
     },
     {
       "promptIndex": 3,
@@ -822,14 +681,12 @@
       "engine": "perplexity",
       "model": "openai/gpt-6-luna",
       "badge": "—",
-      "text": "There isn’t a reliable, independent ranking that establishes one Delhi-NCR IVF centre as having both the **best reviews and the best results**. Reviews measure patient experience, while success rates depend heavily on factors such as age, diagnosis, and whether the clinic reports pregnancy or live-birth outcomes.\n\nFor a starting shortlist, **ART Fertility Clinics (Delhi)** reports a 4.7-star Google rating[9], while **Little Angel IVF (Noida)** is listed at 5.0 from 1,044 reviews on Trustindex, which says those reviews are collected from Google and Trustindex[4]. These ratings can help you compare experiences, but they don’t prove better treatment outcomes.\n\nBefore choosing, ask each clinic for its **live-birth rate per embryo transfer** for patients in your age and diagnosis group, how many cycles that figure covers, and the full expected cost. Treat advertised success-rate percentages cautiously: clinics may use different definitions and patient groups, so headline figures are not directly comparable[1][8].",
+      "text": "There isn’t enough comparable, independently verified data to name one Delhi-NCR clinic as having the **best IVF results**. If you mean **online reviews**, Little Angel IVF in Noida stands out in the results available: it has a reported 5.0/5 from 1,044 reviews on Trustindex, which aggregates Google and Trustindex reviews[4]. Crysta IVF in Lajpat Nagar reports 4.9/5 from 866 reviews, but those are clinic-published figures[7].\n\nTreat ratings and advertised success rates cautiously: patient reviews measure experience, not the likelihood of a live birth, and outcomes depend heavily on factors such as age and diagnosis. Before choosing, ask each clinic for its **live-birth rate per embryo transfer**, broken down by age group and using your own eggs, plus its full costs and cancellation/refund policy. One Delhi comparison source itself notes that success varies with age and case complexity[1].\n\n**Practical shortlist:** compare Little Angel IVF (Noida), Crysta IVF (Lajpat Nagar), and ART Fertility Clinics (Defence Colony); ART reports a 4.7-star Google rating[9]. Meet the treating doctor at each, and compare written, age-specific outcome data rather than relying on a headline “success rate.”",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "ART Fertility Clinics",
-          "Little Angel IVF",
-          "Noida"
+          "ART Fertility Clinics"
         ]
       },
       "citations": [
@@ -876,15 +733,15 @@
           "competitorsMentioned": []
         },
         {
-          "domain": "indiraivf.com",
-          "url": "https://www.indiraivf.com/blog/10-best-ivf-centres-in-delhi-ncr",
+          "domain": "crystaivf.com",
+          "url": "https://crystaivf.com/best-ivf-centre-delhi",
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "crystaivf.com",
-          "url": "https://crystaivf.com/best-ivf-centre-delhi",
+          "domain": "indiraivf.com",
+          "url": "https://www.indiraivf.com/blog/10-best-ivf-centres-in-delhi-ncr",
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
@@ -904,7 +761,7 @@
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.00178
+      "costUsd": 0.0018
     },
     {
       "promptIndex": 4,
@@ -912,23 +769,25 @@
       "engine": "chatgpt",
       "model": "gpt-6-luna",
       "badge": "—",
-      "text": "Assuming you mean **the cost of IVF treatment at a centre** (not setting up a centre): in Delhi NCR, budget roughly **₹2–3.6 lakh for one cycle**, depending on medicines and whether ICSI is needed. One Delhi clinic’s 2026 calculator puts a cycle with medicines at about **₹1.9–3.3 lakh**, or **₹2.1–3.6 lakh with ICSI**. Apollo advertises a lower **₹1–2.5 lakh** range, but ask whether medicines and other charges are included before comparing it with an all-in quote. ([oneworldfertility.com](https://oneworldfertility.com/ivf-cost-calculator?utm_source=openai))\n\nThe final bill can rise with extra medicines, embryo freezing and storage, frozen-embryo transfer, genetic testing (PGT), or donor eggs. Ask each centre for a **written, itemised estimate** covering your whole planned treatment—not just the headline package.\n\n**Which centre is worth it?** I wouldn’t pick one “best” centre from price or advertised success rates alone. Start with two or three convenient centres, check their current registration in India’s **National ART & Surrogacy Registry**, and compare:\n\n- The named doctor who will manage your cycle and how accessible they are  \n- What the embryology lab and package include  \n- The **age-specific live-birth rate** for patients with a similar diagnosis, and exactly how the centre calculates it  \n- What happens—and what you would pay—if the first cycle does not result in a birth  \n\nFortis Bloom IVF Centre in Greater Kailash II appears in the national registry listing; you can also use the registry to check other centres you’re considering. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n\n**My practical take:** a centre is “worth it” if it gives you a clear total cost, answers your questions without pressure, and can explain its outcomes for someone like you. Don’t pay a premium just for a “guaranteed success” claim. If you share your **age, area (Delhi/Noida/Gurugram/Faridabad), and any known fertility diagnosis**, I can help narrow down what to compare.",
+      "text": "Assuming you mean **the cost of IVF treatment at a centre**: in Delhi NCR, budget roughly **₹2–₹3.5 lakh for one fresh IVF cycle**. Some clinics advertise lower starting prices, but medicines, ICSI, embryo freezing or other items may be extra. One Delhi clinic’s published estimate, for example, puts a cycle at ₹1.9–₹3.3 lakh, or ₹2.1–₹3.6 lakh with ICSI; Apollo publishes a lower indicative range of ₹1–₹2.5 lakh. These are clinic estimates, not guaranteed final bills. ([oneworldfertility.com](https://oneworldfertility.com/ivf-cost-calculator?utm_source=openai))\n\nIf you may need embryo freezing and a later frozen transfer, **keep a larger overall budget—often around ₹3–₹5 lakh or more**. Ask each clinic for a written, itemised quote; specifically check whether it includes medicines, monitoring, egg retrieval and anaesthesia, ICSI, embryo culture, freezing/storage, and a later frozen transfer. ([mirofertility.com](https://www.mirofertility.com/blog/ivf-cost-in-delhi-2026?utm_source=openai))\n\n**Which one is worth it?** I can’t responsibly name a single “best” centre without knowing your age, diagnosis and preferred area—and a higher price or a clinic’s headline success rate doesn’t establish better odds for you. I’d compare two or three convenient centres, including **Apollo Fertility** and **Fortis Bloom** as possible starting points, then choose based on your consultation and written quote—not this as a ranking or endorsement. Before paying, check the **specific clinic branch** on India’s ART clinic registry; the national registry lists registered clinics, including a Fortis Bloom centre in Delhi. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n\nAt each consultation, ask:\n- What is your **live-birth rate for patients my age using their own eggs**—not just pregnancy rate?\n- Who will manage my case, and how often will I see that doctor?\n- What is included in the quote, and what could make the bill rise?\n- Why are any proposed add-ons needed in **my** case?\n\nBe cautious of anyone guaranteeing success or pressuring you into expensive add-ons. If you share your **age, area (Delhi/Noida/Gurugram/Faridabad), and any diagnosis or previous IVF attempts**, I can help you compare options more specifically.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "ICSI",
-          "Genetic Testing",
-          "National ART & Surrogacy Registry",
-          "Fortis Bloom IVF Centre",
-          "My practical take",
-          "Noida"
+          "Apollo Fertility"
         ]
       },
       "citations": [
         {
           "domain": "oneworldfertility.com",
           "url": "https://oneworldfertility.com/ivf-cost-calculator?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mirofertility.com",
+          "url": "https://www.mirofertility.com/blog/ivf-cost-in-delhi-2026?utm_source=openai",
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
@@ -941,7 +800,7 @@
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.02198
+      "costUsd": 0.022036
     },
     {
       "promptIndex": 4,
@@ -949,32 +808,16 @@
       "engine": "gemini",
       "model": "gemini-3.8-flash",
       "badge": "—",
-      "text": "The cost of IVF treatment in Delhi NCR typically ranges from **₹1,50,000 to ₹2,80,000 per cycle** for a standard procedure when accounting for medication. \n\nWhile many clinics advertise entry packages of **₹80,000 to ₹1,10,000**, these teaser rates usually cover only the clinic’s surgical and laboratory fee. They almost always exclude ovarian stimulation injections, pre-cycle tests, and freezing fees.\n\n---\n\n### 1. Cost Breakdown in Delhi NCR\n\n| Component | Approximate Cost (INR) | Notes |\n| :--- | :--- | :--- |\n| **Consultation & Diagnostics** | ₹10,000 – ₹25,000 | Hormonal panels (AMH, FSH), semen analysis, ultrasound. |\n| **Base IVF Procedure** | ₹90,000 – ₹1,40,000 | Egg retrieval, fertilization in lab, fresh embryo transfer. |\n| **Injections / Stimulation Drugs** | ₹50,000 – ₹85,000 | Depends heavily on age, weight, and AMH levels. |\n| **ICSI (if required)** | ₹25,000 – ₹45,000 | Recommended for male-factor infertility. |\n| **Embryo Freezing & 1-Year Storage** | ₹25,000 – ₹40,000 | If doing a frozen embryo transfer (FET). |\n| **Frozen Embryo Transfer (FET)** | ₹45,000 – ₹70,000 | Standard practice in modern IVF for better success rates. |\n| **Genetic Testing (PGT-A)** | ₹80,000 – ₹1,50,000+ | Optional; screens embryos for chromosomal defects. |\n| **Total Realistic Cost (1 Complete Cycle)** | **₹1.8 Lakh – ₹3.2 Lakh** | Standard IVF + ICSI + FET + Medications. |\n\n---\n\n### 2. Which IVF Centres Are \"Worth It\" in Delhi NCR?\n\nNo single clinic is best for everyone. A centre is \"worth it\" depending on whether you need budget affordability, high-end lab technology, or management of complex medical conditions:\n\n#### Tier 1: Best for Complex Cases & Comprehensive Care (Hospital-Backed)\n*Best if you have underlying conditions (PCOS, severe endometriosis, thyroid disorders, previous failed cycles, or require ICU backup).*\n* **Max Super Speciality Hospital (Panchsheel / Saket)**: Known for strict embryology lab sterilisation, air quality protocols, and senior doctors like Dr. Surveen Ghumman.\n* **Fortis Bloom IVF (Greater Kailash / Gurugram)**: One of the oldest hospital-affiliated fertility teams with solid neonatal and surgical support.\n* **Medanta – The Medicity (Gurugram)**: Ideal for couples who need combined multidisciplinary care (andrology, endocrinology, hematology).\n* *Approximate cost:* **₹2,20,000 – ₹3,50,000+** per cycle.\n\n#### Tier 2: Best Value-to-Quality Balance (Reputed Specialized Chains)\n*Best for couples seeking state-of-the-art standalone embryology labs with structured treatment protocols and transparent pricing.*\n* **Nova IVF Fertility (Lajpat Nagar / Gurugram)**: Excellent clinical standards, strict guidelines, and very transparent pricing structures.\n* **Apollo Fertility (Lajpat Nagar / Moti Nagar / Noida)**: Backed by Apollo’s clinical governance; experienced senior embryologists and high clinical success rates.\n* **Birla Fertility & IVF (Lajpat Nagar / Punjabi Bagh / Gurugram)**: Focuses heavily on patient-centric, transparent pricing packages without aggressive sales pressure.\n* **ART Fertility Clinics (Defence Colony / Gurugram)**: Known for cutting-edge embryology equipment, AI-driven embryo assessment, and personalized protocols for repeated IVF failures.\n* *Approximate cost:* **₹1,75,000 – ₹2,60,000** per cycle.\n\n#### Tier 3: Best for Budget-Conscious Couples (High-Volume Clinics)\n*Best if you are young (<35), have straightforward fertility issues, and need affordable treatment.*\n* **Indira IVF (Multiple locations across Delhi NCR)**: The largest fertility network in India. They manage high patient volumes, which keeps package pricing accessible and offers EMI financing options.\n* *Approximate cost:* **₹1,20,000 – ₹1,80,000** per cycle (basic packages).\n\n---\n\n### 3. How to Decide Which One is Right for You\nBefore finalizing any centre, ask these four questions during your first consultation:\n\n1. **What is the lab infrastructure?** \n   *Over 70% of IVF success depends on the lab, not just the doctor.* Ask if they have an in-house full-time embryologist and an air-filtered cleanroom lab (Class 10,000 or ISO-certified).\n2. **What is explicitly excluded from the package?** \n   Ask for a written estimate covering injections, anesthesia, freezing, and embryo storage. Teaser rates often escalate quickly.\n3. **Who does the procedures?** \n   Confirm whether your primary consultant will perform the egg retrieval and embryo transfer, or if it will be delegated to junior duty doctors.\n4. **Be wary of guarantees:** \n   Walk away from any clinic advertising **\"100% Guaranteed Success\"**. Reputable clinical pregnancy rates per cycle hover around **40%–55% for women under 35**, declining progressively with age. Realistic doctors explain your individual odds based on your AMH and sperm parameters rather than giving blanket assurances.",
+      "text": "### 1. Cost Breakdown of IVF in Delhi NCR\n\nMost clinics advertise a “base package,” but the **true out-of-pocket cost** for a single fresh cycle typically ranges between **₹1.6 lakh and ₹2.8 lakh** once medications and basic lab procedures are included.\n\n| Item / Procedure | Typical Cost (INR) | Notes |\n| :--- | :--- | :--- |\n| **Initial Consult & Pre-IVF Workup** | ₹10,000 – ₹25,000 | Hormonal blood tests, semen analysis, pelvic ultrasound. |\n| **Base IVF Procedure Fee** | ₹90,000 – ₹1,50,000 | Egg retrieval, lab fertilization, standard embryo transfer. |\n| **Stimulation Injections (Gonadotropins)** | ₹50,000 – ₹90,000 | Rarely included in advertised packages; varies based on your AMH and age. |\n| **ICSI (Intracytoplasmic Sperm Injection)** | ₹30,000 – ₹50,000 | Recommended for male-factor issues or low egg yield. |\n| **Embryo Freezing (Cryopreservation)** | ₹30,000 – ₹50,000 | Per year, to store remaining embryos. |\n| **Frozen Embryo Transfer (FET)** | ₹40,000 – ₹70,000 | If doing a \"freeze-all\" cycle (common to prevent OHSS). |\n| **PGT-A / Genetic Testing** *(Optional)* | ₹18,000 – ₹30,000 per embryo | Screening embryos for chromosomal issues. |\n| **Donor Egg Cycle** *(Optional)* | ₹2.5 lakh – ₹4 lakh total | Includes donor compensation and ART Act legal compliance. |\n\n---\n\n### 2. Which IVF Centre is \"Worth It\"?\n\nNo single clinic fits every patient. The best choice depends on whether your priority is **personalized care for complex cases**, **hospital backup for health risks**, or **budget friendliness**.\n\n---\n\n#### Category A: Best for Personalized Care & Complex Infertility\n*Best if you have low AMH, advanced maternal age, thin endometrium, or previous failed IVF cycles.*\n\n* **Advance Fertility & Gynae Centre (Dr. Kaberi Banerjee – CR Park / Lajpat Nagar)**\n  * **Why it's worth it:** Dr. Kaberi Banerjee is widely regarded for handling difficult cases (repeated IVF failures, low ovarian reserve) with high transparency. Unlike corporate chains where you are shuffled between junior doctors, she remains closely involved in treatment decisions.\n  * **Estimated Total:** ₹2.0 – ₹3.0 lakh per cycle.\n\n* **ART Fertility Clinics (Defence Colony)**\n  * **Why it's worth it:** Focuses heavily on evidence-based medicine and research-grade lab infrastructure (AI-assisted incubators, stringent contamination controls). Highly recommended if you want advanced embryology lab standards and genetic testing.\n  * **Estimated Total:** ₹2.2 – ₹3.2 lakh per cycle.\n\n---\n\n#### Category B: Best Hospital-Backed Centres\n*Best if you have co-morbidities (PCOS, severe endometriosis, thyroid/autoimmune issues, high BMI) where safety and multidisciplinary care matter.*\n\n* **Fortis Bloom IVF (Greater Kailash / Shalimar Bagh / Gurugram)**\n  * **Why it's worth it:** Founded by veterans Dr. Hrishikesh Pai and Dr. Nandita Palshetkar, it offers one of the most clinically established embryology setups in northern India backed by hospital emergency and surgical facilities.\n  * **Estimated Total:** ₹2.0 – ₹2.8 lakh per cycle.\n\n* **Medanta – The Medicity (Gurugram)**\n  * **Why it's worth it:** Top-tier tertiary hospital backup. Excellent if a spouse requires andrology surgical intervention (TESA/Micro-TESE) or if the woman has underlying medical conditions requiring cross-specialty support.\n  * **Estimated Total:** ₹2.2 – ₹3.0 lakh per cycle.\n\n---\n\n#### Category C: Best Specialized Chains (Standard Protocols & Reliability)\n*Best for couples with unexplained infertility or standard tubal/male factor desiring modern facilities without hyper-inflated hospital billing.*\n\n* **Birla Fertility & IVF (Multiple NCR Centres – Lajpat Nagar, Gurugram, Dwarka, Noida)**\n  * **Why it's worth it:** Known for offering **all-inclusive, transparent pricing** without hidden add-on bills mid-cycle. Strong clinical governance and ethical practices.\n  * **Estimated Total:** ₹1.7 – ₹2.5 lakh per cycle.\n\n* **Nova IVF Fertility (Vasant Kunj, Lajpat Nagar, Gurugram)**\n  * **Why it's worth it:** One of India’s largest organized fertility networks with standardized embryology protocols, stringent ICMR adherence, and reliable frozen transfer outcomes.\n  * **Estimated Total:** ₹1.8 – ₹2.6 lakh per cycle.\n\n---\n\n#### Category D: High-Volume / Budget-Oriented\n* **Indira IVF (Dwarka, Rohini, Noida, South Delhi)**\n  * **Why it's worth it:** The most economical option; ideal if budget is your strictly limiting constraint.\n  * **The Trade-off:** High patient volume means long waiting times and a more \"assembly-line\" approach. You will likely interact mostly with rotating junior doctors and duty medical officers rather than one dedicated specialist.\n  * **Estimated Total:** ₹1.3 – ₹1.8 lakh per cycle.\n\n---\n\n### 3. Checklist to Determine Value Before Paying\n\nBefore committing to any clinic:\n\n1. **Ask for an \"all-inclusive estimate\":** Confirm whether the written quote includes hormonal injections, anesthesia, ICSI, and the first year of embryo freezing.\n2. **Inquire about the Embryology Lab:** Ask if the clinic has a **full-time, permanent in-house embryologist**. Avoid clinics that hire visiting embryologists on a batch system (where they retrieve eggs from multiple patients to treat all on a single weekend).\n3. **Doctor Continuity:** Clarify whether the lead consultant will perform your egg retrieval and embryo transfer personally.\n4. **Be Wary of Guarantees:** A typical clinical pregnancy rate per transfer for women under 35 is **45–55%**, declining with age. Any clinic promising a \"100% guarantee\" is violating medical advertising ethics.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "Consultation & Diagnostics",
-          "Base IVF Procedure",
-          "Injections / Stimulation Drugs",
-          "ICSI",
-          "Frozen Embryo Transfer",
-          "Embryo Freezing & 1-Year Storage",
-          "Genetic Testing",
-          "Total Realistic Cost",
-          "Max Super Speciality Hospital",
-          "Fortis Bloom IVF",
-          "Medanta – The Medicity",
-          "Transparent Pricing",
-          "Nova IVF Fertility",
-          "Noida",
-          "Apollo Fertility",
-          "Birla Fertility & IVF",
           "ART Fertility Clinics",
-          "Indira IVF",
-          "Lab Infrastructure",
-          "In-House",
-          "Be wary of guarantees"
+          "Medanta – The Medicity",
+          "Birla Fertility & IVF",
+          "Nova IVF Fertility",
+          "Indira IVF"
         ]
       },
       "citations": [
@@ -986,37 +829,9 @@
           "competitorsMentioned": []
         },
         {
-          "domain": "karetrip.com",
+          "domain": "drpankajtalwar.com",
           "url": null,
           "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "fertiltree.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "pristyncare.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "fromcelltosoul.com",
-          "url": null,
-          "channelType": null,
-          "brandMentioned": null,
-          "competitorsMentioned": []
-        },
-        {
-          "domain": "youtube.com",
-          "url": null,
-          "channelType": "video",
           "brandMentioned": null,
           "competitorsMentioned": []
         },
@@ -1028,7 +843,7 @@
           "competitorsMentioned": []
         },
         {
-          "domain": "babyjoyivf.com",
+          "domain": "bachanivf.com",
           "url": null,
           "channelType": null,
           "brandMentioned": null,
@@ -1040,9 +855,23 @@
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
+        },
+        {
+          "domain": "arodya.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mirofertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.037534
+      "costUsd": 0.039914
     },
     {
       "promptIndex": 4,
@@ -1050,16 +879,12 @@
       "engine": "perplexity",
       "model": "openai/gpt-6-luna",
       "badge": "—",
-      "text": "In Delhi NCR, budget about **₹2–3.5 lakh for a private IVF cycle once medicines and common add-ons are included**; a fresh cycle plus one frozen embryo transfer may bring the total to roughly **₹3–5 lakh**. Government options can cost much less, but may involve waiting and limited availability.[1][3]\n\nA headline “starting price” often excludes medicines, tests, ICSI, anaesthesia, freezing/storage or a later frozen transfer. Ask each clinic for an itemised estimate and what happens if the cycle is cancelled or no embryos are available.[1][5]\n\n**Which centre is worth it?** There isn’t a reliable single “best” choice without your medical history and location. Shortlist two or three nearby, ART-registered centres—such as a large hospital-based program or an established fertility clinic—and compare the treating doctor, embryology lab, transparent pricing and follow-up care. Published price lists show substantial variation: for example, one 2026 comparison estimates total costs of about ₹2–4 lakh at Nova IVF and ₹2–3.2 lakh at Indira IVF, but these are estimates, not a guarantee or a quality ranking.[2]\n\nBefore paying, ask:\n- What is the **total likely cost**, including medicines, ICSI if recommended, freezing/storage and FET?\n- What are the clinic’s **live-birth outcomes for patients like us**, reported by age and treatment type—not just a general “success rate”?\n- Why is each add-on being recommended, and what evidence supports it?\n- Who will manage the cycle, and how accessible are the doctor and embryology team?\n\nFor a budget-conscious route, check whether a government hospital’s IVF service is available to you; subsidised care may mean longer waits.[3] Share your age, NCR area, and whether you’ve had prior treatment, and the options can be narrowed down.",
+      "text": "**In Delhi NCR, budget roughly ₹2–3.5 lakh for a private IVF cycle once medicines and common add-ons are included.** The advertised “starting price” may be much lower, but medicines, ICSI, freezing and a later frozen embryo transfer can raise the total; one fresh cycle plus one transfer may come to about ₹3–5 lakh.[1][2][5]\n\n| Option | Approximate cost | When it may be worth considering |\n|---|---:|---|\n| Government hospital, such as AIIMS | Subsidised; low fees, but availability and waiting times can be limiting[3] | If cost is the priority and you can manage the wait |\n| Private clinic, standard IVF | Around ₹2–3.5 lakh all-in, depending on medicines and what the package includes[1][2] | For a typical case; compare a written, itemised quote |\n| Premium centre or treatment with major add-ons | Around ₹3–4.5 lakh or more; PGT-A and donor treatment can increase costs[1][2][5] | If your doctor explains why the extra services fit your specific case |\n\n**Which one is worth it?** There isn’t a reliable one-size-fits-all “best” clinic from price lists alone. Compare two or three centres near you—such as a hospital-based centre and an established fertility clinic—and choose the one that gives you a clear written estimate, explains the treatment plan and add-ons, and discusses outcomes relevant to your age and diagnosis. Published clinic success claims are difficult to compare unless they use the same patient group and report outcomes per started cycle or embryo transfer.\n\nBefore paying, ask whether the quote includes stimulation medicines, monitoring, egg retrieval, anaesthesia, ICSI (if recommended), embryo transfer, freezing and storage, and whether a frozen transfer costs extra. Request the clinic’s **ART registration details** and a full estimate for your likely treatment plan. A personalised consultation is needed to determine whether IVF—or a less costly treatment—is appropriate.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "Frozen Embryo Transfer",
-          "ICSI",
-          "Transparent Pricing",
-          "Nova IVF",
-          "Indira IVF"
+          "AIIMS"
         ]
       },
       "citations": [
@@ -1106,15 +931,15 @@
           "competitorsMentioned": []
         },
         {
-          "domain": "crystaivf.com",
-          "url": "https://crystaivf.com/best-ivf-centre-delhi",
+          "domain": "ivffinder.com",
+          "url": "https://ivffinder.com/en/blog/ivf-in-delhi-best-fertility-centres-costs-2026",
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "ivffinder.com",
-          "url": "https://ivffinder.com/en/blog/ivf-in-delhi-best-fertility-centres-costs-2026",
+          "domain": "crystaivf.com",
+          "url": "https://crystaivf.com/best-ivf-centre-delhi",
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
@@ -1127,30 +952,45 @@
           "competitorsMentioned": []
         },
         {
-          "domain": "mirofertility.com",
-          "url": "https://www.mirofertility.com/clinics/delhi",
+          "domain": "bloomivf.com",
+          "url": "https://www.bloomivf.com/blog/top-10-best-ivf-centres-in-delhi-2026/",
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.00185
+      "costUsd": 0.00186
     },
     {
       "promptIndex": 5,
       "prompt": "Which IVF centre in Delhi NCR should I trust",
       "engine": "chatgpt",
       "model": "gpt-6-luna",
-      "badge": "Named #2",
-      "text": "There isn’t enough reliable public information to name one “best” IVF centre in Delhi NCR. **As a starting shortlist—not an endorsement—you could consult Fortis Bloom IVF at Fortis La Femme, Greater Kailash II, or Mediworld Fertility in Safdarjung Enclave.** Both appear in India’s official ART clinic registry as Level 2 clinics, the category that includes IVF services. Check that the **specific branch** you visit is currently registered; registration is a baseline check, not proof of better outcomes. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n\nBefore choosing, ask each clinic:\n\n- What is its **live-birth rate per cycle started**, broken down by your age and whether you’re using your own eggs? Ask for cumulative results including frozen transfers—not just “pregnancy rates.”\n- Who will manage your treatment and perform the procedures, and who runs the embryology lab?\n- Can you get an itemised estimate, including medicines, freezing/storage, and extra procedures—and a clear explanation of which add-ons are optional?\n- Will they explain why each test or treatment is recommended, without promising a baby or pressuring you to start immediately?\n\nDelhi’s health department says facilities providing ART services must be registered under the ART law. You can use the government registry to check the centre’s name and address before booking. ([dgehs.delhi.gov.in](https://dgehs.delhi.gov.in/sites/default/files/inline-files/ar25.pdf?utm_source=openai))\n\nIf you tell me **which part of NCR is convenient**, your age, and whether you’ve had previous IVF cycles, I can help you narrow the shortlist and prepare questions for a first consultation.",
+      "badge": "—",
+      "text": "There isn’t enough reliable, comparable public data to name one Delhi-NCR clinic as *the* best. If I were choosing, I’d book consultations at **Sant Parmanand Hospital’s IVF centre** and **ART Fertility Clinics, Defence Colony**, then compare the doctor, lab, treatment plan and full cost. **Fortis Bloom at Greater Kailash II** is another option to consider.\n\nWhy these are worth checking—not a guarantee of results:\n\n- **Sant Parmanand:** its hospital page says its IVF service is registered under the ART Act and notes the hospital’s NABH accreditation. ([sphdelhi.org](https://www.sphdelhi.org/department/ivf/?utm_source=openai))\n- **ART Fertility, Defence Colony:** a QAI certificate lists the clinic’s ART accreditation as valid through **June 26, 2027**. Confirm that the certificate and services apply to the exact branch you’d use. ([qai.org.in](https://www.qai.org.in/wp-content/uploads/2026/03/061-000224.pdf?utm_source=openai))\n- **Fortis Bloom, Greater Kailash II:** it appears in the government ART clinic registry at that address. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n\nBefore paying or starting medication, ask each clinic for:\n\n1. Its **live-birth rate** for patients in your age group—not just a pregnancy rate—and whether the figure is per cycle started or per embryo transfer.\n2. A written, itemised estimate covering medicines, procedures, freezing and storage, and likely add-ons.\n3. Who will manage your case and whether the embryology lab is on-site.\n4. Why each recommended test or add-on is needed, and what the evidence is for it.\n\nA clinic’s registration or accreditation is a useful screening check, but it doesn’t tell you your personal chance of success. Be cautious of guaranteed-success claims or pressure to pay for a package before you’ve had a clear consultation. Age-stratified live-birth figures are more useful than a single headline rate. ([delhiivf.com](https://www.delhiivf.com/faq?utm_source=openai))\n\nIf you share your **area (Delhi, Gurgaon, Noida, etc.), age, and whether this is a first IVF attempt**, I can help narrow the shortlist.",
       "analysis": {
-        "mentioned": true,
-        "position": 2,
+        "mentioned": false,
+        "position": null,
         "competitorsMentioned": [
-          "Fortis Bloom IVF at Fortis La Femme"
+          "Sant Parmanand Hospital’s IVF centre",
+          "ART Fertility Clinics"
         ]
       },
       "citations": [
+        {
+          "domain": "sphdelhi.org",
+          "url": "https://www.sphdelhi.org/department/ivf/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "qai.org.in",
+          "url": "https://www.qai.org.in/wp-content/uploads/2026/03/061-000224.pdf?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
         {
           "domain": "registry.artsurrogacy.gov.in",
           "url": "https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai",
@@ -1159,14 +999,14 @@
           "competitorsMentioned": []
         },
         {
-          "domain": "dgehs.delhi.gov.in",
-          "url": "https://dgehs.delhi.gov.in/sites/default/files/inline-files/ar25.pdf?utm_source=openai",
-          "channelType": "reference",
+          "domain": "delhiivf.com",
+          "url": "https://www.delhiivf.com/faq?utm_source=openai",
+          "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.021764
+      "costUsd": 0.02189
     },
     {
       "promptIndex": 5,
@@ -1174,39 +1014,23 @@
       "engine": "gemini",
       "model": "gemini-3.8-flash",
       "badge": "—",
-      "text": "Choosing the right IVF clinic is one of the most critical steps in a fertility journey. Rather than relying solely on brand marketing, trust should be built on **clinical transparency, embryology lab standards, doctor qualifications, and legal compliance** with India’s Assisted Reproductive Technology (ART) Act.\n\nHere is a breakdown of the most reputable, medically respected IVF centres in Delhi NCR, along with a checklist to evaluate them yourself.\n\n---\n\n### 1. Prominent & Respected IVF Centres in Delhi NCR\n\n#### A. Hospital-Backed Fertility Units (Best for complex medical histories)\nHospital-based units have multi-specialty backup (critical care, endocrinology, hematology) if complications arise, and they adhere to strict institutional oversight.\n* **Apollo Fertility** (Lajpat Nagar, Karol Bagh, Noida, Gurugram): Known for established protocols, experienced fertility specialists, and comprehensive reproductive diagnostics.\n* **Max Healthcare / Max Multi Speciality** (Saket, Panchsheel Park, Gurugram): Led by senior reproductive endocrinologists and gynecologists; reliable for older couples or those with underlying conditions like endometriosis or severe male factor infertility.\n* **Fortis Healthcare / Bloom IVF** (Fortis La Femme, Greater Kailash & FMRI Gurugram): One of the oldest fertility collaborations in India, led by veteran embryologists and reproductive specialists.\n* **Medanta – The Medicity** (Gurugram): High-end infrastructure, ideal for individuals with complex medical co-morbidities requiring cross-departmental supervision.\n\n#### B. Dedicated Fertility Networks & Pioneer Specialists\nThese clinics specialize solely in reproductive medicine and usually invest heavily in dedicated embryology infrastructure.\n* **Southend Fertility & IVF** (Vasant Vihar / South Delhi): Founded by Dr. Sonia Malik, one of India’s pioneers in reproductive medicine; respected for ethical practice and conservative, evidence-based approaches.\n* **Nova IVF Fertility** (Safdarjung Enclave, Gurugram, Noida): A nationwide network known for standardized clinical protocols, clean-room embryology labs, and computerized tracking systems.\n* **Birla Fertility & IVF** (Lajpat Nagar, Punjabi Bagh, Gurugram): Rapidly growing chain noted for clinical governance, transparent pricing packages, and experienced senior consultants.\n* **Advance Fertility & Surrogacy Centre** (South Delhi / CR Park - Dr. Kaberi Banerjee): Known for personalized attention from the senior specialist herself rather than junior associates.\n\n#### C. Government / Tertiary Option\n* **AIIMS New Delhi (ART Centre)**: If budget is a primary constraint and you have time to navigate public hospital scheduling, AIIMS has a state-of-the-art ART facility with uncompromised medical ethics.\n\n---\n\n### 2. How to Decide Whom to Trust: 5 Essential Criteria\n\nWhen visiting a clinic for an initial consultation, evaluate them against these standards:\n\n1. **In-House, Full-Time Senior Embryologist**\n   * *Why it matters:* While the doctor handles stimulation and egg collection, the embryologist handles the creation and culture of your embryos. Clinics that rely on \"visiting\" or freelance embryologists often bunch procedures together on specific dates, which can compromise optimal timing. Ask: *\"Is your embryologist full-time and on-site daily?\"*\n2. **Lab Infrastructure (Cleanroom Standards)**\n   * *Why it matters:* Embryos are extremely sensitive to volatile organic compounds (VOCs), temperature, and air quality. The lab should have certified HEPA/carbon filtration and modern incubators (benchtop or time-lapse monitoring).\n3. **Registration Under the ART Act (2021)**\n   * Ensure the clinic is officially registered with the **National ART and Surrogacy Board**. Registered clinics comply with statutory rules regarding donor gametes, embryo storage limits, and patient consent.\n4. **Transparent, Itemized Pricing**\n   * A trustworthy clinic will give you a clear written estimate separating:\n     * Doctor’s fees and procedure costs (OPPU - Ovum Pick-Up, ICSI, Embryo Transfer).\n     * Hormonal stimulation injections (which vary widely based on your ovarian reserve).\n     * Freezing charges (cryopreservation) and annual maintenance fees.\n     * Advanced add-ons (PGT-A testing, blastocyst culture, etc.).\n5. **Doctor-Led Continuity of Care**\n   * Ask who will perform your baseline scans, egg retrieval, and embryo transfer. At some high-volume commercial centers, you consult a senior doctor, but the actual procedure is performed by a rotating fellow or junior gynaecologist.\n\n---\n\n### 3. Red Flags to Watch Out For\n\n* **Promises of \"100% Success Rate\" or \"Guaranteed Baby\":** Biologically, no clinic can promise this. Worldwide, the average live birth rate per single IVF cycle ranges from **30% to 50%** depending primarily on female age and egg/sperm quality.\n* **Pushing Donor Gametes Immediately:** Unless tests show near-zero ovarian reserve or azoospermia that cannot be corrected, an ethical doctor will explain what can be attempted with your own eggs/sperm first.\n* **Overuse of Unproven \"Add-ons\":** Be cautious if a clinic insists on expensive add-ons (like immune therapies, endometrial scratching, or routine PGT-A for young couples) without clear clinical indications.\n\n---\n\n### Next Practical Step\nShortlist **two centres** (ideally one hospital-backed unit like Apollo or Max, and one specialized centre like Southend or Nova) for a preliminary second-opinion consultation. Pay attention to how thoroughly the doctor reviews your previous medical records and whether they explain the *underlying cause* of difficulty rather than rushing you straight into an IVF cycle contract.",
+      "text": "Choosing an IVF centre in Delhi NCR is a deeply personal and significant decision. Because IVF involves emotional, physical, and financial investments, **trust should be evaluated based on clinical transparency, lab quality, and ethical practice—not marketing claims.**\n\nBelow is a breakdown of the most reputable IVF centres in Delhi NCR across two main categories, followed by the specific criteria you should use to verify them.\n\n---\n\n### 1. Premier Tertiary Hospitals (Best for Complex Cases & Total Safety)\nHospital-backed IVF units are generally recommended if you have underlying medical conditions (like PCOS, thyroid disorders, endometriosis, cardiovascular issues), previous IVF failures, or advanced maternal age, because they offer multi-specialty ICU and emergency support.\n\n*   **AIIMS (All India Institute of Medical Sciences), New Delhi**\n    *   *Why trust them:* The gold standard in medical ethics and evidence-based practice in India. Cost is minimal compared to private clinics.\n    *   *Drawback:* Long waiting lists and typical government hospital bureaucracy.\n*   **Fortis Bloom IVF Centre (Fortis FMRI Gurugram & Fortis Vasant Kunj)**\n    *   *Why trust them:* Bloom IVF is one of India's oldest fertility networks, backed by tertiary-care hospital infrastructure. Known for handling recurrent implantation failure and donor cycles ethically.\n*   **Max Fertility / Max Healthcare (Saket, Panchsheel Park, Gurugram)**\n    *   *Why trust them:* Led by senior fertility specialists (such as Dr. Surveen Ghumman), they have state-of-the-art cleanroom embryology labs and maintain strict ethical protocols without pushing unnecessary procedures.\n*   **Medanta – The Medicity (Gurugram)**\n    *   *Why trust them:* Excellent for couples where one partner has complex systemic health issues, with an integrated team of endocrinologists, geneticists, and andrologists.\n*   **Apollo Fertility (Moti Nagar, Lajpat Nagar, Noida)**\n    *   *Why trust them:* Backed by the Apollo group's strict clinical governance, standard operating procedures, and transparent pricing.\n\n---\n\n### 2. Renowned Dedicated Fertility Networks & Specialist Clinics\nDedicated fertility clinics often offer shorter waiting times, more personalized coordination, and high-volume clinical experience.\n\n*   **Nova IVF Fertility (Vasant Kunj, East of Kailash, Gurugram, Noida)**\n    *   *Why trust them:* One of India’s largest organized fertility chains with strict standard operating procedures, centralized auditing of embryology labs, and good reporting transparency.\n*   **Advance Fertility & Surrogacy Centre (Lajpat Nagar / CR Park)**\n    *   *Why trust them:* Led by Dr. Kaberi Banerjee, who trained at Guys & St Thomas’ Hospital in London and AIIMS. Known for personalized doctor attention rather than passing patients off to junior associates.\n*   **Gaudium IVF (Janakpuri, Kailash Colony)**\n    *   *Why trust them:* Led by Dr. Manika Khanna; has a strong reputation for handling complex cases and repeat IVF failure, with solid embryology facilities.\n*   **Milann Fertility Centre (Greater Kailash, Gurugram)**\n    *   *Why trust them:* Founded originally by Dr. Kamini Rao (a pioneer in Indian reproductive medicine), Milann has standardized, science-led protocols and good genetic testing (PGT) integration.\n\n---\n\n### The \"Trust Checklist\": How to Vet Any Centre in Delhi NCR\n\nBefore paying an advance or signing a contract, schedule 2 or 3 initial consultations and evaluate the clinics against these criteria:\n\n#### 1. Registration Under the ART Act\nUnder the **Assisted Reproductive Technology (Regulation) Act, 2021**, all IVF clinics and banks in India must be officially registered with the National/State ART Board. Verify that the centre is fully compliant and licensed.\n\n#### 2. The Embryologist & Lab Standard (The Real Success Factor)\nA successful IVF cycle depends **60–70% on the embryology lab**, not just the consulting doctor. Ask:\n*   *Is the embryologist in-house or a visiting consultant?* (In-house is significantly better; embryos cannot wait for a traveling doctor).\n*   *What are their lab cleanroom standards?* (Look for labs with VOC filters, HEPA filtration, and strict temperature/air quality controls).\n\n#### 3. Be Skeptical of \"Guaranteed\" Success Rates\n*   Biologically, no clinic on earth has an 80–90% natural take-home baby rate per cycle.\n*   Realistic clinical pregnancy rates for women under 35 range between **45% and 55% per embryo transfer**, decreasing gradually with maternal age. \n*   **Red Flag:** Any centre promising a \"100% guarantee\" or a \"money-back package\" without full transparent disclosure of fine print.\n\n#### 4. Breakdown of Costs\nHidden costs are common in fertility treatments. Ask for a complete, written financial breakdown covering:\n*   Ovarian stimulation medications and injections.\n*   Egg retrieval (OPU) and anesthesia fees.\n*   ICSI (Intracytoplasmic Sperm Injection) vs. conventional IVF.\n*   Blastocyst culture (Day 5 embryo growth).\n*   Embryo freezing (vitrification) and annual storage fees.\n*   Embryo transfer charges (fresh vs. frozen transfer).\n\n---\n\n### Recommended Next Step\nSelect **two clinics**—ideally one hospital-based (e.g., *Max Saket* or *Fortis FMRI*) and one specialized clinic (e.g., *Nova IVF* or an established doctor-led clinic)—and book initial consultations. Take all past reports, assess how thoroughly the doctor reviews your medical history, and choose the team that gives you clear biological explanations rather than commercial sales pitches.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "Embryology Lab Standards",
-          "Apollo Fertility",
-          "Noida",
-          "Max Healthcare / Max Multi Speciality",
-          "Fortis La Femme",
-          "Fortis Healthcare / Bloom IVF",
+          "AIIMS",
+          "Fortis Bloom IVF Centre",
+          "Max Fertility / Max Healthcare",
           "Medanta – The Medicity",
-          "South Delhi",
-          "Southend Fertility & IVF",
-          "Dr. Sonia Malik",
+          "Apollo Fertility",
           "Nova IVF Fertility",
-          "Birla Fertility & IVF",
-          "Transparent Pricing",
-          "AIIMS New Delhi",
-          "Advance Fertility & Surrogacy Centre",
-          "In-House",
-          "Lab Infrastructure",
-          "Transparent",
-          "Registration Under the ART Act",
-          "ICSI",
-          "National ART and Surrogacy Board",
-          "Doctor-Led Continuity of Care",
-          "Pushing Donor Gametes Immediately",
-          "Overuse of Unproven \"Add-ons\""
+          "Gaudium IVF",
+          "Milann Fertility Centre"
         ]
       },
       "citations": [],
-      "costUsd": 0.008325
+      "costUsd": 0.00852
     },
     {
       "promptIndex": 5,
@@ -1214,30 +1038,26 @@
       "engine": "perplexity",
       "model": "openai/gpt-6-luna",
       "badge": "—",
-      "text": "There isn’t one IVF centre in Delhi NCR that is best for everyone. If you want a shortlist to start with, compare **Sir Ganga Ram Hospital, Fortis La Femme, Apollo Fertility, and Nova IVF**—but choose the specific doctor and branch, not just the brand. These centres are listed among established local options, though rankings and advertised success claims aren’t independent proof of better results.[1][3][4][6]\n\nBefore committing, meet the doctor who would manage your cycle and ask:\n\n- What are your **live-birth rates** for patients of my age and diagnosis—not just pregnancy rates?\n- Who performs the egg retrieval and embryo transfer, and is the embryology lab at this branch?\n- What is the **full estimated cost**, including medicines, tests, freezing, and any additional procedures?\n- What alternatives are appropriate, and why are you recommending IVF now?\n\nCompare at least two consultations, and verify the clinic’s current ART registration. If you share your age, diagnosis, budget, and preferred area, I can help narrow the options.",
+      "text": "There isn’t one IVF centre in Delhi NCR that is best for everyone. **A sensible shortlist to consult** could include a hospital-based unit such as Fortis La Femme or Sir Ganga Ram Hospital, and a dedicated centre such as Nova IVF or ART Fertility; options vary by location, diagnosis, budget, and which specialist will personally oversee your care.[2][4][8]\n\nBefore choosing, book consultations with two or three centres and ask:\n\n- Is this specific clinic registered under India’s ART law, and who will be your treating fertility specialist?\n- What are its **live-birth rates for patients your age and diagnosis**—not just pregnancy rates—and how many cycles are those figures based on?\n- What is included in the full cost, including medicines, tests, freezing, and frozen-embryo transfer?\n- Who works in the embryology lab, and how will you receive updates and consent for each step?\n- What is the plan if the first cycle does not work, and are add-on tests or procedures genuinely indicated?\n\nListings and patient reviews can help create a shortlist, but they don’t establish which clinic will give you the best outcome; published centre comparisons may also rely on estimates or promotional claims.[1][3][6] If you share your area, age range, diagnosis (if known), and budget, I can narrow down the options.",
       "analysis": {
         "mentioned": false,
         "position": null,
         "competitorsMentioned": [
-          "Sir Ganga Ram Hospital",
           "Fortis La Femme",
-          "Nova IVF",
-          "Apollo Fertility",
-          "Live-birth rates",
-          "ART registration"
+          "Sir Ganga Ram Hospital"
         ]
       },
       "citations": [
         {
-          "domain": "proivf.com",
-          "url": "https://www.proivf.com/en/guides/best-ivf-centre-in-delhi",
+          "domain": "drnaliniguptaivf.com",
+          "url": "https://drnaliniguptaivf.com/ivf-centre-in-delhi/",
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
         },
         {
-          "domain": "drnaliniguptaivf.com",
-          "url": "https://drnaliniguptaivf.com/ivf-centre-in-delhi/",
+          "domain": "proivf.com",
+          "url": "https://www.proivf.com/en/guides/best-ivf-centre-in-delhi",
           "channelType": null,
           "brandMentioned": null,
           "competitorsMentioned": []
@@ -1299,7 +1119,7 @@
           "competitorsMentioned": []
         }
       ],
-      "costUsd": 0.00172
+      "costUsd": 0.00175
     }
   ]
 }
