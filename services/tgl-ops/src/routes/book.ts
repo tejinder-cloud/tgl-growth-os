@@ -1,5 +1,6 @@
 // services/tgl-ops/src/routes/book.ts
 // GET  /book                 the booking page
+// GET  /book/assets/:file    its fonts, logo and photo (a fixed list)
 // GET  /book/slots           free slots for the next 10 working days (JSON)
 // POST /book                 books a slot; "ok": true only after Google Calendar confirmed the event
 // GET  /book/connect         one-time Google sign-in for the bookings calendar (only BOOKING_CALENDAR_EMAIL is accepted)
@@ -7,6 +8,7 @@
 import { Router, type Request, type Response } from "express";
 import { authUrl, configIssues, exchangeCode, loadGoogleBookingConfig, makeState, verifyState } from "../agents/booking/google.js";
 import { bookingService, bookingStore } from "../agents/booking/live.js";
+import { BOOKING_ASSETS, BOOKING_PAGE, bookingAssetPath } from "../agents/booking/page.js";
 
 export const bookRouter = Router();
 
@@ -29,80 +31,20 @@ function shell(title: string, body: string): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>${title}</title><style>body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#f6f1e7;color:#1c1a17;margin:0;padding:48px 20px}main{max-width:440px;margin:0 auto}h1{font-size:22px;margin:0 0 12px}p{font-size:16px;line-height:1.5;margin:0 0 20px}</style></head><body><main>${body}</main></body></html>`;
 }
 
-const PAGE = `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex"><title>Book a call with Tejinder Singh | The Growth Lab</title>
-<style>
-:root{--paper:#f6f1e7;--ink:#1c1a17;--muted:#5d564c;--line:#d8cfbf;--pick:#1c1a17}
-*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
-main{max-width:560px;margin:0 auto;padding:40px 20px 64px}
-h1{font-size:26px;line-height:1.25;margin:0 0 8px}p{margin:0 0 16px;line-height:1.5}.muted{color:var(--muted)}
-h2{font-size:16px;margin:28px 0 12px}
-.days{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
-.day{flex:0 0 auto;min-width:72px;padding:10px 8px;border:1.5px solid var(--line);border-radius:8px;background:#fffdf8;text-align:center;cursor:pointer;font:inherit;color:inherit}
-.day small{display:block;color:var(--muted);font-size:12px}.day[disabled]{opacity:.4;cursor:default}
-.day[aria-pressed=true],.slot[aria-pressed=true]{background:var(--pick);color:var(--paper);border-color:var(--pick)}.day[aria-pressed=true] small{color:var(--paper)}
-.slots{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.slot{padding:12px;border:1.5px solid var(--line);border-radius:8px;background:#fffdf8;font:inherit;color:inherit;cursor:pointer;text-align:left}
-.slot small{display:block;color:var(--muted);font-size:12px}.slot[aria-pressed=true] small{color:var(--paper)}
-label{display:block;font-weight:600;font-size:14px;margin:14px 0 6px}
-input,textarea{width:100%;font:inherit;padding:10px 12px;border:1.5px solid var(--line);border-radius:8px;background:#fffdf8;color:inherit}
-textarea{min-height:80px;resize:vertical}.hp{position:absolute;left:-9999px}
-button.go{margin-top:20px;width:100%;font:inherit;font-weight:600;padding:14px;border:0;border-radius:8px;background:var(--ink);color:var(--paper);cursor:pointer}
-button.go[disabled]{opacity:.5;cursor:default}
-:focus-visible{outline:3px solid #8a6d3b;outline-offset:2px}
-.msg{margin-top:16px;padding:12px;border-radius:8px;background:#fbe9e2}.done{background:#e6efe1;padding:20px;border-radius:8px}.done h2{margin-top:0}
-</style></head><body><main>
-<h1>Book a 20-minute call with Tejinder Singh</h1>
-<p class="muted">The Growth Lab. We go through how AI assistants describe your business and what would change it. You get a Google Calendar invite with a Meet link.</p>
-<div id="app"><p class="muted" id="loading">Loading free times…</p></div>
-</main>
-<script>
-(function(){
-  var app=document.getElementById('app');
-  var tz=Intl.DateTimeFormat().resolvedOptions().timeZone; var ist='Asia/Kolkata'; var local=tz && tz!==ist && tz!=='Asia/Calcutta';
-  var days=[],dayIdx=0,picked=null;
-  function el(t,a,c){var e=document.createElement(t);for(var k in a||{}){if(k==='text')e.textContent=a[k];else e.setAttribute(k,a[k]);}(c||[]).forEach(function(x){e.appendChild(x)});return e;}
-  function fmt(iso,zone,opts){return new Intl.DateTimeFormat('en-IN',Object.assign({timeZone:zone},opts)).format(new Date(iso));}
-  function time(iso,zone){return fmt(iso,zone,{hour:'numeric',minute:'2-digit',hour12:true});}
-  function render(message){
-    app.innerHTML='';
-    if(!days.length){app.appendChild(el('p',{text:'No times are open right now. Please reply to the email and we will find one.'}));return;}
-    app.appendChild(el('h2',{text:'Pick a day'}));
-    var strip=el('div',{'class':'days',role:'group','aria-label':'Day'});
-    days.forEach(function(d,i){var b=el('button',{type:'button','class':'day','aria-pressed':String(i===dayIdx)},[el('span',{text:fmt(d.date+'T06:30:00Z',ist,{weekday:'short'})}),el('small',{text:fmt(d.date+'T06:30:00Z',ist,{day:'numeric',month:'short'})})]);if(!d.slots.length)b.disabled=true;b.onclick=function(){dayIdx=i;picked=null;render();};strip.appendChild(b);});
-    app.appendChild(strip);
-    var d=days[dayIdx];
-    app.appendChild(el('h2',{text:'Pick a time (India time)'}));
-    var grid=el('div',{'class':'slots',role:'group','aria-label':'Time'});
-    d.slots.forEach(function(s){var kids=[el('span',{text:time(s,ist)})];if(local)kids.push(el('small',{text:time(s,tz)+' your time'}));var b=el('button',{type:'button','class':'slot','aria-pressed':String(s===picked)},kids);b.onclick=function(){picked=s;render();};grid.appendChild(b);});
-    app.appendChild(grid);
-    var f=el('form',{novalidate:''});
-    f.appendChild(el('label',{'for':'n',text:'Your name'}));f.appendChild(el('input',{id:'n',name:'name',autocomplete:'name',required:''}));
-    f.appendChild(el('label',{'for':'e',text:'Work email'}));f.appendChild(el('input',{id:'e',name:'email',type:'email',autocomplete:'email',required:''}));
-    f.appendChild(el('label',{'for':'c',text:'Business name'}));f.appendChild(el('input',{id:'c',name:'company',autocomplete:'organization',required:''}));
-    f.appendChild(el('label',{'for':'o',text:'Anything we should know (optional)'}));f.appendChild(el('textarea',{id:'o',name:'note',maxlength:'500'}));
-    f.appendChild(el('input',{'class':'hp',name:'website',tabindex:'-1',autocomplete:'off','aria-hidden':'true'}));
-    var go=el('button',{type:'submit','class':'go',text:picked?'Confirm booking: '+fmt(picked,ist,{weekday:'short',day:'numeric',month:'short'})+', '+time(picked,ist)+' IST':'Pick a time first'});
-    if(!picked)go.disabled=true; f.appendChild(go);
-    if(message)f.appendChild(el('p',{'class':'msg',role:'alert',text:message}));
-    f.onsubmit=function(ev){ev.preventDefault();if(!picked)return;var fd=new FormData(f);var body={start:picked};fd.forEach(function(v,k){body[k]=v;});go.disabled=true;go.textContent='Booking…';
-      fetch('/book',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json().then(function(j){return{r:r,j:j};});}).then(function(x){
-        if(x.j.ok){app.innerHTML='';var box=el('div',{'class':'done',role:'status'},[el('h2',{text:'Booked'}),el('p',{text:fmt(x.j.start,ist,{weekday:'long',day:'numeric',month:'long'})+', '+time(x.j.start,ist)+' IST'+(local?' ('+time(x.j.start,tz)+' your time)':'')+'.'}),el('p',{text:'Google has sent the invite with the Meet link to '+body.email+'. To change or cancel, use the invite.'})]);app.appendChild(box);return;}
-        if(x.j.days){days=x.j.days;picked=null;dayIdx=Math.max(0,days.findIndex(function(d){return d.slots.length;}));}
-        render(x.j.message||'That did not go through. Please try again.');
-      }).catch(function(){render('That did not go through. Please check your connection and try again.');});};
-    app.appendChild(f);
-  }
-  fetch('/book/slots').then(function(r){return r.json();}).then(function(j){
-    if(!j.open){app.innerHTML='';app.appendChild(el('p',{text:'Booking is not open yet. Please reply to the email and we will find a time.'}));return;}
-    days=j.days;dayIdx=Math.max(0,days.findIndex(function(d){return d.slots.length;}));render();
-  }).catch(function(){app.innerHTML='';app.appendChild(el('p',{text:'Free times could not be loaded. Please refresh, or reply to the email.'}));});
-})();
-</script></body></html>`;
+
 
 bookRouter.get("/", (_req: Request, res: Response) => {
-  res.status(200).type("html").set("Cache-Control", "no-store").send(PAGE);
+  res.status(200).type("html").set("Cache-Control", "no-store").send(BOOKING_PAGE);
+});
+
+bookRouter.get("/assets/:file", (req: Request, res: Response) => {
+  const file = String(req.params.file || "");
+  const p = bookingAssetPath(file);
+  if (!p) {
+    res.status(404).end();
+    return;
+  }
+  res.status(200).type(BOOKING_ASSETS[file]).set("Cache-Control", "public, max-age=604800").sendFile(p);
 });
 
 bookRouter.get("/slots", async (req: Request, res: Response) => {
