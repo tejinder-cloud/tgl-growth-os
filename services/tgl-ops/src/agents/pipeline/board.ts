@@ -119,7 +119,7 @@ details{margin-top:10px;font-size:.85rem}summary{cursor:pointer;color:var(--mute
 .empty{color:var(--mute);font-size:.85rem;padding:6px 4px}
 :focus-visible{outline:3px solid var(--teal);outline-offset:2px}
 </style></head><body>
-<header class="hd"><a href="${SITE}/"><img src="/book/assets/logo.png" alt="The Growth Lab" width="60" height="34"></a><p class="me">${esc(opts.email)}<a href="/pipeline/logout">Sign out</a></p></header>
+<header class="hd"><a href="${SITE}/"><img src="/book/assets/logo.png" alt="The Growth Lab" width="60" height="34"></a><p class="me">${esc(opts.email)}<a href="/pipeline/whatsapp/console">WhatsApp</a><a href="/pipeline/logout">Sign out</a></p></header>
 <div class="top"><h1>Sales <span class="acc">pipeline.</span></h1>
 <ul class="stats">
 <li><b>${t.open}</b><span>open deals</span></li>

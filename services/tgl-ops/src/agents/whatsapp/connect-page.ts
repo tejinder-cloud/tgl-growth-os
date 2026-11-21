@@ -25,7 +25,7 @@ ${status}
 <ol><li>Keep your phone with the WhatsApp Business app at hand.</li><li>Press the button and sign in with Facebook.</li><li>Choose The Growth Lab and the existing number. When asked, copy the code shown in the WhatsApp Business app into Meta's window.</li></ol>
 ${ready ? `<button id="go" disabled>Connect WhatsApp</button><p><small id="hint">Loading Meta's sign-in…</small></p>` : `<p class="err">Not ready: ${esc(opts.issues.join("; "))}.</p>`}
 <ul id="log"></ul></div>
-<p><small>Signed in as ${esc(opts.email)}. <a href="/pipeline">Back to the pipeline</a></small></p></main>
+<p><small>Signed in as ${esc(opts.email)}. <a href="/pipeline">Back to the pipeline</a> | <a href="/pipeline/whatsapp/console">WhatsApp templates and sending</a></small></p></main>
 ${ready ? `<script>
 (function(){
   var go=document.getElementById('go'),hint=document.getElementById('hint'),log=document.getElementById('log');
