@@ -22,7 +22,8 @@ async function main() {
     calls.push({ method: init?.method || "GET", url: u, body: init?.body ? JSON.parse(init.body) : undefined });
     const j = (status: number, body: any) => ({ ok: status < 400, status, json: async () => body }) as any;
     if (u.includes("/owned_whatsapp_business_accounts")) return j(200, { data: [] });
-    if (u.includes("/debug_token")) return j(200, { data: { granular_scopes: [{ scope: "whatsapp_business_management", target_ids: ["102499279250735", "222"] }, { scope: "business_management" }] } });
+    if (u.includes("/me?")) return j(200, { id: "61596760381853", name: "tgl-ops" });
+    if (u.includes("/debug_token")) return j(200, { data: { app_id: "1064181579968051", user_id: "61596760381853", type: "SYSTEM_USER", issued_at: 1795266000, expires_at: 0, granular_scopes: [{ scope: "whatsapp_business_management", target_ids: ["102499279250735", "222"] }, { scope: "business_management" }] } });
     if (/\/222\/phone_numbers/.test(u)) return j(200, { data: [{ id: "1487662067754793", display_phone_number: "+1 555 142 9904", verified_name: "Test Number" }] });
     if (/\/102499279250735\?fields/.test(u)) return j(200, { id: "102499279250735", name: "The Growth Lab" });
     if (/\/222\?fields/.test(u)) return j(200, { id: "222", name: "Test WhatsApp Business Account" });
@@ -51,6 +52,7 @@ async function main() {
 
     const acc: any = await (await fetch(`${base}/pipeline/whatsapp/api/accounts`, { headers: { cookie } })).json();
     assert.equal(acc.accounts.length, 2, "accounts granted to the token are listed even when the business lists none");
+    assert.ok(acc.notes.some((n: any) => n.call === "token identity" && /belongs to tgl-ops \(61596760381853\); app 1064181579968051; type SYSTEM_USER; issued 2026-11-21 \d\d:\d\d IST; expires never/.test(n.detail)), "token identity shown");
     assert.ok(acc.notes.some((n: any) => n.call === "token grants" && /WhatsApp account ids: 102499279250735, 222/.test(n.detail)), "Meta's answers are shown");
     assert.ok(!JSON.stringify(acc.notes).includes("TOKEN"), "the token is never shown");
     assert.equal(acc.accounts[0].name, "The Growth Lab");

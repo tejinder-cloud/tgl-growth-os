@@ -69,6 +69,17 @@ export async function accountById(ctx: WaContext, id: string): Promise<WaAccount
   };
 }
 
+/** Who the token belongs to, so a stale or wrong token is visible: system user, app, type, when issued. */
+export function tokenIdentity(d: any, me: any): string {
+  const ist = (sec: unknown) => {
+    const n = Number(sec);
+    if (!n) return "never";
+    return new Date(n * 1000 + 330 * 60000).toISOString().slice(0, 16).replace("T", " ") + " IST";
+  };
+  const who = me?.id ? `${me.name || "unnamed"} (${me.id})` : `user ${d.user_id || "unknown"}`;
+  return `belongs to ${who}; app ${d.app_id || "unknown"}; type ${d.type || "unknown"}; issued ${d.issued_at ? ist(d.issued_at) : "unknown"}; expires ${ist(d.expires_at)}`;
+}
+
 export async function listAccounts(ctx: WaContext, notes: LookupNote[] = []): Promise<WaAccount[]> {
   const seen = new Map<string, WaAccount>();
   const note = (call: string, ok: boolean, detail: string) => notes.push({ call, ok, detail: detail.slice(0, 300) });
@@ -93,6 +104,7 @@ export async function listAccounts(ctx: WaContext, notes: LookupNote[] = []): Pr
       scopes.push(`${g.scope}${g.target_ids ? `(${(g.target_ids as unknown[]).length})` : ""}`);
       if (String(g.scope || "").startsWith("whatsapp_business")) for (const id of g.target_ids || []) ids.add(String(id));
     }
+    note("token identity", true, tokenIdentity(dbg?.data || {}, await call(ctx, `/me?fields=id,name`).catch(() => null)));
     note("token grants", true, `${dbg?.data?.is_valid === false ? "token NOT valid; " : ""}scopes: ${scopes.join(", ") || "none"}; WhatsApp account ids: ${[...ids].join(", ") || "none"}`);
     for (const id of ids) {
       if (seen.has(id)) continue;
