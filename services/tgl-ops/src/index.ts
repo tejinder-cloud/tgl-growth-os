@@ -299,6 +299,16 @@ import { getSupabase as getSupabaseForBilling } from "./agents/prospect-research
 // On boot: copy RAZORPAY_KEY_SECRET into Vault so the database can verify checkout signatures (plan Day 26)
 { const sb = getSupabaseForBilling(); if (sb && !process.env.TGL_TEST_MODE) syncRazorpaySecret(sb).catch(() => {}); }
 
+// Every 10 minutes: for each call that has ended, ask the Architect in #revenue how it went (pipeline).
+cron.schedule(
+  "*/10 * * * *",
+  wrapCronJob("Pipeline after-call check", async () => {
+    const { livePipeline } = await import("./agents/pipeline/live.js");
+    await livePipeline().askAboutEndedCalls();
+  }),
+  { timezone: config.timezone }
+);
+
 // Every 30 minutes: a booking whose guest declined, or whose event was removed, is marked cancelled and #revenue is told.
 cron.schedule(
   "10,40 * * * *",

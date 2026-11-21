@@ -171,6 +171,10 @@ export async function handleReply(payload: any, deps: ReplyDeps): Promise<ReplyR
 
   // Stop/defer first: a Slack outage must never leave a replied prospect in the send queue.
   await deps.store.saveState(prospect.id, next, status);
+  if (next.state === "replied") {
+    const { safely } = await import("../pipeline/live.js");
+    await safely("replied", (pl) => pl.replied({ company: prospect.company, name: prospect.decision_maker?.name, email: prospect.decision_maker?.email, city: prospect.city }, prospect.id));
+  }
 
   if (deps.ghl && prior.ghl_contact_id) {
     try {

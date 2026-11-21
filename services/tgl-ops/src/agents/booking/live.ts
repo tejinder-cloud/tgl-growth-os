@@ -69,6 +69,14 @@ export function bookingService(): ReturnType<typeof createBookingService> {
         await postLine({ channel: revenueChannel(), text });
       },
       hostName: (process.env.OUTREACH_SENDER_NAME || "Tejinder Singh").trim(),
+      onBooked: async (b) => {
+        const { safely } = await import("../pipeline/live.js");
+        await safely("call booked", (pl) => pl.callBooked({ company: b.company, name: b.name, email: b.email }, b.bookingId, b.start, b.prospectId));
+      },
+      onCancelled: async (bookingId) => {
+        const { safely } = await import("../pipeline/live.js");
+        await safely("booking cancelled", (pl) => pl.bookingCancelled(bookingId));
+      },
     };
     service = createBookingService(deps);
   }

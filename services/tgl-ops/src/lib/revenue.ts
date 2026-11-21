@@ -89,6 +89,18 @@ export async function getRevenueMetrics(env: NodeJS.ProcessEnv = process.env): P
     }
   }
 
+  // 1c. Proposals and retainers from our own pipeline (agents/pipeline), added to any still counted in GHL.
+  if (!isTestMode()) {
+    try {
+      const { dealStore } = await import("../agents/pipeline/live.js");
+      const c = await dealStore().counts();
+      result.proposalsSent += c.proposalsSent;
+      result.retainersWon += c.won;
+    } catch (err: any) {
+      console.warn(`[Revenue] Pipeline count warning:`, err.message || err);
+    }
+  }
+
   // 2. Read rupees invoiced from Finance ledger
   const candidateLedgerFiles = [
     path.join(config.repoRoot, "finance/ledger.json"),
