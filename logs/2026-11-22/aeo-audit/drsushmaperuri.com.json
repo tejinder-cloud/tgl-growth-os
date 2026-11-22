@@ -1,0 +1,926 @@
+{
+  "brand": {
+    "name": "Dr. Sushma Peruri",
+    "primaryDomain": "drsushmaperuri.com",
+    "domains": [
+      "drsushmaperuri.com"
+    ],
+    "variants": [
+      "Dr. Sushma Peruri",
+      "drsushmaperuri"
+    ],
+    "setupStatus": "prospect_unverified"
+  },
+  "auditedAt": "2026-11-22T04:03:28.302Z",
+  "promptsCount": 5,
+  "enginesCount": 3,
+  "totalQueries": 15,
+  "summary": {
+    "totalMentions": 0,
+    "visibilityScorePercent": 0,
+    "mentionsByEngine": {
+      "chatgpt": 0,
+      "gemini": 0,
+      "perplexity": 0
+    },
+    "competitorMentions": {
+      "Star Hospitals": 2,
+      "Apollo Hospitals": 7,
+      "AIG Hospitals": 5,
+      "Yashoda Hospitals": 7,
+      "KIMS Hospitals": 5,
+      "Continental Hospitals": 2,
+      "Basavatarakam Indo-American Cancer Hospital": 5,
+      "Apollo Cancer Centre": 1,
+      "American Oncology Institute": 2,
+      "L V Prasad Eye Institute": 3,
+      "Fernandez Hospital": 2,
+      "Rainbow Children's Hospital & BirthRight": 2,
+      "Sunshine Hospitals": 2,
+      "Nizam's Institute of Medical Sciences": 2,
+      "Apollo Health City": 1,
+      "Kamineni Hospitals": 1,
+      "Medicover Hospitals": 1,
+      "Vivekananda Hospital": 1,
+      "Swami Hospital": 1
+    },
+    "citationDomains": {
+      "images.assettype.com": 1,
+      "skedoc.com": 1,
+      "medigence.com": 2,
+      "starhealth.in": 3,
+      "medmonks.com": 1,
+      "impactguru.com": 2,
+      "vaidam.com": 3,
+      "hexahealth.com": 3,
+      "docindia.org": 1,
+      "stanzaliving.com": 3,
+      "kimssunshine.co.in": 2,
+      "apollohospitals.com": 1,
+      "justdial.com": 3,
+      "365doctor.in": 3,
+      "adotrip.com": 2,
+      "healthfinder.in": 2,
+      "practo.com": 3,
+      "medicaltourismco.com": 1,
+      "continentalhospitals.com": 1,
+      "vivekanandahospital.in": 1,
+      "maphospitals.com": 1,
+      "neimhaans.in": 1,
+      "algatesinsurance.in": 1,
+      "acko.com": 1,
+      "reddit.com": 1,
+      "portal.nabh.co": 1,
+      "besthospitalsinhyderabad.com": 1,
+      "wibest.in": 1,
+      "yashfiin.com": 1,
+      "hospi.info": 1,
+      "insurance.phonepe.com": 1
+    },
+    "totalCostUsd": 0.1088,
+    "totalCostInr": 10.08
+  },
+  "nextSteps": {
+    "weakestEngine": "ChatGPT",
+    "weakestEngineMentions": 0,
+    "zeroMentionEngines": [
+      "ChatGPT",
+      "Gemini",
+      "Perplexity"
+    ],
+    "queriesLost": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "weakestQueries": [
+      1,
+      2
+    ],
+    "winningCompetitor": "Apollo Hospitals",
+    "winningCompetitorCount": 7,
+    "topCitationGap": "starhealth.in",
+    "formattedText": "Dr. Sushma Peruri was named in 0 of 15 answers (0%). ChatGPT, Gemini and Perplexity did not name Dr. Sushma Peruri in any of the 5 questions. Apollo Hospitals was named most often instead, in 7 of 15 answers. The questions where Dr. Sushma Peruri did worst: \"Best hospital in Hyderabad\" (0 of 3 assistants named Dr. Sushma Peruri); \"Top hospital near me in Hyderabad\" (0 of 3 assistants named Dr. Sushma Peruri)."
+  },
+  "matrix": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best hospital in Hyderabad",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one “best” hospital for every condition. Apollo Hospitals, Jubilee Hills is a strong all-round multispecialty optio..."
+      }
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top hospital near me in Hyderabad",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "A strong all-around option is Medicover Hospitals, HITEC City , behind Cyber Towers; it appears among Hyderabad’s top hospitals..."
+      }
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which hospital in Hyderabad has the best reviews and results",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one hospital that can be called the best for every condition, and online ratings don’t reliably measure clinical ou..."
+      }
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a hospital cost in Hyderabad and which one is worth it",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "If you mean medical treatment , there’s no single “hospital cost”—it depends mainly on the procedure, room type, length of stay..."
+      }
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which hospital in Hyderabad should I trust",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one hospital that’s best for everyone. For broad, complex care, Apollo, KIMS, Yashoda, and CARE are commonly listed..."
+      }
+    }
+  ],
+  "rawAnswers": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best hospital in Hyderabad",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "If you mean **Hyderabad, India**, **CARE Hospitals, Banjara Hills** and **Star Hospitals** are strong general multispecialty options; a 2026 survey ranked them jointly first. Rankings aren’t a guarantee of the best fit, though—the right hospital depends on the condition, doctor, location, and insurance. ([images.assettype.com](https://images.assettype.com/outlookindia/2026-06-19/a1388inr/HR_2026.pdf?utm_source=openai))\n\n**KIMS, Apollo, and Yashoda** are also major options to compare. Tell me the **specialty or treatment** and which part of Hyderabad you’re in, and I can narrow it down.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Star Hospitals"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "images.assettype.com",
+          "url": "https://images.assettype.com/outlookindia/2026-06-19/a1388inr/HR_2026.pdf?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011516
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best hospital in Hyderabad",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because the \"best\" hospital depends heavily on the specific medical condition, treatment type, and budget, Hyderabad has several world-class hospitals that excel in different areas:\n\n---\n\n### **Top Multi-Specialty Hospitals**\n\n#### **1. Apollo Hospitals (Jubilee Hills)**\n* **Reputation:** Widely regarded as the flagship private hospital in Hyderabad and one of India’s premier healthcare institutions (JCI and NABH accredited).\n* **Best Known For:** Organ transplants (liver, kidney, heart), cardiology, neurology, robotic surgery, and emergency/trauma care.\n* **Why Choose:** Massive infrastructure, top-tier senior specialists, and international patient care standards.\n\n#### **2. AIG Hospitals (Asian Institute of Gastroenterology, Gachibowli)**\n* **Reputation:** A world-renowned tertiary care center that expanded from a premier gastro institute into one of India's largest and most advanced multi-specialty hospitals.\n* **Best Known For:** Medical and surgical gastroenterology, hepatology (liver disease), GI oncology, endo-surgery, and cardiology.\n* **Why Choose:** Global pioneer in gastrointestinal procedures with state-of-the-art diagnostic and robotic facilities.\n\n#### **3. Yashoda Hospitals (Hitec City, Somajiguda, Secunderabad)**\n* **Reputation:** A top-tier healthcare group known for rapid critical care and advanced technology. The newer Hitec City branch is among the largest single-unit hospitals in Asia.\n* **Best Known For:** Oncology (advanced radiation/chemotherapy), pulmonology, critical care, multi-organ transplants, and neurosurgery.\n* **Why Choose:** Advanced clinical technology (MR-Linac radiation therapy, cutting-edge ICU setups).\n\n#### **4. KIMS Hospitals (Krishna Institute of Medical Sciences – Secunderabad & Kondapur)**\n* **Reputation:** One of the largest corporate healthcare chains in Telangana and Andhra Pradesh.\n* **Best Known For:** Heart and lung transplants (one of the highest volumes in India), complex cardiology, neurology, and orthopedics.\n* **Why Choose:** High success rates in complex thoracic and transplant surgeries.\n\n#### **5. Continental Hospitals (Gachibowli)**\n* **Reputation:** Modern, JCI-accredited multi-specialty hospital located in Hyderabad’s IT hub.\n* **Best Known For:** Oncology, cardiology, orthopedics, trauma, and emergency care.\n* **Why Choose:** International protocol standards and transparent, patient-centric care.\n\n---\n\n### **Best Hospitals by Medical Specialty**\n\n* **Gastroenterology & Liver Care:** **AIG Hospitals (Gachibowli)** *(Undisputed leader in India)*\n* **Cancer Care / Oncology:**\n  * **Basavatarakam Indo-American Cancer Hospital (Banjara Hills)** *(Premier non-profit, highly reputable and cost-effective)*\n  * **Apollo Cancer Centre (Jubilee Hills)**\n  * **American Oncology Institute (Nallagandla)**\n* **Eye Care / Ophthalmology:** **L V Prasad Eye Institute (LVPEI, Banjara Hills)** *(World-renowned non-profit institute for complex eye surgeries and research)*\n* **Pediatrics & Maternity:**\n  * **Rainbow Children’s Hospital & BirthRight** *(Leading chain for neonatal care, pediatrics, and pediatric surgery)*\n  * **Fernandez Hospital** *(Specializes in maternal care and high-risk pregnancies)*\n* **Cardiology & Heart Care:** **Apollo Hospitals**, **Care Hospitals (Banjara Hills)**, and **KIMS Hospitals**\n* **Orthopedics & Joint Replacement:** **Sunshine Hospitals (Gachibowli/Secunderabad)** and **Apollo Hospitals**\n\n---\n\n### **Best Government / Affordable Tertiary Care**\n* **Nizam's Institute of Medical Sciences (NIMS, Panjagutta):** Premier state-run autonomous institute with highly skilled faculty for rare, complex conditions and affordable high-end treatments.\n\n---\n\n### **How to Choose:**\n1. **Condition/Specialty:** For stomach/liver issues, prioritize **AIG**; for eye conditions, choose **LVPEI**; for cancer, consider **Basavatarakam** or **Apollo**.\n2. **Accreditation:** Check for **NABH** or **JCI** certifications to ensure safety and quality standards.\n3. **Insurance/Cashless Facility:** Check if the hospital is on your health insurance provider's network (TPA desk list).",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Apollo Hospitals",
+          "AIG Hospitals",
+          "Yashoda Hospitals",
+          "KIMS Hospitals",
+          "Continental Hospitals",
+          "Basavatarakam Indo-American Cancer Hospital",
+          "Apollo Cancer Centre",
+          "American Oncology Institute",
+          "L V Prasad Eye Institute",
+          "Fernandez Hospital",
+          "Rainbow Children's Hospital & BirthRight",
+          "Sunshine Hospitals",
+          "Nizam's Institute of Medical Sciences"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.006758
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best hospital in Hyderabad",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one “best” hospital for every condition. **Apollo Hospitals, Jubilee Hills** is a strong all-round multispecialty option; **Yashoda, KIMS, CARE, and AIG** are also frequently listed among Hyderabad’s leading hospitals.[2][5][9]\n\nFor the best fit, compare the hospital’s expertise in your specific condition, the treating doctor, location, insurance coverage, and emergency facilities. For children or maternity care, a specialist hospital such as **Rainbow** may be more suitable.[6]",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Apollo Hospitals"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "skedoc.com",
+          "url": "https://www.skedoc.com/top-hospitals/hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "medigence.com",
+          "url": "https://medigence.com/clinics/all/all/india/hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "starhealth.in",
+          "url": "https://www.starhealth.in/hospitals-info/top-hospitals-in-hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "medmonks.com",
+          "url": "https://medmonks.com/best-hospitals/india/hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "impactguru.com",
+          "url": "https://www.impactguru.com/info/best-hospitals-in-hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "vaidam.com",
+          "url": "https://www.vaidam.com/hospitals/india/hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "hexahealth.com",
+          "url": "https://www.hexahealth.com/hyderabad/hospitals",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "docindia.org",
+          "url": "https://www.docindia.org/healthblog/articles/hospitals-in-hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "stanzaliving.com",
+          "url": "https://www.stanzaliving.com/blog/top-hospitals-in-hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "kimssunshine.co.in",
+          "url": "https://www.kimssunshine.co.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00164
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top hospital near me in Hyderabad",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "Hyderabad has several well-regarded hospitals, but the **closest good option depends on your area and what care you need**. For general or specialist care, you could consider **Apollo, Yashoda, KIMS, CARE, or AIG**; their locations include Jubilee Hills, Somajiguda, Secunderabad, Banjara Hills, and Gachibowli. ([apollohospitals.com](https://www.apollohospitals.com/hyderabad?utm_source=openai))\n\nTell me your **neighborhood or PIN code** and, if you’re comfortable, the **type of care** (for example, emergency, heart, maternity, or children’s care), and I can narrow it down. If it’s an emergency, go to the nearest emergency department.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "apollohospitals.com",
+          "url": "https://www.apollohospitals.com/hyderabad?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011245
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top hospital near me in Hyderabad",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Hyderabad has several globally accredited, top-tier multi-specialty hospitals. Because Hyderabad spans a large area, the best choice often depends on your specific locality and medical needs:\n\n---\n\n### **1. Western Hyderabad (Gachibowli / HITEC City / Kondapur / Financial District)**\n* **AIG Hospitals (Gachibowli)**\n  * **Known for:** World-renowned for Gastroenterology and Hepatology; also a premier multi-specialty center for cardiology, oncology, and transplants.\n* **Continental Hospitals (Financial District / Nanakramguda)**\n  * **Known for:** JCI-accredited tertiary care, emergency/trauma care, neurology, cardiology, and oncology.\n* **Yashoda Hospitals (HITEC City)**\n  * **Known for:** State-of-the-art facility, multi-organ transplants, robotic surgeries, and oncology.\n* **CARE Hospitals (HITEC City / Gachibowli)**\n  * **Known for:** Cardiology, critical care, and general surgery.\n\n---\n\n### **2. Central Hyderabad (Jubilee Hills / Banjara Hills / Somajiguda)**\n* **Apollo Health City (Jubilee Hills)**\n  * **Known for:** Hyderabad’s flagship multi-specialty hospital, JCI-accredited, renowned for cardiology, neurology, organ transplants, and oncology.\n* **CARE Hospitals (Banjara Hills, Road No. 1 & 10)**\n  * **Known for:** Pioneer in cardiovascular care, nephrology, and trauma care.\n* **Yashoda Hospitals (Somajiguda)**\n  * **Known for:** Oncology, advanced neurosciences, pulmonology, and 24/7 emergency care.\n* **Basavatarakam Indo-American Cancer Hospital (Banjara Hills)**\n  * **Known for:** One of South India’s leading specialized cancer treatment centers.\n\n---\n\n### **3. Secunderabad & Begumpet**\n* **KIMS Hospitals (Krishna Institute of Medical Sciences, Secunderabad)**\n  * **Known for:** Major quaternary care hospital famous for heart/lung transplants, robotic surgery, neurology, and pediatrics.\n* **Yashoda Hospitals (Secunderabad)**\n  * **Known for:** Comprehensive multi-specialty care, trauma, critical care, and cardiac sciences.\n* **Sunshine Hospitals (Secunderabad)**\n  * **Known for:** Joint replacement, orthopedics, and trauma.\n\n---\n\n### **4. Old City & Eastern Hyderabad (Malakpet / LB Nagar)**\n* **Yashoda Hospitals (Malakpet)**\n  * **Known for:** Complete multi-specialty care, nephrology, emergency, and critical care.\n* **Kamineni Hospitals (LB Nagar)**\n  * **Known for:** Tertiary care, orthopedics, cardiology, and emergency medicine.\n\n---\n\n### **Emergency Numbers in Hyderabad:**\n* **General Emergency / Ambulance:** **108**\n* **Apollo Emergency:** **1066**\n* **Yashoda Emergency:** **105910**\n* **KIMS Emergency:** **040-4488 5000**\n\n*(If you share your exact area or the medical specialty you require, I can recommend the nearest and most suitable option).*",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "AIG Hospitals",
+          "Continental Hospitals",
+          "Yashoda Hospitals",
+          "Apollo Health City",
+          "Basavatarakam Indo-American Cancer Hospital",
+          "KIMS Hospitals",
+          "Sunshine Hospitals",
+          "Kamineni Hospitals"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.004787
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top hospital near me in Hyderabad",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "A strong all-around option is **Medicover Hospitals, HITEC City**, behind Cyber Towers; it appears among Hyderabad’s top hospitals and is a convenient choice if you’re in the HITEC City area.[5] Other well-known multispecialty options include **Apollo Hospitals, Jubilee Hills**, **Yashoda Hospitals, Somajiguda**, and **CARE Hospitals, Banjara Hills**.[5]\n\n“Near me” depends on your neighborhood—share your area or PIN code and the type of care you need, and I can narrow it down. For an emergency, go to the nearest emergency department or call local emergency services.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Medicover Hospitals",
+          "Apollo Hospitals",
+          "Yashoda Hospitals"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "hexahealth.com",
+          "url": "https://www.hexahealth.com/hyderabad/hospitals",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "hexahealth.com",
+          "url": "https://www.hexahealth.com/hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "kimssunshine.co.in",
+          "url": "https://www.kimssunshine.co.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Hyderabad/Multispeciality-Hospitals/nct-10547585",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "starhealth.in",
+          "url": "https://www.starhealth.in/hospitals-info/top-hospitals-in-hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "vaidam.com",
+          "url": "https://www.vaidam.com/hospitals/india/hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "365doctor.in",
+          "url": "https://www.365doctor.in/hospitals-in-hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Hyderabad/Private-Hospitals/nct-10390288?undefined=",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "adotrip.com",
+          "url": "https://www.adotrip.com/medical-tourism/surgery/best-hospitals-in-hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Hyderabad/Public-Hospitals/nct-10393816",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00198
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which hospital in Hyderabad has the best reviews and results",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "Assuming you mean **Hyderabad, Telangana, India**: for **general multispecialty care**, **KIMS in Secunderabad** looks like a reasonable first hospital to check. A current comparison lists it at **4.8/5 from about 40,000 Google reviews**, and a 2026 survey lists it first among South India’s multispecialty hospitals. ([healthfinder.in](https://healthfinder.in/hyderabad/hospitals/?utm_source=openai))\n\nBut **reviews aren’t the same as treatment results**: I couldn’t verify a reliable, apples-to-apples public comparison of hospitals’ clinical outcomes. Apollo, Yashoda, CARE, and Continental are also options; the best choice depends heavily on the **condition, doctor, and specific branch**. ([practo.com](https://www.practo.com/hyderabad/hospitals/all-hospitals?utm_source=openai))\n\nIf you tell me the **specialty or diagnosis**—and which part of Hyderabad you’re in—I can narrow it down. For an emergency, go to the nearest hospital equipped to handle it.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "healthfinder.in",
+          "url": "https://healthfinder.in/hyderabad/hospitals/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": "https://www.practo.com/hyderabad/hospitals/all-hospitals?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011584
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which hospital in Hyderabad has the best reviews and results",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "In Hyderabad, several multi-specialty and specialized hospitals consistently receive top reviews and deliver excellent clinical outcomes. Because the \"best\" hospital often depends on the specific medical condition or specialty required, the leading choices are categorized below based on patient feedback, clinical success rates, and national rankings:\n\n---\n\n### **1. Top Overall Multi-Specialty Hospitals**\n\n#### **Apollo Hospitals (Jubilee Hills)**\n* **Reputation:** Widely regarded as one of the best multi-specialty tertiary care hospitals in South India and among the most internationally accredited (JCI and NABH).\n* **Known For:** Cardiology, complex multi-organ transplants (liver, kidney), neurology/neurosurgery, oncology, and robotic surgery.\n* **Why it rates highly:** Strong clinical track record, highly experienced senior consultants, cutting-edge technology, and comprehensive emergency care.\n\n#### **AIG Hospitals (Gachibowli)**\n* **Reputation:** Consistently receives some of the highest patient satisfaction reviews for modern infrastructure, transparency, and clinical excellence.\n* **Known For:** Globally recognized as a premier center for **Gastroenterology and Hepatology**, but has also built top-tier departments in cardiology, oncology, nephrology, and minimally invasive surgery.\n* **Why it rates highly:** State-of-the-art facility, world-renowned doctors (led by Dr. D. Nageshwar Reddy), and strong clinical outcomes.\n\n#### **KIMS Hospitals (Krishna Institute of Medical Sciences - Secunderabad & Kondapur)**\n* **Reputation:** Renowned across India for high-volume complex surgical interventions and transplant programs.\n* **Known For:** Heart and lung transplants, pulmonology, advanced neurosciences, and cardiac care.\n* **Why it rates highly:** Exceptional track record in complex critical care, organ retrieval, and specialized surgeries.\n\n#### **Yashoda Hospitals (Hitec City & Somajiguda)**\n* **Reputation:** High patient volume, quick turnaround times, and strong reviews for surgical care and advanced diagnostics.\n* **Known For:** Oncology (advanced radiation techniques), cardiology, orthopedics, and neurosciences.\n* **Why it rates highly:** The newer Hitec City facility offers ultra-modern infrastructure, robotic-assisted surgery, and comprehensive critical care.\n\n---\n\n### **2. Best Hospitals by Specialty**\n\nIf you are looking for top results in a specific medical domain:\n\n* **Eye Care (Ophthalmology):**\n  * **L V Prasad Eye Institute (LVPEI), Banjara Hills:** A world-renowned, non-profit eye research institute and hospital globally acclaimed for cornea, retina, and pediatric ophthalmology results.\n* **Cancer Care (Oncology):**\n  * **Basavatarakam Indo-American Cancer Hospital & Research Institute (Banjara Hills):** Highly regarded for non-profit and high-success oncology care, surgical oncology, and radiation.\n  * **Apollo Cancer Centres / Yashoda Cancer Institute:** Top private destinations for precision radiation therapy and surgical oncology.\n* **Mother & Child Care (Pediatrics / Obstetrics):**\n  * **Rainbow Children's Hospital & BirthRight (Banjara Hills, Kondapur):** The leading pediatric intensive care and maternity hospital chain in Hyderabad with stellar reviews for neonatal and pediatric emergencies.\n\n---\n\n### **Summary Recommendation**\n* **For digestive, liver, or general high-end multi-specialty care:** **AIG Hospitals (Gachibowli)**.\n* **For major transplants, complex cardiology, or international-standard multi-specialty care:** **Apollo Hospitals (Jubilee Hills)**.\n* **For lung/heart transplants and advanced critical care:** **KIMS Hospitals (Secunderabad)**.\n* **For eye conditions:** **LV Prasad Eye Institute**.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Apollo Hospitals",
+          "AIG Hospitals",
+          "KIMS Hospitals",
+          "Yashoda Hospitals",
+          "L V Prasad Eye Institute",
+          "Basavatarakam Indo-American Cancer Hospital",
+          "Rainbow Children's Hospital & BirthRight"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.005577
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which hospital in Hyderabad has the best reviews and results",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one hospital that can be called the best for every condition, and online ratings don’t reliably measure clinical outcomes. For a **general multispecialty hospital**, **Apollo Hospitals, Jubilee Hills** is a strong all-around option: it has a 4.8 rating across about 36,700 reviews in one listing, while KIMS is also highly reviewed, with a 4.8 rating across about 40,300 reviews[2][1].\n\nFor the right choice, compare the **specific specialist and their experience with your condition**, the hospital’s relevant services and accreditation, and a second medical opinion for major procedures. If you share the condition or specialty and your area of Hyderabad, I can narrow the options.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Apollo Hospitals"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "healthfinder.in",
+          "url": "https://healthfinder.in/hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "medigence.com",
+          "url": "https://medigence.com/clinics/all/all/india/hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "hexahealth.com",
+          "url": "https://www.hexahealth.com/hyderabad/hospitals",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "365doctor.in",
+          "url": "https://www.365doctor.in/hospitals-in-hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Hyderabad/Multispeciality-Hospitals/nct-10547585",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Hyderabad/Private-Hospitals/nct-10390288",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "vaidam.com",
+          "url": "https://www.vaidam.com/hospitals/apollo-hospitals-hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "medicaltourismco.com",
+          "url": "https://www.medicaltourismco.com/listing/apollo-hospital-jubilee-hills-hyderabad-india/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "continentalhospitals.com",
+          "url": "https://continentalhospitals.com/patient-testimonials/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": "https://www.practo.com/Hyderabad/hospitals",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00185
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a hospital cost in Hyderabad and which one is worth it",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "If you mean **the cost of treatment or a hospital stay** in Hyderabad, it depends mainly on the procedure, room type, length of stay, and whether complications arise. There isn’t one reliable “hospital price.”\n\nFor a rough benchmark, two Hyderabad hospitals publish some package prices: **Vivekananda Hospital** lists normal delivery from **₹38,500** and C-section from **₹54,890**; **Swami Hospital** lists appendicectomy packages from **₹62,300**. These are examples—not a citywide average—and package terms differ. Vivekananda notes that complications can add costs. ([vivekanandahospital.in](https://vivekanandahospital.in/surgical-packages/?utm_source=openai))\n\n**Which is worth it?** For a planned, common procedure, compare written estimates from two hospitals and check exactly what’s included—surgeon and anaesthesia fees, tests, medicines, room, and follow-up. For complex or high-risk care, prioritize the right specialist and the hospital’s capability for that condition over the lowest quote. I can’t responsibly name one best hospital without knowing what care you need.\n\nTell me the **condition or procedure**, whether you have **insurance**, and your preferred area of Hyderabad, and I can help narrow down the options and likely cost. If you meant the cost to **build or buy a hospital**, say that—the answer is entirely different.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Vivekananda Hospital",
+          "Swami Hospital"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "vivekanandahospital.in",
+          "url": "https://vivekanandahospital.in/surgical-packages/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.01184
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a hospital cost in Hyderabad and which one is worth it",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because medical expenses vary widely depending on whether you need an outpatient visit, routine surgery, or critical intensive care, costs in Hyderabad depend heavily on the tier of hospital and room category chosen.\n\nHere is a breakdown of typical medical costs in Hyderabad, followed by an evaluation of which hospitals offer the best value for money.\n\n---\n\n### 1. Typical Hospital Costs in Hyderabad (Estimates)\n\n#### **Daily Inpatient & Room Charges (Per Day)**\n* **General Ward:** ₹1,500 – ₹3,500\n* **Twin Sharing / Semi-Private:** ₹3,500 – ₹6,500\n* **Single Private Room:** ₹6,000 – ₹12,000+\n* **Deluxe / Suite:** ₹15,000 – ₹25,000+\n* **ICU / CCU Charges:** ₹15,000 – ₹45,000+ *(excluding ventilator, medicines, and specialized nursing)*\n\n#### **Consultations & Outpatient (OPD)**\n* **General Physician:** ₹500 – ₹800\n* **Super-Specialist (Cardiologist, Neurologist, etc.):** ₹800 – ₹1,500\n\n#### **Common Surgeries & Procedures**\n* **Normal Delivery:** ₹50,000 – ₹90,000\n* **C-Section Delivery:** ₹80,000 – ₹1,50,000\n* **Laparoscopic Appendectomy / Gallbladder:** ₹70,000 – ₹1,50,000\n* **Angioplasty (Single Stent):** ₹1,80,000 – ₹3,00,000\n* **Total Knee Replacement (Single):** ₹2,00,000 – ₹3,50,000\n* **Coronary Artery Bypass (CABG):** ₹3,00,000 – ₹5,50,000\n\n---\n\n### 2. Which Hospitals in Hyderabad Are \"Worth It\"?\n\nThe \"best\" hospital depends on your medical condition, location, and budget. Hyderabad is a major healthcare hub in India with several nationally accredited (NABH/JCI) institutions.\n\n#### **1. Overall Best for Complex Cases & Gastroenterology: AIG Hospitals (Gachibowli)**\n* **Why it’s worth it:** Originally the Asian Institute of Gastroenterology, their massive Gachibowli facility is one of India’s most modern multi-specialty hospitals. It has world-renowned faculty, cutting-edge diagnostic infrastructure, and transparent billing compared to other ultra-premium facilities.\n* **Best for:** Gastroenterology, hepatology, oncology, complex abdominal surgeries, and multi-organ transplants.\n\n#### **2. Best for High-End Prestige & Super-Specialty: Apollo Hospitals (Jubilee Hills)**\n* **Why it’s worth it:** Apollo Jubilee Hills is Hyderabad’s flagship legacy hospital. It attracts top international doctors and handles rare, critical, or multi-organ conditions. While billing is in the premium tier, the clinical depth and nursing standard are among the highest in the country.\n* **Best for:** Cardiology, neurology, organ transplants, emergency/trauma care.\n\n#### **3. Best Balance of Cost and Quality: Yashoda Hospitals (Hitec City, Somajiguda, Secunderabad)**\n* **Why it’s worth it:** Yashoda strikes a strong balance between high-end clinical care and slightly more accessible pricing than Apollo. Their newer Hitec City campus matches any global standard in design and critical care units.\n* **Best for:** Oncology, neurosurgery, pulmonology, and cardiology.\n\n#### **4. Best for Reliability and Mid-to-High Tier Value: KIMS Hospitals (Secunderabad & Kondapur)**\n* **Why it’s worth it:** Krishna Institute of Medical Sciences (KIMS) has one of the largest organ transplant and heart/lung failure programs in India. Their Secunderabad branch is renowned for treating complicated cardiac and pulmonary cases at competitive multi-specialty rates.\n* **Best for:** Heart & lung transplants, joint replacements, complex general medicine.\n\n#### **5. Best Standalone / Specialized Centers (High Value):**\n* **Cancer Care:** **Basavatarakam Indo-American Cancer Hospital (Banjara Hills)** — Operates as a charitable/subsidized trust trust hospital; offers world-class oncology treatment at a fraction of private corporate hospital costs.\n* **Eye Care:** **L V Prasad Eye Institute (Banjara Hills)** — Globally recognized for ophthalmology, with cross-subsidized care offering top-tier clinical outcomes.\n\n---\n\n### Recommendation: How to Choose\n1. **For General/Routine Inpatient Care:** Yashoda or KIMS generally provide the best cost-to-service ratio.\n2. **For Gastro / Multi-Specialty Tech:** AIG Gachibowli is widely considered the top modern facility in the city.\n3. **If Using Insurance:** Check that the specific hospital branch is empaneled in your insurer's **TPA cashless network**, as room rent caps in your policy will dictate your out-of-pocket expenses.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "AIG Hospitals",
+          "Apollo Hospitals",
+          "Yashoda Hospitals",
+          "KIMS Hospitals",
+          "Basavatarakam Indo-American Cancer Hospital",
+          "L V Prasad Eye Institute"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.007811
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a hospital cost in Hyderabad and which one is worth it",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "If you mean **medical treatment**, there’s no single “hospital cost”—it depends mainly on the procedure, room type, length of stay, and insurance. As a rough guide, private-hospital consultations are about **₹500–₹2,500**, admission about **₹3,000–₹15,000 per day**, and major procedures can run from **tens of thousands to several lakhs**; ICU care may cost **₹40,000–₹1 lakh or more per day**.[1][2][3]\n\n**Which is worth it?** For broad, complex care, **KIMS** is often a value-oriented option; **Apollo** and **Yashoda** are strong multispecialty choices; for digestive and liver conditions, consider **AIG**; for cancer, **Basavatarakam**; and for children’s care, **Rainbow**.[2][3] The best choice depends on the condition and the specific doctor—not just the hospital’s name.\n\nBefore deciding, get **written estimates from two or three hospitals** for the same treatment and room category, and check whether your insurer offers cashless coverage there. Prices can differ considerably by case and hospital.[2]\n\nIf you share the **treatment or procedure**, your **budget/insurance**, and your area of Hyderabad, I can narrow down likely costs and options.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "maphospitals.com",
+          "url": "https://maphospitals.com/hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "neimhaans.in",
+          "url": "https://neimhaans.in/best-hospital-in-hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "algatesinsurance.in",
+          "url": "https://algatesinsurance.in/best-health-insurance-plans-hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Hyderabad/Private-Hospitals/nct-10390288",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "acko.com",
+          "url": "https://www.acko.com/health-insurance/hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/mr/Hyderabad/Care-Hospitals/nct-11967379",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": "https://www.practo.com/hyderabad/hospitals",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "reddit.com",
+          "url": "https://www.reddit.com/r/hyderabad/comments/1td4la6/cost_estimates_for_this_hospitals/",
+          "channelType": "forum",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Hyderabad/Hospitals/nct-10253670?stype=category_list",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "stanzaliving.com",
+          "url": "https://www.stanzaliving.com/blog/top-hospitals-in-hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00177
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which hospital in Hyderabad should I trust",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "If you mean **Hyderabad, Telangana (India)**, there isn’t one hospital I’d recommend for every situation. For general multispecialty care, **CARE Hospitals, Banjara Hills**, **Yashoda Hospitals, Malakpet**, and **Star Hospitals, Financial District** are reasonable places to start: their specific branches have current NABH accreditation documents. Accreditation is a useful quality signal, but it doesn’t guarantee a particular outcome or tell us which hospital is best for your condition. ([portal.nabh.co](https://portal.nabh.co/Documents/AccreditedList/Hospitals/H-2014-0216_5th%20Edition_RA%2C%20SA%2C%20Focus%20%26%20Scope%20Correction.pdf?utm_source=openai))\n\nThe right choice depends on the **specialty, doctor, location, and your insurance**. If this is an emergency, go to the nearest emergency department rather than spending time comparing hospitals.\n\nWhich Hyderabad do you mean—**India or Pakistan**—and what kind of care do you need?",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Yashoda Hospitals",
+          "Star Hospitals"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "portal.nabh.co",
+          "url": "https://portal.nabh.co/Documents/AccreditedList/Hospitals/H-2014-0216_5th%20Edition_RA%2C%20SA%2C%20Focus%20%26%20Scope%20Correction.pdf?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.02163
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which hospital in Hyderabad should I trust",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Choosing the right hospital depends on the specific medical condition, emergency needs, budget, and location within the city. However, Hyderabad is home to several nationally and globally recognized hospitals known for high clinical standards and patient trust.\n\nThe most trusted hospitals in Hyderabad, categorized by specialty and reputation, include:\n\n---\n\n### 1. Best Overall Multispecialty & Quaternary Care\n\n*   **AIG Hospitals (Gachibowli)**\n    *   **Best for:** Gastroenterology, GI surgery, Hepatology, Oncology, and general Multispecialty care.\n    *   **Why trusted:** Founded by Dr. D. Nageshwar Reddy, AIG is world-renowned for digestive diseases and has expanded into a massive, state-of-the-art quaternary care center. It carries a strong reputation for ethical medical practices and cutting-edge technology.\n*   **Apollo Hospitals (Jubilee Hills)**\n    *   **Best for:** Cardiology, Neurosciences, Orthopedics, Organ Transplants, and Emergency Care.\n    *   **Why trusted:** The flagship Apollo Jubilee Hills branch was one of the first JCI-accredited hospitals in the region. It has a decades-long track record, an extensive panel of experienced senior consultants, and robust 24/7 emergency response.\n*   **Yashoda Hospitals (Hitec City / Somajiguda / Secunderabad)**\n    *   **Best for:** Oncology, Robotic Surgery, Critical Care, and Pulmonology.\n    *   **Why trusted:** Yashoda is widely known for aggressive adoption of advanced medical technology (such as precision radiotherapy and robotic systems) and highly capable critical care units. The newer Hitec City campus is among the most modern in India.\n*   **KIMS Hospitals (Krishna Institute of Medical Sciences – Secunderabad / Kondapur)**\n    *   **Best for:** Heart & Lung Transplants, Cardiology, Neurology, and Renal Sciences.\n    *   **Why trusted:** KIMS is particularly respected for high-complexity surgeries, extensive organ transplant programs, and seasoned clinical teams.\n\n---\n\n### 2. Specialized Centers of Excellence (City Gold Standards)\n\nIf dealing with a specific condition, these focused institutes are often considered the best in their field:\n\n*   **Eye Care / Ophthalmology:**\n    *   **LV Prasad Eye Institute (LVPEI, Banjara Hills):** A globally renowned, non-profit eye institute. It is universally regarded as the gold standard for eye care and corneal transplants.\n*   **Cancer Care (Oncology):**\n    *   **Basavatarakam Indo-American Cancer Hospital (Banjara Hills):** A dedicated, highly respected trust hospital offering top-tier surgical, medical, and radiation oncology at transparent, non-corporate pricing.\n    *   *(Also notable: Apollo Cancer Centres, American Oncology Institute, and Yashoda Cancer Institute).*\n*   **Maternity & Women’s Health:**\n    *   **Fernandez Hospital (Hyderguda / Bogulkunta / Miyapur):** Deeply trusted for natural births, high-risk pregnancies, maternal-fetal medicine, and transparent care practices.\n*   **Pediatrics & Child Care:**\n    *   **Rainbow Children’s Hospital (Banjara Hills / Kondapur):** The primary center for pediatric emergencies, NICU/PICU care, and pediatric subspecialties.\n\n---\n\n### 3. High-Quality Public / Subsidized Care\n\n*   **NIMS (Nizam’s Institute of Medical Sciences, Punjagutta)**\n    *   **Best for:** Complex diagnoses, tertiary care, and affordable treatment.\n    *   **Why trusted:** As a premier autonomous state government institute, NIMS has some of the most experienced clinicians and researchers in Telangana. While wait times and crowds can be high, clinical expertise is exceptional.\n\n---\n\n### How to Decide Which One to Choose\n\n1. **Doctor vs. Hospital:** In India, the treating doctor’s personal track record often matters as much as the hospital brand. Look for the specialist first, then check which hospital they operate out of.\n2. **Emergency vs. Planned Care:** For emergencies (heart attack, stroke, trauma), prioritize the nearest NABH/JCI-accredited hospital with a catheterization lab and 24/7 emergency care (e.g., Apollo Jubilee Hills, Yashoda, or Continental in the Financial District).\n3. **Insurance Tie-ups:** Verify whether your health insurance provider has a cashless network agreement with the hospital’s Third-Party Administrator (TPA) desk.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "AIG Hospitals",
+          "Apollo Hospitals",
+          "Yashoda Hospitals",
+          "KIMS Hospitals",
+          "Basavatarakam Indo-American Cancer Hospital",
+          "American Oncology Institute",
+          "Fernandez Hospital",
+          "Nizam's Institute of Medical Sciences"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.007101
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which hospital in Hyderabad should I trust",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one hospital that’s best for everyone. For broad, complex care, **Apollo, KIMS, Yashoda, and CARE** are commonly listed options in Hyderabad, but the right choice depends on the condition, the treating specialist, and how quickly you can get there.[1][3]\n\nFor specialist care, consider **Rainbow** for children, **Basavatarakam or MNJ** for cancer, and **NIMS** for a public-sector option.[2][4] Before deciding, check that the specific doctor treats your condition, confirm current accreditation and insurance coverage, and compare likely costs; in an emergency, go to the nearest appropriate emergency department.[8]\n\nIf you share the medical issue and your area of Hyderabad, I can suggest more targeted options.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "besthospitalsinhyderabad.com",
+          "url": "https://www.besthospitalsinhyderabad.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "wibest.in",
+          "url": "https://wibest.in/blog/best-hospitals-hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "stanzaliving.com",
+          "url": "https://www.stanzaliving.com/blog/top-hospitals-in-hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "adotrip.com",
+          "url": "https://www.adotrip.com/medical-tourism/surgery/best-hospitals-in-hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "impactguru.com",
+          "url": "https://www.impactguru.com/info/best-hospitals-in-hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "yashfiin.com",
+          "url": "https://yashfiin.com/best-hospital-in-hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "hospi.info",
+          "url": "https://hospi.info/top-20-multi-speciality-hospitals-in-hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "starhealth.in",
+          "url": "https://www.starhealth.in/hospitals-info/top-hospitals-in-hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "365doctor.in",
+          "url": "https://www.365doctor.in/hospitals-in-hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "insurance.phonepe.com",
+          "url": "https://insurance.phonepe.com/blogs/health-insurance/a-comprehensive-guide-to-popular-hospitals-in-hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00172
+    }
+  ]
+}
