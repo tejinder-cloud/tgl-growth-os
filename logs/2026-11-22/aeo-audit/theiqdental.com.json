@@ -1,0 +1,1303 @@
+{
+  "brand": {
+    "name": "Dental IQ",
+    "primaryDomain": "theiqdental.com",
+    "domains": [
+      "theiqdental.com"
+    ],
+    "variants": [
+      "Dental IQ",
+      "theiqdental"
+    ],
+    "setupStatus": "prospect_unverified"
+  },
+  "auditedAt": "2026-11-22T04:13:24.993Z",
+  "promptsCount": 5,
+  "enginesCount": 3,
+  "totalQueries": 15,
+  "summary": {
+    "totalMentions": 0,
+    "visibilityScorePercent": 0,
+    "mentionsByEngine": {
+      "chatgpt": 0,
+      "gemini": 0,
+      "perplexity": 0
+    },
+    "competitorMentions": {
+      "Tricity Dental Clinic": 2,
+      "Dental Excellence": 4,
+      "Tooth Care Dental Clinic": 4,
+      "Dr. Kochar’s House of Smiles": 7,
+      "Tricity Smiles Dentistry": 3,
+      "Dr. Batth’s Dental and Cosmetic Clinic": 1,
+      "The Smile Designers": 6,
+      "Satya Dental Clinic": 2,
+      "Gupta Dental Hospital": 3,
+      "Dr. Datta’s Dental Clinic": 1,
+      "Mittal Dental Care & Implant Centre": 1,
+      "Poly Dental Clinic": 1,
+      "Dr. Sanjay Kalra’s Multispeciality Dental Clinic": 3,
+      "GMCH Sector 32": 2,
+      "Dr. Neelam Shourie’s City Dental Clinic": 1,
+      "Dr. Parag Kochar": 1,
+      "Dr. Vasudha Dant Care": 1,
+      "Pearl Dental and Implant Clinic": 1,
+      "Gurukirpa Dental Care": 1,
+      "Arise Dental": 1,
+      "DENTAL LIFELINE Clinic": 1,
+      "Elite Dental Hub": 1,
+      "Dentistree": 2,
+      "Newway Orthodontic": 1,
+      "Oral Health Sciences Centre at PGIMER": 1,
+      "Panwar Dental Clinic in Panchkula": 1,
+      "Gupta Dental Centre": 1,
+      "Tricity Smiles Dental Clinic": 1,
+      "Dentafix": 1,
+      "PU Dental College": 1
+    },
+    "citationDomains": {
+      "practo.com": 6,
+      "drkochars.com": 5,
+      "chandigarhdentist.com": 5,
+      "tricitysmiles.in": 5,
+      "reddit.com": 5,
+      "guptaclinic.in": 1,
+      "drbatths.com": 1,
+      "thesmiledesigners.co.in": 8,
+      "satyadentalclinic.com": 1,
+      "threebestrated.in": 4,
+      "dentalchandigarh.com": 3,
+      "bristlesdentalstudios.com": 1,
+      "chdlife.com": 2,
+      "justdial.com": 7,
+      "newwayorthodontic.com": 3,
+      "dentavacation.com": 3,
+      "mohalidental.com": 1,
+      "whatclinic.com": 4,
+      "healthfinder.in": 1,
+      "bookimed.com": 1,
+      "sanjaykalradentalclinic.com": 1,
+      "zospital.com": 1,
+      "icubedental.com": 1,
+      "estheticadentalchandigarh.com": 1,
+      "smilesscans.com": 1,
+      "quora.com": 1,
+      "gmch.gov.in": 1,
+      "medicaltourismco.com": 1,
+      "wowchandigarh.com": 1,
+      "portal.nabh.co": 1,
+      "bestdentalchandigarh.com": 1,
+      "dentafix.in": 1,
+      "orangedentalclinics.com": 1,
+      "linkedin.com": 1
+    },
+    "totalCostUsd": 0.3017,
+    "totalCostInr": 27.96
+  },
+  "nextSteps": {
+    "weakestEngine": "ChatGPT",
+    "weakestEngineMentions": 0,
+    "zeroMentionEngines": [
+      "ChatGPT",
+      "Gemini",
+      "Perplexity"
+    ],
+    "queriesLost": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "weakestQueries": [
+      1,
+      2
+    ],
+    "winningCompetitor": "Dr. Kochar’s House of Smiles",
+    "winningCompetitorCount": 7,
+    "topCitationGap": "thesmiledesigners.co.in",
+    "formattedText": "Dental IQ was named in 0 of 15 answers (0%). ChatGPT, Gemini and Perplexity did not name Dental IQ in any of the 5 questions. Dr. Kochar’s House of Smiles was named most often instead, in 7 of 15 answers. The questions where Dental IQ did worst: \"Best dental clinic in Chandigarh Tricity\" (0 of 3 assistants named Dental IQ); \"Top dental clinic near me in Chandigarh Tricity\" (0 of 3 assistants named Dental IQ)."
+  },
+  "matrix": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best dental clinic in Chandigarh Tricity",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one objectively “best” dental clinic for everyone, but Dr. Kochar’s House of Smiles is a strong all-round option in..."
+      }
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top dental clinic near me in Chandigarh Tricity",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "A strong all-around option is Advanced Dental Care Center —it’s named among Chandigarh’s expert-recommended top clinics. For a..."
+      }
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which dental clinic in Chandigarh Tricity has the best reviews and results",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t a reliable, independent way to name one clinic as having the best results for every type of dental treatment. But D..."
+      }
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a dental clinic cost in Chandigarh Tricity and which one is worth it",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "If you mean the cost of dental treatment , not buying or setting up a clinic, prices in Chandigarh Tricity vary by procedure an..."
+      }
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which dental clinic in Chandigarh Tricity should I trust",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "If you want one practical starting point, Dr. Kochar’s House of Smiles in Sector 21B, Chandigarh is a reasonable option to shor..."
+      }
+    }
+  ],
+  "rawAnswers": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best dental clinic in Chandigarh Tricity",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one objectively “best” clinic for every treatment, but these are reasonable options to compare across the Tricity:\n\n- **Chandigarh:** **Tricity Dental Clinic**, SCO 270, Sector 44-C — Practo lists a 5.0 rating from 211 patient stories and general dental services. ([practo.com](https://www.practo.com/Chandigarh/clinic/tricity-dental-clinic-sector-44?utm_source=openai))\n- **Mohali:** **Dental Excellence**, SCF-43, Sector 60/3B2 — a multispecialty clinic; Practo lists a 5.0 rating from 473 patient stories. ([practo.com](https://www.practo.com/mohali/clinic/dental-excellence-centre-for-advanced-oral-care-sector-60?utm_source=openai))\n- **Panchkula:** **Tooth Care Dental Clinic**, Sector 10 — Practo lists a 5.0 rating from 131 patient stories and describes specialist services. ([practo.com](https://www.practo.com/panchkula/Clinic/tooth-care-sector-10?utm_source=openai))\n\n**My quick pick:** choose the closest of those for a routine check-up, then confirm the dentist’s credentials and experience for your specific treatment. For braces, implants, or root canals, ask whether the treating dentist is a specialist in that area, get a written treatment plan and estimate, and consider a second opinion before major work. Online ratings are useful for shortlisting, not a guarantee of results.\n\nIf you tell me **which area you’re in and what treatment you need**, I can narrow it down.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Tricity Dental Clinic",
+          "Dental Excellence",
+          "Tooth Care Dental Clinic"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "practo.com",
+          "url": "https://www.practo.com/Chandigarh/clinic/tricity-dental-clinic-sector-44?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": "https://www.practo.com/mohali/clinic/dental-excellence-centre-for-advanced-oral-care-sector-60?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": "https://www.practo.com/panchkula/Clinic/tooth-care-sector-10?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.02161
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best dental clinic in Chandigarh Tricity",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Chandigarh Tricity (Chandigarh, Mohali, and Panchkula) hosts several dental practices equipped with modern diagnostic facilities (such as digital CBCT scans and intraoral 3D scanners) and PGI-trained specialists. \n\nThe top-rated and most reputable dental clinics across the Tricity region include:\n\n---\n\n### **1. Chandigarh**\n* **Dr. Kochar’s House of Smiles (Sector 19 & Sector 38)**\n  * **Highlights:** One of the most established names in the city and Chandigarh’s first **NABH-accredited** private dental clinic.\n  * **Known for:** Full-mouth rehabilitation, dental implants, laser dentistry, and cosmetic smile makeovers.\n* **Advanced Dental Care Center (Sector 18-A)**\n  * **Lead Doctor:** Dr. Anshu Gupta (PGI Gold Medalist).\n  * **Highlights:** In-house CBCT (3D imaging), catering to both local patients and international dental tourists.\n  * **Known for:** Single-sitting root canals, computer-guided implant surgery, and aesthetic veneers.\n* **Tricity Smiles Dentistry (Sector 28-A)**\n  * **Highlights:** Highly modern setup with digital smile design simulation (seeing results before starting).\n  * **Known for:** Pain-free dentistry, clear aligners (Invisalign), and family/pediatric dental care.\n\n---\n\n### **2. Panchkula**\n* **Dr. Sanjay Kalra & Associates Multispeciality Dental Clinic (Sector 11)**\n  * **Highlights:** A long-standing, widely trusted dental institution in Haryana/Tricity.\n  * **Known for:** Complex oral surgeries, orthodontic treatments (braces/aligners), and advanced dental implants.\n* **Tooth Care Dental Clinic (Sector 15 / Sector 2)**\n  * **Lead Doctor:** Dr. Ankur Goel.\n  * **Highlights:** Frequently recommended for gentle, patient-centric general and preventative dentistry.\n  * **Known for:** Wisdom tooth extractions, crowns/bridges, and root canals.\n* **Dr. Batth’s Dental and Cosmetic Clinic (Sector 12)**\n  * **Highlights:** Known for offering *biomimetic dentistry* (preserving natural tooth structure rather than aggressive drilling).\n  * **Known for:** Minimally invasive restorations and cosmetic enhancements.\n\n---\n\n### **3. Mohali**\n* **The Smile Designers (Sector 82 / Mohali borders)**\n  * **Highlights:** High-end boutique dental clinic with premium facilities and clear treatment planning.\n  * **Known for:** Cosmetic dentistry, digital smile designing, and advanced orthodontics.\n* **Satya Dental Clinic (Phase 5 / Phase 7 areas)**\n  * **Highlights:** Transparent pricing with clean, sterile clinical standards.\n  * **Known for:** Routine extractions, painless root canals, and tooth replacements.\n\n---\n\n### **Institutions / Budget Alternatives**\nIf you have a complex condition or need budget-friendly treatment from academic specialists:\n* **Dr. Harvansh Singh Judge Institute of Dental Sciences (Panjab University, Sector 25, Chandigarh):** Excellent for complex surgical work at nominal institutional rates.\n* **Oral Health Sciences Centre (PGIMER, Chandigarh):** The premier tertiary referral center for maxillo-facial trauma, dental oncology, and advanced surgical interventions.\n\n---\n\n### **How to Choose:**\n1. **For Braces/Aligners:** Look for an orthodontist with certified Invisalign/clear-aligner accreditation (e.g., *The Smile Designers* or *Tricity Smiles*).\n2. **For Implants:** Ensure the clinic has **CBCT scanning facilities** and uses recognized implant systems with genuine warranties (e.g., *Dr. Kochar's* or *Advanced Dental Care*).\n3. **For Kids:** A clinic with dedicated pediatric specialists or gentle handling protocols ensures painless visits.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Dr. Kochar’s House of Smiles",
+          "Tricity Smiles Dentistry",
+          "Tooth Care Dental Clinic",
+          "Dr. Batth’s Dental and Cosmetic Clinic",
+          "The Smile Designers",
+          "Satya Dental Clinic"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "drkochars.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "chandigarhdentist.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "chandigarhdentist.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "tricitysmiles.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "reddit.com",
+          "url": null,
+          "channelType": "forum",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "guptaclinic.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drbatths.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thesmiledesigners.co.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "satyadentalclinic.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.033865
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best dental clinic in Chandigarh Tricity",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one objectively “best” dental clinic for everyone, but **Dr. Kochar’s House of Smiles** is a strong all-round option in Chandigarh: it appears among the city’s top-rated clinics, with a 4.9 rating on a local directory and a long-established practice in Sector 21B.[1][6]\n\nOther options to consider:\n- **Advanced Dental Care Center**, Sector 18 — listed among Chandigarh’s top clinics, with a 4.8 rating.[1]\n- **Gupta Dental Hospital** — has branches in Chandigarh and Panchkula and says it serves the wider Tricity area.[2]\n- **The Smile Designers**, Sector 9C — offers general and cosmetic treatments, including orthodontics and implants.[9]\n\nBefore booking, check recent reviews, confirm the dentist’s relevant specialty for your treatment, and ask for a written estimate. If you share your area and what you need—such as a checkup, root canal, braces, or implants—I can narrow down the options.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Dr. Kochar’s House of Smiles",
+          "Gupta Dental Hospital",
+          "The Smile Designers"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "threebestrated.in",
+          "url": "https://threebestrated.in/dental-clinics-in-chandigarh-ch",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "dentalchandigarh.com",
+          "url": "https://dentalchandigarh.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bristlesdentalstudios.com",
+          "url": "https://www.bristlesdentalstudios.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "chdlife.com",
+          "url": "https://chdlife.com/best-dentists-in-chandigarh-the-city-beautiful/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drkochars.com",
+          "url": "https://drkochars.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Dental-Hospitals-with-Dental-Consultation/nct-11273042-att-den338",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Dental-Hospitals-with-Dental-Consultation-in-Chandigarh-Sector-29D/nct-11273042-att-den338",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Dentists/nct-10156331?wap=2",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thesmiledesigners.co.in",
+          "url": "https://thesmiledesigners.co.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "newwayorthodontic.com",
+          "url": "https://newwayorthodontic.com/best-dentist-in-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00121
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top dental clinic near me in Chandigarh Tricity",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "I don’t have your exact location, but here are well-reviewed options across the Tricity:\n\n- **Chandigarh:** **Tricity Dental Clinic**, SCO 270, Sector 44-C — listed at **5.0/5 from 211 patient stories** on Practo. ([practo.com](https://www.practo.com/Chandigarh/clinic/tricity-dental-clinic-sector-44?utm_source=openai))\n- **Mohali:** **Dental Excellence**, SCF-43, Sector 60 (3B2) — listed at **5.0/5 from 473 patient stories** on Practo. ([practo.com](https://www.practo.com/Mohali/clinic/dental-excellence-centre-for-advanced-oral-care-sector-60?utm_source=openai))\n- **Panchkula:** **Tooth Care Dental Clinic**, Sector 10 — listed at **5.0/5 from 131 patient stories** on Practo. ([practo.com](https://www.practo.com/panchkula/Clinic/tooth-care-sector-10?utm_source=openai))\n\nThese are review-based suggestions, not a guarantee of quality; ratings can change. Tell me your **sector or nearby landmark** and what you need (check-up, root canal, braces, implant, etc.), and I can narrow it to the closest fit.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Tricity Dental Clinic",
+          "Dental Excellence",
+          "Tooth Care Dental Clinic"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "practo.com",
+          "url": "https://www.practo.com/Chandigarh/clinic/tricity-dental-clinic-sector-44?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": "https://www.practo.com/Mohali/clinic/dental-excellence-centre-for-advanced-oral-care-sector-60?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": "https://www.practo.com/panchkula/Clinic/tooth-care-sector-10?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011563
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top dental clinic near me in Chandigarh Tricity",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "The top-rated dental clinics across the **Chandigarh Tricity** area (Chandigarh, Mohali, and Panchkula) are categorized by location and specialization:\n\n---\n\n### **1. Top Clinics in Chandigarh**\n* **Advanced Dental Care Center (Sector 18-A)**\n  * **Known for:** Dental implants, cosmetic dentistry, and full-mouth rehabilitation. \n  * **Highlights:** In-house CBCT (3D imaging) for precise surgical placement, advanced laser equipment, and specialized overseas patient care.\n* **Dr. Kochar’s House of Smiles (Sector 21 / Sector 38)**\n  * **Known for:** Painless single-sitting Root Canal Treatments (RCT), crowns, and pediatric dentistry.\n  * **Highlights:** One of the region's first NABH-accredited dental setups with strict sterilization protocols.\n* **The Smile Designers (Sector 35)**\n  * **Known for:** Orthodontics, Invisalign/clear aligners, and aesthetic smile designing.\n  * **Highlights:** High patient satisfaction ratings and modern digital smile simulation tools.\n* **Tricity Smiles Dentistry (Sector 28-A)**\n  * **Known for:** Family dentistry, smile makeovers, and US-standard dental care.\n\n---\n\n### **2. Top Clinics in Mohali**\n* **Dr. Datta’s Dental Clinic (Phase 7 / Sector 61)**\n  * **Known for:** General dentistry, surgical tooth extractions, and dental implants.\n  * **Highlights:** One of Mohali’s most established private practices with an experienced team of specialists.\n* **Mittal Dental Care & Implant Centre (Sector 68)**\n  * **Known for:** Implants, bridge work, and emergency dental care.\n  * **Highlights:** Well-equipped with digital X-rays and transparent treatment planning.\n* **Poly Dental Clinic (Sector 70)**\n  * **Known for:** Routine family care, dental hygiene, fillings, and RCTs. Recommended locally for honest, non-commercial advice.\n\n---\n\n### **3. Top Clinics in Panchkula**\n* **Dr. Sanjay Kalra’s Multispeciality Dental Clinic (Sector 14 / Sector 15)**\n  * **Known for:** Advanced implantology, orthodontics (braces & aligners), and periodontics.\n  * **Highlights:** Decades of clinical experience; frequently cited as one of the most reliable clinics in Panchkula.\n* **Tooth Care Dental Clinic (Sector 14)**\n  * **Known for:** Cosmetic dentistry, teeth whitening, and preventive oral health.\n* **Gupta Dental Hospital (Sector 11 / Sector 7)**\n  * **Known for:** Full-arch implants, prosthetics, and oral surgery with over 30 years in practice.\n\n---\n\n### **4. Premier Hospital/Institutional Options**\nFor severe trauma, jaw reconstruction, complex maxillofacial surgery, or subsidized treatment:\n* **Oral Health Sciences Centre (PGIMER, Chandigarh):** A premier tertiary-care government institute with specialized departments in orthodontics, oral pathology, and maxillofacial surgery.\n* **GMCH Sector 32 (Chandigarh):** Offers comprehensive dental treatments at standard government rates.\n\n---\n\n### **How to Choose:**\n* **For Braces/Aligners:** Look for an in-house **MDS Orthodontist** (e.g., The Smile Designers, Sanjay Kalra).\n* **For Missing Teeth/Implants:** Check if the clinic has in-house 3D CBCT imaging (e.g., Advanced Dental Care Center).\n* **For Kids:** Look for a clinic with a specialized **Pedodontist** to ensure gentle, child-friendly care.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Dr. Kochar’s House of Smiles",
+          "The Smile Designers",
+          "Tricity Smiles Dentistry",
+          "Dr. Datta’s Dental Clinic",
+          "Mittal Dental Care & Implant Centre",
+          "Poly Dental Clinic",
+          "Dr. Sanjay Kalra’s Multispeciality Dental Clinic",
+          "Tooth Care Dental Clinic",
+          "Gupta Dental Hospital",
+          "GMCH Sector 32"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "chandigarhdentist.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "dentavacation.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drkochars.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thesmiledesigners.co.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "tricitysmiles.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mohalidental.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "reddit.com",
+          "url": null,
+          "channelType": "forum",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "dentalchandigarh.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.035366
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top dental clinic near me in Chandigarh Tricity",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "A strong all-around option is **Advanced Dental Care Center**—it’s named among Chandigarh’s expert-recommended top clinics. For a convenient alternative in central Chandigarh, **Tricity Smiles** is at House No. 109, Sector 28-A. [2][3]\n\nOther well-rated options around the Tricity include:\n- **Dr. Neelam Shourie’s City Dental Clinic** — Sector 11, Panchkula; listed at 4.9/5 from 855 reviews. [5]\n- **Dr. Parag Kochar (House of Smiles)** — Sector 21B, Chandigarh; listed at 4.9/5 from 836 reviews. [5]\n- **Dr. Vasudha Dant Care** — Manimajra; listed at 4.9/5 from 207 reviews. [7]\n- **Pearl Dental and Implant Clinic** — New Chandigarh/Mohali; listed at 4.9/5 from 374 reviews. [5]\n\nRatings are directory listings, not a guarantee of clinical quality. Share your **sector or locality** and what treatment you need (for example, a checkup, root canal, braces, or implant), and I can narrow this to the closest choices.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Dr. Neelam Shourie’s City Dental Clinic",
+          "Dr. Parag Kochar",
+          "Dr. Vasudha Dant Care",
+          "Pearl Dental and Implant Clinic"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Dental-Hospitals/nct-11273042",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "threebestrated.in",
+          "url": "https://threebestrated.in/dental-clinics-in-chandigarh-ch",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "tricitysmiles.in",
+          "url": "https://www.tricitysmiles.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "whatclinic.com",
+          "url": "https://www.whatclinic.com/dentists/india/chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Dental-Hospitals-with-Dental-Consultation/nct-11273042-att-den338",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Dentists/nct-10156331",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Dental-Hospitals-in-Tricity-Hospital-Mani-Majra/nct-11273042",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Dental-Hospitals-with-Dental-Consultation-in-Chandigarh-Sector-29D/nct-11273042-att-den338",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Dentists/nct-10156331?wap=2",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Dentists/nct-10156331/page-5",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00127
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which dental clinic in Chandigarh Tricity has the best reviews and results",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t a reliable public way to compare **treatment results**—online ratings mostly measure patient experience, not independently verified clinical outcomes. Based on the review figures I found for Chandigarh, **Gurukirpa Dental Care (Sector 28)** looks like a strong all-round candidate: **5.0 from 729 Google reviews**. Other well-reviewed options include **Arise Dental (Sector 18; 5.0, 669 reviews)** and **DENTAL LIFELINE Clinic (Sector 18; 5.0, 602 reviews)**. ([healthfinder.in](https://healthfinder.in/chandigarh/dental-clinics/?utm_source=openai))\n\nIf you’d rather prioritize a very large review count over a perfect score, **Advanced Dental Care Center (Sector 18)** shows **4.8 from 2,159 Google reviews** in one listing; Practo shows a lower **4.5 from 628 reviews**, so ratings vary by platform. ([healthfinder.in](https://healthfinder.in/chandigarh/dental-clinics/?utm_source=openai))\n\n**My practical take:** start with Gurukirpa for a general check-up, but choose based on the dentist’s experience with your specific treatment—implants, root canal, braces, or children’s dentistry may call for different specialists. Before agreeing to major work, ask for a written treatment plan and itemized costs, and consider a second opinion.\n\nThese figures are a review-based snapshot, not proof of better clinical results. If you tell me **which part of the Tricity you’re in and what treatment you need**, I can narrow the shortlist.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Gurukirpa Dental Care",
+          "Arise Dental",
+          "DENTAL LIFELINE Clinic"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "healthfinder.in",
+          "url": "https://healthfinder.in/chandigarh/dental-clinics/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021657
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which dental clinic in Chandigarh Tricity has the best reviews and results",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because dental needs vary widely—from cosmetic smile makeovers and dental implants to routine root canals—no single clinic fits every patient. However, across verified patient reviews (Google, Practo) and local reputation in Chandigarh, Mohali, and Panchkula, a few clinics consistently stand out for their results and clinical expertise:\n\n---\n\n### 1. Advanced Dental Care Center (Sector 18-A, Chandigarh)\n* **Lead Doctor:** Dr. Anshu Gupta (MDS, PGIMER alumnus)\n* **Best Known For:** Dental implants, full-mouth restorations, laser dentistry, and porcelain veneers.\n* **Reputation & Results:** Widely considered one of the top clinics in Chandigarh for dental tourism and NRI patients. It holds a 4.9+ star rating across hundreds of reviews, with frequent praise for painless procedures, strict hygiene standards, and rapid treatment turnaround times.\n\n### 2. Dr. Sanjay Kalra’s Multispeciality Dental Clinic (Sector 5, Panchkula)\n* **Lead Doctor:** Prof. Dr. Sanjay Kalra\n* **Best Known For:** Prosthodontics, complex full-mouth rehabilitation, dental implants, and orthodontics.\n* **Reputation & Results:** One of the oldest, most established dental practices in the Tricity with a large multi-chair setup and in-house team of specialists. It has over three decades of clinical track record and high ratings for complex surgical and restorative outcomes.\n\n### 3. Dental Excellence (Phase 3B-2 / Sector 60, Mohali)\n* **Lead Doctors:** Dr. Sachin Goyal & Dr. Garima Goyal\n* **Best Known For:** Painless single-sitting root canals (RCT), clear aligners/Invisalign, and family/pediatric dentistry.\n* **Reputation & Results:** The highest-rated and most recommended private clinic in the Mohali corridor. Patients frequently note the gentle approach, transparent treatment plans, and comfortable, modern equipment.\n\n### 4. The Smile Designers (Mohali / Chandigarh)\n* **Lead Doctor:** Dr. Shobit Sethi (MDS, Orthodontics)\n* **Best Known For:** Aesthetic smile design, porcelain veneers, and cosmetic orthodontics.\n* **Reputation & Results:** If you are specifically looking for cosmetic improvements or aligners, this clinic is a top choice. It has treated numerous media figures and has high patient satisfaction for precision smile transformations.\n\n### 5. Oral Health Sciences Centre, PGIMER (Sector 12, Chandigarh)\n* **Best Known For:** Severe maxillofacial surgery, oral cancer/tumors, complex cysts, and extreme trauma.\n* **Reputation & Results:** While it is a government research hospital (meaning long queues and wait times), its surgical clinical results, academic oversight, and equipment are among the best in North India. It is the premier referral center when a private clinic encounters extreme complications.\n\n---\n\n### How to Choose Among Them:\n* **For Dental Implants & NRIs:** **Advanced Dental Care Center** (Sec 18, Chd) or **Dr. Sanjay Kalra’s Clinic** (Panchkula).\n* **For Smile Makeovers & Aligners:** **The Smile Designers**.\n* **For Routine Restorations & Painless Root Canals:** **Dental Excellence** (Mohali) or **Elite Dental Hub** (Sec 19, Chd).",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Dr. Sanjay Kalra’s Multispeciality Dental Clinic",
+          "Dental Excellence",
+          "The Smile Designers",
+          "Elite Dental Hub"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "bookimed.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "chandigarhdentist.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "chandigarhdentist.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "sanjaykalradentalclinic.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "dentavacation.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "whatclinic.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thesmiledesigners.co.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "reddit.com",
+          "url": null,
+          "channelType": "forum",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "zospital.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.064883
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which dental clinic in Chandigarh Tricity has the best reviews and results",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t a reliable, independent way to name one clinic as having the **best results** for every type of dental treatment. But **Dr. Kochar’s House of Smiles** looks like a strong all-rounder based on the available review summaries: one local ranking includes it among Chandigarh’s top clinics, and a 2026 roundup reports a 4.9 rating with nearly 1,700 reviews.[1][2]\n\nOther well-reviewed options include **Dentistree**, which is reported to have more than 1,000 five-star reviews, and **The Smile Designers**, whose site shows 449 reviews and positive reports about braces, bridges, and veneers.[2][3] For orthodontics or Invisalign specifically, **Newway Orthodontic** may be worth comparing; its listing reports a 4.9/5 rating and patient feedback on orthodontic and other treatments.[6]\n\nBefore choosing, compare recent reviews for the **specific procedure** you need, confirm the treating dentist’s qualifications, and get a written treatment plan and full cost estimate. Reviews can help shortlist clinics, but they can’t guarantee clinical outcomes.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Dr. Kochar’s House of Smiles",
+          "Dentistree",
+          "The Smile Designers",
+          "Newway Orthodontic"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "threebestrated.in",
+          "url": "https://threebestrated.in/dental-clinics-in-chandigarh-ch",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thesmiledesigners.co.in",
+          "url": "https://thesmiledesigners.co.in/trusted-best-dental-doctors-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thesmiledesigners.co.in",
+          "url": "https://thesmiledesigners.co.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "icubedental.com",
+          "url": "https://icubedental.com/dental-clinic-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "estheticadentalchandigarh.com",
+          "url": "https://www.estheticadentalchandigarh.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "newwayorthodontic.com",
+          "url": "https://newwayorthodontic.com/best-dentist-in-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Dentia-Speciality-Dental-Clinic-and-Facial-Surgery-Centre-Near-Ccd-Pizza-Hut-Chandigarh-Sector-59-Phase-5/0172PX172-X172-161211234549-E3D1_BZDET",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Dentists/nct-10156331?wap=2",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Tricity-Smiles-Chandigarh-Sector-26/0172PX172-X172-221219010907-D7F1_BZDET",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "newwayorthodontic.com",
+          "url": "https://newwayorthodontic.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0012
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a dental clinic cost in Chandigarh Tricity and which one is worth it",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "If you mean **the cost of dental treatment**, typical private-clinic prices across Chandigarh–Mohali–Panchkula are roughly:\n\n| Treatment | Indicative cost |\n|---|---:|\n| Check-up | ₹200–₹1,000 |\n| Cleaning/scaling | ₹800–₹4,000 |\n| Filling | ₹800–₹3,500 |\n| Root canal | ₹3,000–₹12,000 **per tooth**; a crown may be extra |\n| Crown | ₹3,000–₹15,000 |\n| Single implant | ₹18,000–₹65,000; check whether the crown is included |\n\nThese are ballpark figures, not guaranteed quotes; the tooth, materials, scans and case complexity can change the total. For example, a Mohali clinic lists check-ups at ₹200–₹500 and scaling at ₹800–₹1,500, while Clove lists starting prices such as ₹5,347 for root canal treatment and ₹28,892 for a single implant. ([smilesscans.com](https://www.smilesscans.com/dental-clinic-mohali?utm_source=openai))\n\n**Which is worth it?** There isn’t enough reliable, independent information to name one clinic as best for everyone. For a **routine check-up or cleaning**, compare the written quote from a nearby clinic—Smiles & Scans in Sunny Enclave, for instance, publishes lower starting prices, though confirm the final cost and location suits you. For an **implant**, Advanced Dental Care Centre in Sector 18-A lists implant options, but get a second opinion and an itemised quote before committing. ([smilesscans.com](https://www.smilesscans.com/dental-clinic-mohali?utm_source=openai))\n\nBefore booking, ask what the quoted price includes—especially whether an RCT quote includes the crown, or an implant quote includes the abutment and crown—and ask who will perform the procedure. If you tell me **which treatment** you need and whether you’re closer to Chandigarh, Mohali or Panchkula, I can narrow the comparison.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "smilesscans.com",
+          "url": "https://www.smilesscans.com/dental-clinic-mohali?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021851
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a dental clinic cost in Chandigarh Tricity and which one is worth it",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Dental treatment costs in the Chandigarh Tricity area (Chandigarh, Mohali, Panchkula) depend on whether you visit a neighborhood clinic, an advanced multi-specialty center, or a government institute.\n\n---\n\n### 1. Estimated Dental Costs in Tricity (Procedure Breakdown)\n\n| Procedure | Typical Private Clinic Cost | High-End / Premium Clinic Cost |\n| :--- | :--- | :--- |\n| **Consultation & Check-up** | ₹200 – ₹500 | ₹500 – ₹1,000 |\n| **Intraoral X-Ray (IOPA / RVG)** | ₹100 – ₹300 | ₹300 – ₹500 |\n| **Teeth Cleaning (Scaling & Polishing)** | ₹800 – ₹1,500 | ₹1,800 – ₹3,000 |\n| **Dental Filling (Composite / Tooth-colored)** | ₹800 – ₹1,800 per tooth | ₹2,000 – ₹3,500 per tooth |\n| **Root Canal Treatment (RCT)** | ₹2,500 – ₹4,500 (standard molar) | ₹5,000 – ₹8,000 (rotary/microscopic) |\n| **Dental Crown / Cap** | Metal: ₹1,500 – ₹2,500<br>PFM (Ceramic): ₹3,000 – ₹5,000<br>Zirconia: ₹6,000 – ₹10,000 | Premium Zirconia / E-max:<br>₹10,000 – ₹18,000+ |\n| **Simple Tooth Extraction** | ₹500 – ₹1,500 | ₹1,500 – ₹2,500 |\n| **Wisdom Tooth Extraction (Surgical)** | ₹3,000 – ₹5,500 | ₹6,000 – ₹10,000 |\n| **Dental Implant (Single Tooth)** | ₹18,000 – ₹25,000 (Indian/Korean brands) | ₹35,000 – ₹55,000+ (Straumann / Nobel Biocare) |\n| **Braces (Traditional / Metal / Ceramic)** | ₹25,000 – ₹55,000 | ₹50,000 – ₹80,000 |\n| **Clear Aligners (Invisalign / Flash, etc.)** | ₹50,000 – ₹1,00,000 (domestic aligners) | ₹1,20,000 – ₹2,50,000+ (Invisalign) |\n| **Teeth Whitening (In-Office)** | ₹4,000 – ₹8,000 | ₹9,000 – ₹15,000 |\n\n*(Note: If you are looking for heavily subsidized, high-standard dental work on a budget, government setups like the **Oral Health Sciences Centre at PGIMER** or **GMCH Sector 32** perform these procedures at nominal fees, but they involve long queues and waiting periods).*\n\n---\n\n### 2. Which Dental Clinics Are \"Worth It\" in Tricity?\n\nThe best clinic depends on the nature of your treatment (routine check-up vs. complex surgery/cosmetics). The following clinics have strong local reputations and high patient ratings across Chandigarh, Mohali, and Panchkula:\n\n#### **A. Chandigarh**\n* **Dr. Kochar’s House of Smiles (Sector 21-C, Chandigarh)**\n  * **Best for:** NABH-accredited clinic, strict sterilization, full-mouth rehabilitation, and smile makeovers.\n  * **Why it’s worth it:** One of the most technologically advanced clinics in the city with rigorous hygiene standards and specialized prosthodontic/cosmetic care.\n* **Advanced Dental Care Center (Sector 18-A, Chandigarh – Dr. Anshu Gupta)**\n  * **Best for:** Dental implants, cosmetic dentistry, and complex surgical cases.\n  * **Why it’s worth it:** Equipped with in-house CBCT 3D imaging (which avoids referring you out for diagnostic scans) and experienced multi-specialty consultants.\n* **Tricity Smiles Dentistry (Sector 28-A, Chandigarh)**\n  * **Best for:** Family dentistry, pediatric dental care, preventive care.\n  * **Why it’s worth it:** Known for conservative treatment approaches (saving natural teeth instead of pushing unnecessary root canals), a clean environment, and transparent billing.\n\n#### **B. Panchkula**\n* **Dr. Sanjay Kalra’s Multispeciality Dental Clinic (Sector 14, Panchkula)**\n  * **Best for:** Implants, fixed dentures, and complex restorative cases.\n  * **Why it’s worth it:** A legacy practice in Panchkula with a long track record, experienced senior practitioners, and dependable post-operative support.\n\n#### **C. Mohali**\n* **Dental Excellence (Phase 3B2 / Sector 60, Mohali)**\n  * **Best for:** Orthodontics (braces/aligners), root canals, general family dentistry.\n  * **Why it’s worth it:** Central location in Mohali with consistent patient satisfaction, modern painless RCT setups, and good value for money.\n\n---\n\n### Tips Before You Finalize:\n1. **Match the specialist to the procedure:** For a root canal, ensure the procedure is done by an **Endodontist**; for wisdom tooth impactions or implants, verify that an **Oral & Maxillofacial Surgeon** or **Periodontist** is handling the case.\n2. **Avoid clinics pushing aggressive treatments:** Always ask for X-rays and clear justifications if a dentist advises multiple root canals on teeth that show no symptoms.\n3. **Ask about crown/implant brands:** In private setups, check the manufacturer and warranty card for crowns (e.g., 3M, Lava) or implants (e.g., Adin, Osstem, Straumann) before paying.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Oral Health Sciences Centre at PGIMER",
+          "GMCH Sector 32",
+          "Dr. Kochar’s House of Smiles",
+          "Tricity Smiles Dentistry",
+          "Dr. Sanjay Kalra’s Multispeciality Dental Clinic",
+          "Dental Excellence"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "quora.com",
+          "url": null,
+          "channelType": "forum",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "gmch.gov.in",
+          "url": null,
+          "channelType": "reference",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drkochars.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "chandigarhdentist.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "tricitysmiles.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "tricitysmiles.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "reddit.com",
+          "url": null,
+          "channelType": "forum",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "whatclinic.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.037801
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a dental clinic cost in Chandigarh Tricity and which one is worth it",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "If you mean **the cost of dental treatment**, not buying or setting up a clinic, prices in Chandigarh Tricity vary by procedure and clinic. Typical private-clinic ballparks are **₹500–₹2,000 for a check-up, ₹1,500–₹3,000 for cleaning, ₹2,000–₹10,000 for a root canal, and ₹20,000–₹60,000 for a single implant**; the exact quote depends on complexity and what’s included.[7][8][3]\n\n**Which is worth it?** There isn’t enough reliable, independent evidence to name one clinic as best for everyone. For an implant, **Panwar Dental Clinic in Panchkula** is one option to compare: listings describe it as NABH-certified and implant-focused, but verify the dentist’s credentials and get a written quote before choosing.[2] For routine or budget care, compare nearby private clinics with the government dental service; a local listing reports lower scaling prices at government facilities, though availability and fees should be confirmed directly.[1]\n\nBefore committing, ask for an itemized estimate covering X-rays, the procedure, crown/materials, follow-up visits, and any extra charges. For major work such as implants or root canals, a second opinion is sensible. If you meant **the cost to open or buy a dental clinic**, say so—the estimate would be very different.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Panwar Dental Clinic in Panchkula"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "reddit.com",
+          "url": "https://www.reddit.com/r/Chandigarh/comments/1wgq7ou/best_dental_treatment_in_tricity/",
+          "channelType": "forum",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "medicaltourismco.com",
+          "url": "https://www.medicaltourismco.com/cost-of-dental-implants-in-chandigarh-india/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "whatclinic.com",
+          "url": "https://www.whatclinic.com/dentists/india/chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Dentists-in-Tricity-Dental-Clinic-Chandigarh-Sector-44C/nct-10156331",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "wowchandigarh.com",
+          "url": "https://www.wowchandigarh.com/health-wellness/best-dentists-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thesmiledesigners.co.in",
+          "url": "https://thesmiledesigners.co.in/best-dental-clinics-chandigarh-list/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Dentists/nct-10156331/page-5",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Dental-Hospitals-in-Tribune-Road/nct-11273042",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "reddit.com",
+          "url": "https://www.reddit.com/r/Chandigarh/comments/1ph8u08/any_dentist_or_dental_clinic_recommendation_for/",
+          "channelType": "forum",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "dentavacation.com",
+          "url": "https://www.dentavacation.com/cosmetic-dentistry-in-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00123
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which dental clinic in Chandigarh Tricity should I trust",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "If you want one **evidence-based starting point**, I’d consider **Gupta Dental Centre, #26, Sector 18A, Chandigarh**. It appears on NABH’s official list with accreditation valid through **December 4, 2028**, covering general dentistry and several specialties, including root canals, oral surgery, children’s dentistry, gum care, and prosthodontics. That’s a useful quality signal—not a guarantee that every treatment or clinician will be the right fit for you. ([portal.nabh.co](https://portal.nabh.co/Documents/AccreditedList/Dental%20Facilities/D-2024-0428_3rd%20Edition.pdf?utm_source=openai))\n\nBefore agreeing to a costly or irreversible procedure, ask who will perform it, what alternatives there are, and for a written estimate; consider a second opinion. If you tell me **which part of the Tricity you’re in** and **what treatment you need**—for example, a check-up, root canal, braces, or implant—I can narrow the options.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Gupta Dental Centre"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "portal.nabh.co",
+          "url": "https://portal.nabh.co/Documents/AccreditedList/Dental%20Facilities/D-2024-0428_3rd%20Edition.pdf?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011529
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which dental clinic in Chandigarh Tricity should I trust",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "When choosing a trustworthy dental clinic in Chandigarh Tricity (Chandigarh, Mohali, Panchkula), the best choice depends on whether you are looking for **academic/institutional expertise**, **specialized cosmetic/implant care**, or **routine family dentistry**.\n\nBelow is a breakdown of the most reputable, patient-trusted options across the Tricity:\n\n---\n\n### 1. Premier Institutions (Best for Complex Surgeries & Clinical Standards)\nIf you have high-risk medical conditions, complex maxillofacial issues, or want care strictly governed by medical ethics (without commercial upselling):\n*   **Oral Health Sciences Centre (PGIMER, Sector 12, Chandigarh):** The gold standard in clinical care, oral surgery, and pathology. Unmatched for severe infections, cysts, impacted third molars, or trauma. *(Expect long wait times and registration queues).*\n*   **Dr. Harvansh Singh Judge Institute of Dental Sciences & Hospital (PU, Sector 25, Chandigarh):** Panjab University’s dental college hospital. Staffed by qualified professors and specialists across all departments. Ideal for high-quality care at nominal government rates.\n\n---\n\n### 2. Leading Private Multispecialty Clinics by Region\n\n#### **Chandigarh**\n*   **Advanced Dental Care Centre (Sector 18-A):** Led by Dr. Anshu Gupta (PGI alumnus), this clinic is known for advanced diagnostics (in-house CBCT/digital scanning), complex root canals, dental implants, and restorative treatments.\n*   **Dr. Kochar’s House of Smiles (Sector 21-C):** A long-established, trusted family dental practice in central Chandigarh known for routine dentistry, conservative treatment planning, and good sterilization standards.\n*   **Satya Dental Clinic (Sector 44-C):** Widely trusted if your primary requirement is **dental implants** and fixed prosthetics.\n*   **Tricity Smiles Dental Clinic (Sector 28-A):** Known for a conservative approach, gentle pediatric and family dentistry, and modern infection control.\n\n#### **Mohali**\n*   **The Dental Specialists (Phase 3B-2):** Headed by Dr. Preetinder Singh, this is one of the highest-rated clinics in Mohali, particularly for periodontal (gum) surgeries, bone grafting, and dental implants.\n*   **The Smile Designers (Sector 70 / Phase 7 area):** Highly regarded for **orthodontics, clear aligners, veneers, and aesthetic smile makeovers**.\n*   **Hospital Dental Units (Fortis Hospital / Max Super Speciality, Mohali):** Best if you are elderly, diabetic, on blood thinners, or need general anesthesia for dental extractions, as full emergency medical backup is on standby.\n\n#### **Panchkula**\n*   **Gupta Dental Hospital (Sector 11 / Sector 15):** One of the oldest and most recognized names in Panchkula with multi-generational patient trust for general dentistry, braces, and implants.\n*   **Dentafix (Sector 17, Panchkula & Sector 27, Chandigarh):** Known for pain-managed dentistry, root canal treatments, and preventative dental hygiene.\n\n---\n\n### How to Decide Which One You Should Trust\n\nBefore booking an expensive procedure, evaluate the clinic using this checklist:\n\n1. **Verify the MDS Specialist:** Dentistry is fragmented into specialties. Ensure an **Endodontist** does your root canal, an **Oral & Maxillofacial Surgeon** handles wisdom tooth impactions, a **Periodontist/Prosthodontist** manages implants, and an **Orthodontist** handles aligners/braces. Avoid single-dentist clinics where one general BDS dentist does every complex procedure.\n2. **Sterilization Transparency:** Look for clinics that open pre-sealed, autoclaved instrument pouches directly in front of you.\n3. **Diagnostic Clarity:** A trustworthy clinic will always show you your digital intra-oral X-ray or CBCT 3D scan and explain the diagnosis before recommending invasive treatments like crowns or extractions.\n4. **Second Opinion for Major Work:** If a clinic quotes a very high bill for multiple root canals or immediate full-mouth implants, book a quick evaluation at **PGIMER** or **PU Dental College** to confirm whether those procedures are clinically necessary.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Dr. Kochar’s House of Smiles",
+          "Satya Dental Clinic",
+          "Tricity Smiles Dental Clinic",
+          "The Smile Designers",
+          "Gupta Dental Hospital",
+          "Dentafix",
+          "PU Dental College"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "chandigarhdentist.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drkochars.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thesmiledesigners.co.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "tricitysmiles.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bestdentalchandigarh.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "dentalchandigarh.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "dentafix.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.035472
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which dental clinic in Chandigarh Tricity should I trust",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "If you want one practical starting point, **Dr. Kochar’s House of Smiles in Sector 21B, Chandigarh** is a reasonable option to shortlist: it appears among the top-rated local clinics and has a substantial number of reviews in the listings available[1][2]. That is not a guarantee of quality, though—online ratings alone can’t establish which clinic is right for your treatment.\n\nFor comparison, **Advanced Dental Care Center (Sector 18)** and **Dentistree (Sector 22B)** are also listed among Chandigarh’s highly rated clinics[1][2]. If you need a specialist procedure—such as braces, implants, or a root canal—choose a dentist with relevant postgraduate training and experience in that specific treatment, not just a clinic with a high overall score.\n\nBefore committing, ask for a written treatment plan and itemized costs, what alternatives are available, and whether the treating dentist will do the procedure. For major or irreversible work, getting a second opinion is sensible. Which part of the Tricity are you in, and what treatment do you need?",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Dr. Kochar’s House of Smiles",
+          "Dentistree"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "thesmiledesigners.co.in",
+          "url": "https://thesmiledesigners.co.in/trusted-best-dental-doctors-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "threebestrated.in",
+          "url": "https://threebestrated.in/dental-clinics-in-chandigarh-ch",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Dentists/nct-10156331?wap=2",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "chdlife.com",
+          "url": "https://chdlife.com/best-dentists-in-chandigarh-the-city-beautiful/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "newwayorthodontic.com",
+          "url": "https://newwayorthodontic.com/best-dentist-in-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Dental-Hospitals-in-Tricity-Hospital-Mani-Majra/nct-11273042",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "orangedentalclinics.com",
+          "url": "https://orangedentalclinics.com/successful-dental-stories-in-their-words/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "linkedin.com",
+          "url": "https://www.linkedin.com/pulse/cosmetic-dentistry-clinics-new-chandigarh-vishali--otrvc",
+          "channelType": "social",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Tricity-Smiles-Chandigarh-Sector-26/0172PX172-X172-221219010907-D7F1_BZDET/reviews",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": "https://www.practo.com/chandigarh/clinic/tricity-dental-clinic-sector-44",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0012
+    }
+  ]
+}
