@@ -341,6 +341,24 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
+// 11:00 IST daily: AI checks in advance for approved businesses with only a phone number (no cold calls; their first
+// message will be WhatsApp once Meta approves). PREAUDITS_PER_DAY, default 5. Nothing is sent to anyone.
+cron.schedule(
+  "0 11 * * *",
+  wrapCronJob("11:00 IST Phone-only pre-audits", async () => {
+    const { runPreauditsLive } = await import("./agents/outreach-sequencer/preaudit.js");
+    const run = await runPreauditsLive();
+    console.log(`[Pre-audit] ${run.done.length} checked, ${run.failed.length} failed`);
+    if (run.failed.length) {
+      const { postLine } = await import("./lib/post.js");
+      const { getAlertsChannel } = await import("./lib/cron-wrapper.js");
+      const { plainError } = await import("./lib/plain-error.js");
+      await postLine({ channel: getAlertsChannel(), text: `*Advance AI checks:* ${run.done.length} done, ${run.failed.length} could not run (${run.failed.map((f) => `${f.company}: ${plainError(f.error)}`).join("; ")}). They are tried again tomorrow.` });
+    }
+  }),
+  { timezone: config.timezone }
+);
+
 // Every 15 minutes: first GA4 sync for a property connected since the last check
 cron.schedule(
   "*/15 * * * *",

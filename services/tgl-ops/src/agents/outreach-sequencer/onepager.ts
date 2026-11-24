@@ -109,6 +109,17 @@ export async function runProspectAudit(
     prompts: buildAuditPrompts(p),
     prospect: { name: p.company, website: p.website, variants: lens.variants, nameFilter: (names) => defaultNameFilter(names, looking) },
   });
+  // Recorded as a prospect audit, which is also written to usage_costs (lib/cost-cap.ts), so the live view's
+  // spend includes outreach audits (24 Nov 2026). A ledger problem never fails the audit.
+  try {
+    const usd = Number(result.summary?.totalCostUsd || 0);
+    if (usd > 0) {
+      const { recordApiSpend } = await import("../../lib/cost-cap.js");
+      recordApiSpend({ agent: "outreach-sequencer", apiName: "prospect-audit", totalCostUsd: usd, details: `Outreach audit for ${p.company}: ${result.totalQueries} answers`, options: options?.testMode ? { testMode: true } : undefined });
+    }
+  } catch (err) {
+    console.warn("[Outreach Audit] spend not recorded:", (err as Error)?.message || err);
+  }
   return { result, summary: summarizeAudit(result, { company: p.company, city: p.city }) };
 }
 

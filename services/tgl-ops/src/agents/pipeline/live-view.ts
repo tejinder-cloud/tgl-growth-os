@@ -28,6 +28,8 @@ export interface LiveProspect {
       last_reply_intent?: string;
       touches?: { n: number; channel?: string; sent_at?: string; dry_run?: boolean; via?: string }[];
     };
+    /** The AI check run in advance for a phone-only business (preaudit.ts). */
+    preaudit?: { mentions?: number; total_queries?: number; audited_at?: string; weakest_competitor?: string; competitor_mentions?: Record<string, number> };
   } | null;
 }
 
@@ -66,9 +68,9 @@ export interface CallRow {
   company: string;
   city: string;
   type: string;
-  phone: string;
-  person: string;
   fit: number;
+  /** The advance AI check in one sentence, or "" when it has not run yet. */
+  check: string;
 }
 
 export interface Problem {
@@ -104,10 +106,12 @@ function hasEmail(p: LiveProspect): boolean {
   return /\S+@\S+\.\S+/.test(p.decision_maker?.email || "");
 }
 
-function personFor(name: string | undefined): string {
-  const n = (name || "").trim();
-  if (!n || n.includes("/") || /dm unknown|owner|lead doctor/i.test(n)) return "";
-  return n;
+/** "Named in 0 of 15 AI answers; Kochar's House of Smiles named in 7 (checked 25 Nov)." Only stored facts. */
+export function checkLine(company: string, a: NonNullable<NonNullable<LiveProspect["signals"]>["preaudit"]> | undefined): string {
+  if (!a || typeof a.mentions !== "number" || !a.total_queries) return "";
+  const comp = a.weakest_competitor && a.competitor_mentions?.[a.weakest_competitor] !== undefined ? `; ${a.weakest_competitor} named in ${a.competitor_mentions[a.weakest_competitor]}` : "";
+  const when = a.audited_at ? ` (checked ${dayOnly(a.audited_at).replace(/^\w+, /, "")})` : "";
+  return `Named in ${a.mentions} of ${a.total_queries} AI answers${comp}${when}.`;
 }
 
 /** Why a sequence is paused, as one plain heading that groups the same cause together. */
@@ -161,7 +165,8 @@ export function buildLiveView(input: LiveInput): LiveView {
     .sort((a, b) => a.at.localeCompare(b.at));
   const replyDeals = input.deals.filter((d) => d.stage === "replied").length;
 
-  // Approved, never emailed, no email address, a phone number: only a call (or WhatsApp later) reaches them.
+  // Approved, never emailed, no email address, a phone number: the WhatsApp first message reaches them once Meta
+  // approves the app (no cold calls, Architect 24 Nov 2026).
   const callList: CallRow[] = approvedList
     .filter((p) => p.status === "reviewed" && !p.signals?.outreach && !hasEmail(p) && (p.decision_maker?.phone || "").replace(/\D/g, "").length >= 8)
     .sort((a, b) => (b.fit_score || 0) - (a.fit_score || 0))
@@ -169,16 +174,14 @@ export function buildLiveView(input: LiveInput): LiveView {
       company: cleanBusinessName(p.company),
       city: p.city || "",
       type: categoryLabel(p.category || ""),
-      phone: String(p.decision_maker?.phone || "").trim(),
-      person: personFor(p.decision_maker?.name),
       fit: Number(p.fit_score || 0),
+      check: checkLine(cleanBusinessName(p.company), p.signals?.preaudit),
     }));
   const waitingForEmail = approvedList.filter((p) => p.status === "reviewed" && !p.signals?.outreach && hasEmail(p)).length;
 
   const waiting: string[] = [];
   if (awaiting) waiting.push(`Approve or reject ${awaiting} new ${awaiting === 1 ? "business" : "businesses"} in #revenue.`);
   if (replyDeals) waiting.push(`Answer ${replyDeals} ${replyDeals === 1 ? "reply" : "replies"} (open the pipeline).`);
-  if (callList.length) waiting.push(`Call the businesses in the call list: ${callList.length} approved, phone only.`);
   if (upcoming[0]) waiting.push(`Prepare for your next call: ${upcoming[0].company}, ${fmt(upcoming[0].at)}.`);
 
   const problems: Problem[] = [...groups.entries()].map(([text, names]) => ({ text, names }));
@@ -204,7 +207,7 @@ export function buildLiveView(input: LiveInput): LiveView {
   ];
   let funnelNote: string | null = null;
   if (callList.length) {
-    funnelNote = `${callList.length} approved ${callList.length === 1 ? "business has" : "businesses have"} only a phone number, so ${callList.length === 1 ? "it" : "they"} can't be emailed: see the call list.${waitingForEmail ? ` ${waitingForEmail} more ${waitingForEmail === 1 ? "is" : "are"} waiting for a free slot under the daily email limit.` : ""}`;
+    funnelNote = `${callList.length} approved ${callList.length === 1 ? "business has" : "businesses have"} only a phone number, so ${callList.length === 1 ? "it" : "they"} can't be emailed; ${callList.length === 1 ? "it gets" : "they get"} the WhatsApp first message once Meta approves the app.${waitingForEmail ? ` ${waitingForEmail} more ${waitingForEmail === 1 ? "is" : "are"} waiting for a free slot under the daily email limit.` : ""}`;
   } else if (waitingForEmail) {
     funnelNote = `${waitingForEmail} approved ${waitingForEmail === 1 ? "business is" : "businesses are"} waiting for a free slot under the daily email limit.`;
   }
@@ -265,13 +268,6 @@ function rupees(n: number): string {
   return `₹${Math.round(n).toLocaleString("en-IN")}`;
 }
 
-function telHref(phone: string): string {
-  const digits = phone.replace(/[^\d+]/g, "");
-  if (digits.startsWith("+")) return digits;
-  const d = digits.replace(/^0+/, "");
-  return d.length === 10 ? `+91${d}` : d;
-}
-
 /** "Tick 2026-11-24T08:00:00.000Z (live)" reads "Tick 1:30 pm IST (live)". */
 export function readableTimes(text: string): string {
   return String(text || "").replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?Z/g, (iso) => `${timeOnly(iso)} IST`);
@@ -280,7 +276,7 @@ export function readableTimes(text: string): string {
 const PRODUCT_NAMES: Record<string, string> = { truevisible: "TrueVisible", tgl_ops: "Research and audits" };
 
 function callItem(c: CallRow): string {
-  return `<li><div><b>${esc(c.company)}</b><span class="sub">${esc([c.type, c.city].filter(Boolean).join(", "))}${c.person ? `. Ask for ${esc(c.person)}` : ""}</span></div><span class="fit" title="Fit score">fit ${c.fit}</span><a class="tel" href="tel:${esc(telHref(c.phone))}">${esc(c.phone)}</a></li>`;
+  return `<li><div><b>${esc(c.company)}</b><span class="sub">${esc([c.type, c.city].filter(Boolean).join(", "))}</span>${c.check ? `<span class="chk">${esc(c.check)}</span>` : `<span class="chk wait">AI check not run yet</span>`}</div><span class="fit" title="Fit score">fit ${c.fit}</span></li>`;
 }
 
 /** The part of the page that refreshes. */
@@ -302,11 +298,11 @@ export function renderLiveMain(v: LiveView): string {
     : `<p class="ok">Nothing is wrong right now.</p>`;
 
   const calls = v.calls.length
-    ? `<p class="lead">Approved businesses with a phone number and no email. Highest fit first.</p>
+    ? `<p class="lead">Approved businesses with no email address. Their first message is the WhatsApp note, once Meta approves the app. Each gets its AI check in advance, a few each day, so the message is ready. Highest fit first.</p>
 <ul class="calls">${v.calls.slice(0, 10).map(callItem).join("")}</ul>${
         v.calls.length > 10 ? `<details><summary>Show ${v.calls.length - 10} more</summary><ul class="calls">${v.calls.slice(10).map(callItem).join("")}</ul></details>` : ""
       }`
-    : `<p class="ok">No approved business is waiting for a call.</p>`;
+    : `<p class="ok">No approved business is waiting for WhatsApp.</p>`;
 
   const max = Math.max(1, ...v.funnel.map((f) => f.count));
   const funnel = v.funnel
@@ -346,7 +342,7 @@ ${earlier.length ? `<tbody><tr class="grp"><th colspan="3">Earlier</th></tr>${ea
 <div class="grid">
 <section class="panel" id="waiting"><h2>Waiting on you</h2>${waiting}</section>
 <section class="panel" id="problems"><h2>Problems</h2>${problems}</section>
-<section class="panel wide" id="calls"><h2>Call list${v.calls.length ? ` <span class="count">${v.calls.length}</span>` : ""}</h2>${calls}</section>
+<section class="panel wide" id="calls"><h2>Waiting for WhatsApp${v.calls.length ? ` <span class="count">${v.calls.length}</span>` : ""}</h2>${calls}</section>
 <section class="panel wide" id="funnel"><h2>Funnel</h2><ol class="funnel">${funnel}</ol>${v.funnelNote ? `<p class="note">${esc(v.funnelNote)}</p>` : ""}</section>
 <section class="panel wide" id="outbox"><h2>Outbox</h2>${outbox}</section>
 <section class="panel" id="agents"><h2>What the agents did today</h2>${agents}</section>
@@ -386,9 +382,9 @@ main{padding:14px 20px 40px;max-width:1240px}
 .todo{margin:0;padding-left:20px}.todo li{margin:6px 0;padding-left:2px}
 .probs{list-style:none;margin:0;padding:0}.probs li{border-left:3px solid var(--terra);padding:2px 0 2px 10px;margin:8px 0}.names{color:var(--mute);font-size:.86rem;margin-top:2px}
 .ok{color:var(--mute)}
-.calls{list-style:none;margin:0;padding:0}.calls li{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:6px 14px;padding:9px 0;border-bottom:1px solid var(--paper-2)}
+.calls{list-style:none;margin:0;padding:0}.calls li{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px 14px;padding:9px 0;border-bottom:1px solid var(--paper-2)}
 .sub{display:block;font-size:.8rem;color:var(--mute)}.fit{font-size:.75rem;font-weight:600;border:1.5px solid var(--grey);border-radius:999px;padding:1px 8px;color:var(--mute);white-space:nowrap}
-.tel{font-weight:600;text-decoration:none;border:2px solid var(--ink);border-radius:10px;padding:6px 12px;background:var(--paper);white-space:nowrap}.tel:hover{background:var(--ink);color:var(--paper)}
+.chk{display:block;font-size:.86rem;color:var(--ink-2);margin-top:3px}.chk.wait{color:var(--mute);font-style:italic}
 .funnel{list-style:none;margin:0;padding:0}.funnel li{display:grid;grid-template-columns:110px 1fr 44px 44px;align-items:center;gap:10px;margin:6px 0}
 .funnel .lbl{font-size:.9rem}.funnel .bar{background:var(--paper-2);border-radius:999px;height:14px;overflow:hidden}.funnel .bar i{display:block;height:100%;background:var(--teal);border-radius:999px}
 .funnel b{text-align:right}.funnel .pct{font-size:.78rem;color:var(--mute);text-align:right}
@@ -402,7 +398,7 @@ details{margin-top:8px}summary{cursor:pointer;color:var(--mute);font-weight:600;
 .foot{color:var(--mute);font-size:.8rem;margin-top:10px}
 :focus-visible{outline:3px solid var(--teal);outline-offset:2px}
 @media (max-width:820px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:520px){.calls li{grid-template-columns:1fr auto}.calls .fit{display:none}.funnel li{grid-template-columns:86px 1fr 36px 36px}.hd{flex-wrap:wrap}}
+@media (max-width:520px){.funnel li{grid-template-columns:86px 1fr 36px 36px}.hd{flex-wrap:wrap}}
 @media (prefers-reduced-motion:reduce){.stats a:hover{transform:none}}
 </style></head><body>
 <header class="hd"><a href="/pipeline/live"><img src="/book/assets/logo.png" alt="The Growth Lab" width="60" height="34"></a>
