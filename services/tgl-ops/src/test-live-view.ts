@@ -32,7 +32,7 @@ async function main() {
     p("f", { status: "new" }),
     p("g", { status: "reviewed" }),
     p("ph1", { status: "reviewed", fit_score: 66, decision_maker: { name: "Owner / Lead Doctor", email: "", phone: "098765 43210" } }),
-    p("ph2", { status: "reviewed", fit_score: 81, company: "Smile Hub", category: "hotels", city: "Patiala", decision_maker: { name: "Dr Asha Rao", email: "", phone: "+91 99887 76655" } }),
+    p("ph2", { status: "reviewed", fit_score: 81, company: "Smile Hub", category: "hotels", city: "Patiala", decision_maker: { name: "Dr Asha Rao", email: "", phone: "+91 99887 76655" }, signals: { preaudit: { mentions: 0, total_queries: 15, audited_at: "2026-11-25T05:30:00Z", weakest_competitor: "Grand Stay", competitor_mentions: { "Grand Stay": 7 } } } as any }),
     p("nophone", { status: "reviewed", decision_maker: { name: "", email: "", phone: "" } }),
     p("h", { status: "bench" }),
   ];
@@ -58,15 +58,16 @@ async function main() {
   assert.match(v.today.nextCall || "", /^Smile <Studio>, Wed/);
   assert.deepEqual(v.funnel.map((f) => [f.label, f.count]), [["Qualified", 12], ["Approved", 9], ["Emailed", 2], ["Replied", 1], ["Call booked", 3], ["Won", 1]]);
 
-  // Call list: approved, never emailed, no email, a phone; highest fit first; no invented person.
-  assert.deepEqual(v.calls.map((c) => [c.company, c.fit, c.person]), [["Smile Hub", 81, "Dr Asha Rao"], ["Clinic ph1", 66, ""]]);
+  // Waiting for WhatsApp: approved, never emailed, no email, a phone; highest fit first; the advance AI check.
+  assert.deepEqual(v.calls.map((c) => [c.company, c.fit]), [["Smile Hub", 81], ["Clinic ph1", 66]]);
+  assert.match(v.calls[0].check, /^Named in 0 of 15 AI answers; Grand Stay named in 7 \(checked .*25 Nov.*\)\.$/);
+  assert.equal(v.calls[1].check, "", "no check yet, nothing invented");
   assert.equal(v.calls[0].type, "hotel");
-  assert.match(v.funnelNote || "", /^2 approved businesses have only a phone number, so they can't be emailed: see the call list\. 1 more is waiting for a free slot/);
+  assert.match(v.funnelNote || "", /^2 approved businesses have only a phone number, so they can't be emailed; they get the WhatsApp first message once Meta approves the app\. 1 more is waiting for a free slot/);
 
   assert.deepEqual(v.waiting, [
     "Approve or reject 2 new businesses in #revenue.",
     "Answer 1 reply (open the pipeline).",
-    "Call the businesses in the call list: 2 approved, phone only.",
     `Prepare for your next call: ${v.today.nextCall}.`,
   ]);
 
@@ -84,7 +85,9 @@ async function main() {
 
   const html = renderLivePage(v, "me@x.example");
   assert.ok(html.includes("Smile &lt;Studio&gt;") && !html.includes("Smile <Studio>"), "escaped");
-  assert.ok(html.includes('href="tel:+919876543210"') && html.includes('href="tel:+919988776655"'), "phone numbers are tap-to-call");
+  assert.ok(!html.includes('href="tel:'), "no tap-to-call: no cold calls");
+  assert.ok(html.includes("Waiting for WhatsApp") && !/call list/i.test(html), "no call-list framing");
+  assert.ok(html.includes("AI check not run yet"));
   assert.ok(html.includes("1<small> of 5</small>"));
   assert.ok(html.includes("₹513") && html.includes("TrueVisible"), "spend from the recorded table");
   assert.ok(html.includes('aria-current="page"') && html.includes('id="refresh"'), "current page marked; a refresh button");
@@ -96,7 +99,7 @@ async function main() {
   assert.ok(full.includes("limit reached"), "a full day says so");
 
   const quiet = renderLiveMain(buildLiveView({ now: NOW, prospects: [], deals: [], agents: null, spend: null, capToday: 2 }));
-  for (const t of ["Nothing sent yet.", "Today's agent logs could not be read.", "Spend could not be read.", "Not available", "No approved business is waiting for a call.", "Nothing is waiting on you."]) {
+  for (const t of ["Nothing sent yet.", "Today's agent logs could not be read.", "Spend could not be read.", "Not available", "No approved business is waiting for WhatsApp.", "Nothing is waiting on you."]) {
     assert.ok(quiet.includes(t), `empty state: ${t}`);
   }
 
