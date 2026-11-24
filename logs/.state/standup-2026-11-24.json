@@ -9,10 +9,8 @@
     "totalCostUsd": 0.0141,
     "costLine": "Standup compilation: 2193 input, 504 output (claude-sonnet-5-5) · Cost: $0.0141 USD"
   },
-  "posted": true,
+  "posted": false,
   "source": "cron",
-  "postedAt": "2026-11-24T12:30:01.174Z",
-  "standupTs": "1795523400.970969",
-  "threadPromptTs": "1795523401.103319",
+  "standupTs": "1795437017.972139",
   "channel": "C0ASF13879Q"
 }
