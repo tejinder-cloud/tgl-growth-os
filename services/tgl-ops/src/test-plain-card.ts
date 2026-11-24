@@ -19,6 +19,9 @@ import {
   buildRevenueTargetLine,
   buildNeedsItems,
   buildActivitySentences,
+  buildOutreachLine,
+  buildProblemsLine,
+  freshApprovals,
   computePace,
   findNextGate,
   formatRupees,
@@ -30,7 +33,8 @@ import {
   renderPlainCard,
   type PlainCardInput,
 } from "./agents/chief-of-staff/plain-card.js";
-import { buildPlainCardText, countApprovedCards, countRevenueProgress, istDateOf } from "./agents/chief-of-staff/plain-card-data.js";
+import { buildPlainCardText, countApprovedCards, countOutreach, countRevenueProgress, istDateOf } from "./agents/chief-of-staff/plain-card-data.js";
+import { plainError } from "./lib/plain-error.js";
 import { buildPlainStandupText, isPlainShape } from "./agents/chief-of-staff/anthropic.js";
 import type { GatheredData } from "./agents/chief-of-staff/gather.js";
 
@@ -172,10 +176,10 @@ async function main(): Promise<void> {
     currentDay: 14,
     dueDay: 15,
   });
-  assertEqual(items.length, 3, "approval, blocker and the go item");
+  assertEqual(items.length, 2, "approval and blocker; no plan go item since 24 Nov 2026");
   const filled = renderPlainCard(baseInput({ needs: items }));
   assert(/^1\. Approve or reject <https:\/\/itsthegrowthlab\.slack\.com\/archives\/C1\/p1\|"Day 20 dashboard"> in #approvals → .+\.$/m.test(filled), `item 1 shape: ${filled}`);
-  assert(/^3\. Reply "go" in #architect to start Day 15 .+ → .+\.$/m.test(filled), "go item names the due day");
+  assert(!/Reply "go" in #architect/.test(filled), "no plan go item");
   assert(!filled.includes("Nothing else needs you."), "a non-empty list does not close with the empty sentence");
   const linkCount = (filled.match(/<https?:\/\//g) || []).length;
   assertEqual(linkCount, 2, "only links the actions need (approval card and blocked issue)");
@@ -215,7 +219,8 @@ async function main(): Promise<void> {
     const text = renderPlainCard(v);
     assert(!EMOJI_REGEX.test(text), `emoji found in ${v.mode} card:\n${text}`);
     assert(isPlainShape(text, v.mode), `${v.mode} card lost the plain-English shape:\n${text}`);
-    assert(text.split("\n")[0].includes(" of 68 — "), "line 1 carries the day and pace");
+    assert(text.split("\n")[0].includes(" Brief for "), "line 1 is the brief greeting");
+    assert(!text.includes(" of 68 — ") && !text.includes("Revenue target") && !text.includes("These runs are scheduled"), "removed lines stay removed");
   }
   passed++;
   console.log("[7] No emojis in 09:00 or 21:00 cards: passed");
@@ -254,12 +259,9 @@ async function main(): Promise<void> {
   });
   console.log("\n" + morning + "\n");
   const mLines = morning.split("\n");
-  assert(mLines[0].startsWith("Good morning. Day 15 of 68 — 6 days behind (Next gate: Gate 1 at Day 15, originally due 11 Nov)"), "line 1");
-  assert(morning.includes("*Yesterday:* The citation tracker collected 48 answers"), "Yesterday section");
-  assert(morning.includes('"Plain-English 09:00 card"'), "merged PR title named");
-  assert(morning.includes("2 cards were approved"), "cards approved counted");
-  assert(morning.includes("*Today:* These runs are scheduled: the aeo audit engine at 06:00."), "Today lists scheduled runs");
-  assert(morning.includes('The active issue is #180 "Plain-English 09:00 card".'), "Today names the active issue");
+  assertEqual(mLines[0], "Good morning. Brief for Thu 12 Nov.", "line 1");
+  assertEqual(mLines[1], "*Outreach:* the outreach numbers could not be read.", "a test process never reads outreach numbers");
+  assert(!morning.includes("*Problems:*"), "no Problems line when the tracker and researcher both ran");
   assert(morning.includes("*Money:* 3 audit requests, 1 call booked, 1 proposal, 0 retainers, ₹0 invoiced. Yesterday's spend was ₹34.40."), "Money line");
   assert(/^1\. Approve or reject <https:\/\/itsthegrowthlab\.slack\.com\/archives\/C1\/p11\|"Day 20 dashboard"> in #approvals → .+\.$/m.test(morning), "Needs you item");
   assert(!/Open Issues|Carried|Intake|PROJECT-PLAN|plan\.yaml/i.test(morning), "removed lines stay removed");
@@ -269,7 +271,7 @@ async function main(): Promise<void> {
 
   // ---- 9. 21:00 standup uses the same shape ----
   const standup = await buildPlainStandupText({ ...material, openApprovals: [], blockedIssues: [] }, { testMode: true });
-  assert(standup.startsWith("Good evening. Day "), "standup greeting");
+  assert(standup.startsWith("Good evening. Brief for "), "standup greeting");
   assert(isPlainShape(standup, "evening"), `standup shape:\n${standup}`);
   assert(standup.includes("Daily Standup Digest"), "standup keeps the sign-off line the catch-up logic searches for");
   assert(standup.split("\n").length <= 25, "standup stays within 25 lines");
@@ -322,21 +324,60 @@ async function main(): Promise<void> {
     assertEqual(counted.auditsSent, 1, "one business has a sent audit; a failed send is not a send");
     assertEqual(countRevenueProgress([]).auditsRequested, 0, "no rows is zero, not an error");
 
-    // On the card: straight after the greeting, in both cards, and the shape check still holds.
+    // The expired target is no longer on the card (24 Nov 2026); the audit counts stay on the Money line.
     for (const mode of ["morning", "evening"] as const) {
       const text = renderPlainCard(baseInput({ mode, dateStr: "2026-11-13", revenue: rev, revenueProgress: { auditsRequested: 6, auditsSent: 4 } }));
-      const lines = text.split("\n");
-      assert(lines[1].startsWith("*Revenue target (by 26 Nov):*"), `${mode}: the target is the second line:\n${text}`);
-      assert(isPlainShape(text, mode), `${mode}: shape holds with the target line`);
+      assert(!text.includes("Revenue target"), `${mode}: no target line:\n${text}`);
+      assert(text.includes("*Money:* 6 audit requests"), `${mode}: audit requests on the Money line`);
+      assert(isPlainShape(text, mode), `${mode}: shape holds`);
       assert(!EMOJI_REGEX.test(text), `${mode}: no emojis`);
     }
-    const gathered = await buildPlainCardText({ mode: "morning", dateStr: "2026-11-13", testMode: true, material, planEntries, currentDay: 13 });
-    assert(gathered.split("\n")[1].includes("audit counts could not be read"), "a test process never reads the database for counts");
     const withCounts = await buildPlainCardText({ mode: "morning", dateStr: "2026-11-13", testMode: true, material, planEntries, currentDay: 13, overrides: { revenueProgress: { auditsRequested: 2, auditsSent: 1 } } });
-    assert(withCounts.split("\n")[1].includes("2 audits requested, 1 audit sent"), "counts passed in are shown");
+    assert(withCounts.includes("*Money:* 2 audit requests"), "counts passed in are shown");
   }
   passed++;
   console.log("[11] Revenue target line: passed");
+
+  // ---- 12. 24 Nov 2026 brief: outreach numbers, problems only when they exist, at most three fresh asks ----
+  {
+    const rows = [
+      { signals: { outreach: { state: "active", touches: [{ sent_at: "2026-11-23T05:00:00Z" }, { sent_at: "2026-11-23T06:00:00Z", dry_run: true }], last_reply_at: "2026-11-23T10:00:00Z" } } },
+      { signals: { outreach: { state: "active", touches: [{ sent_at: "2026-11-22T05:00:00Z" }] } } },
+      { signals: { outreach: { state: "paused", touches: [] } } },
+      { signals: { outreach: { state: "replied", touches: [{ sent_at: "2026-11-23T18:40:00Z" }] } } },
+      { signals: {} },
+    ];
+    const st = countOutreach(rows, "2026-11-23", 2);
+    assertEqual(JSON.stringify(st), JSON.stringify({ sent: 1, replies: 1, active: 2, paused: 1, nextCap: 2 }), "dry runs not counted; 18:40 UTC is the next IST day");
+    assertEqual(buildOutreachLine(st, "morning"), "*Outreach:* 1 email sent yesterday, 1 reply. 2 businesses are in a sequence, 1 paused. Daily limit today: 2.", "outreach line");
+    assertEqual(buildOutreachLine({ sent: 0, replies: 0, active: 1, paused: 0, nextCap: 5 }, "evening"), "*Outreach:* 0 emails sent today, 0 replies. 1 business is in a sequence. Daily limit tomorrow: 5.", "evening wording, no paused clause at 0");
+    assertEqual(buildProblemsLine(logs), null, "no problems when both ran");
+    assertEqual(buildProblemsLine([]), "*Problems:* The citation tracker did not report a run. The prospect researcher did not report a run.", "problems listed");
+    const card = renderPlainCard(baseInput({ activityLogs: [], outreach: st }));
+    const order = ["Brief for", "*Outreach:*", "*Money:*", "*Problems:*", "*Needs you:*"].map((k) => card.indexOf(k));
+    assert(order.every((i, n) => i >= 0 && (n === 0 || i > order[n - 1])), `card order:\n${card}`);
+
+    const stale = Array.from({ length: 5 }, (_, i) => ({ title: "[TASK]: Build the new Home page", permalink: `https://x/p${i}`, ageHours: 300 + i }));
+    const fresh = [
+      { title: "Approve batch A", permalink: "https://x/a", ageHours: 3 },
+      { title: "Approve batch A", permalink: "https://x/a2", ageHours: 30 },
+      { title: "Approve batch B", permalink: "https://x/b", ageHours: 5 },
+      { title: "Approve batch C", permalink: "https://x/c", ageHours: 6 },
+      { title: "Approve batch D", permalink: "https://x/d", ageHours: 7 },
+    ];
+    assertEqual(freshApprovals(stale).length, 0, "cards older than a week are dropped");
+    const asks = buildNeedsItems({ openApprovals: [...stale, ...fresh], olderReviewCards: fresh });
+    assertEqual(asks.length, 3, "at most three asks");
+    assert(asks[0].action.includes("https://x/a|"), "the newest of duplicate titles is kept");
+    assertEqual(new Set(asks.map((a) => a.action)).size, 3, "no ask repeated, also across approval and review cards");
+
+    assertEqual(plainError('HTTP 402: {"error":{"code":402,"message":"Your prepayment credits are depleted. Please go to AI Studio","status":"RESOURCE_EXHAUSTED"}}'), "Gemini has run out of credits. Top up in Google AI Studio (Billing), and check that the Gemini key in Railway belongs to the project you topped up", "402 credits");
+    assertEqual(plainError('HTTP 500: {"error":{"message":"Internal error"}}'), "Internal error", "JSON message kept");
+    assert(plainError("x".repeat(500)).length <= 180, "long errors are cut");
+    assert(!plainError('HTTP 429 {"status":"RESOURCE_EXHAUSTED"}').includes("{"), "no JSON in the sentence");
+  }
+  passed++;
+  console.log("[12] Brief shape, outreach line, asks and plain errors: passed");
 
   console.log(`\nALL ${passed} PLAIN-CARD SUITES PASSED`);
 }

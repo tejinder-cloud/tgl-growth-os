@@ -296,7 +296,7 @@ function link(url: string | undefined, text: string): string {
 }
 
 export interface NeedsSource {
-  openApprovals: { title: string; permalink?: string }[];
+  openApprovals: { title: string; permalink?: string; ageHours?: number }[];
   blockedIssues?: { number: number; title: string; label: string; url: string }[];
   /** Open proposals from agents (issues labelled as proposals) awaiting the Architect's decision. */
   openProposals?: { number: number; title: string; agent?: string; url?: string }[];
@@ -312,19 +312,40 @@ export interface NeedsSource {
   dueDay?: number;
 }
 
-const MAX_NEEDS = 6;
+/** At most three asks a day (24 Nov 2026): the first three matter, the rest is noise. */
+const MAX_NEEDS = 3;
+/** An approval card older than this is stale work, not a decision waiting on the Architect. */
+export const STALE_CARD_HOURS = 7 * 24;
+
+/** One entry per title, newest first; cards older than a week are left out. */
+export function freshApprovals<T extends { title: string; ageHours?: number }>(list: T[]): T[] {
+  const sorted = [...list].sort((a, b) => (a.ageHours ?? 0) - (b.ageHours ?? 0));
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const a of sorted) {
+    if ((a.ageHours ?? 0) > STALE_CARD_HOURS) continue;
+    const key = a.title.trim().toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(a);
+  }
+  return out;
+}
 
 export function buildNeedsItems(src: NeedsSource): NeedItem[] {
   const items: NeedItem[] = [];
+  const approvals = freshApprovals(src.openApprovals || []);
+  const approvalTitles = new Set(approvals.map((a) => a.title.trim().toLowerCase()));
 
-  for (const a of src.openApprovals || []) {
+  for (const a of approvals) {
     items.push({
       action: `Approve or reject ${link(a.permalink, `"${a.title.replace(/"/g, "'")}"`)} in #approvals`,
       outcome: "the work is released and the agent moves on to its next task",
     });
   }
 
-  for (const r of src.olderReviewCards || []) {
+  // A review card is the same Slack message as an approval card; list it only if it is not already listed.
+  for (const r of freshApprovals(src.olderReviewCards || []).filter((x) => !approvalTitles.has(x.title.trim().toLowerCase()))) {
     const wait = r.ageHours !== undefined ? `, waiting ${Math.round(r.ageHours)}h` : "";
     items.push({
       action: `Approve or reject the review card ${link(r.permalink, `"${r.title.replace(/"/g, "'")}"`)}${r.agent ? ` from @${r.agent}` : ""}${wait}`,
@@ -372,22 +393,7 @@ export function buildNeedsItems(src: NeedsSource): NeedItem[] {
     });
   }
 
-  if (src.planEntries && src.currentDay !== undefined && src.dueDay !== undefined) {
-    const next = [...src.planEntries]
-      .sort((a, b) => a.day - b.day)
-      .find(
-        (e) =>
-          e.day > src.currentDay! &&
-          e.status !== "completed" &&
-          !(e.depends_on || []).includes("architect-unpark")
-      );
-    if (next && next.day <= src.dueDay) {
-      items.push({
-        action: `Reply "go" in #architect to start Day ${next.day} (${next.title.replace(/"/g, "'")})`,
-        outcome: "the agent receives its brief and the plan starts catching up",
-      });
-    }
-  }
+  // The 68-day plan no longer drives the day (24 Nov 2026), so there is no "go" item for the next plan day.
 
   return items.slice(0, MAX_NEEDS);
 }
@@ -398,6 +404,46 @@ export function renderNeedsSection(items: NeedItem[]): string {
   }
   const lines = items.map((it, i) => `${i + 1}. ${it.action} → ${it.outcome.replace(/\.$/, "")}.`);
   return ["*Needs you:*", ...lines].join("\n");
+}
+
+/** Outreach numbers for the card, from the prospects table. Null when they could not be read. */
+export interface OutreachStats {
+  /** Emails and messages actually sent (not dry runs) on the activity day, IST. */
+  sent: number;
+  /** Replies received on the activity day. */
+  replies: number;
+  /** Businesses whose sequence is running. */
+  active: number;
+  /** Businesses whose sequence is paused (failed audit, held by the claim check, bounce). */
+  paused: number;
+  /** Sends allowed on the next sending day (the warm-up cap). */
+  nextCap: number;
+}
+
+export function buildOutreachLine(stats: OutreachStats | null | undefined, mode: CardMode): string {
+  if (!stats) return "*Outreach:* the outreach numbers could not be read.";
+  const day = mode === "morning" ? "yesterday" : "today";
+  const next = mode === "morning" ? "today" : "tomorrow";
+  return (
+    `*Outreach:* ${plural(stats.sent, "email", "emails")} sent ${day}, ${plural(stats.replies, "reply", "replies")}. ` +
+    `${plural(stats.active, "business is", "businesses are")} in a sequence${stats.paused ? `, ${stats.paused} paused` : ""}. ` +
+    `Daily limit ${next}: ${stats.nextCap}.`
+  );
+}
+
+/** Only what went wrong; null when nothing did. */
+export function buildProblemsLine(logs: LogLike[]): string | null {
+  const problems: string[] = [];
+  if (!parseTrackerSummary(logs).ran) problems.push("The citation tracker did not report a run.");
+  if (!parseResearcherSummary(logs).ran) problems.push("The prospect researcher did not report a run.");
+  return problems.length ? `*Problems:* ${problems.join(" ")}` : null;
+}
+
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+export function renderBriefGreeting(mode: CardMode, dateStr: string): string {
+  const weekday = WEEKDAYS[new Date(parseIso(dateStr)).getUTCDay()];
+  return `${mode === "morning" ? "Good morning." : "Good evening."} Brief for ${weekday} ${formatShortDate(dateStr)}.`;
 }
 
 export interface PlainCardInput {
@@ -416,6 +462,8 @@ export interface PlainCardInput {
   needs: NeedItem[];
   /** Audit counts toward the revenue target. Omitted or null: the line says the counts could not be read. */
   revenueProgress?: RevenueProgress | null;
+  /** Outreach numbers. Omitted or null: the line says they could not be read. */
+  outreach?: OutreachStats | null;
 }
 
 /**
@@ -447,22 +495,18 @@ export function renderGreetingLine(input: Pick<PlainCardInput, "mode" | "dateStr
   return `${hello} Day ${input.currentDay} of ${PROGRAMME_DAYS} — ${pace.phrase}${gateText}.`;
 }
 
-/** Renders the full card. Plain text and bold only; no emojis. */
+/**
+ * Renders the card (shape since 24 Nov 2026, modelled on the My LabOS brief): greeting, outreach, money,
+ * problems only when something went wrong, and at most three asks. Plain text and bold only; no emojis.
+ * The 68-day pace, the expired revenue-target line and the list of scheduled runs are no longer shown.
+ */
 export function renderPlainCard(input: PlainCardInput): string {
-  const activityLabel = input.mode === "morning" ? "Yesterday" : "Today";
-  const scheduleLabel = input.mode === "morning" ? "Today" : "Tomorrow";
   const lines: string[] = [];
-  lines.push(renderGreetingLine(input));
-  lines.push(buildRevenueTargetLine(input));
-  lines.push(
-    `*${activityLabel}:* ${buildActivitySentences({
-      logs: input.activityLogs,
-      mergedPrTitles: input.mergedPrTitles,
-      cardsApproved: input.cardsApproved,
-    })}`
-  );
-  lines.push(`*${scheduleLabel}:* ${buildScheduleSentence(input.scheduledRoutines, input.activeIssues)}`);
+  lines.push(renderBriefGreeting(input.mode, input.dateStr));
+  lines.push(buildOutreachLine(input.outreach, input.mode));
   lines.push(`*Money:* ${buildMoneySentence({ revenue: input.revenue, spendRupees: input.spendRupees, revenueProgress: input.revenueProgress }, input.mode)}`);
+  const problems = buildProblemsLine(input.activityLogs);
+  if (problems) lines.push(problems);
   lines.push(renderNeedsSection(input.needs));
   return lines.join("\n");
 }
