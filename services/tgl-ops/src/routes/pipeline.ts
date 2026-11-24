@@ -92,6 +92,26 @@ pipelineRouter.get("/live", async (req: Request, res: Response) => {
   }
 });
 
+// The build tracker: plan, tasks, risks and decisions (build-plan.ts) with agents and spend from the live data.
+// If the live data cannot be read, the plan still shows.
+pipelineRouter.get("/build", async (req: Request, res: Response) => {
+  noStore(res);
+  const email = signedIn(req);
+  const part = req.query.part === "main";
+  if (!email) {
+    if (part) res.status(401).end();
+    else res.status(200).type("html").send(loginPage());
+    return;
+  }
+  const { renderBuildMain, renderBuildPage } = await import("../agents/pipeline/build-view.js");
+  const view = await liveLoader().catch((err) => {
+    console.warn("[Pipeline] build tracker without live data:", (err as Error).message);
+    return null;
+  });
+  const now = new Date();
+  res.status(200).type("html").send(part ? renderBuildMain(view, now) : renderBuildPage(view, email, now));
+});
+
 pipelineRouter.get("/connect", (_req: Request, res: Response) => {
   noStore(res);
   const cfg = loadGoogleBookingConfig();
