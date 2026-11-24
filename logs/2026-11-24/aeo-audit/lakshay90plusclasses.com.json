@@ -1,0 +1,932 @@
+{
+  "brand": {
+    "name": "Lakshay 90 Plus Classes",
+    "primaryDomain": "lakshay90plusclasses.com",
+    "domains": [
+      "lakshay90plusclasses.com"
+    ],
+    "variants": [
+      "Lakshay 90 Plus Classes",
+      "lakshay90plusclasses"
+    ],
+    "setupStatus": "prospect_unverified"
+  },
+  "auditedAt": "2026-11-24T08:02:40.649Z",
+  "promptsCount": 5,
+  "enginesCount": 3,
+  "totalQueries": 15,
+  "summary": {
+    "totalMentions": 0,
+    "visibilityScorePercent": 0,
+    "mentionsByEngine": {
+      "chatgpt": 0,
+      "gemini": 0,
+      "perplexity": 0
+    },
+    "competitorMentions": {
+      "Vajiram & Ravi": 7,
+      "Vision IAS": 6,
+      "Next IAS": 4,
+      "ForumIAS": 5,
+      "Drishti IAS": 5,
+      "Vidyamandir Classes": 4,
+      "ALLEN Career Institute": 5,
+      "FIITJEE": 6,
+      "Physics Wallah": 5,
+      "Aakash Institute": 5,
+      "T.I.M.E": 4,
+      "IMS Learning Resources": 2,
+      "Career Launcher": 7,
+      "Tathagat": 1,
+      "LegalEdge": 4,
+      "LST": 4,
+      "KD Campus": 2,
+      "Career Power": 1,
+      "Paramount Coaching": 2,
+      "Clat Possible": 1,
+      "Plutus Academy": 1,
+      "Law Prep Tutorial": 1,
+      "Knowledge Nation Law Centre": 1
+    },
+    "citationDomains": {
+      "letsdiskuss.com": 5,
+      "topcoachingindelhi.com": 2,
+      "tuition.in": 3,
+      "collegedunia.com": 6,
+      "tutorguideinindia.com": 1,
+      "merithub.com": 1,
+      "justdial.com": 4,
+      "aakash.ac.in": 2,
+      "theeducationmarket.com": 2,
+      "clatcoachingdelhi.com": 2,
+      "studentsuvidha.com": 1,
+      "sahipadho.com": 1,
+      "visionias.in": 1,
+      "mbauniverse.com": 1,
+      "coachingclassesnearme.com": 1,
+      "digigofly.com": 2,
+      "kremlinclasses.com": 1,
+      "gauravtiwari.org": 1,
+      "collegedekho.com": 1,
+      "careerplatform.in": 1,
+      "collegedwar.com": 1
+    },
+    "totalCostUsd": 0.0874,
+    "totalCostInr": 8.1
+  },
+  "nextSteps": {
+    "weakestEngine": "ChatGPT",
+    "weakestEngineMentions": 0,
+    "zeroMentionEngines": [
+      "ChatGPT",
+      "Gemini",
+      "Perplexity"
+    ],
+    "queriesLost": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "weakestQueries": [
+      1,
+      2
+    ],
+    "winningCompetitor": "Vajiram & Ravi",
+    "winningCompetitorCount": 7,
+    "topCitationGap": "collegedunia.com",
+    "formattedText": "Lakshay 90 Plus Classes was named in 0 of 15 answers (0%). ChatGPT, Gemini and Perplexity did not name Lakshay 90 Plus Classes in any of the 5 questions. Vajiram & Ravi was named most often instead, in 7 of 15 answers. The questions where Lakshay 90 Plus Classes did worst: \"Best coaching institute in Delhi NCR\" (0 of 3 assistants named Lakshay 90 Plus Classes); \"Top coaching institute near me in Delhi NCR\" (0 of 3 assistants named Lakshay 90 Plus Classes)."
+  },
+  "matrix": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best coaching institute in Delhi NCR",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one best coaching institute for all of Delhi NCR—it depends on the exam and your location . For JEE/NEET , Aakash a..."
+      }
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top coaching institute near me in Delhi NCR",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "“Best” depends on the exam or subject —there isn’t one top institute for all of Delhi NCR. As a quick shortlist: - JEE/NEET: Aa..."
+      }
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which coaching institute in Delhi NCR has the best reviews and results",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one “best” coaching institute across Delhi NCR—it depends on the exam. For JEE , the current comparison lists Physi..."
+      }
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a coaching institute cost in Delhi NCR and which one is worth it",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "Coaching in Delhi NCR typically costs ₹30,000 to ₹2.5 lakh per year , but the price depends heavily on the exam, course length,..."
+      }
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which coaching institute in Delhi NCR should I trust",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one coaching institute in Delhi NCR that’s best for everyone—the right choice depends on which exam or subject you’..."
+      }
+    }
+  ],
+  "rawAnswers": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best coaching institute in Delhi NCR",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "Best depends on what you’re preparing for—**UPSC, JEE, NEET, CAT, SSC/banking, or something else?** Also, which part of Delhi NCR is convenient for you? Tell me those two things and I can suggest suitable institutes.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [],
+      "costUsd": 0.000498
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best coaching institute in Delhi NCR",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because Delhi NCR is India’s major education hub, the \"best\" coaching institute depends entirely on the **competitive exam or field** you are targeting. \n\nHere is a breakdown of the top-ranked institutes in Delhi NCR categorized by domain:\n\n---\n\n### 1. UPSC / Civil Services (IAS)\n* **Hubs:** Old Rajinder Nagar (ORN), Karol Bagh, Mukherjee Nagar (popular for Hindi medium).\n* **Top Institutes:**\n  * **Vajiram & Ravi** (Karol Bagh) – Long-standing reputation, excellent General Studies (GS) foundation and optional subjects.\n  * **Vision IAS** (Karol Bagh / Mukherjee Nagar) – Industry standard for test series, current affairs, and comprehensive mentoring.\n  * **Next IAS** (Old Rajinder Nagar) – Known for high-caliber faculty and structured classroom pedagogy.\n  * **ForumIAS** (Karol Bagh) – Highly recommended for Mains Answer Writing, mentorship, and Current Affairs.\n  * **Drishti IAS** (Mukherjee Nagar / Karol Bagh) – Market leader for Hindi medium; also expanding strongly in English medium.\n\n---\n\n### 2. Engineering Entrance (IIT-JEE / Main & Advanced)\n* **Hubs:** Kalu Sarai (South Delhi), Punjabi Bagh, Janakpuri, Noida/Gurugram centers.\n* **Top Institutes:**\n  * **Vidyamandir Classes (VMC)** – Founded in Delhi; exceptional track record for IIT-JEE with strong conceptual focus.\n  * **Allen Career Institute** (Kalu Sarai, Janakpuri, Noida) – Top-tier national system, intensive curriculum, and high volume of top-100 ranks.\n  * **FIITJEE** (Kalu Sarai / Punjabi Bagh) – Historically a powerhouse for advanced problem-solving (verify recent faculty batches at specific branches).\n  * **Physics Wallah (PW Vidyapeeth)** – Rapidly growing offline centers offering quality preparation at significantly lower fees.\n\n---\n\n### 3. Medical Entrance (NEET-UG)\n* **Top Institutes:**\n  * **Aakash Institute** (South Extension / Janakpuri / Preet Vihar) – The traditional leader in medical entrance coaching with extensive study material and Delhi-wide presence.\n  * **Allen Career Institute** – Excellent biology and chemistry pedagogy, rigorous national test series.\n  * **Goal Institute / Physics Wallah (PW Vidyapeeth)** – Affordable, high-engagement alternatives.\n\n---\n\n### 4. MBA Entrance (CAT / XAT / GMAT)\n* **Hubs:** Connaught Place, Kalu Sarai, North Campus.\n* **Top Institutes:**\n  * **T.I.M.E.** (Connaught Place, South Ex) – Renowned for AIMCAT mock tests and comprehensive quant/DI prep.\n  * **IMS Learning Resources** (Connaught Place, Noida) – Strong mentoring, SimCATs, and interview prep.\n  * **Career Launcher (CL)** – Consistent track record, strong verbal and aptitude mentoring.\n  * **Tathagat (T.G.)** – Boutique coaching in Delhi famous for high personal attention and tough quant prep.\n\n---\n\n### 5. Law Entrance (CLAT / AILET / Judiciary)\n* **Top Institutes:**\n  * **LegalEdge** – Highly regarded for CLAT mock tests, current legal reasoning, and content.\n  * **LST (Career Launcher)** – One of the oldest and most structured CLAT prep programs.\n  * **Rahul’s IAS / Ambition Law Institute** – Top choices for **State Judicial Services** examinations.\n\n---\n\n### 6. SSC CGL / Banking / Government Exams\n* **Hubs:** Mukherjee Nagar, Laxmi Nagar.\n* **Top Institutes:**\n  * **KD Campus** (Neetu Singh) – Market leader for SSC English and general competition.\n  * **Paramount Coaching** – Strong legacy for SSC, CPO, and State police/clerical exams.\n  * **Career Power (Adda247)** – Popular for Bank PO, Clerk, and insurance exams.\n\n---\n\n### Which one should you pick?\nTo help narrow down the best choice for you:\n1. **Which examination or subject are you preparing for?**\n2. **Do you prefer offline (classroom) or hybrid/online coaching?**\n3. **Which part of Delhi NCR (South Delhi, Central, North Campus, Noida, Gurugram) is accessible to you?**",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Vajiram & Ravi",
+          "Vision IAS",
+          "Next IAS",
+          "ForumIAS",
+          "Drishti IAS",
+          "Vidyamandir Classes",
+          "ALLEN Career Institute",
+          "FIITJEE",
+          "Physics Wallah",
+          "Aakash Institute",
+          "T.I.M.E",
+          "IMS Learning Resources",
+          "Career Launcher",
+          "Tathagat",
+          "LegalEdge",
+          "LST",
+          "KD Campus",
+          "Career Power",
+          "Paramount Coaching"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.00515
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best coaching institute in Delhi NCR",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one best coaching institute for all of Delhi NCR—it depends on the **exam and your location**. For **JEE/NEET**, Aakash and Allen are options to compare; for **UPSC**, compare specialist IAS institutes such as Vajiram; and for **CAT**, consider T.I.M.E. or Career Launcher.[1]\n\nBefore enrolling, attend a demo class and compare the specific branch’s faculty, batch size, recent results, fees, and commute. Which exam are you preparing for—JEE, NEET, UPSC, CAT, or something else?",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "T.I.M.E",
+          "Career Launcher"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "letsdiskuss.com",
+          "url": "https://www.letsdiskuss.com/post/delhis-top-coaching-centers-full-fees-hubs-and-exams-list",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "topcoachingindelhi.com",
+          "url": "https://topcoachingindelhi.com/top-10-coaching-in-delhi-ncr/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "tuition.in",
+          "url": "https://www.tuition.in/delhi/best-coaching-centers/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/delhi-ncr-institutes/page-8",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "tutorguideinindia.com",
+          "url": "https://tutorguideinindia.com/top-10-upsc-coaching-in-delhi/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "merithub.com",
+          "url": "https://merithub.com/coaching/coaching-centers-in-delhi",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/delhi-ncr-institutes/page-13",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Delhi/Tutorials-For-UGC-Net-Exam/nct-11239009",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Delhi/Tutorials/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "aakash.ac.in",
+          "url": "https://www.aakash.ac.in/delhi-ncr",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00115
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top coaching institute near me in Delhi NCR",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "“Best” depends on what you’re preparing for—and Delhi NCR is too large to find the nearest centre without your area.\n\nTell me:\n- **Exam/course:** UPSC, JEE, NEET, CAT, SSC, etc.\n- **Area or nearest metro:** for example, Dwarka, Karol Bagh, Noida Sector 62, or Gurugram\n- **Classroom or online**, and your rough budget, if you have one\n\nThen I can suggest nearby options to compare. A broad Delhi NCR ranking mixes different exams, so it may not help you choose. ([collegedunia.com](https://collegedunia.com/coaching/delhi-ncr-institutes?utm_source=openai))",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/delhi-ncr-institutes?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011214
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top coaching institute near me in Delhi NCR",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because Delhi NCR is one of India’s largest education hubs, the “top” coaching institute depends entirely on the **target exam** and your **preferred area** (such as South Delhi, North Delhi, Noida, or Gurugram). \n\nThe leading coaching institutes across major domains and their prominent hubs in Delhi NCR include:\n\n---\n\n### 1. UPSC / Civil Services\n*Primary Hubs: Old Rajinder Nagar (ORN), Karol Bagh, Mukherjee Nagar*\n* **Vajiram & Ravi** (*Old Rajinder Nagar*) – One of the oldest and most established names for General Studies and optional subjects.\n* **Vision IAS** (*Karol Bagh / Old Rajinder Nagar / Mukherjee Nagar*) – Renowned for its classroom programs, current affairs (PT365/Mains365), and test series.\n* **Drishti IAS** (*Mukherjee Nagar / Karol Bagh*) – The undisputed leader for Hindi medium, with a rapidly growing English-medium wing.\n* **Next IAS** (*Old Rajinder Nagar*) – Known for engineering background aspirants and strong GS faculty.\n* **ForumIAS** (*Karol Bagh / ORN*) – Highly rated for mentorship and Answer Writing Focus Groups (AWFG/MGP).\n\n---\n\n### 2. IIT-JEE (Engineering) & NEET (Medical)\n*Primary Hubs: Kalu Sarai (Near IIT Delhi), South Extension, Janakpuri, Preet Vihar, Noida, Gurugram*\n* **Aakash Institute** (*Multiple centers: South Ex, Janakpuri, Preet Vihar, Noida, Gurugram*) – Widely considered the market leader for NEET preparation.\n* **Allen Career Institute** (*Kalu Sarai, Janakpuri, Preet Vihar, Noida, Gurugram*) – Highly popular for both JEE (Main + Advanced) and NEET.\n* **Physics Wallah (PW Vidyapeeth)** (*Kalu Sarai, Janakpuri, Noida Sector 62, etc.*) – Best affordable offline/hybrid option with rapid growth in Delhi NCR.\n* **FIITJEE / Sri Chaitanya** (*Kalu Sarai, Punjabi Bagh, Noida*) – Renowned specifically for rigorous JEE Advanced preparation.\n\n---\n\n### 3. CAT & Management Entrances\n*Primary Hubs: Connaught Place (CP), South Extension, Kailash Colony, Gurugram, Noida*\n* **T.I.M.E. (Triumphant Institute of Management Education)** (*CP, South Ex, Noida Sec 18, Gurugram Sec 14*) – Top choice for its AIMCAT test series and comprehensive quant/VARC modules.\n* **IMS Learning Resources** (*CP, Kailash Colony, Noida, Gurugram*) – Known for personalized mentoring and GD/PI preparation.\n* **Career Launcher (CL)** (*CP, South Ex, Noida, Gurugram*) – Very strong test series (SmartCAT) and experienced verbal/DILR faculty.\n\n---\n\n### 4. CLAT / Law Entrances\n*Primary Hubs: Connaught Place, South Ex, Noida*\n* **LegalEdge** (*CP, South Ex, Noida*) – The current top-performing institute nationally for CLAT and AILET.\n* **Career Launcher / LST (Law School Tutorials)** (*CP, South Ex, Noida*) – Long-standing reputation with wide center availability.\n* **Clat Possible** (*CP, South Ex*) – Known for personalized mentorship and GK/Legal aptitude modules.\n\n---\n\n### 5. SSC CGL, Banking (IBPS/SBI), & State Govt. Exams\n*Primary Hubs: Mukherjee Nagar, Laxmi Nagar, Munirka*\n* **KD Campus** (*Mukherjee Nagar, Uttam Nagar, Badarpur*) – Founded by Neetu Singh; famous for English and SSC CGL preparation.\n* **Paramount Coaching** (*Mukherjee Nagar, Laxmi Nagar*) – Established name for SSC, Railways, and Delhi Police exams.\n* **Plutus Academy** (*Noida, Laxmi Nagar*) – Popular for Banking PO and Clerk examinations.\n\n---\n\n### How to Narrow It Down:\nTo get exact recommendations with center addresses and travel feasibility:\n1. **Which exam are you targeting?** (e.g., UPSC, JEE, NEET, CAT, SSC, CUET, or School Boards)\n2. **Which part of Delhi NCR are you based in?** (e.g., South Delhi, West Delhi, Noida, Greater Noida, Gurugram, Ghaziabad, Faridabad)",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Vajiram & Ravi",
+          "Vision IAS",
+          "Drishti IAS",
+          "Next IAS",
+          "ForumIAS",
+          "Aakash Institute",
+          "ALLEN Career Institute",
+          "Physics Wallah",
+          "FIITJEE",
+          "T.I.M.E",
+          "IMS Learning Resources",
+          "Career Launcher",
+          "LegalEdge",
+          "LST",
+          "Clat Possible",
+          "KD Campus",
+          "Paramount Coaching",
+          "Plutus Academy"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.007045
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top coaching institute near me in Delhi NCR",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "“Best” depends on the **exam or subject**—there isn’t one top institute for all of Delhi NCR. As a quick shortlist:\n\n- **JEE/NEET:** Aakash has multiple Delhi NCR centers, including Patel Nagar and Pitampura; check the nearest branch and current faculty before enrolling.[7]\n- **UPSC:** Vajirao & Reddy is listed in Shakti Nagar, near Delhi University; Mukherjee Nagar and Old Rajinder Nagar also have many IAS coaching options.[1][3]\n- **Other exams or school subjects:** Options vary widely by area and goal, so a local directory can help compare nearby centers and ratings.[4][10]\n\nShare your **exam/subject** and **locality or nearest metro station** (for example, Noida Sector 62, Gurgaon, Dwarka, or Laxmi Nagar), and I can narrow it down to nearby choices.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/delhi-ncr-institutes/page-2",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/delhi-ncr-institutes/page-25",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/delhi-ncr-institutes/page-28",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "tuition.in",
+          "url": "https://www.tuition.in/delhi/best-coaching-centers/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/delhi-ncr-institutes/page-12",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/delhi-ncr-institutes/page-6",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "aakash.ac.in",
+          "url": "https://www.aakash.ac.in/delhi-ncr",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "letsdiskuss.com",
+          "url": "https://www.letsdiskuss.com/post/delhis-top-coaching-centers-full-fees-hubs-and-exams-list",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "topcoachingindelhi.com",
+          "url": "https://topcoachingindelhi.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Delhi/Coaching-Centers/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00174
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which coaching institute in Delhi NCR has the best reviews and results",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one “best” coaching institute across Delhi NCR—the answer depends on the exam (UPSC, JEE, NEET, CLAT, etc.), and results can vary by branch and batch. Which exam are you preparing for, and what part of Delhi NCR is convenient for you? I can narrow it down using recent reviews and results.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [],
+      "costUsd": 0.010957
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which coaching institute in Delhi NCR has the best reviews and results",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because competitive exams vary significantly, the \"best\" coaching institute in Delhi NCR depends on the specific exam you are targeting. Delhi NCR is a premier hub for education, with specialized institutions leading in each domain. \n\nHere is a breakdown of the coaching institutes with the strongest results and highest student reviews across the major competitive exams:\n\n---\n\n### 1. UPSC Civil Services Examination (CSE)\nDelhi (specifically **Old Rajinder Nagar** and **Mukherjee Nagar**) is the national center for UPSC preparation.\n\n* **Vision IAS (Karol Bagh / Rajinder Nagar):**\n  * **Results & Reputation:** Famous for producing consistent top-100 ranks. Their test series, *PT 365*, and *Mains 365* compilations are industry benchmarks.\n  * **Reviews:** Best known for structured guidance, analytical answer-writing, and timely evaluation.\n* **Vajiram & Ravi (Old Rajinder Nagar):**\n  * **Results & Reputation:** The legacy giant of General Studies foundation courses with decades of producing toppers.\n  * **Reviews:** Known for veteran faculty and comprehensive conceptual coverage, though batch sizes can be large.\n* **ForumIAS (Karol Bagh):**\n  * **Results & Reputation:** Has had an exceptional surge in top 50 ranks in recent years, particularly for answer-writing programs (MGP) and Interview Guidance.\n  * **Reviews:** Highly rated for personalized mentorship and focused peer groups.\n* **Drishti IAS (Mukherjee Nagar / Karol Bagh):**\n  * The undisputed leader for **Hindi Medium** aspirants, now also offering competitive English batches.\n\n---\n\n### 2. IIT-JEE (Engineering)\nThe traditional hubs in Delhi are **Kalu Sarai (Hauz Khas)**, **Punjabi Bagh**, and **Noida/Janakpuri**.\n\n* **Vidyamandir Classes (VMC):**\n  * **Results & Reputation:** Founded in Delhi, VMC has a massive local alumni base and consistently produces top-tier JEE Advanced and Mains ranks across NCR (Pitampura, Noida, South Delhi).\n  * **Reviews:** Highly regarded for its disciplined pedagogy, high-quality test series, and strong student-to-mentor interaction.\n* **ALLEN Career Institute:**\n  * **Results & Reputation:** Successfully brought Kota’s rigorous testing system to Delhi NCR, consistently producing single- and double-digit AIRs.\n  * **Reviews:** High marks for disciplined scheduling, exhaustive question banks, and regular doubt sessions.\n* **FIITJEE (South Delhi / Kalu Sarai):**\n  * **Results & Reputation:** Historically the most dominant JEE brand in Delhi.\n  * **Reviews:** Known for intensive, advanced-level problem-solving. *(Note: If enrolling, check current faculty stability at your local center, as some branches experienced transitions recently).*\n\n---\n\n### 3. NEET-UG (Medical)\n* **Aakash Institute (South Extension, Janakpuri, Noida):**\n  * **Results & Reputation:** The pioneer and dominant force in Delhi NCR for medical entrances. Year after year, Aakash produces top ranks in NEET-UG from its Delhi centers.\n  * **Reviews:** Best-in-class NCERT-aligned study modules, standardized national test series (AIATS), and strong foundational biology faculty.\n* **ALLEN Career Institute (Preet Vihar, Janakpuri, Kalu Sarai):**\n  * **Results & Reputation:** Aakash’s top competitor, producing near-perfect scores and AIIMS/MAMC admissions.\n  * **Reviews:** Appreciated for rigorous testing, doubt counters, and competitive classroom environment.\n\n---\n\n### 4. CAT / MBA Entrance Exams\n* **IMS (Connaught Place, South Campus, Noida):**\n  * **Results & Reputation:** Consistently sends students to IIM Ahmedabad, Bangalore, Calcutta, and FMS Delhi.\n  * **Reviews:** Highly rated for personalized 1-on-1 mentorship, GD-PI preparation, and the SimCAT test series.\n* **Career Launcher (CL):**\n  * **Results & Reputation:** Delhi-born institute with legendary quant/verbal mentors; strong placement into IIMs.\n  * **Reviews:** Renowned for their test analytics and mock CAT percentile accuracy.\n* **T.I.M.E. (Connaught Place, Kalu Sarai):**\n  * Excellent for quantitative aptitude and extensive sectional test libraries.\n\n---\n\n### 5. CLAT / Law Entrance Exams\n* **LegalEdge (Career Launcher / Toprankers):**\n  * Dominant market share for CLAT and AILET (NLU Delhi) toppers.\n  * Best known for mock tests that closely mirror changing exam patterns.\n* **LST (Law School Tutorials by Career Launcher):**\n  * High-performing legacy brand in Delhi NCR for NLSIU Bangalore and NALSAR admissions.\n\n---\n\n### Key Tips Before Enrolling in Delhi NCR:\n1. **Center Specifics Matter:** A national brand is only as good as the local faculty teaching your specific batch. Visit the exact branch (e.g., South Ext vs. Janakpuri vs. Noida) and ask current students about faculty retention.\n2. **Batch Size:** Large batches (100–200+ students) can make clearing individual doubts difficult. Look into specialized or smaller \"Star\" batches if available.\n3. **Commute Time:** Traffic in Delhi NCR can cause burnout; choose an institute that is accessible via the Delhi Metro or close to your residence.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Vision IAS",
+          "Vajiram & Ravi",
+          "ForumIAS",
+          "Drishti IAS",
+          "Vidyamandir Classes",
+          "ALLEN Career Institute",
+          "FIITJEE",
+          "Aakash Institute",
+          "Career Launcher",
+          "T.I.M.E",
+          "LegalEdge",
+          "LST"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.007761
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which coaching institute in Delhi NCR has the best reviews and results",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one “best” coaching institute across Delhi NCR—it depends on the exam. For **JEE**, the current comparison lists **Physics Wallah, Aakash, FIITJEE, and VMC** among the leading options, with reported recent results varying by branch and batch[6]. For **CLAT**, **Law Prep Tutorial** reports 1,310+ NLU selections and named recent rankers, while **Knowledge Nation Law Centre** is also presented as a leading option; these are largely institute-reported claims, so verify them independently[3][1]. For **UPSC**, **Vajiram & Ravi** is cited as a prominent choice[7].\n\nFor a more reliable pick, tell me **which exam** you’re preparing for and your preferred area in NCR. Before enrolling, compare that specific branch’s recent results, teacher roster, batch size, fees, and student reviews—ratings alone don’t establish results[5][6].",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Physics Wallah",
+          "FIITJEE",
+          "Law Prep Tutorial",
+          "Knowledge Nation Law Centre",
+          "Vajiram & Ravi"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "theeducationmarket.com",
+          "url": "https://theeducationmarket.com/which-is-rank-1-clat-coaching-in-delhi/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Delhi/Tutorials/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "clatcoachingdelhi.com",
+          "url": "https://clatcoachingdelhi.com/clat-coaching-delhi-ncr/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "tuition.in",
+          "url": "https://www.tuition.in/delhi/best-coaching-centers/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Gurgaon/Tutorials/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/jee-main-institutes-in-delhi-ncr",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "letsdiskuss.com",
+          "url": "https://www.letsdiskuss.com/post/delhis-top-coaching-centers-full-fees-hubs-and-exams-list",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Delhi/Tutorials-For-UGC-Net-Exam/nct-11239009",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "studentsuvidha.com",
+          "url": "https://studentsuvidha.com/institutes/ins/400/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Delhi/CS-Tutorials/nct-10959739",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00293
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a coaching institute cost in Delhi NCR and which one is worth it",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "Assuming you mean **the fee to join as a student**: it depends mainly on the exam and course length. As a rough **Delhi-NCR estimate for 2026**:\n\n| Goal | Approximate coaching fee |\n|---|---:|\n| **JEE/NEET** | About **₹90,000–₹2.5 lakh per year**; published listings vary by course, branch and scholarship. ([sahipadho.com](https://www.sahipadho.com/coaching/exam/jee/delhi?utm_source=openai)) |\n| **UPSC** | Around **₹1.5–₹2.5 lakh** for a full classroom foundation course. For example, Vision IAS lists a regular course at **₹1.95 lakh** and a 16-month course at **₹2.35 lakh**. ([visionias.in](https://www.visionias.in/delhi/?utm_source=openai)) |\n| **CAT** | Roughly **₹40,000–₹75,000** for classroom coaching; online courses are often less. ([mbauniverse.com](https://www.mbauniverse.com/cat/coaching?utm_source=openai)) |\n\nThese are indicative figures—not a final quote. Check whether GST, test series, books and interview preparation are included, and whether any scholarship changes the fee.\n\n**Which is worth it?** There isn’t one best institute for every student. For JEE/NEET, compare the **specific local branches** of Allen and Aakash; for UPSC, compare Vision IAS and Vajiram; for CAT, compare TIME, IMS and Career Launcher. Treat those as shortlists, not endorsements: a strong teacher and manageable batch at your nearest centre can matter more than the brand name.\n\nBefore paying, attend a demo, ask who will teach your batch, check batch size and doubt support, and get the complete fee/refund terms in writing. Tell me **which exam, your class/year, budget and area of NCR**—for example, Noida, Gurgaon, Faridabad or Delhi—and I can narrow it down.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Vision IAS",
+          "Career Launcher"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "sahipadho.com",
+          "url": "https://www.sahipadho.com/coaching/exam/jee/delhi?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "visionias.in",
+          "url": "https://www.visionias.in/delhi/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mbauniverse.com",
+          "url": "https://www.mbauniverse.com/cat/coaching?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021826
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a coaching institute cost in Delhi NCR and which one is worth it",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because coaching fees and reputation vary drastically depending on the exam you are preparing for, here is a detailed breakdown of costs and top-rated institutes across the most popular competitive exams in Delhi NCR.\n\n---\n\n### 1. Typical Costs by Exam Category (Tuition Fees)\n\n| Exam | Typical Coaching Fee (Classroom) | Duration / Course Type |\n| :--- | :--- | :--- |\n| **UPSC Civil Services** | ₹1,50,000 – ₹2,60,000 | 1-Year Foundation (GS + CSAT + Optional) |\n| **IIT-JEE (Engineering)** | ₹1,20,000 – ₹2,30,000 (per year)<br>*₹2.5L – ₹4.5L for 2-year programs* | 11th–12th or Dropper Batch |\n| **NEET (Medical)** | ₹1,10,000 – ₹2,00,000 (per year) | 11th–12th or Dropper Batch |\n| **CAT / MBA Entrances** | ₹60,000 – ₹1,20,000 | 6 to 12 months |\n| **CLAT (Law)** | ₹70,000 – ₹1,50,000 | 1-Year or 2-Year Program |\n| **SSC CGL / Banking** | ₹15,000 – ₹45,000 | 4 to 8 months |\n\n> **Note on Living Expenses:** If you are relocating to Delhi NCR, budget an extra **₹12,000 – ₹22,000 per month** for PG accommodation, food, and private study library memberships (especially in student hubs like Old Rajinder Nagar, Mukherjee Nagar, Laxmi Nagar, or Kalu Sarai).\n\n---\n\n### 2. Which Institute Is \"Worth It\"? (By Exam)\n\n#### **A. UPSC / Civil Services**\n*Key Hubs: Old Rajinder Nagar (ORN), Mukherjee Nagar, Karol Bagh*\n* **Top Contenders:**\n  * **Vajiram & Ravi:** The legacy standard for GS Foundation. Known for strong general faculty, though batch sizes can be large (300+ students).\n  * **Vision IAS:** Renowned for their test series and structured mentorship programs; very popular for mains evaluation.\n  * **ForumIAS / Next IAS:** Highly regarded in recent years for rigorous answer-writing focus, good faculty retention, and structured test series.\n* **Is it worth it?** Classroom coaching is helpful if you need discipline and structure, but the real value is in their **Mains Test Series and mentorship**. Many aspirants find self-study with standard textbooks combined with a test series more cost-effective.\n\n#### **B. IIT-JEE (Engineering)**\n*Key Hubs: Kalu Sarai (South Delhi), Janakpuri, Punjabi Bagh, Noida*\n* **Top Contenders:**\n  * **Vidyamandir Classes (VMC):** Longstanding reputation in Delhi NCR with good peer groups and balanced difficulty scaling.\n  * **Allen Career Institute:** Strong national material, disciplined testing infrastructure, and good top-batch mentoring.\n  * **FIITJEE:** Excellent for high-performing, self-driven students aiming for top ranks, though intense and high-pressure.\n* **Is it worth it?** Yes, if you secure a top batch via scholarship tests (which can slash fees by 30% to 90%). In lower/regular batches, personal attention drops significantly.\n\n#### **C. NEET (Medical)**\n*Key Hubs: South Extension, Janakpuri, Preet Vihar*\n* **Top Contenders:**\n  * **Aakash Institute:** The benchmark for medical coaching in North India; their NCERT-aligned material and test series are unmatched.\n  * **Allen Career Institute:** Rapidly expanded in Delhi with heavy emphasis on test series and doubt clearing.\n  * **Physics Wallah (PW Vidyapeeth):** The best **budget option** (fees typically ₹40,000 – ₹70,000/year). Good quality, though batch sizes are very large.\n* **Is it worth it?** Aakash or Allen are generally worth the premium for their test series and question banks. If budget is tight, PW Vidyapeeth offers solid value.\n\n#### **D. CAT / MBA**\n*Key Hubs: Connaught Place, South Ex, Noida Sector 15*\n* **Top Contenders:**\n  * **TIME / IMS / Career Launcher:** All three have extensive national mock test series (AIMCAT, SimCAT, CL Mocks).\n* **Is it worth it?** Coaching is worth it primarily for non-engineers needing Quant basics, or for everyone who needs the **Mock Test Series**. Many students opt for online coaching (like Elites Grid, Cracku, or Rodha) at half the classroom cost and find it just as effective.\n\n---\n\n### 3. How to Decide if a Specific Institute is \"Worth It\" for You\n\nBefore paying upfront non-refundable fees, evaluate the following:\n\n1. **Batch Size:** Any classroom with over 150–200 students limits your ability to ask questions in real time. Ask specifically what the teacher-to-student ratio is for your batch.\n2. **Faculty Stability:** Big brands often rotate star teachers between centers or lose faculty mid-year. Ask current students at the specific center about faculty consistency.\n3. **Scholarship Tests:** Never pay full sticker price for JEE/NEET/Foundation courses. Almost all institutes run entrance/scholarship tests (e.g., ANTHE, TALLENTEX, NAT) that provide 20%–90% waivers.\n4. **Offline vs. Hybrid/Online:** If an institute charges ₹1.5 lakh+ and doesn't offer recorded backup lectures, personal doubt-clearing sessions, and library access, it is generally not worth the premium over modern online alternatives.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Vajiram & Ravi",
+          "Vision IAS",
+          "ForumIAS",
+          "Next IAS",
+          "Vidyamandir Classes",
+          "ALLEN Career Institute",
+          "FIITJEE",
+          "Aakash Institute",
+          "Physics Wallah",
+          "Career Launcher"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.007974
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a coaching institute cost in Delhi NCR and which one is worth it",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "Coaching in Delhi NCR typically costs **₹30,000 to ₹2.5 lakh per year**, but the price depends heavily on the exam, course length, and whether classes are online or classroom-based. For JEE, a one-year classroom course is roughly **₹1–2.8 lakh**; a two-year course can be **₹1.8–4.5 lakh**. UPSC and other exams have different fee ranges.[1][2]\n\n**Which one is worth it?** There isn’t one best institute for every student. For JEE/NEET, compare nearby branches of **Aakash, Allen, Narayana, and VMC**; reported fees vary widely, so confirm the exact batch price directly.[1][7] If you’re preparing for UPSC, options such as **Vajiram & Ravi, Drishti IAS, and Vision IAS** are commonly listed, with course fees around ₹1–2.5 lakh depending on the program.[1]\n\nBefore enrolling, attend a demo class and check the **specific branch’s teachers, batch size, doubt support, test schedule, and recent results for that branch**. Ask for the full fee in writing, including materials, tests, taxes, and any optional charges; published figures are indicative and can differ by batch.[3]\n\nShare the **exam, class/year, budget, and preferred area** (for example, Noida, Gurugram, or West Delhi) for a more useful shortlist.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Vajiram & Ravi",
+          "Drishti IAS",
+          "Vision IAS"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "letsdiskuss.com",
+          "url": "https://www.letsdiskuss.com/post/delhis-top-coaching-centers-full-fees-hubs-and-exams-list",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "coachingclassesnearme.com",
+          "url": "https://www.coachingclassesnearme.com/post/jee-coaching-fees-kota-delhi-online",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "digigofly.com",
+          "url": "https://digigofly.com/top-10-coaching-institutes-in-india/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "kremlinclasses.com",
+          "url": "https://kremlinclasses.com/jee-coaching-price-in-india-online-from-%E2%82%B92000-subject/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/delhi-ncr-institutes/page-2",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "clatcoachingdelhi.com",
+          "url": "https://clatcoachingdelhi.com/blog/clat-coaching-in-delhi-fees/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/jee-main-institutes-in-delhi-ncr",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/delhi-ncr-institutes",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "gauravtiwari.org",
+          "url": "https://gauravtiwari.org/best-neet-coaching-centres-in-delhi/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedekho.com",
+          "url": "https://www.collegedekho.com/articles/best-iit-jee-coaching-institutes-in-delhi-ncr/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00123
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which coaching institute in Delhi NCR should I trust",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "It depends on **what you’re preparing for**—UPSC, JEE, NEET, CAT, SSC, CUET, or something else. Which exam or course, and which part of Delhi NCR is convenient for you?\n\nOnce I know that, I can compare options. Before enrolling, ask for a **demo class**, the **full fee and refund terms in writing**, and a chance to speak with **current students**—don’t rely only on toppers’ ads or guaranteed-results claims.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [],
+      "costUsd": 0.000545
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which coaching institute in Delhi NCR should I trust",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because you haven’t mentioned the specific exam you are preparing for, here is a breakdown of the most established and trusted coaching institutes in Delhi NCR categorized by exam, along with guidelines on how to evaluate them.\n\n---\n\n### 1. UPSC Civil Services (CSE)\nDelhi (specifically Old Rajinder Nagar and Mukherjee Nagar) is the primary national hub for UPSC prep.\n* **VisionIAS (Karol Bagh / ORN):** Widely trusted for its structured test series (Abhyaas), current affairs (*PT365 / Mains 365*), and balanced General Studies foundation.\n* **Vajiram & Ravi (Old Rajinder Nagar):** One of the oldest and most legacy-driven institutes for GS foundation and popular optionals.\n* **Next IAS (Old Rajinder Nagar):** Has gained strong trust in recent years due to high-profile faculty and focused GS/engineering-background mentorship.\n* **ForumIAS (Karol Bagh):** Highly reputed for Mains answer writing, Current Affairs, and mentorship-focused batches.\n* **Drishti IAS (Mukherjee Nagar / Karol Bagh):** The leading choice for Hindi medium candidates, with growing English medium programs.\n\n---\n\n### 2. IIT-JEE (Engineering)\nSouth Delhi (Kalu Sarai) and Janakpuri/Noida are the main centers.\n* **Vidyamandir Classes (VMC):** One of Delhi NCR’s home-grown and most reliable brands. Known for systematic pedagogy, strong study material, and a non-commercial teaching environment.\n* **ALLEN Career Institute (South Delhi / Noida):** Brings the Kota model to Delhi; excellent test culture and disciplined curriculum delivery.\n* **FIITJEE (South Delhi):** Historically the heavyweight of Delhi JEE prep; however, double-check the faculty stability of the specific branch you plan to join before enrolling.\n\n---\n\n### 3. NEET-UG (Medical)\n* **Aakash Institute (South Extension / Janakpuri / Noida):** Delhi NCR is Aakash’s home ground. Historically holds the deepest question banks and widest test series network for NEET in this region.\n* **ALLEN Career Institute:** Strongly competitive with Aakash in Delhi NCR, particularly for dropper (repeater) batches.\n* **Physics Wallah (PW Vidyapeeth):** A good, high-trust alternative if budget is a major constraint, though class sizes can be large.\n\n---\n\n### 4. CAT / Management Entrances\n* **TIME (Connaught Place / CP, Kalu Sarai):** The industry standard for AIMCATs (test series) and Quant/DI preparation.\n* **Career Launcher (CL - Connaught Place / South Campus):** Strong in VARC (Verbal) and personalised percentile mentoring.\n* **IMS (CP / Noida):** Known for balanced faculty guidance and post-exam WAT-PI prep.\n\n---\n\n### 5. CLAT / Law Entrances\n* **LegalEdge (Toprankers - Connaught Place / South Extension):** Currently the top performer in national law entrance results.\n* **Career Launcher (LST):** Legacy law test-prep player with solid coverage across Delhi NCR centers.\n\n---\n\n### How to Evaluate \"Trust\" in Delhi NCR Before Paying Fees\n\n1. **Safety and MCD Compliance:** Following safety crackdowns in Delhi coaching hubs (especially basement-related regulations), verify that the coaching center operates in a fully compliant building with proper fire safety NOCs and emergency exits.\n2. **Batch Size vs. Doubt Resolution:** Ask specifically: *“What is the maximum student capacity per batch, and what is the exact system for offline 1-on-1 doubt clearing?”* If doubts can only be solved on an app, an offline coaching center is rarely worth the high fee.\n3. **Beware of the \"Topper Trap\":** Many institutes in Delhi NCR buy or share interview-stage/test-series toppers for their billboards. Only judge an institute by its **classroom foundation program**, not by who appeared in their mock interviews.\n4. **Faculty Stability:** Ask current students whether core faculty members actually complete the entire syllabus or switch centers halfway through the session.\n5. **Take Demo Lectures:** Never commit based on an academic counselor's pitch. Sit through 1–2 real classroom lectures to evaluate the teaching speed and environment.\n\n---\n\n**If you let me know which specific exam, medium (English/Hindi), and location within Delhi NCR (e.g., South Delhi, Karol Bagh, Noida, Gurugram) you are targeting, I can give you a more tailored recommendation.**",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Vajiram & Ravi",
+          "Next IAS",
+          "ForumIAS",
+          "Drishti IAS",
+          "Vidyamandir Classes",
+          "ALLEN Career Institute",
+          "FIITJEE",
+          "Aakash Institute",
+          "Physics Wallah",
+          "Career Launcher",
+          "LegalEdge",
+          "LST"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.006202
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which coaching institute in Delhi NCR should I trust",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one coaching institute in Delhi NCR that’s best for everyone—the right choice depends on **which exam or subject you’re preparing for**, your budget, and where you live. A recent Delhi JEE guide also recommends comparing centres and checking fit rather than trusting a single “best” ranking.[3]\n\nTell me the **exam or course** (for example, JEE, NEET, UPSC, CAT, SSC, or school tuition) and your preferred area, and I can suggest a focused shortlist. Before enrolling, attend a demo, speak with current students, check who will actually teach your batch, and get the full fees and refund terms in writing.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "careerplatform.in",
+          "url": "https://www.careerplatform.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "letsdiskuss.com",
+          "url": "https://www.letsdiskuss.com/post/delhis-top-coaching-centers-full-fees-hubs-and-exams-list",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedwar.com",
+          "url": "https://collegedwar.com/news/best-iit-jee-coaching-in-delhi-2026",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Delhi/Tutorials/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "theeducationmarket.com",
+          "url": "https://theeducationmarket.com/which-is-rank-1-clat-coaching-in-delhi/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Delhi/Tutorials-For-UGC-Net-Exam/nct-11239009",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "digigofly.com",
+          "url": "https://digigofly.com/top-10-coaching-institutes-in-india/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Delhi/Coaching-Centres/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/delhi-ncr-institutes/page-2",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Delhi/CS-Tutorials/nct-10959739",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00121
+    }
+  ]
+}
