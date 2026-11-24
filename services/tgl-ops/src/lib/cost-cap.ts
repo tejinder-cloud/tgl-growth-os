@@ -223,9 +223,53 @@ export function loadCostLedgerFromState(options?: { testMode?: boolean }): Usage
   return usageCostsLedger;
 }
 
+/**
+ * Spend that is otherwise kept only in this container's ledger file (lost on every redeploy) is also written to the
+ * Supabase usage_costs table as product "tgl_ops" (24 Nov 2026), so the live view and the brief can show what was
+ * really spent. TrueVisible agents already write their own usage_costs rows and are not mirrored, so nothing is
+ * counted twice: only the prospect researcher (search, probes, its model) and prospect audits are mirrored.
+ */
+export function isMirroredSpend(entry: Pick<UsageCostEntry, "agent" | "apiName">): boolean {
+  return entry.agent === "prospect-researcher" || entry.apiName === "prospect-audit";
+}
+
+export type DurableSpendWriter = (row: { tenant_id: string; product: string; cost_date: string; category: string; engine: string | null; units: number; amount_inr: number; detail: Record<string, unknown> }) => Promise<void>;
+
+let durableWriter: DurableSpendWriter | null = null;
+export function setDurableSpendWriterForTests(w: DurableSpendWriter | null): void {
+  durableWriter = w;
+}
+
+async function defaultDurableWriter(row: Parameters<DurableSpendWriter>[0]): Promise<void> {
+  const { getSupabase } = await import("../agents/prospect-researcher/db.js");
+  const sb = getSupabase();
+  if (!sb) return;
+  const { error } = await sb.from("usage_costs").insert(row);
+  if (error) throw new Error(error.message);
+}
+
+function mirrorSpend(entry: UsageCostEntry, options?: { testMode?: boolean }): void {
+  if (!isMirroredSpend(entry) || !(entry.totalCostUsd > 0)) return;
+  const writer = durableWriter || ((options?.testMode === true || isTestMode()) ? null : defaultDurableWriter);
+  if (!writer) return;
+  const rate = Number(process.env.USD_INR_RATE || "85") || 85;
+  const row = {
+    tenant_id: "tgl",
+    product: "tgl_ops",
+    cost_date: formatDateIST(new Date(entry.timestamp)),
+    category: entry.costType === "api" ? "api" : "llm",
+    engine: entry.apiName || entry.model || null,
+    units: 1,
+    amount_inr: Number((entry.totalCostUsd * rate).toFixed(2)),
+    detail: { agent: entry.agent, usd: entry.totalCostUsd, details: entry.details || "" },
+  };
+  writer(row).catch((err) => console.warn("[Cost Ledger] usage_costs mirror failed:", err?.message || err));
+}
+
 export function recordCostEntry(entry: UsageCostEntry, options?: { testMode?: boolean }): void {
   usageCostsLedger.push(entry);
   saveCostLedgerToState(options);
+  mirrorSpend(entry, options);
 }
 
 export function recordApiSpend(params: {

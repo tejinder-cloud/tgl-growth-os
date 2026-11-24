@@ -19,6 +19,13 @@ assert.deepEqual(checkMessage("Dr Bhalla, I asked five questions. Chandigarh Den
 assert.deepEqual(checkMessage('Dr Bhalla, one line from the report: for "Which dental clinic in Chandigarh Tricity should I trust", The Smile Designers is named and Chandigarh Dental Clinic is not. Want the walkthrough?', ctx), []);
 assert.deepEqual(checkMessage("Dr Bhalla, last note from me. Reply STOP and I will not write again.", ctx), []);
 
+// 24 Nov 2026: titles and curly apostrophes no longer hold a correct email.
+const kochar: AuditSummary = { ...audit, mentions: 0, competitor_mentions: { "Dr. Kochar\u2019s House of Smiles": 7 } };
+assert.deepEqual(checkMessage("Hello. Dental IQ was named in 0 of 15 answers. Dr. Kochar\u2019s House of Smiles was named in 7.", { company: "Dental IQ | Dental clinic in chandigarh", city: "Chandigarh Tricity", audit: kochar }), [], "Dr. prefix and curly apostrophe");
+assert.deepEqual(checkMessage("Hello. Dr. Manju's Dental & Implant Clinic was named in 0 of 15 answers. Dr. Kochar's House of Smiles was named in 7.", { company: "Dr. Manju's Dental & Implant Clinic - Dentist in Kharar | Dental Clinic in Kharar", city: "Chandigarh Tricity", audit: kochar }), [], "the prospect's own name after a title");
+assert.deepEqual(checkMessage("Hello. Dr. Sushma Peruri was named in 0 of 15 answers.", { company: "Dr. Sushma Peruri | Laparoscopic Surgeon | Proctology Specialist", city: "Hyderabad", audit: kochar }), [], "a doctor's own practice name");
+assert.ok(checkMessage("Hello. Dr. Kochar\u2019s House of Smiles was named in 9.", { company: "Dental IQ", city: "Chandigarh Tricity", audit: kochar }).length > 0, "a wrong count is still caught with a title");
+
 // Wrong numbers are caught.
 assert.ok(checkMessage("Chandigarh Dental Clinic was named in 5 of 15 answers.", ctx).length > 0);
 assert.ok(checkMessage("Chandigarh Dental Clinic was named in 3 of 20 answers.", ctx).length > 0);
