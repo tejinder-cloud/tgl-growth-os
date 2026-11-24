@@ -131,6 +131,9 @@ export async function runProspectResearch(
   await syncRotationStateFromRepo(options);
 
   // Resolve rotation city & category
+  // Places calls already used today by earlier runs, so this run records only its own search cost.
+  const placesCallsAtStart = getPlacesQuotaState(options).count;
+
   const rotation = getNextRotation({
     cityOverride: options?.city,
     categoryOverride: options?.category,
@@ -608,13 +611,15 @@ export async function runProspectResearch(
   );
 
   // Record Google Places API spend into unified cost ledger ($0.032 per call)
-  if (quota.count > 0) {
-    const placesCostUsd = Number((quota.count * 0.032).toFixed(4));
+  // Only this run's calls: the quota counter is for the whole day, and there are several runs a day (24 Nov 2026).
+  const placesCallsThisRun = Math.max(0, quota.count - placesCallsAtStart);
+  if (placesCallsThisRun > 0) {
+    const placesCostUsd = Number((placesCallsThisRun * 0.032).toFixed(4));
     recordApiSpend({
       agent: "prospect-researcher",
       apiName: "google-places-api",
       totalCostUsd: placesCostUsd,
-      details: `${quota.count} Google Places API call(s)`,
+      details: `${placesCallsThisRun} Google Places API call(s)`,
       options,
     });
   }
