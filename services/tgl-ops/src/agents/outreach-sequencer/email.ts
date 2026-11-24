@@ -4,7 +4,8 @@
 // and the unsubscribe token. fetch and node:crypto only; no new dependency.
 //
 // Environment read here:
-//   OUTREACH_EMAIL_VIA           "resend" sends email touches from this service; anything else keeps GoHighLevel
+//   OUTREACH_EMAIL_VIA           "gmail" sends email touches from the connected Gmail account (gmail/gmail.ts);
+//                                "resend" sends them through Resend; anything else keeps GoHighLevel
 //   RESEND_API_KEY               provider key (already used for audit and report emails)
 //   OUTREACH_EMAIL_FROM          sender, e.g. "Tejinder Singh <tejinder@team.thegrowthlab.co.in>"
 //   OUTREACH_REPLY_TO            address prospects reply to; must be on a domain with receiving switched on.
@@ -16,7 +17,7 @@
 //   OUTREACH_PUBLIC_URL          public base URL of this service; defaults to https://$RAILWAY_PUBLIC_DOMAIN
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-export type EmailVia = "resend" | "ghl";
+export type EmailVia = "gmail" | "resend" | "ghl";
 
 export interface OutreachEmailConfig {
   via: EmailVia;
@@ -38,12 +39,17 @@ export function addressOf(value: string): string {
   return /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(addr) ? addr.toLowerCase() : "";
 }
 
+function viaOf(raw: string | undefined): EmailVia {
+  const v = (raw || "").trim().toLowerCase();
+  return v === "gmail" || v === "resend" ? v : "ghl";
+}
+
 export function loadEmailConfig(env: NodeJS.ProcessEnv = process.env): OutreachEmailConfig {
   const from = (env.OUTREACH_EMAIL_FROM || "").trim();
   const railway = (env.RAILWAY_PUBLIC_DOMAIN || "").trim();
   const publicUrl = ((env.OUTREACH_PUBLIC_URL || "").trim() || (railway ? `https://${railway}` : "")).replace(/\/+$/, "");
   return {
-    via: (env.OUTREACH_EMAIL_VIA || "").trim().toLowerCase() === "resend" ? "resend" : "ghl",
+    via: viaOf(env.OUTREACH_EMAIL_VIA),
     apiKey: (env.RESEND_API_KEY || "").trim(),
     from,
     replyTo: addressOf(env.OUTREACH_REPLY_TO || "") || addressOf(from),
@@ -58,6 +64,11 @@ export function loadEmailConfig(env: NodeJS.ProcessEnv = process.env): OutreachE
 /** Problems that would make a live send through this service fail, or leave replies unread. Empty when clean. */
 export function emailConfigIssues(cfg: OutreachEmailConfig): string[] {
   const issues: string[] = [];
+  if (cfg.via === "gmail") {
+    // Gmail needs only the unsubscribe link here; the account itself is checked when a token is requested.
+    if (!cfg.unsubscribeSecret || !cfg.publicUrl) issues.push("the unsubscribe link cannot be built (OUTREACH_WEBHOOK_SECRET and OUTREACH_PUBLIC_URL or RAILWAY_PUBLIC_DOMAIN)");
+    return issues;
+  }
   if (!cfg.apiKey) issues.push("OUTREACH_EMAIL_VIA=resend but RESEND_API_KEY is not set");
   if (!addressOf(cfg.from)) issues.push("OUTREACH_EMAIL_VIA=resend but OUTREACH_EMAIL_FROM is not a valid sender address");
   if (!cfg.webhookSecret) issues.push("RESEND_WEBHOOK_SECRET is not set, so replies and STOP requests could not be received");
