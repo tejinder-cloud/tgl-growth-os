@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-24",
+  "compiledAt": "2026-11-24T12:20:18.562Z",
+  "digestText": "Good evening. Brief for Tue 24 Nov.\n*Outreach:* 5 emails sent today, 0 replies. 18 businesses are in a sequence, 2 paused. Daily limit tomorrow: 5.\n*Money:* 2 audit requests, 0 calls booked, 0 proposals, 0 retainers, ₹0 invoiced. Today's spend was ₹0.\n*Problems:* The citation tracker did not report a run. The prospect researcher did not report a run.\n*Needs you:*\nNothing else needs you.\nThat is the Daily Standup Digest for 2026-11-24, compiled at 17:50 IST.",
+  "synthesis": {
+    "model": "claude-sonnet-5-5",
+    "inputTokens": 2193,
+    "outputTokens": 504,
+    "totalCostUsd": 0.0141,
+    "costLine": "Standup compilation: 2193 input, 504 output (claude-sonnet-5-5) · Cost: $0.0141 USD"
+  },
+  "posted": false,
+  "source": "cron"
+}
