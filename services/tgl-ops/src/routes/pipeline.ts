@@ -6,10 +6,12 @@
 // GET /pipeline/whatsapp        connect TGL's WhatsApp Business app number (coexistence)
 // POST /pipeline/whatsapp/exchange  completes it with Meta's signup code
 // GET /pipeline/whatsapp/console     templates (list, create) and sending one template message
+// GET /pipeline/live                today at a glance: numbers, funnel, outbox, agents, problems, spend (?part=main: the refreshing part)
 import { Router, type Request, type Response } from "express";
 import { configIssues, exchangeCode, loadGoogleBookingConfig, makeState, verifyState } from "../agents/booking/google.js";
 import { allowedEmails, boardAuthUrl, BOARD_CALLBACK_PATH, cookieValue, makeSession, readSession, sessionSecret, SESSION_COOKIE, SESSION_DAYS } from "../agents/pipeline/auth.js";
 import { loginPage, renderBoard } from "../agents/pipeline/board.js";
+import { renderLiveMain, renderLivePage, type LiveView } from "../agents/pipeline/live-view.js";
 import { dealStore } from "../agents/pipeline/live.js";
 import type { Deal } from "../agents/pipeline/stages.js";
 import { completeConnection, loadMetaConfig, metaConfigIssues, supabaseConnectStore, type ConnectStore } from "../agents/whatsapp/connect.js";
@@ -63,6 +65,30 @@ pipelineRouter.get("/", async (req: Request, res: Response) => {
   } catch (err) {
     console.error("[Pipeline] board failed:", (err as Error).message);
     res.status(503).type("html").send(loginPage("The pipeline could not be read just now. Refresh in a minute."));
+  }
+});
+
+let liveLoader: () => Promise<LiveView> = async () => (await import("../agents/pipeline/live-data.js")).loadLiveView();
+export function setLiveLoaderForTests(fn: (() => Promise<LiveView>) | null): void {
+  liveLoader = fn || (async () => (await import("../agents/pipeline/live-data.js")).loadLiveView());
+}
+
+pipelineRouter.get("/live", async (req: Request, res: Response) => {
+  noStore(res);
+  const email = signedIn(req);
+  const part = req.query.part === "main";
+  if (!email) {
+    if (part) res.status(401).end();
+    else res.status(200).type("html").send(loginPage());
+    return;
+  }
+  try {
+    const view = await liveLoader();
+    res.status(200).type("html").send(part ? renderLiveMain(view) : renderLivePage(view, email));
+  } catch (err) {
+    console.error("[Pipeline] live view failed:", (err as Error).message);
+    if (part) res.status(503).end();
+    else res.status(503).type("html").send(loginPage("The live view could not be read just now. Refresh in a minute."));
   }
 });
 
