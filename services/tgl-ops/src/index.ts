@@ -134,7 +134,18 @@ cron.schedule(
 cron.schedule(
   "30 9 * * *",
   wrapCronJob("09:30 IST Prospect Researcher Run", async () => {
-    await runProspectResearch({ postToSlack: true });
+    // Several city and industry pairs a day (PROSPECT_RUNS_PER_DAY, default 3; 24 Nov 2026). Each run picks the
+    // next pair in the tiered rotation and posts its own review card. One failed run does not stop the next.
+    const { runsPerDay } = await import("./agents/prospect-researcher/targets.js");
+    const runs = runsPerDay();
+    for (let i = 0; i < runs; i++) {
+      try {
+        const r = await runProspectResearch({ postToSlack: true });
+        if (r.standupLines?.blocked && /cost cap|quota|circuit breaker|keys unconfigured/i.test(r.standupLines.blocked)) break;
+      } catch (err) {
+        console.error(`[Prospect Researcher] run ${i + 1} of ${runs} failed:`, (err as Error)?.message || err);
+      }
+    }
   }),
   { timezone: config.timezone }
 );

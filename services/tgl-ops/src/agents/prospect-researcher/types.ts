@@ -62,25 +62,24 @@ export interface ProspectRecord {
   deleted_at?: string | null;
 }
 
-export type RotationCity =
-  | "Delhi NCR"
-  | "Mumbai"
-  | "Bengaluru"
-  | "Hyderabad"
-  | "Chandigarh Tricity";
+/** A city name from targets.ts CITIES. */
+export type RotationCity = string;
 
-export type RotationCategory =
-  | "hospitals"
-  | "cosmetic_dental"
-  | "ivf_fertility"
-  | "high_ticket_coaching";
+/** An industry key from targets.ts INDUSTRIES. */
+export type RotationCategory = string;
 
 export interface RotationState {
   version: number;
+  /** v1 only: index into the old 5-metro list. Kept so an old state file still parses. */
   currentCityIndex: number;
+  /** Next industry in targets.ts INDUSTRIES. */
   currentCategoryIndex: number;
   completedRunsCount: number;
   lastRunAt: string;
+  /** v2: position in TIER_PATTERN. */
+  tierStep?: number;
+  /** v2: next city per tier. */
+  cityIndexByTier?: { "1": number; "2": number; "3": number };
 }
 
 export interface ResearchRunOptions {

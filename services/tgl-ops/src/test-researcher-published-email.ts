@@ -126,7 +126,9 @@ async function main() {
   assert.equal(emailAndPhone.fitScore, phoneOnly.fitScore, "and adds nothing on top of the phone: no rubric weight changed");
 
   const largeOrg = evaluateProspectRubric({ ...base, signals: signals({ is_large_org: true, branch_count: 3 }), decisionMaker: publishedDm("info@brightsmiledental.example.in") });
-  assert.equal(largeOrg.disqualified, true, "a larger organisation still needs a named work email");
+  // Architect decision 24 Nov 2026: the published address counts for a business of any size (it was owner-run only).
+  assert.notEqual(largeOrg.disqualified, true, "a larger organisation is reachable through the email it publishes");
+  assert.ok(largeOrg.fitReasons.some((r) => /Published business email, on its own domain, for a larger organisation; decision maker not named \(\+10 pts\)/.test(r)), "and it scores 10 of 15 on reachability");
 
   const wrongDomain = evaluateProspectRubric({ ...base, signals: signals(), decisionMaker: publishedDm("hello@webagency.example.com") });
   assert.equal(wrongDomain.disqualified, true, "the source tag alone is not enough; the address is re-checked");

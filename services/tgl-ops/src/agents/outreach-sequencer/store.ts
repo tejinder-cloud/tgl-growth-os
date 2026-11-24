@@ -10,7 +10,7 @@ export type OutreachProspect = ProspectRecord & { id: string };
 export type OutreachProspectStatus = "reviewed" | "handed_to_outreach" | "rejected";
 
 export interface ProspectStore {
-  /** status = reviewed, door aeo, fit_score >= 70, not deleted, no outreach state yet. */
+  /** status = reviewed, door aeo, fit_score >= MIN_FIT_SCORE (65), not deleted, no outreach state yet. */
   loadEnrollable(limit: number): Promise<OutreachProspect[]>;
   /** Every prospect carrying an outreach state (any state), for scheduling and the daily cap. */
   loadSequenced(): Promise<OutreachProspect[]>;
@@ -25,7 +25,8 @@ export function getOutreachState(p: ProspectRecord): OutreachState | undefined {
   return s && typeof s === "object" ? (s as OutreachState) : undefined;
 }
 
-export const MIN_FIT_SCORE = 70;
+/** Outreach starts at the researcher's qualified score, so every approved prospect can be emailed (Architect, 24 Nov 2026). */
+export const MIN_FIT_SCORE = 65;
 
 /**
  * Enrolled only with an email address: every touch goes by email while WhatsApp is off (13 Nov 2026), so a

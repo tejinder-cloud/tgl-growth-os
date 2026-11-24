@@ -325,7 +325,19 @@ export function evaluateProspectRubric(params: {
     String(decisionMaker.source || "").includes("contact found, DM unknown") ||
     String(decisionMaker.source || "").includes("contact found, dm unknown");
 
-  if (isDMUnknown) {
+  // An email the business publishes on its own website counts for any size (Architect decision, 24 Nov 2026): for a
+  // larger organisation the person behind it is unknown, but the business is reachable by email.
+  const publishedAnySize = assessPublishedEmail(decisionMaker.email, domain);
+  const publishedForLargeOrg = Boolean(
+    isLargeOrg && decisionMaker.email && String(decisionMaker.source || "").includes(PUBLISHED_EMAIL_SOURCE) && publishedAnySize.ok
+  );
+
+  if (publishedForLargeOrg) {
+    dim5Score = 10;
+    reasons.push(
+      `Dim 5 (DM Reachability): Published business email, ${publishedAnySize.kind === "own_domain" ? "on its own domain" : "free-mail address shown on its own website"}, for a larger organisation; decision maker not named (+10 pts) [Score: 10/15]`
+    );
+  } else if (isDMUnknown) {
     dim5Score = 0;
     reasons.push(
       `Dim 5 (DM Reachability): Contact found, DM unknown — role '${decisionMaker.role || "unknown"}' is not an approved DM for ${isLargeOrg ? "large organisation (≥50 staff)" : "small clinic (<50 staff)"} (0 pts) [Score: 0/15]`

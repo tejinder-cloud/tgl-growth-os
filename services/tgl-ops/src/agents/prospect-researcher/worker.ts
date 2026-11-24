@@ -407,7 +407,7 @@ export async function runProspectResearch(
     );
 
     const isPublishedEmail = Boolean(
-      dm.verified && dm.email && dm.email.includes("@") && dm.source && dm.source.includes(PUBLISHED_EMAIL_SOURCE) && !enrichedDetails.signals.is_large_org
+      dm.verified && dm.email && dm.email.includes("@") && dm.source && dm.source.includes(PUBLISHED_EMAIL_SOURCE)
     );
 
     if (isHunterEmail) {
@@ -419,7 +419,7 @@ export async function runProspectResearch(
     } else {
       funnel.contactUnverified++;
       console.log(
-        `  • [Gate 6 Dropped] '${cand.name}': No verified contact (requires a named work email for large orgs; a published email or Places phone for owner-run businesses) (${dm.source})`
+        `  • [Gate 6 Dropped] '${cand.name}': No usable contact (a verified work email, an email published on its own website, or, for owner-run businesses, the Places phone) (${dm.source})`
       );
       continue;
     }
@@ -730,7 +730,7 @@ ${params.probeShortfall ? `- **Dim 4 Shortfall:** ${params.probeShortfall}\n` : 
   - Playbook C Disqualified (Enterprise Chains): ${params.funnel.playbookCDisqualified}
   - Place Details Enriched: ${params.funnel.placeDetailsEnriched} (Failed: ${params.funnel.placeDetailsFailed})
   - Email Verified via Hunter: ${params.funnel.emailVerified}
-  - Published Business Email (owner-run only): ${params.funnel.publishedEmail ?? 0}
+  - Published Business Email (own website): ${params.funnel.publishedEmail ?? 0}
   - Places Phone Verified (Owner-Run <50 staff only): ${params.funnel.phoneVerified}
   - Contact Unverified / Dropped: ${params.funnel.contactUnverified}
   - Fit Score >= ${FIT_QUALIFIED_THRESHOLD}: ${params.funnel.scoredGe70} (Sub-cutoff: ${params.funnel.scoredBelow70}, of which benched: ${params.funnel.benched}, Not probed: ${params.funnel.probeSkipped})

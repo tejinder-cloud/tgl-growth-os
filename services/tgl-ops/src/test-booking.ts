@@ -146,7 +146,8 @@ async function main() {
   assert.equal(verifyState(st, "secret", sat), true);
   assert.equal(verifyState(st, "other", sat), false);
   assert.equal(verifyState(st, "secret", new Date(sat.getTime() + 11 * 60000)), false, "expires after 10 minutes");
-  assert.equal(verifyState(st.replace(/.$/, "0"), "secret", sat) && st.endsWith("0"), false);
+  // Change the last signature character to a different one (the old check failed whenever it already ended in "0").
+  assert.equal(verifyState(st.replace(/.$/, st.endsWith("0") ? "1" : "0"), "secret", sat), false, "a changed signature is refused");
   const url = new URL(authUrl({ clientId: "cid", clientSecret: "s", calendarEmail: "calls@x.example", publicUrl: "https://svc.example" }, st));
   assert.equal(url.searchParams.get("redirect_uri"), "https://svc.example/book/oauth/callback");
   assert.equal(url.searchParams.get("access_type"), "offline");

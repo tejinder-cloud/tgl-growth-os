@@ -84,7 +84,7 @@ Target the economic buyer who can authorise a ₹3,999/mo to ₹9,999/mo softwar
      - Decision-maker is the **Owner / Lead Doctor**. If a specific doctor or founder name is identified on the website or clinic title (e.g. `Dr. Amit Grover`), use it; otherwise role and title are set to Owner / Lead Doctor.
    - **Enterprise / Growing Institutions (>=50 Staff):** Must have a Hunter-verified work email.
    - **Phone Bonus:** When both a verified email and a direct business phone are present, a +5 bonus is awarded in Dimension 5 (Total 15 pts).
-   - **Generic mailboxes are never a named decision-maker email.** Generic addresses (`info@`, `contact@`, `support@`, `admin@`, etc.) never count as a verified named work email, and are never accepted for larger organisations. For owner-run businesses they may be used as the published business address under (c).
+   - **Generic mailboxes are never a named decision-maker email.** Generic addresses (`info@`, `contact@`, `support@`, `admin@`, etc.) never count as a verified named work email, and are never accepted for larger organisations. An address the business publishes on its own website, a shared inbox included, may be used as its published business address for a business of any size (Architect decision, 24 Nov 2026; owner-run only before that). For a larger organisation the decision maker is recorded as "DM unknown" and the published address scores 10 of 15 on Dimension 5.
    - **Searches per run:** the metro-wide search plus areas of the metro, four by default (`PROSPECT_SEARCHES_PER_RUN`, 1 to 8), merged by place id, inside the 95-calls-a-day Places quota. The separate details lookup is skipped when the search result already carries website and phone.
 4. **Clinic Website Scraping (Playbook D):**
    - Scrape the clinic's public website for `mailto:` addresses and owner/doctor names on Homepage, `/about`, `/doctors`, `/team`, and `/contact` pages.
@@ -316,3 +316,7 @@ The Prospect Researcher executes algorithmic target discovery and qualification 
   - Multi-location chain indicators (5+ cities, multiple centres, funding markers).
 - **What You May Propose:**
   - Submit `type:proposal` issues for rubric adjustments, new geographic metros, or niche categories.
+
+## Targets and rotation (24 Nov 2026)
+
+Industries and cities live in `services/tgl-ops/src/agents/prospect-researcher/targets.ts`: hospitals, cosmetic dental, IVF and fertility, high-ticket coaching, hotels, real estate; Tier 1, 2 and 3 cities. Scheduled runs take tiers in the pattern 1, 2, 1, 2, 3 (40/40/20), the next city in that tier and the next industry. The 09:30 job runs `PROSPECT_RUNS_PER_DAY` pairs (default 3, at most 6), each with its own review card. Outreach starts at fit 65, the same score that qualifies.
