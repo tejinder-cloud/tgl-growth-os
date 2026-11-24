@@ -42,8 +42,11 @@ function firstAddress(value: unknown): string {
 async function onReceived(data: any, deps: InboundDeps): Promise<InboundResult> {
   const emailId = String(data?.email_id || "").trim();
   if (!emailId) return { status: "ignored", matched: false };
+  return handleReceivedMail(await deps.fetchReceived(emailId), deps);
+}
 
-  const mail = await deps.fetchReceived(emailId);
+/** A received email, however it arrived (Resend webhook or the Gmail inbox poll). */
+export async function handleReceivedMail(mail: ReceivedEmail, deps: Omit<InboundDeps, "fetchReceived">): Promise<InboundResult> {
   if (!mail.from) return { status: "ignored", matched: false };
 
   const known = await deps.store.findByEmail(mail.from);
@@ -88,7 +91,12 @@ async function onReceived(data: any, deps: InboundDeps): Promise<InboundResult> 
   return result;
 }
 
-async function stopForDelivery(kind: "bounced" | "complained", data: any, deps: InboundDeps): Promise<InboundResult> {
+/** A delivery failure for one address, however it was reported. Pauses that prospect's sequence once. */
+export async function handleBouncedAddress(address: string, deps: ReplyDeps): Promise<InboundResult> {
+  return stopForDelivery("bounced", { to: address }, deps);
+}
+
+async function stopForDelivery(kind: "bounced" | "complained", data: any, deps: ReplyDeps): Promise<InboundResult> {
   const address = firstAddress(data?.to);
   if (!address) return { status: "ignored", matched: false };
   const prospect = await deps.store.findByEmail(address);

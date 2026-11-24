@@ -75,9 +75,46 @@ export function isLive(env: NodeJS.ProcessEnv = process.env): boolean {
   return (env.OUTREACH_LIVE || "").trim() === "1";
 }
 
-export function dailyCap(env: NodeJS.ProcessEnv = process.env): number {
+/**
+ * Sends allowed today. OUTREACH_CAP_SCHEDULE ("2026-11-25=2,2026-12-02=5") is a warm-up ramp: the latest date
+ * that has started (IST) wins. Before its first date, or when it is unset or unreadable, OUTREACH_DAILY_SEND_CAP
+ * applies (default 20). OUTREACH_SEND_DAYS ("1-6" = Monday to Saturday, ISO weekday numbers) makes every other day 0.
+ */
+export function dailyCap(env: NodeJS.ProcessEnv = process.env, now: Date = new Date()): number {
+  const ist = new Date(now.getTime() + IST_OFFSET_MINUTES * 60_000);
+  const days = sendDays(env);
+  if (days && !days.has(ist.getUTCDay() === 0 ? 7 : ist.getUTCDay())) return 0;
+
+  const today = ist.toISOString().slice(0, 10);
+  let scheduled: number | undefined;
+  let latest = "";
+  for (const part of (env.OUTREACH_CAP_SCHEDULE || "").split(",")) {
+    const m = /^\s*(\d{4}-\d{2}-\d{2})\s*=\s*(\d+)\s*$/.exec(part);
+    if (!m) continue;
+    if (m[1] <= today && m[1] >= latest) {
+      latest = m[1];
+      scheduled = Number(m[2]);
+    }
+  }
+  if (scheduled !== undefined) return scheduled;
+
   const raw = Number((env.OUTREACH_DAILY_SEND_CAP || "").trim());
   return Number.isFinite(raw) && raw >= 0 && (env.OUTREACH_DAILY_SEND_CAP || "").trim() !== "" ? Math.floor(raw) : DEFAULT_DAILY_CAP;
+}
+
+/** ISO weekdays (1 = Monday ... 7 = Sunday) from "1-6" or "1,2,3". Null when unset or unreadable: every day. */
+export function sendDays(env: NodeJS.ProcessEnv = process.env): Set<number> | null {
+  const raw = (env.OUTREACH_SEND_DAYS || "").trim();
+  if (!raw) return null;
+  const out = new Set<number>();
+  for (const part of raw.split(",")) {
+    const range = /^\s*([1-7])\s*(?:-\s*([1-7]))?\s*$/.exec(part);
+    if (!range) return null;
+    const a = Number(range[1]);
+    const b = range[2] ? Number(range[2]) : a;
+    for (let d = Math.min(a, b); d <= Math.max(a, b); d++) out.add(d);
+  }
+  return out.size ? out : null;
 }
 
 /** True every day between 09:30 and 17:30 IST (UTC+5:30, no daylight saving). Agents work every day (13 Nov 2026). */
@@ -94,7 +131,7 @@ function holdAlert(item: DueTouch, attempts: number, reason?: string): string {
 export async function runTick(ports: TickPorts): Promise<TickSummary> {
   const now = ports.now();
   const mode: SendMode = isLive(ports.env) ? "live" : "dry_run";
-  const cap = dailyCap(ports.env);
+  const cap = dailyCap(ports.env, now);
   const base = { mode, cap, sentToday: 0, due: 0, deferredByCap: 0, outcomes: [] as TickOutcome[] };
 
   if (!isSendWindow(now)) return { ...base, ran: false, reason: "outside_window" };

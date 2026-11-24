@@ -319,6 +319,17 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
+// Every 10 minutes (offset from the outreach tick): prospect replies and bounces in the Gmail inbox. Runs only
+// when outreach email goes through Gmail (OUTREACH_EMAIL_VIA=gmail).
+cron.schedule(
+  "5,15,25,35,45,55 * * * *",
+  wrapCronJob("Gmail inbox check", async () => {
+    const { runGmailInboxPoll } = await import("./agents/gmail/live.js");
+    await runGmailInboxPoll();
+  }),
+  { timezone: config.timezone }
+);
+
 // Every 15 minutes: first GA4 sync for a property connected since the last check
 cron.schedule(
   "*/15 * * * *",

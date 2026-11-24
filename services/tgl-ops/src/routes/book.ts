@@ -98,7 +98,11 @@ bookRouter.get("/oauth/callback", async (req: Request, res: Response) => {
     if (!got.scopes.includes("https://www.googleapis.com/auth/calendar.events")) return void fail("Calendar access was not granted. Tick the calendar box on Google's screen.", 403);
     if (!got.refreshToken) return void fail("Google did not return a lasting sign-in. Remove The Growth Lab at myaccount.google.com/permissions and try again.", 502);
     await bookingStore().setRefreshToken(got.refreshToken);
-    res.status(200).type("html").send(shell("Connected", `<h1>Connected</h1><p>Bookings will be created on ${cfg.calendarEmail}. You can close this page.</p><p><a href="/book">Open the booking page</a></p>`));
+    const gmailOk = got.scopes.includes("https://www.googleapis.com/auth/gmail.send") && got.scopes.includes("https://www.googleapis.com/auth/gmail.readonly");
+    const mailLine = gmailOk
+      ? `<p>Outreach email can be sent from ${cfg.calendarEmail}, and replies are read from its inbox.</p>`
+      : `<p>Email sending and reading were not allowed, so outreach cannot use this account yet. <a href="/book/connect">Sign in again</a> and tick both email boxes.</p>`;
+    res.status(200).type("html").send(shell("Connected", `<h1>Connected</h1><p>Bookings will be created on ${cfg.calendarEmail}.</p>${mailLine}<p><a href="/book">Open the booking page</a></p>`));
   } catch (err) {
     console.error("[Book] connect failed:", (err as Error).message);
     fail("Google sign-in could not be completed. Try again.", 502);

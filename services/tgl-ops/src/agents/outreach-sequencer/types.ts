@@ -27,7 +27,7 @@ export interface TouchRecord {
   dry_run: boolean;
   attachment_url?: string;
   /** What carried the message: this service's own email provider, or GoHighLevel. Absent on older records. */
-  via?: "resend" | "ghl";
+  via?: "gmail" | "resend" | "ghl";
 }
 
 export interface AuditSummary {

@@ -26,6 +26,7 @@ import { postLine } from "../../lib/post.js";
 import { getSupabase } from "../prospect-researcher/db.js";
 import { makeExecute, type ExecutorPorts, type ProspectView } from "./execute.js";
 import { createResendSender, emailConfigIssues, fetchReceivedEmail, loadEmailConfig, type EmailSender } from "./email.js";
+import { gmailFrom, liveGmailSender } from "../gmail/live.js";
 import { createGhlClient, loadGhlConfig, type GhlClient } from "./ghl.js";
 import { cleanBusinessName } from "./names.js";
 import type { InboundDeps } from "./inbound.js";
@@ -340,11 +341,11 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
   const bookingLink = (env.OUTREACH_BOOKING_LINK || "").trim() || undefined;
   const waOn = whatsappEnabled(env);
   const emailCfg = loadEmailConfig(env);
-  const ownEmail = emailCfg.via === "resend";
+  const ownEmail = emailCfg.via !== "ghl";
 
   let senderCache: EmailSender | undefined = opts.emailSender;
   const emailSender = (): EmailSender => {
-    if (!senderCache) senderCache = createResendSender(emailCfg, opts.fetchImpl || fetch);
+    if (!senderCache) senderCache = emailCfg.via === "gmail" ? liveGmailSender(env, opts.fetchImpl || fetch) : createResendSender(emailCfg, opts.fetchImpl || fetch);
     return senderCache;
   };
 
@@ -428,7 +429,7 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
           attachmentUrl: msg.attachmentUrl,
           attachmentFilename: `${msg.company.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "your"}-ai-visibility-report.pdf`,
         });
-        return { messageId: sent.messageId, via: "resend" as const };
+        return { messageId: sent.messageId, via: emailCfg.via === "gmail" ? ("gmail" as const) : ("resend" as const) };
       }
       const res = await ghl().sendMessage({
         contactId: msg.contactId,
@@ -487,6 +488,7 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
     }
     if (isLive(env)) {
       if (ownEmail && !opts.emailSender) issues.push(...emailConfigIssues(emailCfg));
+      if (emailCfg.via === "gmail" && !opts.emailSender && !gmailFrom(env)) issues.push("OUTREACH_EMAIL_VIA=gmail but BOOKING_CALENDAR_EMAIL is not set");
       // GHL is needed only for what it still carries: email when not moved, and WhatsApp when switched on.
       if (!ownEmail || waOn) {
         const cfg = loadGhlConfig(env);
@@ -548,7 +550,7 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
     // changes a prospect's status.
     if (live && isSendWindow(at)) {
       try {
-        const enrolled = await enrolNewProspects(store, at, dailyCap(env));
+        const enrolled = await enrolNewProspects(store, at, dailyCap(env, at));
         for (const p of enrolled) {
           const { safely } = await import("../pipeline/live.js");
           await safely("in outreach", (pl) => pl.outreachStarted({ company: cleanBusinessName(p.company), name: p.decision_maker?.name, email: p.decision_maker?.email, city: p.city }, p.id));

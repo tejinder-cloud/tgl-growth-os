@@ -75,7 +75,7 @@ export interface ExecutorPorts {
   /** Create or update the GHL contact and return its id. Returns "" when no GHL contact is needed for this send. */
   upsertContact: (prospect: ProspectView, channel: TouchChannel) => Promise<string>;
   /** Send one message. Only called in live mode. `via` says what carried it. */
-  sendMessage: (msg: OutboundMessage) => Promise<{ messageId?: string; via?: "resend" | "ghl" }>;
+  sendMessage: (msg: OutboundMessage) => Promise<{ messageId?: string; via?: "gmail" | "resend" | "ghl" }>;
 }
 
 function errMessage(err: unknown): string {

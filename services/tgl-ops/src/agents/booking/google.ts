@@ -4,7 +4,15 @@
 import crypto from "node:crypto";
 import type { Busy } from "./slots.js";
 
-export const BOOKING_SCOPES = ["openid", "email", "https://www.googleapis.com/auth/calendar.events"];
+// One sign-in for the bookings account covers the calendar and, since 24 Nov 2026, outreach email through Gmail
+// (send, and read the inbox for replies and bounces).
+export const BOOKING_SCOPES = [
+  "openid",
+  "email",
+  "https://www.googleapis.com/auth/calendar.events",
+  "https://www.googleapis.com/auth/gmail.send",
+  "https://www.googleapis.com/auth/gmail.readonly",
+];
 export const CALLBACK_PATH = "/book/oauth/callback";
 
 export interface GoogleBookingConfig {
