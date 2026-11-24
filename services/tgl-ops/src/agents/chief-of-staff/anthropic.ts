@@ -89,13 +89,13 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (plain-English standup):
 - Output strictly plain text / Slack mrkdwn (bold labels only). No emojis anywhere.
 - You are given a DRAFT CARD that already holds every fact. Return it with light smoothing only.
 - Keep this exact shape, in this order:
-  1. Line 1: "Good evening. Day N of 90 — on track / X days behind / X days ahead (Next gate: <gate>, expected <date>)." Do not change N, the pace or the gate.
-  1b. The "*Revenue target" line from the draft, word for word. Never reword it or change a number in it.
-  2. "*Today:*" two or three plain sentences: tracker answers and how often our brand was named, researcher candidates and how many qualified, merged pull requests by title, cards approved.
-  3. "*Tomorrow:*" the scheduled runs and any active issue.
-  4. "*Money:*" audit requests, calls booked, proposals, retainers, rupees invoiced, and today's spend in rupees.
-  5. "*Needs you:*" a numbered list. Each item is an action, then an arrow (→), then the expected outcome in one sentence. Keep only the links an action needs. If the list is empty, write exactly "Nothing else needs you."
+  1. Line 1: "Good evening. Brief for <weekday> <date>." exactly as in the draft.
+  2. The "*Outreach:*" line from the draft, word for word.
+  3. The "*Money:*" line from the draft, word for word.
+  4. "*Problems:*" only if the draft has it; same facts.
+  5. "*Needs you:*" a numbered list of at most three items. Each item is an action, then an arrow (→), then the expected outcome in one sentence. Keep only the links an action needs. If the list is empty, write exactly "Nothing else needs you."
   6. A last line that contains the words "Daily Standup Digest".
+- Do not add a day count, a pace (behind or ahead), a revenue target line or a list of scheduled runs.
 - Do not add an Open Issues count, a Carried or Blocked line, or reference links.
 - FACTUAL FIDELITY: never invent or alter a number, title, date or status. If a fact is not in the draft, leave it out.
 - HARD CAP: 25 lines or fewer. No preamble, no commentary.
@@ -167,8 +167,9 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (plain-English standup):
 
   // Guard the shape: fall back to the deterministic card if the model drifted or used an emoji.
   // The revenue-target line must survive the smoothing exactly: it is the number the company is being run on.
-  const targetLine = draftCard.split("\n").find((l) => l.startsWith("*Revenue target")) || "";
-  if (!isPlainShape(digestText, "evening") || EMOJI_REGEX.test(digestText) || (targetLine && !digestText.includes(targetLine))) {
+  // The numbers lines are taken word for word from the draft; a model that rewords them is not used.
+  const numberLines = draftCard.split("\n").filter((l) => l.startsWith("*Outreach:*") || l.startsWith("*Money:*"));
+  if (!isPlainShape(digestText, "evening") || EMOJI_REGEX.test(digestText) || numberLines.some((l) => !digestText.includes(l))) {
     console.warn("[Chief of Staff] Model output left the plain-English shape; using the deterministic card.");
     digestText = draftCard;
   }
@@ -222,18 +223,16 @@ MANDATORY OUTPUT FORMAT & CONSTRAINTS (plain-English standup):
 export function isPlainShape(text: string, mode: "morning" | "evening"): boolean {
   const hello = mode === "morning" ? "Good morning." : "Good evening.";
   const first = text.split("\n")[0] || "";
-  if (!first.startsWith(`${hello} Day `) || !new RegExp(` of ${PROGRAMME_DAYS} — `).test(first)) return false;
-  const activity = mode === "morning" ? "Yesterday:" : "Today:";
-  const schedule = mode === "morning" ? "Today:" : "Tomorrow:";
-  const order = [activity, schedule, "Money:", "Needs you:"];
+  if (!first.startsWith(`${hello} Brief for `)) return false;
+  const order = ["Outreach:", "Money:", "Needs you:"];
   let from = 0;
   for (const label of order) {
     const idx = text.indexOf(label, from);
     if (idx < 0) return false;
     from = idx + label.length;
   }
-  // The old card's labels must be gone; a Needs-you sentence may still say a day "was carried forward".
-  if (/Open Issues:|Carried \/ Blocked:|Carried Items:/i.test(text)) return false;
+  // Lines removed on 24 Nov 2026 must stay removed.
+  if (/Open Issues:|Carried \/ Blocked:|Carried Items:| of 68 — |Revenue target|These runs are scheduled/i.test(text)) return false;
   return true;
 }
 

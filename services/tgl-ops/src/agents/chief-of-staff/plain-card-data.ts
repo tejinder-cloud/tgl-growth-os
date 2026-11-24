@@ -18,6 +18,7 @@ import {
   renderPlainCard,
   REVENUE_TARGET,
   type CardMode,
+  type OutreachStats,
   type PlainCardInput,
   type RevenueProgress,
   type RoutineLike,
@@ -180,10 +181,44 @@ export interface PlainCardOptions {
   currentDay?: number;
   planEntries?: PlanEntry[];
   /** Test hooks: bypass IO for any field. */
-  overrides?: Partial<Pick<PlainCardInput, "activityLogs" | "mergedPrTitles" | "cardsApproved" | "scheduledRoutines" | "spendRupees" | "revenue" | "activeIssues" | "revenueProgress">>;
+  overrides?: Partial<Pick<PlainCardInput, "activityLogs" | "mergedPrTitles" | "cardsApproved" | "scheduledRoutines" | "spendRupees" | "revenue" | "activeIssues" | "revenueProgress" | "outreach">>;
 }
 
-/** Collects every fact the card needs. */
+/** Rows as far as the outreach count needs them: the outreach state inside signals. */
+export interface OutreachCountRow {
+  signals?: { outreach?: { state?: string; touches?: { sent_at?: string; dry_run?: boolean }[]; last_reply_at?: string } } | null;
+}
+
+/** Outreach numbers for one IST day. Pure, so it is tested without a database. */
+export function countOutreach(rows: OutreachCountRow[], activityDate: string, nextCap: number): OutreachStats {
+  const stats: OutreachStats = { sent: 0, replies: 0, active: 0, paused: 0, nextCap };
+  for (const r of rows) {
+    const o = r.signals?.outreach;
+    if (!o) continue;
+    if (o.state === "active") stats.active++;
+    else if (o.state === "paused") stats.paused++;
+    for (const t of o.touches || []) {
+      if (!t.dry_run && t.sent_at && istDateOf(t.sent_at) === activityDate) stats.sent++;
+    }
+    if (o.last_reply_at && istDateOf(o.last_reply_at) === activityDate) stats.replies++;
+  }
+  return stats;
+}
+
+export async function readOutreachStats(activityDate: string, nextDay: string): Promise<OutreachStats | null> {
+  try {
+    const { createSupabaseStore } = await import("../outreach-sequencer/store.js");
+    const { dailyCap } = await import("../outreach-sequencer/worker.js");
+    const rows = await createSupabaseStore().loadSequenced();
+    // Noon IST on the next sending day: dailyCap reads the warm-up schedule and the send days for that date.
+    const cap = dailyCap(process.env, new Date(`${nextDay}T06:30:00Z`));
+    return countOutreach(rows as unknown as OutreachCountRow[], activityDate, cap);
+  } catch (err: any) {
+    console.warn("[Plain Card] Could not read outreach numbers:", err?.message || err);
+    return null;
+  }
+}
+
 /** One row of the prospect-audit record, as far as the count needs it. */
 export interface ProspectAuditCountRow {
   business_name: string | null;
@@ -268,6 +303,9 @@ export async function buildPlainCardInput(options: PlainCardOptions): Promise<Pl
   const revenueProgress: RevenueProgress | null =
     ov.revenueProgress !== undefined ? ov.revenueProgress : isTest ? null : await readRevenueProgress();
 
+  const outreach: OutreachStats | null =
+    ov.outreach !== undefined ? ov.outreach : isTest ? null : await readOutreachStats(activityDate, scheduleDate);
+
   const scheduledRoutines = ov.scheduledRoutines || (await scheduledRoutinesOn(scheduleDate));
   const activeIssues =
     ov.activeIssues || (material.inProgressIssues || []).map((i) => ({ number: i.number, title: i.title }));
@@ -298,6 +336,7 @@ export async function buildPlainCardInput(options: PlainCardOptions): Promise<Pl
     spendRupees,
     needs,
     revenueProgress,
+    outreach,
   };
 }
 

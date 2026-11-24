@@ -334,7 +334,7 @@ ${entry.depends_on.join(", ") || "None"}
 
 /**
  * 09:00 IST Morning Status Card, in plain English.
- * Shape: "Good morning. Day N of 90 — on track / X days behind / X days ahead (next gate and date)",
+ * Shape (since 24 Nov 2026): "Good morning. Brief for <weekday> <date>.", then Outreach, Money, Problems, Needs you,
  * then Yesterday, Today, Money and a numbered Needs-you list (action → outcome).
  * No Open Issues count, no Carried/Blocked line, no reference links; the only links are the
  * ones a Needs-you action requires.

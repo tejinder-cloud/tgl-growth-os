@@ -10,6 +10,7 @@ import { getSupabase } from "../prospect-researcher/db.js";
 import { brandsDueToday, startTrialClock } from "./cadence.js";
 import { supabaseStore } from "./store.js";
 import { AGENT, runTracker, summaryLine, type TrackerSummary } from "./tracker.js";
+import { plainError } from "../../lib/plain-error.js";
 
 export async function runCitationTracking(options?: { brandId?: string; kind?: "daily" | "audit" }): Promise<TrackerSummary | null> {
   const alert = (text: string) => postLine({ channel: getAlertsChannel(), text }).catch(() => {});
@@ -68,7 +69,7 @@ export async function runCitationTracking(options?: { brandId?: string; kind?: "
   if (failed.length || summary.notConfigured.length || summary.stoppedByCap) {
     const lines = [
       `[Warning] *@aeo-audit-engine* Citation Tracker ${runDate} needs a look`,
-      ...failed.map((o) => `• ${o.brand} · ${o.engine}: ${o.status} (${o.ok}/${o.total})${o.note ? ` — \`${o.note.slice(0, 200)}\`` : ""}`),
+      ...failed.map((o) => `• ${o.brand} · ${o.engine}: ${o.status} (${o.ok}/${o.total})${o.note ? `: ${plainError(o.note)}` : ""}`),
       ...summary.notConfigured.map((n) => `• ${n.engine} not configured — missing: ${n.missing.join(", ")}`),
       ...(summary.stoppedByCap ? ["• stopped by the daily cost cap (config/agents.yaml → daily_cost_cap_usd)"] : []),
     ];

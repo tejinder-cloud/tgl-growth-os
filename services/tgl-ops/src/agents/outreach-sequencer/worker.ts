@@ -10,6 +10,8 @@
 //   4. The one-pager touch is never sent bare: a result without a one-pager attachment is treated as held.
 //   5. Three failed one-pager attempts post to #alerts and the sequence stays paused.
 
+import { plainError } from "../../lib/plain-error.js";
+
 export const TOUCH_COUNT = 5;
 /** Touch that carries the prospect's one-pager PDF (Architect cadence: T3, email, day 4). Mirrors sequence.ts. */
 export const ONE_PAGER_TOUCH = 3;
@@ -125,7 +127,7 @@ export function isSendWindow(now: Date): boolean {
 }
 
 function holdAlert(item: DueTouch, attempts: number, reason?: string): string {
-  return `*Outreach held: ${item.company}* touch ${item.touch} failed ${attempts} times and the sequence stays paused. Reason: ${reason || "not reported"}. Fix the cause, then clear the hold on the prospect.`;
+  return `*Outreach held: ${item.company}* touch ${item.touch} failed ${attempts} times and the sequence stays paused. Reason: ${plainError(reason || "")}. Once the cause is fixed, ask Claude to resume this prospect.`;
 }
 
 export async function runTick(ports: TickPorts): Promise<TickSummary> {
