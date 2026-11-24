@@ -306,7 +306,7 @@ export interface OutreachRuntime {
 }
 
 /**
- * Starts the sequence for prospects the Architect approved (status reviewed, door aeo, fit 70+, an email address).
+ * Starts the sequence for prospects the Architect approved (status reviewed, door aeo, fit 65+, an email address).
  * At most `perDay` new prospects a day, counted by enrolled_at in IST, so new starts never crowd out follow-ups.
  * Touch 1 is due at once; the status moves to handed_to_outreach.
  */

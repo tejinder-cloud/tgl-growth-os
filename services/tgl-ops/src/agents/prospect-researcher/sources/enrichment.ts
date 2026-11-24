@@ -443,16 +443,16 @@ async function findVerifiedDecisionMaker(
     };
   }
 
-  // Option A2: published business email, owner-run businesses only (Architect decision, 13 Nov 2026).
-  // The address the business prints on its own website, a shared inbox or free-mail address included.
-  // Larger organisations still need a named work email.
-  if (!orgSizeGe50) {
+  // Option A2: published business email (Architect decisions: owner-run businesses 13 Nov 2026; any size 24 Nov 2026).
+  // The address the business prints on its own website, a shared inbox (info@) or free-mail address included.
+  // For a larger organisation the person is not known, so it is recorded as "Contact found, DM unknown".
+  {
     const published = await resolvePublishedEmail(websitePublishedEmails, candidate.website);
     if (published) {
       const sanitized = sanitizeDecisionMaker(
         {
-          name: websiteDoctorName || "Owner / Lead Doctor",
-          role: websiteDoctorRole || "Owner / Lead Doctor",
+          name: orgSizeGe50 ? "Contact found, DM unknown" : websiteDoctorName || "Owner / Lead Doctor",
+          role: orgSizeGe50 ? "DM unknown" : websiteDoctorRole || "Owner / Lead Doctor",
           email: published.email,
           phone: candidate.phone,
           source: `${PUBLISHED_EMAIL_SOURCE} (${published.kind === "own_domain" ? "own domain" : "free-mail, shown on own website"}; ${published.check})${

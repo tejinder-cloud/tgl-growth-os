@@ -1,6 +1,7 @@
 // services/tgl-ops/src/agents/prospect-researcher/sources/places.ts
 import dns from "node:dns/promises";
 import { MAX_DAILY_PLACES_CALLS, checkAndConsumePlacesQuota, getPlacesQuotaState } from "../guardrails.js";
+import { allPlaceNames, findIndustry } from "../targets.js";
 
 export interface RawPlaceCandidate {
   placeId: string;
@@ -36,21 +37,12 @@ const PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_M
  * Zero stubs or mock data: returns empty array if no live API key or results.
  */
 export function categoryPhrase(category: string): string {
-  if (category === "cosmetic_dental") return "dental implant cosmetic clinic";
-  if (category === "ivf_fertility") return "ivf fertility clinic";
-  if (category === "high_ticket_coaching") return "NEET JEE coaching institute";
-  return "super speciality hospital surgical clinic";
+  return findIndustry(category)?.searchPhrase || "super speciality hospital surgical clinic";
 }
 
-// Areas inside each rotation metro. One search returns at most 20 listings, and a metro-wide search returns the
-// same 20 every time; searching by area is how a run reaches businesses the metro-wide search never shows.
-export const METRO_AREAS: Record<string, string[]> = {
-  "Delhi NCR": ["South Delhi", "Gurugram", "Noida", "West Delhi", "Dwarka", "Faridabad", "Ghaziabad", "East Delhi"],
-  Mumbai: ["Andheri", "Bandra", "Thane", "Navi Mumbai", "Borivali", "Powai", "Dadar", "Chembur"],
-  Bengaluru: ["Indiranagar", "Koramangala", "Whitefield", "Jayanagar", "HSR Layout", "Hebbal", "Malleshwaram", "Electronic City"],
-  Hyderabad: ["Banjara Hills", "Gachibowli", "Kukatpally", "Madhapur", "Secunderabad", "Jubilee Hills", "Dilsukhnagar"],
-  "Chandigarh Tricity": ["Chandigarh", "Mohali", "Panchkula", "Zirakpur", "Kharar"],
-};
+// Areas inside each city (targets.ts). One search returns at most 20 listings, and a city-wide search returns the
+// same 20 every time; searching by area is how a run reaches businesses the city-wide search never shows.
+export const METRO_AREAS: Record<string, string[]> = allPlaceNames();
 
 export const DEFAULT_SEARCHES_PER_RUN = 4;
 export const MAX_SEARCHES_PER_RUN = 8;

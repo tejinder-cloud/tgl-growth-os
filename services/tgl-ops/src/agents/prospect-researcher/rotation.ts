@@ -4,7 +4,9 @@ import path from "node:path";
 import { config, isTestMode } from "../../config.js";
 import type { RotationCity, RotationCategory, RotationState } from "./types.js";
 import { putFileInRepo, readFileFromRepo } from "../../lib/github-client.js";
+import { CITIES, INDUSTRIES, TIER_PATTERN, citiesInTier, type Tier } from "./targets.js";
 
+/** The original five metros (Tier 1 and the Tricity); kept for the weekday default of a fresh v1 state. */
 export const ROTATION_CITIES: RotationCity[] = [
   "Delhi NCR",
   "Mumbai",
@@ -13,12 +15,8 @@ export const ROTATION_CITIES: RotationCity[] = [
   "Chandigarh Tricity",
 ];
 
-export const ROTATION_CATEGORIES: RotationCategory[] = [
-  "hospitals",
-  "cosmetic_dental",
-  "ivf_fertility",
-  "high_ticket_coaching",
-];
+/** All industries, in targets.ts order. */
+export const ROTATION_CATEGORIES: RotationCategory[] = INDUSTRIES.map((i) => i.key);
 
 const ROTATION_STATE_FILE = "logs/.state/prospect-rotation.json";
 const ROTATION_TEST_STATE_FILE = "logs/.test/.state/prospect-rotation.json";
@@ -152,8 +150,46 @@ export function saveRotationState(
   }
 }
 
+/** A state written before 24 Nov 2026 (5 metros, 4 categories) or a fresh one: start the tiered rotation. */
+function asV2(state: RotationState): RotationState & { tierStep: number; cityIndexByTier: { "1": number; "2": number; "3": number } } {
+  if (state.version >= 2 && state.cityIndexByTier && typeof state.tierStep === "number") return state as any;
+  return {
+    ...state,
+    version: 2,
+    tierStep: 0,
+    cityIndexByTier: { "1": 0, "2": 0, "3": 0 },
+    currentCategoryIndex: state.currentCategoryIndex % INDUSTRIES.length,
+  };
+}
+
+/** Pure: the pair a state points at. Tier from TIER_PATTERN, the tier's next city, the next industry. */
+export function pairFor(state: RotationState): { city: RotationCity; category: RotationCategory; tier: Tier } {
+  const s = asV2(state);
+  const tier = TIER_PATTERN[s.tierStep % TIER_PATTERN.length];
+  const list = citiesInTier(tier);
+  const city = list[s.cityIndexByTier[String(tier) as "1" | "2" | "3"] % list.length].name;
+  const category = INDUSTRIES[s.currentCategoryIndex % INDUSTRIES.length].key;
+  return { city, category, tier };
+}
+
+/** Pure: the state after one scheduled run. */
+export function nextState(state: RotationState, now: Date = new Date()): RotationState {
+  const s = asV2(state);
+  const tier = TIER_PATTERN[s.tierStep % TIER_PATTERN.length];
+  const key = String(tier) as "1" | "2" | "3";
+  return {
+    ...s,
+    tierStep: (s.tierStep + 1) % TIER_PATTERN.length,
+    cityIndexByTier: { ...s.cityIndexByTier, [key]: (s.cityIndexByTier[key] + 1) % citiesInTier(tier).length },
+    currentCategoryIndex: (s.currentCategoryIndex + 1) % INDUSTRIES.length,
+    completedRunsCount: s.completedRunsCount + 1,
+    lastRunAt: now.toISOString(),
+  };
+}
+
 /**
- * Returns the next (city, category) pair according to the schedule rotation.
+ * Returns the next (city, category) pair: Tier 1, 2, 1, 2, 3 in turn (40/40/20), the next city in that tier,
+ * and the next industry. An explicit override (from a brief) wins.
  */
 export function getNextRotation(options?: {
   cityOverride?: string;
@@ -161,33 +197,19 @@ export function getNextRotation(options?: {
   testMode?: boolean;
 }): { city: RotationCity; category: RotationCategory; isOverridden: boolean } {
   if (options?.cityOverride && options?.categoryOverride) {
-    return {
-      city: options.cityOverride as RotationCity,
-      category: options.categoryOverride as RotationCategory,
-      isOverridden: true,
-    };
+    return { city: options.cityOverride, category: options.categoryOverride, isOverridden: true };
   }
-
-  const state = loadRotationState(options);
-  const city = ROTATION_CITIES[state.currentCityIndex % ROTATION_CITIES.length];
-  const category = ROTATION_CATEGORIES[state.currentCategoryIndex % ROTATION_CATEGORIES.length];
-
+  const pair = pairFor(loadRotationState(options));
   return {
-    city: (options?.cityOverride as RotationCity) || city,
-    category: (options?.categoryOverride as RotationCategory) || category,
+    city: options?.cityOverride || pair.city,
+    category: options?.categoryOverride || pair.category,
     isOverridden: Boolean(options?.cityOverride || options?.categoryOverride),
   };
 }
 
-/**
- * Advances both city and category on each scheduled run.
- */
+/** Moves the rotation on by one run. */
 export function advanceRotation(options?: { testMode?: boolean }): RotationState {
-  const state = loadRotationState(options);
-  state.currentCityIndex = (state.currentCityIndex + 1) % ROTATION_CITIES.length;
-  state.currentCategoryIndex = (state.currentCategoryIndex + 1) % ROTATION_CATEGORIES.length;
-  state.completedRunsCount += 1;
-  state.lastRunAt = new Date().toISOString();
+  const state = nextState(loadRotationState(options));
   saveRotationState(state, options);
   return state;
 }
@@ -210,36 +232,22 @@ export function parseResearchBrief(text: string): ParsedResearchBrief {
   let category: RotationCategory | undefined;
   let targetCount: number | undefined;
 
-  // 1. Detect City
-  if (normalized.includes("delhi ncr") || normalized.includes("delhi")) {
-    city = "Delhi NCR";
-  } else if (normalized.includes("mumbai") || normalized.includes("bombay")) {
-    city = "Mumbai";
-  } else if (normalized.includes("bengaluru") || normalized.includes("bangalore")) {
-    city = "Bengaluru";
-  } else if (normalized.includes("hyderabad")) {
-    city = "Hyderabad";
-  } else if (normalized.includes("chandigarh") || normalized.includes("tricity")) {
-    city = "Chandigarh Tricity";
+  // 1. Detect City: any configured city or area (an area maps to its city), longest name first.
+  const cityNames: { word: string; city: string }[] = [];
+  for (const c of CITIES) {
+    cityNames.push({ word: c.name.toLowerCase(), city: c.name });
+    for (const a of c.areas || []) cityNames.push({ word: a.toLowerCase(), city: c.name });
   }
+  cityNames.push({ word: "delhi", city: "Delhi NCR" }, { word: "bombay", city: "Mumbai" }, { word: "bangalore", city: "Bengaluru" }, { word: "tricity", city: "Chandigarh Tricity" });
+  cityNames.sort((a, b) => b.word.length - a.word.length);
+  city = cityNames.find((c) => new RegExp(`\\b${c.word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(normalized))?.city;
 
   // 2. Detect Category
-  if (
-    normalized.includes("cosmetic dental") ||
-    normalized.includes("cosmetic_dental") ||
-    normalized.includes("dental") ||
-    normalized.includes("dentist")
-  ) {
+  if (normalized.includes("cosmetic dental") || normalized.includes("cosmetic_dental") || normalized.includes("dental") || normalized.includes("dentist")) {
     category = "cosmetic_dental";
-  } else if (
-    normalized.includes("hospital") ||
-    normalized.includes("surgical")
-  ) {
+  } else if (normalized.includes("hospital") || normalized.includes("surgical")) {
     category = "hospitals";
-  } else if (
-    normalized.includes("ivf") ||
-    normalized.includes("fertility")
-  ) {
+  } else if (normalized.includes("ivf") || normalized.includes("fertility")) {
     category = "ivf_fertility";
   } else if (
     normalized.includes("coaching") ||
@@ -250,6 +258,12 @@ export function parseResearchBrief(text: string): ParsedResearchBrief {
     normalized.includes("high_ticket_coaching")
   ) {
     category = "high_ticket_coaching";
+  } else if (normalized.includes("hotel")) {
+    category = "hotels";
+  } else if (normalized.includes("real estate") || normalized.includes("real_estate") || normalized.includes("builder") || normalized.includes("developer")) {
+    category = "real_estate";
+  } else {
+    category = INDUSTRIES.find((i) => normalized.includes(i.key) || normalized.includes(i.key.replace(/_/g, " ")))?.key;
   }
 
   // 3. Detect targetCount (e.g. "20 names", "25 prospects", "target: 20")

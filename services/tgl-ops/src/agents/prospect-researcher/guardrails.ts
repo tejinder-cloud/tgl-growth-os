@@ -219,7 +219,7 @@ export function validateProspectRecord(p: any): { valid: boolean; reason?: strin
     dmSource.includes("places:phone") &&
     hasPlacesId;
 
-  // Owner-run businesses: the address the business prints on its own website (13 Nov 2026 decision).
+  // The address the business prints on its own website (13 Nov 2026 for owner-run; any size since 24 Nov 2026).
   const hasPublishedEmail = Boolean(dm.email && String(dm.email).includes("@")) && dmSource.includes("website:published_email");
 
   // A rejection of an existing row must always be writable: when a re-score finds the stored contact was never the
@@ -302,14 +302,17 @@ export function sanitizeDecisionMaker(
   const role = String(raw.role || raw.title || "").trim().slice(0, 100);
   let email = String(raw.email || "").trim().toLowerCase().slice(0, 120);
 
-  // Filter out forbidden generic emails
+  // Filter out generic inboxes, except an address the business publishes on its own website: that shared inbox
+  // is its published contact (Architect decisions 13 and 24 Nov 2026).
+  const publishedOnOwnSite = String(raw.source || "").includes("website:published_email");
   if (
+    !publishedOnOwnSite && (
     email.startsWith("info@") ||
     email.startsWith("contact@") ||
     email.startsWith("support@") ||
     email.startsWith("admin@") ||
     email.startsWith("sales@") ||
-    email.startsWith("help@")
+    email.startsWith("help@"))
   ) {
     email = "";
   }

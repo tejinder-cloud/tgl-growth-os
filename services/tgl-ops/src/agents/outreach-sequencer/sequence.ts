@@ -83,6 +83,7 @@ export function categoryLabel(category: string): string {
     ivf_center: "IVF centre",
     coaching_institute: "coaching institute",
     hotel: "boutique hotel",
+    hotels: "hotel",
     real_estate: "real estate developer",
     law_firm: "law firm",
     ca_firm: "chartered accountancy firm",
