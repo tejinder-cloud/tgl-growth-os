@@ -260,11 +260,11 @@ export function agentName(key: string): string {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
-function esc(s: unknown): string {
+export function esc(s: unknown): string {
   return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-function rupees(n: number): string {
+export function rupees(n: number): string {
   return `₹${Math.round(n).toLocaleString("en-IN")}`;
 }
 
@@ -402,7 +402,7 @@ details{margin-top:8px}summary{cursor:pointer;color:var(--mute);font-weight:600;
 @media (prefers-reduced-motion:reduce){.stats a:hover{transform:none}}
 </style></head><body>
 <header class="hd"><a href="/pipeline/live"><img src="/book/assets/logo.png" alt="The Growth Lab" width="60" height="34"></a>
-<nav class="nav" aria-label="Pages"><a href="/pipeline/live" aria-current="page">Today</a><a href="/pipeline">Pipeline</a><a href="/pipeline/whatsapp/console">WhatsApp</a><span>${esc(email)}</span><a href="/pipeline/logout">Sign out</a></nav></header>
+<nav class="nav" aria-label="Pages"><a href="/pipeline/live" aria-current="page">Today</a><a href="/pipeline/build">Build</a><a href="/pipeline">Pipeline</a><a href="/pipeline/whatsapp/console">WhatsApp</a><span>${esc(email)}</span><a href="/pipeline/logout">Sign out</a></nav></header>
 <div class="top"><h1>Today at <span class="acc">The Growth Lab.</span></h1><button class="refresh" type="button" id="refresh">Refresh</button></div>
 <main id="live" aria-live="polite">${renderLiveMain(v)}</main>
 <script>
