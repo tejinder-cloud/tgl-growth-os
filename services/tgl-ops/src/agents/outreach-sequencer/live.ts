@@ -252,7 +252,7 @@ export function buildReplyDeps(opts: WiringOptions = {}): ReplyDeps {
       console.warn(`[Outreach] Reply handler running without GHL annotation: ${(err as Error).message}`);
     }
   }
-  return { store: opts.store || createSupabaseStore(), ghl, now: opts.now };
+  return { store: opts.store || createSupabaseStore(), ghl, now: opts.now, suggest: opts.store ? undefined : liveSuggest };
 }
 
 /**
@@ -270,6 +270,8 @@ export function buildInboundDeps(opts: WiringOptions = {}): InboundDeps {
     fetchReceived: (id) => fetchReceivedEmail(id, cfg, fetchImpl),
     sender: opts.emailSender || (cfg.apiKey && cfg.from ? createResendSender(cfg, fetchImpl) : undefined),
     forwardTo: cfg.forwardTo,
+    // Tests pass their own store; only the live wiring drafts replies in Slack.
+    suggest: opts.store ? undefined : liveSuggest,
   };
 }
 
@@ -575,4 +577,10 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
   }
 
   return { tick, preview, preflight };
+}
+
+/** Drafts a suggested reply in #revenue (suggested-reply.ts). Sends nothing. */
+async function liveSuggest(input: import("./suggested-reply.js").SuggestInput): Promise<unknown> {
+  const { suggestReply, liveSuggestPorts } = await import("./suggested-reply.js");
+  return suggestReply(input, await liveSuggestPorts());
 }

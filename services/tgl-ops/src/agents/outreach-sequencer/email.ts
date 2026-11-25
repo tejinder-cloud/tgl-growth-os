@@ -109,6 +109,8 @@ export interface OutreachEmail {
   /** Signed URL of the one-pager PDF. Downloaded and attached as a file; the prospect never sees the URL. */
   attachmentUrl?: string;
   attachmentFilename?: string;
+  /** Message-ID of the prospect's email, so a reply lands in the same thread (25 Nov 2026). */
+  inReplyTo?: string;
 }
 
 export interface EmailSender {
@@ -164,6 +166,10 @@ export function createResendSender(cfg: OutreachEmailConfig, fetchImpl: typeof f
         headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click";
       } else if (mailto) {
         headers["List-Unsubscribe"] = mailto;
+      }
+      if (email.inReplyTo) {
+        headers["In-Reply-To"] = email.inReplyTo;
+        headers["References"] = email.inReplyTo;
       }
 
       const payload: Record<string, unknown> = {

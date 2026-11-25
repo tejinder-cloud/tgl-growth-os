@@ -69,6 +69,8 @@ export interface OutreachState {
   last_reply_at?: string;
   /** True once the reply has been posted to the Sales Desk; guards webhook retries. */
   last_reply_routed?: boolean;
+  /** A drafted reply waiting for the Architect (suggested-reply.ts). */
+  suggested_reply?: import("./suggested-reply.js").SuggestedReply;
 }
 
 export interface SequenceTouchDef {

@@ -60,6 +60,7 @@ export async function handleReceivedMail(mail: ReceivedEmail, deps: Omit<Inbound
       text: mail.text || mail.subject || "(empty reply)",
       messageId: mail.messageId || mail.id,
       autoReply: mail.automated,
+      subject: mail.subject,
     },
     deps
   );

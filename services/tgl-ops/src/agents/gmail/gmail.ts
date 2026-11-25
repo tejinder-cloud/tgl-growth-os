@@ -246,6 +246,10 @@ export function createGmailSender(cfg: GmailSenderConfig, token: TokenProvider, 
       const mailto = `<mailto:${fromAddress}?subject=STOP>`;
       headers["List-Unsubscribe"] = link ? `${mailto}, <${link}>` : mailto;
       if (link) headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click";
+      if (email.inReplyTo) {
+        headers["In-Reply-To"] = email.inReplyTo;
+        headers["References"] = email.inReplyTo;
+      }
 
       let attachment: MimeInput["attachment"];
       if (email.attachmentUrl) {
