@@ -48,7 +48,7 @@ export const BUILD_PLAN: BuildPlan = {
     { title: "Get the business_management test-call tick, then submit Meta App Review", owner: "You", due: "2026-11-26", status: "todo", note: "All answers and videos are entered." },
     { title: "Check the first 3 widened researcher runs: 31 qualified, 24 with an email", owner: "Claude", due: "2026-11-25", status: "done" },
     { title: "Dashboard rebuilt: Overview, Outreach, Pipeline, Build in one frame", owner: "Claude", due: "2026-11-25", status: "done" },
-    { title: "One daily approval card in Slack instead of 3", owner: "Claude", due: "2026-11-27", status: "todo" },
+    { title: "One daily approval card in Slack instead of 3", owner: "Claude", due: "2026-11-27", status: "done" },
     { title: "Events table as the record, replacing GitHub logs", owner: "Claude", due: "2026-11-30", status: "todo" },
     { title: "Suggested replies to prospect emails, with calendar slots", owner: "Claude", due: "2026-12-03", status: "todo" },
     { title: "Meta approves the app (Tech Provider)", owner: "Meta", due: "2026-12-08", status: "todo", note: "Meta sets the pace; the date is our planning guess." },

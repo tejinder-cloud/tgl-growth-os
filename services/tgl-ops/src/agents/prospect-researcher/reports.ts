@@ -7,6 +7,8 @@ import type { ProspectRecord } from "./types.js";
 import { getTodayDateString, getCurrentTimeIST } from "../../lib/standup.js";
 import { FIT_QUALIFIED_THRESHOLD } from "./threshold.js";
 import { parseDim4Probe, summariseDim4Probe } from "./dim4.js";
+import { categoryLabel } from "../outreach-sequencer/sequence.js";
+import { cleanBusinessName } from "../outreach-sequencer/names.js";
 
 /**
  * Builds CSV string formatted for revenue exports and GHL bulk ingestion.
@@ -207,4 +209,92 @@ export async function exportWeeklyProspectsCsv(options?: { testMode?: boolean })
   }
 
   return filePath;
+}
+
+export interface DailyRun {
+  city: string;
+  category: string;
+  rows: ProspectRecord[];
+  rejectionProposal?: string;
+}
+
+function hasEmailRow(p: ProspectRecord): boolean {
+  return /\S+@\S+\.\S+/.test(p.decision_maker?.email || "");
+}
+
+/**
+ * The text of the one daily approval card (24 Nov 2026): what the morning's searches found, per search, then the
+ * best businesses across all of them. Pure, so it is tested without Slack.
+ */
+export function buildDailyReviewSummary(runs: DailyRun[], dateLabel: string): { title: string; summary: string; total: number } {
+  const all = runs.flatMap((r) => r.rows);
+  const total = all.length;
+  const withEmail = all.filter(hasEmailRow).length;
+  const title = `New businesses to approve, ${dateLabel}`;
+  if (total === 0) {
+    const tried = runs.map((r) => `${r.city} (${categoryLabel(r.category)})`).join(", ");
+    return { title, total, summary: `*${title}*\nNo new businesses met the bar today${tried ? ` in ${tried}` : ""}. Nothing to approve.` };
+  }
+  const perRun = runs
+    .map((r) => {
+      const e = r.rows.filter(hasEmailRow).length;
+      return `- ${r.city}, ${categoryLabel(r.category)}: *${r.rows.length}*${r.rows.length ? ` (${e} with an email, ${r.rows.length - e} phone only)` : ""}`;
+    })
+    .join("\n");
+  const top = [...all].sort((a, b) => b.fit_score - a.fit_score).slice(0, 10);
+  const lines = top
+    .map((p, i) => `${i + 1}. *<${p.website}|${cleanBusinessName(p.company)}>*, ${p.city}. Fit ${p.fit_score}. ${hasEmailRow(p) ? "Has an email" : p.decision_maker?.phone ? "Phone only" : "No contact"}`)
+    .join("\n");
+  const summary = `*${title}*
+*${total}* new ${total === 1 ? "business" : "businesses"} from ${runs.length} ${runs.length === 1 ? "search" : "searches"} this morning. *${withEmail}* can be emailed; the other ${total - withEmail} wait for WhatsApp.
+${perRun}
+
+*Highest fit*
+${lines}${total > top.length ? `\n_(${total - top.length} more in the attached list)_` : ""}
+
+Approve sends every business on this card into outreach. Reject removes them all. To drop one business, reply in the thread with its name.`;
+  return { title, total, summary };
+}
+
+/** Posts the one daily approval card for all of the morning's runs, with one combined list attached. */
+export async function postDailyReviewCard(runs: DailyRun[], options?: { testMode?: boolean }): Promise<{ cardTs?: string; channel?: string; total: number }> {
+  const isTest = options?.testMode === true || isTestMode();
+  const targetChannel = isTest ? (config.opsChannelId || "#ops") : "#revenue";
+  const dateStr = getTodayDateString();
+  const label = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", weekday: "short", day: "numeric", month: "short" }).format(new Date()).replace(",", "");
+  const { title, summary, total } = buildDailyReviewSummary(runs, label);
+  const all = runs.flatMap((r) => r.rows);
+  const csvPath = all.length ? saveProspectsCsv(all, `daily`, options) : "";
+  const runLogUrl = `https://github.com/${config.githubOwner}/${config.githubRepo}/blob/main/logs/${dateStr}/prospect-researcher.md`;
+
+  let res: { ok: boolean; ts?: string; channel?: string; dryRun?: boolean } = { ok: false };
+  try {
+    res = await postCard({
+      channel: targetChannel,
+      agent: "prospect-researcher",
+      door: "aeo",
+      title,
+      summary,
+      links: [{ label: "Run log", url: runLogUrl }],
+      actions: (total > 0 ? ["approve", "reject", "discuss"] : ["discuss"]) as ("approve" | "reject" | "discuss")[],
+      // Approve and Reject act on every search on this card (interactions.ts reads pairs).
+      extraMeta: { pairs: runs.filter((r) => r.rows.length).map((r) => ({ city: r.city, category: r.category })) },
+    });
+  } catch (err: any) {
+    console.warn(`[Daily Card Post Notice] ${err.message || err}`);
+    await postLine({ channel: targetChannel, text: `*The daily approval card could not be posted*: ${String(err?.message || err).slice(0, 200)}. ${total} new businesses are saved; the run log lists them.` }).catch(() => {});
+  }
+  if (res.ok && res.ts && !res.dryRun) {
+    try {
+      if (csvPath && fs.existsSync(csvPath)) {
+        await postFile({ channel: res.channel || targetChannel, filePath: csvPath, filename: path.basename(csvPath), title: `All ${total} new businesses`, thread_ts: res.ts });
+      }
+      for (const r of runs) {
+        if (r.rejectionProposal) await postLine({ channel: res.channel || targetChannel, text: `${r.city}, ${categoryLabel(r.category)}: ${r.rejectionProposal}`, thread_ts: res.ts });
+      }
+    } catch (fileErr: any) {
+      console.warn(`[Daily Card Attachment Notice] ${fileErr.message || fileErr}`);
+    }
+  }
+  return { cardTs: res.ok && res.ts && !res.dryRun ? res.ts : undefined, channel: res.channel || targetChannel, total };
 }

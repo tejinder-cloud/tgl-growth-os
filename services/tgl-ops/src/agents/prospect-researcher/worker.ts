@@ -571,7 +571,8 @@ export async function runProspectResearch(
   const csvPath = saveProspectsCsv(rowsToCard, csvLabel, options);
 
   let cardTs: string | undefined;
-  if (options?.postToSlack !== false) {
+  // With dailyCard the caller posts one card for all of the morning's runs (Architect, 24 Nov 2026).
+  if (options?.postToSlack !== false && !options?.dailyCard) {
     const cardRes = await postTop25ReviewCard({
       city,
       category,
@@ -642,8 +643,9 @@ export async function runProspectResearch(
         : "N/A"
     }${shortfallReason}; Places API quota: ${quota.count}/95 calls; Dim 4 probes: ${probeGovernor.stats.completed} ($${probeGovernor.stats.costUsd.toFixed(4)}).${benchSummary}`,
     blocked: funnel.discovered === 0 ? "Google Places API key unconfigured or rejected by upstream service." : probeShortfall || "None.",
-    need: cardTs ? `Architect review on Top 25 card in #revenue (ts: ${cardTs}).` : "None.",
-    tomorrow: `Execute next metro in rotation (${getNextRotation(options).city} · ${getNextRotation(options).category}) at 09:30 IST.`,
+    need: options?.dailyCard && rowsToCard.length ? "Architect review on the daily approval card in #revenue." : cardTs ? `Architect review on Top 25 card in #revenue (ts: ${cardTs}).` : "None.",
+    // Several runs a day, so the next pair may run minutes later, not tomorrow (25 Nov 2026).
+    tomorrow: `Next pair in rotation: ${getNextRotation(options).city} · ${getNextRotation(options).category}.`,
   };
 
   // Write daily agent log
@@ -684,6 +686,8 @@ export async function runProspectResearch(
     },
     cardTs,
     csvPath,
+    savedCount,
+    cardRows: rowsToCard,
     rejectionPatternProposal: rejectionAnalysis.proposedRubricAdjustment,
     standupLines,
   };
@@ -754,7 +758,7 @@ ${params.probeShortfall ? `- **Dim 4 Shortfall:** ${params.probeShortfall}\n` : 
 - **Did:** ${params.standupLines.did}
 - **Blocked:** ${params.standupLines.blocked}
 - **Need from the Architect:** ${params.standupLines.need}
-- **Tomorrow:** ${params.standupLines.tomorrow}
+- **Next:** ${params.standupLines.tomorrow}
 `;
 
   fs.appendFileSync(logFile, logContent.trim() + "\n\n", "utf8");
