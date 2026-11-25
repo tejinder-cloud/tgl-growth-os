@@ -412,6 +412,21 @@ export function scopeStatusUpdate<Q extends { eq(col: string, v: string): Q; in(
 }
 
 /**
+ * What an Approve or Reject on a review card acts on. A daily card carries every search as pairs (24 Nov 2026);
+ * an older per-run card carries one city and category. With neither, nothing is changed: a card that lost its
+ * scope must never approve every new business.
+ */
+export function cardScopes(meta: { city?: unknown; category?: unknown; pairs?: unknown }): { city: string; category: string }[] {
+  if (Array.isArray(meta.pairs)) {
+    return meta.pairs
+      .filter((x: any) => x && typeof x.city === "string" && x.city && typeof x.category === "string" && x.category)
+      .map((x: any) => ({ city: x.city, category: x.category }));
+  }
+  if (typeof meta.city === "string" && meta.city && typeof meta.category === "string" && meta.category) return [{ city: meta.city, category: meta.category }];
+  return [];
+}
+
+/**
  * Updates the status of prospects in Supabase.
  */
 export async function updateProspectStatus(

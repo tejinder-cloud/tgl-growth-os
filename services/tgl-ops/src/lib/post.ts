@@ -115,8 +115,9 @@ export function buttonMetadata(meta: Record<string, unknown>): string {
     if (out.length <= SLACK_BUTTON_VALUE_MAX || keep === 0) {
       if (out.length <= SLACK_BUTTON_VALUE_MAX) return out;
       // Even without a summary it is too long: keep only what identifies the card.
-      const { agent, door, title, issue, pr, branch, linkedIssue, channel } = meta as Record<string, unknown>;
-      return JSON.stringify({ agent, door, title: String(title || "").slice(0, 300), issue, pr, branch, linkedIssue, channel });
+      // The scope of a prospect card (city, category, pairs) is kept: Approve acts on it (24 Nov 2026).
+      const { agent, door, title, issue, pr, branch, linkedIssue, channel, city, category, pairs } = meta as Record<string, unknown>;
+      return JSON.stringify({ agent, door, title: String(title || "").slice(0, 300), issue, pr, branch, linkedIssue, channel, city, category, pairs });
     }
     keep = Math.max(0, keep - Math.max(20, Math.ceil((out.length - SLACK_BUTTON_VALUE_MAX) * 1.2)));
   }

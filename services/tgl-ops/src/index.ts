@@ -135,17 +135,22 @@ cron.schedule(
   "30 9 * * *",
   wrapCronJob("09:30 IST Prospect Researcher Run", async () => {
     // Several city and industry pairs a day (PROSPECT_RUNS_PER_DAY, default 3; 24 Nov 2026). Each run picks the
-    // next pair in the tiered rotation and posts its own review card. One failed run does not stop the next.
+    // next pair in the tiered rotation. One failed run does not stop the next.
+    // One approval card for all of them, posted after the last run (Architect, 24 Nov 2026).
     const { runsPerDay } = await import("./agents/prospect-researcher/targets.js");
+    const { postDailyReviewCard } = await import("./agents/prospect-researcher/reports.js");
     const runs = runsPerDay();
+    const done: { city: string; category: string; rows: any[]; rejectionProposal?: string }[] = [];
     for (let i = 0; i < runs; i++) {
       try {
-        const r = await runProspectResearch({ postToSlack: true });
+        const r = await runProspectResearch({ postToSlack: true, dailyCard: true });
+        done.push({ city: r.city, category: r.category, rows: r.cardRows || [], rejectionProposal: r.rejectionPatternProposal });
         if (r.standupLines?.blocked && /cost cap|quota|circuit breaker|keys unconfigured/i.test(r.standupLines.blocked)) break;
       } catch (err) {
         console.error(`[Prospect Researcher] run ${i + 1} of ${runs} failed:`, (err as Error)?.message || err);
       }
     }
+    if (done.length) await postDailyReviewCard(done);
   }),
   { timezone: config.timezone }
 );

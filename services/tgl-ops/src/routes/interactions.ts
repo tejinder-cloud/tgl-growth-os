@@ -492,8 +492,8 @@ export async function handleApproveAction(payload: any, action: any): Promise<vo
   // If this is a prospect research batch, update status of prospects to 'reviewed'
   if (agent === "prospect-researcher") {
     try {
-      const { updateProspectStatus } = await import("../agents/prospect-researcher/db.js");
-      await updateProspectStatus({ city: meta.city, category: meta.category }, "reviewed");
+      const { updateProspectStatus, cardScopes } = await import("../agents/prospect-researcher/db.js");
+      for (const scope of cardScopes(meta)) await updateProspectStatus(scope, "reviewed");
     } catch (err: any) {
       console.warn("[Prospects Status Update Error on Approve]:", err.message);
     }
@@ -685,8 +685,8 @@ async function handleRejectSubmission(payload: any): Promise<void> {
   // If this is a prospect research batch, update status of prospects to 'rejected'
   if (agent === "prospect-researcher") {
     try {
-      const { updateProspectStatus } = await import("../agents/prospect-researcher/db.js");
-      await updateProspectStatus({ city: meta.city, category: meta.category }, "rejected");
+      const { updateProspectStatus, cardScopes } = await import("../agents/prospect-researcher/db.js");
+      for (const scope of cardScopes(meta)) await updateProspectStatus(scope, "rejected");
     } catch (err: any) {
       console.warn("[Prospects Status Update Error on Reject]:", err.message);
     }

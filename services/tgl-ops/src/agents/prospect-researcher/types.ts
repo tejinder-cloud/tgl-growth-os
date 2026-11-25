@@ -88,6 +88,8 @@ export interface ResearchRunOptions {
   targetCount?: number;
   testMode?: boolean;
   postToSlack?: boolean;
+  /** Skip this run's own review card; the caller posts one daily card for all runs (24 Nov 2026). */
+  dailyCard?: boolean;
 }
 
 export interface ResearchRunResult {
@@ -108,6 +110,10 @@ export interface ResearchRunResult {
   };
   cardTs?: string;
   csvPath?: string;
+  /** Rows saved and read back this run. */
+  savedCount?: number;
+  /** The rows a review card lists for this run (empty when nothing was saved). */
+  cardRows?: ProspectRecord[];
   rejectionPatternProposal?: string;
   standupLines: {
     did: string;
