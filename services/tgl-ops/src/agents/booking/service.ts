@@ -4,6 +4,7 @@ import crypto from "node:crypto";
 import { freeSlots, isOfferedSlot, SLOT_MINUTES, type Busy, type DaySlots } from "./slots.js";
 import { SlotTakenError, type BookingStore } from "./store.js";
 import type { CalendarRead, CreatedEvent, NewEvent } from "./google.js";
+import { recordEvent } from "../../lib/events.js";
 
 export interface CalendarPort {
   read(timeMin: string, timeMax: string): Promise<CalendarRead>;
@@ -143,6 +144,7 @@ export function createBookingService(deps: BookingDeps) {
       await deps.notify(`Booking row not updated for ${v.company} (${istLabel(v.start)}): ${(err as Error).message}. The calendar event exists.`).catch(() => {});
     });
 
+    await recordEvent({ agent: "booking", kind: "booked", prospectId: prospect?.id || null, summary: `Call booked with ${v.company} for ${istLabel(v.start)}.` });
     // After-effects never change the answer: the event exists and the guest has Google's invite.
     if (prospect && deps.outreach) await deps.outreach.stop(prospect.id, now).catch(() => {});
     if (deps.onBooked) await deps.onBooked({ bookingId: id, start: v.start, name: v.name, email: v.email, company: v.company, prospectId: prospect?.id || null }).catch(() => {});

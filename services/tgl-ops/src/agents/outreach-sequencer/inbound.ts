@@ -8,6 +8,7 @@ import type { EmailSender, ReceivedEmail } from "./email.js";
 import { handleReply, salesDeskChannel, type ReplyDeps, type ReplyResult } from "./reply.js";
 import { getOutreachState, type OutreachProspect } from "./store.js";
 import type { OutreachState } from "./types.js";
+import { recordEvent } from "../../lib/events.js";
 
 export interface InboundDeps extends ReplyDeps {
   /** Reads the full received email (the webhook carries metadata only). */
@@ -65,6 +66,7 @@ export async function handleReceivedMail(mail: ReceivedEmail, deps: Omit<Inbound
   if (reply.status !== "routed") return { status: reply.status, matched: reply.matched, reply };
 
   const result: InboundResult = { status: "routed", matched: reply.matched, reply };
+  await recordEvent({ agent: "outreach-sequencer", kind: "reply", prospectId: (known as any)?.id || null, summary: `Reply from ${known ? known.company : "a sender not in outreach"}${reply.intent ? ` (${String(reply.intent).replace(/_/g, " ")})` : ""}.` });
   if (deps.sender && deps.forwardTo) {
     try {
       await deps.sender.forward({
@@ -93,7 +95,9 @@ export async function handleReceivedMail(mail: ReceivedEmail, deps: Omit<Inbound
 
 /** A delivery failure for one address, however it was reported. Pauses that prospect's sequence once. */
 export async function handleBouncedAddress(address: string, deps: ReplyDeps): Promise<InboundResult> {
-  return stopForDelivery("bounced", { to: address }, deps);
+  const out = await stopForDelivery("bounced", { to: address }, deps);
+  if (out.matched) await recordEvent({ agent: "outreach-sequencer", kind: "bounce", summary: "An outreach email bounced; that business is paused until the address is checked." });
+  return out;
 }
 
 async function stopForDelivery(kind: "bounced" | "complained", data: any, deps: ReplyDeps): Promise<InboundResult> {

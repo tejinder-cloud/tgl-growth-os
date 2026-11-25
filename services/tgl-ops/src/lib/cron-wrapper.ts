@@ -115,6 +115,13 @@ export function wrapCronJob(
           }
         }
 
+        // The record the dashboard reads (25 Nov 2026). Best-effort; never throws.
+        import("./events.js")
+          .then(async ({ recordEvent }) => {
+            const { plainError } = await import("./plain-error.js");
+            await recordEvent({ agent: "system", kind: "error", summary: `${jobName} failed: ${plainError(err?.message || String(err))}` });
+          })
+          .catch(() => {});
         const errSummary = errMsg.slice(0, 300);
         const now = Date.now();
         const state = cronErrorMap.get(jobName);

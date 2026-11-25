@@ -29,7 +29,7 @@ const plan: BuildPlan = {
 
 const view = {
   generatedAt: "", today: { sent: 2, cap: 5, replies: 1, callsBooked: 0, nextCall: null }, journey: [], stuck: { approval: 0, nextInLine: 0, whatsapp: 1, paused: 0 },
-  waiting: [], problems: [], outbox: [], nextInLine: [], paused: [],
+  waiting: [], problems: [], outbox: [], nextInLine: [], paused: [], feed: [],
   calls: [{ company: "a", city: "", type: "", fit: 70, check: "" }],
   activity: [{ name: "Outreach", at: "2026-11-26T08:00:00Z", what: "Sent 2 emails", state: "done" }, { name: "Prospect researcher", at: null, what: "x", state: "problem" }],
   spend: { todayInr: 40.4, monthInr: 512.6, byProduct: { tgl_ops: 100, truevisible: 412.6 } },

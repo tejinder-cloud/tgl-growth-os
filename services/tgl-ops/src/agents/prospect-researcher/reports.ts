@@ -9,6 +9,7 @@ import { FIT_QUALIFIED_THRESHOLD } from "./threshold.js";
 import { parseDim4Probe, summariseDim4Probe } from "./dim4.js";
 import { categoryLabel } from "../outreach-sequencer/sequence.js";
 import { cleanBusinessName } from "../outreach-sequencer/names.js";
+import { recordEvent } from "../../lib/events.js";
 
 /**
  * Builds CSV string formatted for revenue exports and GHL bulk ingestion.
@@ -285,6 +286,7 @@ export async function postDailyReviewCard(runs: DailyRun[], options?: { testMode
     await postLine({ channel: targetChannel, text: `*The daily approval card could not be posted*: ${String(err?.message || err).slice(0, 200)}. ${total} new businesses are saved; the run log lists them.` }).catch(() => {});
   }
   if (res.ok && res.ts && !res.dryRun) {
+    await recordEvent({ agent: "prospect-researcher", kind: "card", summary: total ? `Daily approval card posted in #revenue: ${total} new ${total === 1 ? "business" : "businesses"}.` : "Daily card posted: no new businesses today." });
     try {
       if (csvPath && fs.existsSync(csvPath)) {
         await postFile({ channel: res.channel || targetChannel, filePath: csvPath, filename: path.basename(csvPath), title: `All ${total} new businesses`, thread_ts: res.ts });

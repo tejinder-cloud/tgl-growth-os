@@ -20,8 +20,9 @@ export function plainError(raw: unknown): string {
   if (/HTTP 40[13]\b|\b40[13]\b.*(unauthori[sz]ed|forbidden|invalid api key|permission)/i.test(text)) {
     return "the provider refused our key (not authorised); check the key in Railway";
   }
-  // A JSON error body: keep only its message.
-  const m = /"message"\s*:\s*"([^"]{3,})"/.exec(text);
-  const core = oneLine(m ? m[1] : text);
+  // A JSON error body: keep only its message (or its "error" text); never show the raw JSON.
+  const m = /"message"\s*:\s*"([^"]{3,})"/.exec(text) || /"error"\s*:\s*"([^"]{3,})"/.exec(text);
+  let core = oneLine(m ? m[1] : text);
+  if (!m && core.includes("{")) core = oneLine(core.slice(0, core.indexOf("{")).replace(/[\s:]+$/, "")) || "the provider returned an error";
   return core.length > MAX ? `${core.slice(0, MAX - 3)}...` : core;
 }

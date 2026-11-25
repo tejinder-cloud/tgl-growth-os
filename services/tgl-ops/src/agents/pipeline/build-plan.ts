@@ -49,7 +49,7 @@ export const BUILD_PLAN: BuildPlan = {
     { title: "Check the first 3 widened researcher runs: 31 qualified, 24 with an email", owner: "Claude", due: "2026-11-25", status: "done" },
     { title: "Dashboard rebuilt: Overview, Outreach, Pipeline, Build in one frame", owner: "Claude", due: "2026-11-25", status: "done" },
     { title: "One daily approval card in Slack instead of 3", owner: "Claude", due: "2026-11-27", status: "done" },
-    { title: "Events table as the record, replacing GitHub logs", owner: "Claude", due: "2026-11-30", status: "todo" },
+    { title: "Events table as the record, replacing GitHub logs", owner: "Claude", due: "2026-11-30", status: "done", note: "Log files stay as a backup for now." },
     { title: "Suggested replies to prospect emails, with calendar slots", owner: "Claude", due: "2026-12-03", status: "todo" },
     { title: "Meta approves the app (Tech Provider)", owner: "Meta", due: "2026-12-08", status: "doing", note: "In review. Meta says most reviews finish within 20 days; the date is our planning guess." },
     { title: "WhatsApp first message in the sequence, dry run only", owner: "Claude", due: "2026-12-08", status: "todo" },

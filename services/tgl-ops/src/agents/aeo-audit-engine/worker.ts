@@ -11,6 +11,7 @@ import { brandsDueToday, startTrialClock } from "./cadence.js";
 import { supabaseStore } from "./store.js";
 import { AGENT, runTracker, summaryLine, type TrackerSummary } from "./tracker.js";
 import { plainError } from "../../lib/plain-error.js";
+import { recordEvent } from "../../lib/events.js";
 
 export async function runCitationTracking(options?: { brandId?: string; kind?: "daily" | "audit" }): Promise<TrackerSummary | null> {
   const alert = (text: string) => postLine({ channel: getAlertsChannel(), text }).catch(() => {});
@@ -49,6 +50,10 @@ export async function runCitationTracking(options?: { brandId?: string; kind?: "
   const line = summaryLine(summary, getCurrentTimeIST());
   console.log(`[Citation Tracker] ${line}`);
   const ran = summary.outcomes.filter((o) => o.status !== "skipped");
+  if (ran.length) {
+    const named = ran.reduce((n, o) => n + o.mentioned, 0), answers = ran.reduce((n, o) => n + o.ok, 0);
+    await recordEvent({ agent: AGENT, kind: "run", summary: `Checked ${summary.brands} ${summary.brands === 1 ? "brand" : "brands"}: named in ${named} of ${answers} AI answers.`, detail: { named, answers, brands: summary.brands, usd: Number(summary.usd.toFixed(4)) } });
+  }
   if (ran.length || summary.notConfigured.length) {
     appendFileInRepo(`logs/${runDate}/${AGENT}.md`, line + "\n", `chore(log): citation tracker run ${runDate}`).catch((err) =>
       console.warn("[Citation Tracker] log append failed:", err?.message ?? err)

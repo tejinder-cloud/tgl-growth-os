@@ -118,11 +118,14 @@ async function readProspects(): Promise<LiveProspect[]> {
 }
 
 export async function loadLiveView(now: Date = new Date()): Promise<LiveView> {
-  const [prospects, deals, agents, spend] = await Promise.all([
+  const today = istDate(now);
+  const { listEvents } = await import("../../lib/events.js");
+  const [prospects, deals, agents, spend, events] = await Promise.all([
     readProspects(),
     dealStore().list(),
-    readAgentLines(istDate(now)),
+    readAgentLines(today),
     readSpend(now).catch(() => null),
+    listEvents(new Date(`${today}T00:00:00+05:30`).toISOString(), 200).catch(() => null),
   ]);
-  return buildLiveView({ now, prospects, deals, agents, spend, capToday: dailyCap(process.env, now) });
+  return buildLiveView({ now, prospects, deals, agents, spend, capToday: dailyCap(process.env, now), events });
 }
