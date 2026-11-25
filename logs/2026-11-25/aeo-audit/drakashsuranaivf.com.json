@@ -1,0 +1,1304 @@
+{
+  "brand": {
+    "name": "Dr. Akash Surana | IVF & Fertility Specialist in Vashi",
+    "primaryDomain": "drakashsuranaivf.com",
+    "domains": [
+      "drakashsuranaivf.com"
+    ],
+    "variants": [
+      "Dr. Akash Surana | IVF & Fertility Specialist in Vashi",
+      "drakashsuranaivf"
+    ],
+    "setupStatus": "prospect_unverified"
+  },
+  "auditedAt": "2026-11-25T05:34:55.395Z",
+  "promptsCount": 5,
+  "enginesCount": 3,
+  "totalQueries": 15,
+  "summary": {
+    "totalMentions": 0,
+    "visibilityScorePercent": 0,
+    "mentionsByEngine": {
+      "chatgpt": 0,
+      "gemini": 0,
+      "perplexity": 0
+    },
+    "competitorMentions": {
+      "Jaslok-FertilTree International Fertility Centre": 2,
+      "Jaslok Hospital": 6,
+      "Bloom IVF": 9,
+      "Lilavati Hospital": 6,
+      "Kokilaben Dhirubhai Ambani Hospital – Centre for IVF": 1,
+      "Mumbai Fertility Clinic & IVF Center": 1,
+      "Dr. Jatin Shah": 2,
+      "Saraogi Hospital & IRIS IVF Centre": 1,
+      "Corion Fertility Clinic": 1,
+      "Nova IVF Fertility": 5,
+      "Cloudnine Fertility": 2,
+      "Indira IVF": 5,
+      "Nova IVF": 3,
+      "ART Fertility Clinics": 4,
+      "Kokilaben Dhirubhai Ambani Hospital": 4,
+      "Dr. L. H. Hiranandani Hospital": 1,
+      "Babies & Us Fertility IVF Centre": 1,
+      "Bloom IVF / Fortis Hiranandani": 1,
+      "Progenesis Fertility / Birla Fertility & IVF": 1,
+      "Fortis Bloom IVF at Lilavati Hospital": 1,
+      "Malpani Infertility Clinic": 2,
+      "Progenesis IVF": 1,
+      "Shree IVF": 1,
+      "Zoi Fertility": 1,
+      "Apollo Fertility": 1,
+      "Hinduja Hospital IVF Centre": 1
+    },
+    "citationDomains": {
+      "qai.org.in": 2,
+      "registry.artsurrogacy.gov.in": 2,
+      "jaslokhospital.net": 1,
+      "fertiltree.com": 5,
+      "afronilehealthcare.com": 1,
+      "dypatilivfcenter.com": 1,
+      "kokilabenhospital.com": 6,
+      "practo.com": 3,
+      "justdial.com": 2,
+      "drjatinshah.com": 4,
+      "ivfclinicsmumbai.com": 1,
+      "corionfertilityclinic.com": 1,
+      "youtube.com": 2,
+      "indiraivf.com": 4,
+      "zoifertility.com": 4,
+      "bloomivf.com": 4,
+      "bestmumbai.in": 3,
+      "pregawish.com": 4,
+      "iswaryafertility.com": 2,
+      "vaidam.com": 1,
+      "selectivf.com": 1,
+      "nanavatimaxhospital.org": 2,
+      "images.assettype.com": 1,
+      "fertilitynetwork.in": 1,
+      "reddit.com": 1,
+      "cloudninefertility.com": 1,
+      "gaudiumivfcentre.com": 1,
+      "clinicspots.com": 1,
+      "cloudninecare.com": 1,
+      "timesofindia.indiatimes.com": 1,
+      "aurawomen.in": 1,
+      "healthfinder.in": 1,
+      "acmefertility.com": 1,
+      "wombivf.com": 1,
+      "lilavatihospital.com": 1,
+      "ivfclinic.com": 2,
+      "progenesisivf.com": 1,
+      "birlafertility.com": 1,
+      "medigence.com": 1,
+      "saraogihospital.com": 3,
+      "apollofertility.com": 1,
+      "ovu.com": 1,
+      "drnaliniguptaivf.com": 1,
+      "nanditapalshetkar.com": 1,
+      "pristyncare.com": 1,
+      "medtio.com": 1,
+      "mirofertility.com": 1,
+      "oneworldfertility.com": 1,
+      "suryahospitals.com": 2,
+      "parentvibes.in": 1,
+      "artsurrogacy.gov.in": 1,
+      "ivftips4u.com": 1,
+      "ivffinder.com": 1,
+      "completesurrogacy.com": 1,
+      "ivfinmumbai.com": 1
+    },
+    "totalCostUsd": 0.2972,
+    "totalCostInr": 27.55
+  },
+  "nextSteps": {
+    "weakestEngine": "ChatGPT",
+    "weakestEngineMentions": 0,
+    "zeroMentionEngines": [
+      "ChatGPT",
+      "Gemini",
+      "Perplexity"
+    ],
+    "queriesLost": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "weakestQueries": [
+      1,
+      2
+    ],
+    "winningCompetitor": "Bloom IVF",
+    "winningCompetitorCount": 9,
+    "topCitationGap": "kokilabenhospital.com",
+    "formattedText": "Dr. Akash Surana | IVF & Fertility Specialist in Vashi was named in 0 of 15 answers (0%). ChatGPT, Gemini and Perplexity did not name Dr. Akash Surana | IVF & Fertility Specialist in Vashi in any of the 5 questions. Bloom IVF was named most often instead, in 9 of 15 answers. The questions where Dr. Akash Surana | IVF & Fertility Specialist in Vashi did worst: \"Best IVF centre in Mumbai\" (0 of 3 assistants named Dr. Akash Surana | IVF & Fertility Specialist in Vashi); \"Top IVF centre near me in Mumbai\" (0 of 3 assistants named Dr. Akash Surana | IVF & Fertility Specialist in Vashi)."
+  },
+  "matrix": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best IVF centre in Mumbai",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There’s no single objectively “best” IVF centre in Mumbai—the right choice depends on your diagnosis, the treating specialist,..."
+      }
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top IVF centre near me in Mumbai",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "“Best” depends on your neighbourhood and medical needs. A practical shortlist includes Fortis Bloom IVF at Lilavati Hospital (B..."
+      }
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which IVF centre in Mumbai has the best reviews and results",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t a reliable single “best” IVF centre: rankings and review counts vary, and advertised success rates aren’t directly..."
+      }
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a IVF centre cost in Mumbai and which one is worth it",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "Budget roughly ₹1.5–3.5 lakh for one IVF attempt in Mumbai , but medicines, ICSI, embryo freezing and a later frozen transfer c..."
+      }
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which IVF centre in Mumbai should I trust",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one IVF centre that’s right for everyone. Jaslok Hospital’s Assisted Reproduction Unit, Bloom IVF, and Kokilaben Ho..."
+      }
+    }
+  ],
+  "rawAnswers": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best IVF centre in Mumbai",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one objectively “best” IVF centre for everyone—results depend heavily on age, diagnosis, and the treating team. **A solid place to start is the IVF Centre at Nowrosjee Wadia Maternity Hospital:** it appears on the quality-accreditation body’s list of accredited ART centres, with accreditation valid through **July 30, 2027**. Accreditation is a useful quality check, though it doesn’t guarantee a particular outcome. ([qai.org.in](https://qai.org.in/service/cahsc/?utm_source=openai))\n\nBefore choosing, check that the **specific branch** is registered on India’s National ART & Surrogacy Registry. Then ask each clinic for its **age-specific live-birth rate per treatment cycle**—not just its pregnancy rate—and a written, itemised estimate of the full cost. The registry lists Mumbai-area clinics, including locations in Powai and Vashi. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-bank&utm_source=openai))\n\nIf you tell me your **area in Mumbai**, age, and whether this is a first IVF cycle or a more complex case, I can help narrow the shortlist.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "qai.org.in",
+          "url": "https://qai.org.in/service/cahsc/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "registry.artsurrogacy.gov.in",
+          "url": "https://registry.artsurrogacy.gov.in/clinic/list?type=register-bank&utm_source=openai",
+          "channelType": "reference",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021644
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best IVF centre in Mumbai",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "The \"best\" IVF centre in Mumbai depends on whether you prioritize hospital backup (for complex medical history), high-touch individual specialist care, or accessibility and cost.\n\n---\n\n### 1. Renowned Multi-Speciality Hospital IVF Centres\n*Best for: Complex medical conditions, previous failed cycles, or advanced maternal age requiring comprehensive multi-specialty care.*\n\n* **Jaslok-FertilTree International Fertility Centre (Jaslok Hospital, Peddar Road)**\n  * **Lead Specialist:** Dr. Firuza Parikh\n  * **Why it stands out:** One of the most prestigious fertility centres in India. It is heavily sought out for complex cases, recurrent IVF failures, and advanced reproductive genetics (PGD/PGT).\n* **Bloom IVF (Lilavati Hospital, Bandra West)**\n  * **Lead Specialists:** Dr. Hrishikesh Pai and Dr. Nandita Palshetkar\n  * **Why it stands out:** Operating out of Lilavati Hospital (with branches across Mumbai and Navi Mumbai), Bloom IVF is among India’s oldest and most respected fertility programs, featuring cutting-edge embryology equipment.\n* **Kokilaben Dhirubhai Ambani Hospital – Centre for IVF (Andheri West)**\n  * **Why it stands out:** Offers quaternary-care infrastructure with all fertility, embryology, and fetal medicine services under one roof.\n\n---\n\n### 2. Renowned Doctor-Led Fertility Clinics\n*Best for: Personalized, doctor-driven care where senior specialists directly oversee key stages of your cycle.*\n\n* **Mumbai Fertility Clinic & IVF Center (Grant Road / Kemps Corner)**\n  * **Lead Specialist:** Dr. Jatin P. Shah\n  * **Why it stands out:** Dr. Jatin Shah is known for personally conducting the crucial steps—egg retrievals, embryology oversight, and embryo transfers—delivering consistently strong success rates.\n* **Saraogi Hospital & IRIS IVF Centre (Malad West / Ghatkopar)**\n  * **Lead Specialists:** Dr. Mohit Saraogi, Dr. Rajendra Saraogi\n  * **Why it stands out:** Highly regarded in the Western suburbs for affordable packages, transparent pricing, and extensive clinical experience.\n* **Corion Fertility Clinic (Andheri West)**\n  * **Lead Specialist:** Dr. Kaushal Kadam\n  * **Why it stands out:** Well known for tailored protocols, transparent clinical practices, and expertise in treating both domestic and international patients.\n\n---\n\n### 3. Established Specialized Fertility Chains\n*Best for: Standardized protocols, advanced lab automation, and competitive pricing across multiple city locations.*\n\n* **Nova IVF Fertility (Chembur, Andheri)**\n  * **Why it stands out:** Known for transparent reporting, strict clinical SOPs, and advanced diagnostic capabilities like time-lapse embryo monitoring and blastocyst culture.\n* **Cloudnine Fertility (Malad, Vashi)**\n  * **Why it stands out:** Focuses heavily on mother-and-child care, offering an integrated journey from conception and embryology to prenatal care and delivery.\n* **Indira IVF (Borivali, Dadar, Thane, Vashi, Ghatkopar)**\n  * **Why it stands out:** India’s largest IVF network, suitable for couples looking for affordable treatment packages with closed working chambers and high treatment volumes.\n\n---\n\n### How to Choose the Right Centre for You:\n1. **Embryology Lab Standards:** Ensure the centre has cleanrooms (ISO standard) and full-time, in-house embryologists rather than visiting technicians.\n2. **Doctor-Patient Continuity:** In large chains, verify whether you will see the same consultant at each ultrasound and egg collection, or if cases are rotated among multiple junior doctors.\n3. **Proximity:** An IVF cycle requires 4–6 clinic visits within a two-week stimulation window for blood tests and ultrasounds. Choose a location you can reach without excessive travel stress.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Jaslok-FertilTree International Fertility Centre",
+          "Jaslok Hospital",
+          "Bloom IVF",
+          "Lilavati Hospital",
+          "Kokilaben Dhirubhai Ambani Hospital – Centre for IVF",
+          "Mumbai Fertility Clinic & IVF Center",
+          "Dr. Jatin Shah",
+          "Saraogi Hospital & IRIS IVF Centre",
+          "Corion Fertility Clinic",
+          "Nova IVF Fertility",
+          "Cloudnine Fertility",
+          "Indira IVF"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "jaslokhospital.net",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fertiltree.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "jaslokhospital.net",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "afronilehealthcare.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "dypatilivfcenter.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "kokilabenhospital.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drjatinshah.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drjatinshah.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ivfclinicsmumbai.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "corionfertilityclinic.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "youtube.com",
+          "url": null,
+          "channelType": "video",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indiraivf.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.063034
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best IVF centre in Mumbai",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There’s no single objectively “best” IVF centre in Mumbai—the right choice depends on your diagnosis, the treating specialist, location, and budget. **Jaslok Hospital’s FertilTree** is one established option; other centres to compare include **Bloom IVF, Nova IVF, ART Fertility Clinics, and Kokilaben Hospital**.[1][4][7][8]\n\nBefore choosing, book consultations with two or three clinics and ask for:\n- **Live-birth rates** for patients in your age and diagnosis group—not just headline “success rates.”\n- The doctor who will oversee your care and how treatment plans are tailored.\n- A full written estimate, including medicines, lab procedures, freezing, and possible repeat cycles.\n- How the clinic handles complications and whether key lab services are on-site.\n\nPublished rankings and success claims may not use comparable methods, so request the clinic’s underlying figures and ask how they’re calculated.[1][4]",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Jaslok Hospital",
+          "Bloom IVF",
+          "Nova IVF",
+          "ART Fertility Clinics"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "zoifertility.com",
+          "url": "https://zoifertility.com/blog/10-best-ivf-centers-in-mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bloomivf.com",
+          "url": "https://www.bloomivf.com/blog/best-ivf-centres-in-mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bestmumbai.in",
+          "url": "https://bestmumbai.in/ivf-centre/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fertiltree.com",
+          "url": "https://fertiltree.com/ivf-centre-in-mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "pregawish.com",
+          "url": "https://www.pregawish.com/collections/best-ivf-centres-mumbai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "iswaryafertility.com",
+          "url": "https://www.iswaryafertility.com/ivf-centers/maharashtra/mumbai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "kokilabenhospital.com",
+          "url": "https://www.kokilabenhospital.com/departments/clinicaldepartments/fertility-ivf/ivf.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "vaidam.com",
+          "url": "https://www.vaidam.com/knowledge-center/guide-best-ivf-and-fertility-centres-mumbai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "selectivf.com",
+          "url": "https://selectivf.com/best-ivf-centre-in-mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "nanavatimaxhospital.org",
+          "url": "https://www.nanavatimaxhospital.org/mumbai/hospital/in-vitro-fertilization-ivf-hospital-mumbai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00172
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top IVF centre near me in Mumbai",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "“Near me” depends on your Mumbai neighbourhood. A reasonable shortlist of established hospital-linked options is:\n\n- **Bandra:** Bloom IVF at **Lilavati Hospital**\n- **Andheri:** **Kokilaben Dhirubhai Ambani Hospital**\n- **Powai:** **Dr. L. H. Hiranandani Hospital**\n- **South Mumbai:** **Jaslok Hospital**\n\nA 2026 *Outlook Health* survey listed Surya Fertility, Lilavati, Kokilaben and Hiranandani among Mumbai’s leading infertility hospitals—but rankings aren’t a guarantee of individual IVF outcomes. ([images.assettype.com](https://images.assettype.com/outlookindia/2026-06-19/a1388inr/HR_2026.pdf?utm_source=openai))\n\nBefore choosing, ask for the clinic’s **age-specific live-birth rate per embryo transfer** (not just pregnancy rate), a written itemised cost estimate, and confirm its registration on India’s ART clinic registry. ([fertilitynetwork.in](https://www.fertilitynetwork.in/mumbai/ivf-centers?utm_source=openai))\n\nTell me your **area or PIN code**—for example, Borivali, Andheri, Dadar, Powai, Thane, or Navi Mumbai—and I can narrow this to nearby options.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Bloom IVF",
+          "Lilavati Hospital",
+          "Kokilaben Dhirubhai Ambani Hospital",
+          "Dr. L. H. Hiranandani Hospital",
+          "Jaslok Hospital"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "images.assettype.com",
+          "url": "https://images.assettype.com/outlookindia/2026-06-19/a1388inr/HR_2026.pdf?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fertilitynetwork.in",
+          "url": "https://www.fertilitynetwork.in/mumbai/ivf-centers?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021551
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top IVF centre near me in Mumbai",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because Mumbai covers a large geographic area, finding the best IVF centre **near you** depends on your specific locality. \n\nHere are the top-rated and most reputable IVF centres in Mumbai, categorized by region:\n\n---\n\n### **1. South Mumbai**\n* **Jaslok-FertilTree International Fertility Centre (Pedder Road)**\n  * **Lead Doctor:** Dr. Firuza Parikh\n  * **Why it’s top-rated:** One of India’s most celebrated IVF programs with strong genetic testing capabilities (PGT/PGS) and high success rates for complex and repeat-failure cases.\n* **Mumbai Fertility Clinic & IVF Centre (Kemps Corner)**\n  * **Lead Doctor:** Dr. Jatin P. Shah\n  * **Why it’s top-rated:** Renowned for highly personalized treatment—Dr. Shah personally handles scans, egg retrievals, and embryo transfers.\n* **Babies & Us Fertility IVF Centre (Opera House / Chowpatty)**\n  * **Why it’s top-rated:** One of the oldest dedicated fertility units in the city, well-equipped for ICSI, donor programs, and advanced embryology.\n\n---\n\n### **2. Western Suburbs (Bandra to Borivali)**\n* **Bloom IVF Centre / Lilavati Hospital (Bandra West)**\n  * **Lead Doctors:** Dr. Hrishikesh Pai & Dr. Nandita Palshetkar\n  * **Why it’s top-rated:** Pioneers in assisted reproduction in India with decades of experience and multi-speciality hospital backup.\n* **Kokilaben Dhirubhai Ambani Hospital – Centre for ART (Andheri West)**\n  * **Why it’s top-rated:** Comprehensive tertiary-care environment, ideal if you have underlying conditions (like severe endometriosis, PCOS, or thyroid disorders) requiring multi-department care.\n* **Nova IVF Fertility (Andheri West)**\n  * **Why it’s top-rated:** Strict standardized lab protocols, advanced incubators, and transparent pricing.\n* **Cloudnine Fertility (Malad West)**\n  * **Why it’s top-rated:** Focuses on end-to-end maternity care with modern embryology labs and experienced reproductive endocrinologists.\n\n---\n\n### **3. Central Suburbs & Eastern Corridor**\n* **Nova IVF Fertility (Chembur)**\n  * **Why it’s top-rated:** Convenient for residents of Chembur, Kurla, and Ghatkopar; offers top-tier cleanroom labs and blastocyst culture facilities.\n* **Indira IVF (Ghatkopar / Dadar / Mulund)**\n  * **Why it’s top-rated:** High-volume chain known for transparent, cost-effective pricing packages and cutting-edge closed working chambers.\n\n---\n\n### **4. Thane & Navi Mumbai**\n* **Bloom IVF / Fortis Hiranandani (Vashi)**\n  * **Why it’s top-rated:** Brings Lilavati’s Bloom IVF expertise to Navi Mumbai with full hospital support.\n* **Progenesis Fertility / Birla Fertility & IVF (Thane & Vashi branches)**\n  * **Why it’s top-rated:** Modern infrastructure, international-standard labs, and strong male and female infertility workups.\n\n---\n\n### **Checklist Before You Finalize a Centre:**\n1. **Doctor Continuity:** Ask if your primary consultant will personally perform your follicle monitoring scans and embryo transfer, or if it will be delegated to junior duty doctors.\n2. **In-House Embryology Lab:** Ensure the clinic has an advanced, in-house Class 10,000 cleanroom lab with full-time embryologists.\n3. **Transparent Billing:** Ask for an itemized estimate including medications (injections can cost ₹40,000–₹80,000+), freezing charges, blastocyst culture, and ICSI.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Jaslok-FertilTree International Fertility Centre",
+          "Babies & Us Fertility IVF Centre",
+          "Bloom IVF",
+          "Lilavati Hospital",
+          "Kokilaben Dhirubhai Ambani Hospital",
+          "Nova IVF Fertility",
+          "Cloudnine Fertility",
+          "Indira IVF",
+          "Bloom IVF / Fortis Hiranandani",
+          "Progenesis Fertility / Birla Fertility & IVF"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "fertiltree.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indiraivf.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "reddit.com",
+          "url": null,
+          "channelType": "forum",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drjatinshah.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "kokilabenhospital.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cloudninefertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "gaudiumivfcentre.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.034821
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top IVF centre near me in Mumbai",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "“Best” depends on your neighbourhood and medical needs. A practical shortlist includes **Fortis Bloom IVF at Lilavati Hospital (Bandra West)**, **Kokilaben Hospital’s Fertility & IVF Department (Andheri West)**, **Nova IVF (Andheri West)**, and **Saraogi Hospital & Iris IVF (Malad West)**; these appear among Mumbai’s listed IVF options, with locations across the city.[2][3][4][7]\n\nTell me your **area or nearest station** (for example, Andheri, Dadar, Borivali, South Mumbai, or Navi Mumbai), and I can narrow this to nearby centres. Before choosing, ask about the treating doctor, transparent total cost, what their success-rate figures mean for your age and diagnosis, and whether the clinic is registered under India’s ART rules.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Fortis Bloom IVF at Lilavati Hospital",
+          "Nova IVF"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "bloomivf.com",
+          "url": "https://www.bloomivf.com/fertility-clinics/top-ivf-centre-in-mumbai.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bloomivf.com",
+          "url": "https://www.bloomivf.com/blog/best-ivf-centres-in-mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "kokilabenhospital.com",
+          "url": "https://www.kokilabenhospital.com/departments/clinicaldepartments/fertility-ivf/ivf.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "clinicspots.com",
+          "url": "https://www.clinicspots.com/hospitals/ivf-in-vitro-fertilization/mumbai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "nanavatimaxhospital.org",
+          "url": "https://www.nanavatimaxhospital.org/mumbai/hospital/in-vitro-fertilization-ivf-hospital-mumbai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cloudninecare.com",
+          "url": "https://www.cloudninecare.com/city-service-types/mumbai-fertility",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "timesofindia.indiatimes.com",
+          "url": "https://timesofindia.indiatimes.com/health-survey/ivf",
+          "channelType": "news",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "aurawomen.in",
+          "url": "https://aurawomen.in/blog/list-of-top-ivf-centres-in-mumbai-best-fertility-clinics-2022-23/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indiraivf.com",
+          "url": "https://www.indiraivf.com/maharashtra/best-ivf-center-in-mumbai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/IVF-Centres-in-Mumbai-Central/nct-10278216",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.0018
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which IVF centre in Mumbai has the best reviews and results",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "**If you mean the strongest public review profile, Progenesis Fertility Center in Thane is the clearest leader I found:** a Mumbai-centres comparison updated in October 2026 lists it at **4.9/5 from about 7,087 Google reviews**. Other highly rated options on that list include **Indira IVF in Dadar** (4.9/921) and **Ankoor Fertility Clinic in Mahim** (4.9/848). ([healthfinder.in](https://healthfinder.in/mumbai/ivf-centres/?utm_source=openai))\n\n**That doesn’t establish which centre has the best IVF results.** I couldn’t verify comparable, independently audited live-birth rates for Mumbai clinics. Be cautious with advertised “success rates”: ask each centre for its **live-birth rate per started cycle**, broken down by your age and whether treatment uses your own or donor eggs, and ask how many patients are included. The national ART registry can help you check a clinic’s registration, but the information I found doesn’t provide a like-for-like ranking of outcomes. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-bank&utm_source=openai))\n\n**Practical take:** shortlist Progenesis if review volume is your priority, then compare it with a convenient registered centre. Before choosing, ask to meet the treating fertility specialist, get an itemised cost estimate, and request the clinic’s own age-specific outcome figures. The best fit can depend a lot on your age, diagnosis, and location.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Indira IVF"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "healthfinder.in",
+          "url": "https://healthfinder.in/mumbai/ivf-centres/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "registry.artsurrogacy.gov.in",
+          "url": "https://registry.artsurrogacy.gov.in/clinic/list?type=register-bank&utm_source=openai",
+          "channelType": "reference",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021796
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which IVF centre in Mumbai has the best reviews and results",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "While no single clinic has a guaranteed 100% success rate—since IVF outcomes depend heavily on maternal age, egg/sperm quality, and medical history—a select few IVF centres in Mumbai consistently stand out for their **advanced embryology labs, ethical transparency, and high clinical success rates**.\n\n---\n\n### 1. Most Renowned & Established IVF Centres in Mumbai\n\n#### **A. Bloom IVF / Lilavati Hospital (Bandra West)**\n* **Key Doctors:** Dr. Hrishikesh Pai, Dr. Nandita Palshetkar, Dr. Rishma Pai.\n* **Why it stands out:** \n  * Regarded as one of the pioneering IVF teams in India, frequently ranked top in national healthcare surveys.\n  * Equipped with advanced embryology technology, including blastocyst culture, IMSI, and time-lapse embryoscopes.\n  * Being inside Lilavati Hospital, it offers full multispecialty backup for high-risk pregnancies or severe maternal comorbidities.\n\n#### **B. Malpani Infertility Clinic (Colaba)**\n* **Key Doctors:** Dr. Aniruddha Malpani, Dr. Anjali Malpani.\n* **Why it stands out:**\n  * Highly rated for **ethical practice and transparent pricing** with no hidden add-ons.\n  * Unlike chain clinics where treatment is passed to junior trainees, the Malpanis perform ultrasound scans, egg retrievals, and embryo transfers directly.\n  * Known for giving honest second opinions to patients who have had multiple unexplained IVF failures elsewhere.\n\n#### **C. Mumbai Fertility Clinic (Grant Road / Opera House)**\n* **Key Doctor:** Dr. Jatin P. Shah.\n* **Why it stands out:**\n  * Dr. Jatin Shah is often regarded as a go-to specialist for complex and recurrent IVF failure cases.\n  * Highly hands-on approach: he personally monitors scans, egg pickups, and embryo transfers.\n  * Consistently praised by patients for clinical precision, though wait times can be significant due to high demand.\n\n#### **D. ART Fertility Clinics (Kurla / BKC)**\n* **Why it stands out:**\n  * Originated from international reproductive medicine networks (formerly IVI Middle East).\n  * Outstanding embryology lab standards: cleanroom environments, strict air filtration, and standardized lab protocols that directly impact blastocyst survival and implantation rates.\n  * Highly evidence-based approach that avoids unnecessary \"IVF add-ons\" unless scientifically indicated.\n\n#### **E. Kokilaben Dhirubhai Ambani Hospital (Andheri West)**\n* **Why it stands out:**\n  * Ideal for patients needing **PGT (Preimplantation Genetic Testing)** or those with severe underlying conditions (endometriosis, autoimmune issues, cardiac history).\n  * Top-tier multi-speciality infrastructure, in-house geneticists, and transparent clinical counseling.\n\n---\n\n### 2. Large Network Clinics (Accessible & Scalable)\n* **Nova IVF Fertility (Andheri / Chembur):** A well-regulated chain with standardized embryology protocols, transparent cycle pricing, and good patient support systems.\n* **Indira IVF (Multiple locations):** Known for affordability and high-volume cycles, making fertility treatments accessible to broader demographics, though it tends to have a more high-turnover environment.\n\n---\n\n### How to Evaluate \"Success Rates\" and \"Reviews\"\n\nWhen choosing an IVF clinic in Mumbai, keep the following medical realities in mind:\n\n1. **Beware of inflated claims:** Any clinic promising *\"80–90% guaranteed success\"* is misleading. Globally and nationally, realistic clinical pregnancy rates for women under 35 range between **45% and 65% per cycle**, tapering down for women above 38–40.\n2. **The Embryology Lab matters most:** While the doctor prescribes the medication and retrieves the eggs, the **embryologist and the lab environment** determine whether embryos survive to Day 5 (blastocyst stage). Ask whether the clinic has a full-time, in-house senior embryologist.\n3. **Continuity of care:** Ask whether the primary specialist will do your monitoring and embryo transfer, or if you will be handed off to rotating duty doctors.\n4. **Transparent breakdown:** Ensure medication costs, embryo freezing, and potential ICSI or PGT charges are clearly outlined in writing before starting the cycle.\n\n*Recommendation:* Book initial consultations with **two distinct options**—for instance, a hospital-based unit like **Lilavati (Bloom IVF)** or **Kokilaben**, alongside a dedicated fertility practice like **Malpani Infertility Clinic** or **Dr. Jatin Shah**. Compare their proposed stimulation protocols, transparency, and how comfortable you feel with the team before committing to a cycle.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Bloom IVF",
+          "Lilavati Hospital",
+          "Malpani Infertility Clinic",
+          "Dr. Jatin Shah",
+          "ART Fertility Clinics",
+          "Kokilaben Dhirubhai Ambani Hospital",
+          "Nova IVF Fertility",
+          "Indira IVF"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "acmefertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "wombivf.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "kokilabenhospital.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "lilavatihospital.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ivfclinic.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drjatinshah.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "pregawish.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drjatinshah.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "youtube.com",
+          "url": null,
+          "channelType": "video",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.036764
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which IVF centre in Mumbai has the best reviews and results",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t a reliable single “best” IVF centre: rankings and review counts vary, and advertised success rates aren’t directly comparable. **Progenesis IVF** stands out in the results for review volume—its own site reports 4.9/5 from 10,993 reviews, while another local directory lists its Ghatkopar branch at 5.0 from 512 reviews.[2][6] Those figures are not a guarantee of treatment outcomes.\n\nFor a shortlist, also consider **Shree IVF** (4.9 from 5,695 reviews) and **ART Fertility Clinics** (4.9 from 603 reviews) in the same directory.[2] **Zoi Fertility** publishes a 68% success-rate claim and shows 292 Google reviews on its site, but that rate is clinic-reported and needs clarification before comparing it with other centres.[3]\n\nBefore choosing, ask each clinic for its **live-birth rate per embryo transfer or cycle**, broken down by your age and diagnosis—not just pregnancy rate—and ask how many comparable patients the figure covers. Review the written cost estimate, lab setup, doctor continuity, and what happens after failed cycles; ideally, get a second opinion from a reproductive-medicine specialist.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Progenesis IVF",
+          "Shree IVF",
+          "ART Fertility Clinics",
+          "Zoi Fertility"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "fertiltree.com",
+          "url": "https://fertiltree.com/ivf-centre-in-mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bestmumbai.in",
+          "url": "https://bestmumbai.in/ivf-centre/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "zoifertility.com",
+          "url": "https://zoifertility.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bloomivf.com",
+          "url": "https://www.bloomivf.com/blog/best-ivf-centres-in-mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "iswaryafertility.com",
+          "url": "https://www.iswaryafertility.com/ivf-centers/maharashtra/mumbai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "progenesisivf.com",
+          "url": "https://progenesisivf.com/our-center/mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "birlafertility.com",
+          "url": "https://birlafertility.com/mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bloomivf.com",
+          "url": "https://www.bloomivf.com/fertility-clinics/top-ivf-centre-in-mumbai.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "pregawish.com",
+          "url": "https://www.pregawish.com/collections/best-ivf-centres-mumbai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "medigence.com",
+          "url": "https://medigence.com/clinics/infertility/ivf/india/mumbai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00179
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a IVF centre cost in Mumbai and which one is worth it",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "If you mean **the cost of IVF treatment in Mumbai**, budget roughly **₹2–3 lakh for one private IVF cycle**. Some clinics advertise lower starting prices—about ₹1–2 lakh—but medicines, tests and other procedures may be extra. Mumbai estimates vary: one clinic lists standard IVF at ₹1–1.35 lakh before possible add-ons, while other published estimates put a self-egg cycle around ₹1.5–2.2 lakh. ([saraogihospital.com](https://saraogihospital.com/ivf-cost-in-mumbai/?utm_source=openai))\n\nThe final bill can be higher if you need ICSI, frozen-embryo transfer, donor eggs/sperm or genetic testing. Ask for a **written, itemized quote** that says what’s included—especially stimulation medicines, scans, egg retrieval, anesthesia, embryo freezing/storage and transfer. ([practo.com](https://www.practo.com/mumbai/in-vitro-fertilization-ivf/cost/procedure?utm_source=openai))\n\n**Which centre is worth it?** I wouldn’t choose from online ratings or a clinic’s headline “success rate” alone. **IRIS IVF at Saraogi Hospital** is one option to compare because it publishes a price breakdown; **Apollo Fertility** is another Mumbai option with a published range. Those are starting points, not a guarantee either is best for your case. ([saraogihospital.com](https://saraogihospital.com/ivf-cost-in-mumbai/?utm_source=openai))\n\nBefore choosing, get consultations at **two or three centres** and ask for their live-birth results for patients in your age group, the doctor’s proposed plan and the *total likely cost* if you need more than one attempt. If cost is the main concern, ask local government hospitals whether a subsidized IVF program is currently accepting patients; confirm availability and eligibility directly.\n\nIf you share your **age, area of Mumbai and approximate budget**, I can help you narrow down what to compare.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Apollo Fertility"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "saraogihospital.com",
+          "url": "https://saraogihospital.com/ivf-cost-in-mumbai/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": "https://www.practo.com/mumbai/in-vitro-fertilization-ivf/cost/procedure?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021822
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a IVF centre cost in Mumbai and which one is worth it",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "The cost of an IVF (In Vitro Fertilisation) cycle in Mumbai generally ranges between **₹1,50,000 and ₹3,00,000** for a single self-cycle, though advanced procedures or multiple attempts can push the total expense higher.\n\nThe realistic breakdown of costs and an evaluation of which clinics offer reliable value for treatment can help in planning care.\n\n---\n\n### 1. Cost Breakdown in Mumbai\n\nClinics often advertise a low \"base package\" that may exclude costly hormone injections or freezing fees. A typical complete cycle breaks down as follows:\n\n| Component | Estimated Cost (INR) | Details |\n| :--- | :--- | :--- |\n| **Base IVF Package** | ₹90,000 – ₹1,50,000 | Consultations, follicular monitoring scans, egg retrieval (OPU), lab fertilization, and fresh embryo transfer. |\n| **Stimulation Injections & Medications** | ₹50,000 – ₹1,20,000 | Hormonal injections (Gonadotropins) to stimulate ovaries. Varies significantly based on age and AMH levels. |\n| **ICSI (if required)** | ₹20,000 – ₹45,000 | Recommended for male factor infertility or previous fertilization failure. |\n| **Embryo Freezing (Cryopreservation)** | ₹30,000 – ₹50,000 | Includes freezing extra embryos and storage for the first 6–12 months. |\n| **Frozen Embryo Transfer (FET)** | ₹40,000 – ₹70,000 | Required if embryos are frozen and transferred in a subsequent cycle. |\n| **Advanced Add-ons (PGT-A / ERA / Hysteroscopy)** | ₹40,000 – ₹1,50,000+ | Only done in cases of recurrent failure or genetic screening needs. |\n\n> **Realistic Budget:** For one complete cycle (procedure + stimulation injections + basic freezing), budget between **₹2,00,000 and ₹2,75,000**. Because the average cumulative live-birth rate across India is 35–45% per cycle, many couples require 2 to 3 transfers.\n\n---\n\n### 2. Which IVF Centres in Mumbai Are \"Worth It\"?\n\nNo single clinic is best for everyone. \"Worth it\" depends on whether you have a straightforward issue, a complex medical history, or budget constraints. The following centers are consistently well-regarded:\n\n#### A. Best for Complex Cases & Hospital Backing (Premium / High Trust)\n* **FertilTree / Jaslok Hospital (Pedder Road – Dr. Firuza Parikh):**\n  * **Why it's worth it:** Dr. Firuza Parikh is one of India's pioneer fertility specialists. If you have recurrent IVF failure, advanced maternal age, or need severe multi-specialty care, Jaslok's embryology team and medical infrastructure are among the best in the country.\n  * **Cost:** ₹2.5L – ₹3.5L+ per cycle.\n* **Bloom IVF / Lilavati Hospital (Bandra – Dr. Hrishikesh Pai & Dr. Nandita Palshetkar):**\n  * **Why it's worth it:** Decades of clinical track record, highly advanced embryology labs, and access to Lilavati’s full tertiary hospital facilities.\n  * **Cost:** ₹2L – ₹3L per cycle.\n* **Hinduja Hospital IVF Centre (Mahim):**\n  * **Why it's worth it:** Known for academic, evidence-based, and non-commercialized medical practices.\n\n#### B. Best for Transparency & Patient-Centric Care\n* **Malpani Infertility Clinic (Colaba – Dr. Aniruddha Malpani):**\n  * **Why it's worth it:** Widely respected for honest, transparent practices. They share high-resolution photos of embryos with patients, do not push unnecessary add-ons, and maintain clear, fixed pricing with no kickbacks/referral commissions.\n  * **Cost:** Transparent, mid-to-upper range (around ₹2L – ₹2.5L).\n* **ART Fertility Clinics (Kurla):**\n  * **Why it's worth it:** International protocols, cutting-edge embryology equipment (AI incubators, strict clean-room standards), and personalized stimulation protocols.\n  * **Cost:** ₹2L – ₹2.8L.\n\n#### C. Best for Value / Budget-Friendly Cycles\n* **Indira IVF (Branches in Borivali, Dadar, Vashi, Ghatkopar, etc.):**\n  * **Why it's worth it:** India’s largest chain with massive cycle volume. Because of scale, they offer standard packages at lower prices with zero-cost EMI options. Ideal if you are younger with straightforward tubal or mild male-factor infertility.\n  * **Cost:** ₹1.2L – ₹1.8L (base packages often start around ₹1.1L–₹1.3L).\n* **Nova IVF Fertility (Andheri & Chembur):**\n  * **Why it's worth it:** A balanced middle-ground offering solid lab standards and competitive pricing compared to top-tier hospital clinics.\n\n---\n\n### 3. Red Flags & Questions to Ask Before Paying\n\nBefore committing to any clinic:\n1. **Ask for an itemized estimate:** Does the quote include **injections and blood work**, or just the surgical procedure? (Injections alone can add ₹70,000+).\n2. **Inquire about the Embryologist:** The embryologist handling your eggs/sperm is as important as the doctor. Ask if they have a full-time, in-house senior embryologist rather than a visiting consultant.\n3. **Beware of \"100% Guaranteed Success\" packages:** Human biology makes a 100% guarantee impossible; such promises usually mask fine print involving forced donor eggs/sperm or refund restrictions.\n4. **Distance and Convenience:** An IVF cycle requires 6 to 10 monitoring visits in a two-week window. Choosing a top-tier clinic on the opposite side of Mumbai traffic can cause immense physical and emotional stress. Pick a reliable clinic within manageable commuting distance.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Jaslok Hospital",
+          "Bloom IVF",
+          "Lilavati Hospital",
+          "Hinduja Hospital IVF Centre",
+          "Malpani Infertility Clinic",
+          "ART Fertility Clinics",
+          "Indira IVF",
+          "Nova IVF Fertility"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "apollofertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ovu.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drnaliniguptaivf.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indiraivf.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "nanditapalshetkar.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "saraogihospital.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drjatinshah.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "pristyncare.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indiraivf.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "nanditapalshetkar.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "pregawish.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "kokilabenhospital.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.038334
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a IVF centre cost in Mumbai and which one is worth it",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "**Budget roughly ₹1.5–3.5 lakh for one IVF attempt in Mumbai**, but medicines, ICSI, embryo freezing and a later frozen transfer can push the total higher. Premium hospital centres may quote ₹3.2–4.5 lakh; many couples should plan for about ₹3.5–5.5 lakh if a frozen transfer is also needed.[3][6]\n\nThere isn’t one clinic that’s best for everyone. **Worth shortlisting:** Nova IVF, Progenesis, Bloom IVF, Jaslok/FertilTree, or a nearby centre such as Zoi in Powai—then compare them on your diagnosis, doctor and lab team, location, and a written all-in quote. Listings show different clinic prices and rankings, but those alone don’t establish which clinic will give you the best outcome.[1][2][7]\n\nBefore paying, ask each centre for:\n- An itemised estimate covering tests, medicines, monitoring, retrieval, anaesthesia, lab work and transfer.\n- Its **live-birth rate for patients in your age group and with a similar diagnosis**—not just a headline “success rate.”\n- Separate prices for ICSI, freezing/storage, frozen embryo transfer and genetic testing, and whether each is medically recommended.\n\nCompare the same treatment plan at two or three clinics; the lowest advertised package may exclude substantial costs.[1][5][6]",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Nova IVF",
+          "Bloom IVF"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "zoifertility.com",
+          "url": "https://zoifertility.com/blog/10-best-ivf-centers-in-mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "medtio.com",
+          "url": "https://www.medtio.com/ivf-clinics/mumbai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mirofertility.com",
+          "url": "https://www.mirofertility.com/blog/best-ivf-clinic-in-mumbai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "oneworldfertility.com",
+          "url": "https://oneworldfertility.com/articles-guidance/ivf-cost-mumbai-success-rates-best-clinics",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "suryahospitals.com",
+          "url": "https://suryahospitals.com/blog/choose-best-ivf-center-mumbai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mirofertility.com",
+          "url": "https://www.mirofertility.com/blog/ivf-cost-in-mumbai-2026",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mirofertility.com",
+          "url": "https://www.mirofertility.com/clinics/mumbai/ivf",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fertiltree.com",
+          "url": "https://fertiltree.com/ivf-treatment-cost-mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "saraogihospital.com",
+          "url": "https://saraogihospital.com/ivf-cost-in-mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "parentvibes.in",
+          "url": "https://parentvibes.in/ivf-costs/mumbai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00185
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which IVF centre in Mumbai should I trust",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one IVF centre I can responsibly call “the best” for everyone. **If you want one place to start checking, I’d consider the IVF Centre at Nowrosjee Wadia Maternity Hospital**: it appears on an independent ART-accreditation list with accreditation through **July 30, 2027**. That’s a useful quality signal, **not proof that it has the highest success rate or is right for your case**. ([qai.org.in](https://qai.org.in/service/cahsc/?utm_source=openai))\n\nBefore choosing any centre, check that the **specific clinic and address** are currently registered as an ART clinic on India’s official National ART & Surrogacy Registry. The government describes this as its public record system; a listing as a *surrogacy* clinic alone is not the same as confirming ART-clinic registration. ([artsurrogacy.gov.in](https://artsurrogacy.gov.in/pages/national-art-%26-surrogacy-registry?utm_source=openai))\n\nAt your first consultations, ask each clinic for:\n- **Live-birth rates** for patients in your age group and situation—not just pregnancy rates or success stories.\n- A written, itemized estimate covering medicines, tests, procedures, freezing and storage, and what happens if a cycle is cancelled.\n- Who will personally manage your care, and whether the embryology lab and procedures are on-site.\n- Why they recommend IVF for you, and whether any proposed add-ons are optional or supported by evidence.\n\nI’d meet **two clinics** before committing, and be wary of anyone promising a baby or pressuring you to pay immediately. If you tell me your part of Mumbai, your age range, and whether you already have a diagnosis or prior IVF attempts, I can help narrow the options.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "qai.org.in",
+          "url": "https://qai.org.in/service/cahsc/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "artsurrogacy.gov.in",
+          "url": "https://artsurrogacy.gov.in/pages/national-art-%26-surrogacy-registry?utm_source=openai",
+          "channelType": "reference",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021811
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which IVF centre in Mumbai should I trust",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Choosing an IVF clinic is both an emotional and financial decision. In Mumbai, fertility clinics range from pioneering super-speciality hospital departments to dedicated private chains. \n\nRather than relying on billboard success rates (which can be misleading), **trust should be based on clinical ethics, embryology laboratory standards, and regulatory compliance.**\n\nBelow is a breakdown of the most established and reputable IVF centres in Mumbai, followed by a checklist of how to vet them.\n\n---\n\n### Highly Regarded IVF Centres in Mumbai\n\n#### 1. Major Super-Speciality Hospital Departments (Best for complex medical histories)\nHospital-backed fertility units offer the advantage of multidisciplinary support (critical if you have conditions like severe endometriosis, autoimmune disorders, cardiac history, or high-risk medical factors).\n\n*   **Jaslok Hospital & Research Centre (Pedder Road):** Home to one of India’s pioneering IVF teams (led by Dr. Firuza Parikh). Known for advanced genetics (PGT), handling repeated implantation failure, and managing complex maternal cases.\n*   **Kokilaben Dhirubhai Ambani Hospital (Andheri West):** Has an advanced Centre for Human Reproduction with full-time senior consultants, modular cleanroom embryology labs, and comprehensive high-risk obstetric backup.\n*   **Lilavati Hospital & Research Centre (Bandra West):** Long-standing reputation for reproductive medicine and advanced endoscopic surgeries associated with fertility treatment.\n*   **P. D. Hinduja Hospital & Medical Research Centre (Mahim):** Well-known for ethical practice, evidence-based protocols, and strong genetic/diagnostic infrastructure.\n\n#### 2. Dedicated Fertility Networks & Specialized Clinics\nThese centres focus exclusively on reproductive medicine and often offer dedicated patient coordination and multiple branch access across the city.\n\n*   **Bloom IVF (Lilavati Hospital / Opera House / Bandra):** Led by experienced fertility specialists (Dr. Hrishikesh Pai and Dr. Nandita Palshetkar); offers advanced protocols like vitrification, IMSI, and laser-assisted hatching.\n*   **Nova IVF Fertility (Andheri / Chembur):** A nationwide chain known for standardized international protocols, transparent lab audits, and standardized pricing structures.\n*   **Oasis Fertility (Vashi / Borivali / Powai):** Well-regarded for male-factor infertility treatments and transparent tracking systems (such as RFID witness systems to avoid sample mix-ups).\n\n---\n\n### 5 Critical Questions to Vet Any Clinic Before Committing\n\nBefore paying for a cycle, schedule an initial consultation and evaluate the clinic on these points:\n\n1. **Is the clinic registered under the National ART Act?**\n   Under India’s **Assisted Reproductive Technology (Regulation) Act, 2021**, every clinic and bank must be registered with the National Board. This ensures the clinic meets statutory standards for equipment, hygiene, and ethical donor/gamete handling.\n2. **Who runs the embryology lab?**\n   More than 50% of IVF success depends on the lab, not just the doctor. Ask:\n   * Is there a **full-time, senior embryologist** on-site, or do they fly in visiting embryologists in \"batches\"? (Avoid \"batch IVF,\" where eggs are retrieved and embryos transferred only on specific days of the month).\n   * Does the lab have a cleanroom setup (Class 10,000 / ISO 5 standards) with continuous air filtration?\n3. **Who will perform the actual procedures?**\n   Confirm whether your primary consultant will personally perform the egg pickup and embryo transfer, or if procedures are routinely handed off to rotating junior fellows.\n4. **Is the pricing completely transparent?**\n   Request an itemized written quote. A low \"package price\" often excludes:\n   * Hormonal injections (which can cost ₹40,000–₹90,000 alone)\n   * ICSI or laser-assisted hatching charges\n   * Embryo freezing (cryopreservation) and annual maintenance fees\n   * Pre-implantation genetic testing (PGT)\n5. **Beware of \"100% Guarantees\":**\n   **No ethical clinic will promise a 100% success rate.** Success depends heavily on age, ovarian reserve (AMH), sperm DNA fragmentation, and uterine receptivity. Any centre offering \"money-back packages\" with guaranteed pregnancy should be approached with caution.\n\n---\n\n### Suggested Next Step\nShortlist **two** centres (ideally one super-speciality hospital and one dedicated fertility clinic close to your residence, as IVF involves frequent morning ultrasound visits). Book an initial second-opinion consultation at both with your previous medical records. Choose the team that explains your diagnostic profile clearly and does not rush you into treatment on day one.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Jaslok Hospital",
+          "Kokilaben Dhirubhai Ambani Hospital",
+          "Lilavati Hospital",
+          "Bloom IVF",
+          "Nova IVF Fertility"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.006783
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which IVF centre in Mumbai should I trust",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one IVF centre that’s right for everyone. **Jaslok Hospital’s Assisted Reproduction Unit, Bloom IVF, and Kokilaben Hospital** are reasonable places to shortlist, but online “best clinic” lists aren’t independent proof of quality, and success depends heavily on your age and diagnosis.[1][5][9]\n\nBefore choosing, book consultations with two centres and ask each to:\n\n- Give **live-birth rates per treatment cycle or egg retrieval**, broken down by your age group and diagnosis—not just pregnancy rates or a headline “success rate.”\n- Explain who will manage your care and how often you’ll see that specialist.\n- Provide an itemised estimate, including medicines, freezing/storage, and any extra procedures.\n- Confirm the treating clinic’s registration under India’s ART law and explain its lab safeguards.[5]\n- Recommend only tests and add-ons relevant to your case, and give you time to decide.\n\nChoose the team that explains options and risks clearly, answers questions without pressure, and gives you a written treatment plan. If you share your suburb, age range, and whether you’ve had prior IVF, I can help narrow the shortlist.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Jaslok Hospital",
+          "Bloom IVF"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "zoifertility.com",
+          "url": "https://zoifertility.com/blog/10-best-ivf-centers-in-mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ivftips4u.com",
+          "url": "https://ivftips4u.com/blog/best-ivf-centers-in-mumbai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bloomivf.com",
+          "url": "https://www.bloomivf.com/blog/best-ivf-centres-in-mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bestmumbai.in",
+          "url": "https://bestmumbai.in/ivf-centre/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ivffinder.com",
+          "url": "https://ivffinder.com/en/blog/ivf-in-mumbai-best-hospitals-costs-2026",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "completesurrogacy.com",
+          "url": "https://completesurrogacy.com/ivf-in-india/best-ivf-clinics-in-mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ivfinmumbai.com",
+          "url": "https://www.ivfinmumbai.com/blogs/top-7-best-ivf-centres-in-mumbai-for-successful-ivf-treatment/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ivfclinic.com",
+          "url": "https://ivfclinic.com/best-ivf-clinics-in-mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bloomivf.com",
+          "url": "https://www.bloomivf.com/fertility-clinics/top-ivf-centre-in-mumbai.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "suryahospitals.com",
+          "url": "https://suryahospitals.com/blog/choose-best-ivf-center-mumbai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00172
+    }
+  ]
+}
