@@ -46,7 +46,8 @@ export const BUILD_PLAN: BuildPlan = {
     { title: "Advance AI checks for phone-only businesses (PR #225)", owner: "Claude", due: "2026-11-24", status: "done" },
     { title: "Build tracker at /pipeline/build (PR #226)", owner: "Claude", due: "2026-11-24", status: "done" },
     { title: "Get the business_management test-call tick, then submit Meta App Review", owner: "You", due: "2026-11-26", status: "todo", note: "All answers and videos are entered." },
-    { title: "Check the first 3 widened researcher runs", owner: "Claude", due: "2026-11-25", status: "todo" },
+    { title: "Check the first 3 widened researcher runs: 31 qualified, 24 with an email", owner: "Claude", due: "2026-11-25", status: "done" },
+    { title: "Dashboard rebuilt: Overview, Outreach, Pipeline, Build in one frame", owner: "Claude", due: "2026-11-25", status: "done" },
     { title: "One daily approval card in Slack instead of 3", owner: "Claude", due: "2026-11-27", status: "todo" },
     { title: "Events table as the record, replacing GitHub logs", owner: "Claude", due: "2026-11-30", status: "todo" },
     { title: "Suggested replies to prospect emails, with calendar slots", owner: "Claude", due: "2026-12-03", status: "todo" },
@@ -62,7 +63,7 @@ export const BUILD_PLAN: BuildPlan = {
   risks: [
     { kind: "Risk", what: "Meta App Review is slow or rejected", impact: "High", owner: "You", action: "Answers and videos are ready. If Meta asks for changes, we answer the same day. If not approved by 10 Dec, the go-live date moves.", status: "Open" },
     { kind: "Risk", what: "Resend's rules do not allow cold email", impact: "Medium", owner: "You", action: "Your decision: stay on Resend. Gmail sending is built and switched off; switching is one Railway setting.", status: "Watching" },
-    { kind: "Issue", what: "30 of 35 approved businesses have only a phone number", impact: "Medium", owner: "Claude", action: "No cold calls. Their AI checks run in advance, 5 a day; WhatsApp reaches them once live.", status: "Open" },
+    { kind: "Issue", what: "{phone_only} approved businesses have only a phone number", impact: "Medium", owner: "Claude", action: "No cold calls. Their AI checks run in advance, 5 a day; WhatsApp reaches them once live.", status: "Open" },
     { kind: "Risk", what: "Gemini credits run out", impact: "Medium", owner: "You", action: "Rs 500 prepaid on 23 Nov. A failure holds sending and posts one line in alerts.", status: "Watching" },
     { kind: "Risk", what: "98720 09997 entered in the new-number flow would cut it off the WhatsApp app", impact: "High", owner: "You", action: "Connect only by coexistence, step by step with Claude.", status: "Open" },
     { kind: "Risk", what: "GitHub token expires in Nov 2027", impact: "Low", owner: "You", action: "Set a reminder a week before expiry.", status: "Watching" },

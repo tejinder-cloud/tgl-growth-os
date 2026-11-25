@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import type { AddressInfo } from "node:net";
 import { createApp } from "./app.js";
 import { allowedEmails, makeSession, readSession, SESSION_COOKIE } from "./agents/pipeline/auth.js";
-import { renderBoard, totals, daysInStage } from "./agents/pipeline/board.js";
+import { isPlaceholderContact, renderBoard, totals, daysInStage } from "./agents/pipeline/board.js";
 import { setBoardSourcesForTests } from "./routes/pipeline.js";
 import type { Deal } from "./agents/pipeline/stages.js";
 
@@ -29,6 +29,16 @@ async function main() {
   assert.match(html, /Rs 25,000 \+ \$800/);
   assert.match(html, /named in 2 of 15 answers/);
   assert.doesNotMatch(html, /<script[^>]+src=|<link[^>]+href="https?:/);
+  assert.match(html, /href="\/pipeline" aria-current="page"/, "the shared tabs, Pipeline marked");
+
+  // Rejected businesses leave the board; placeholder roles are not shown as names (25 Nov 2026).
+  const more = [...deals, deal({ id: "r", company: "JP Academy", prospect_id: "rej" }), deal({ id: "o", company: "Tutors Hub", contact_name: "Owner / Lead Doctor", city: "Mumbai" })];
+  const h2 = renderBoard(more, { now, email: "me@x.example", rejected: new Set(["rej"]) });
+  assert.doesNotMatch(h2, /JP Academy/);
+  assert.match(h2, /Tutors Hub/);
+  assert.doesNotMatch(h2, /Owner \/ Lead Doctor/);
+  assert.equal(isPlaceholderContact("Contact found, DM unknown"), true);
+  assert.equal(isPlaceholderContact("Dr Asha Rao"), false);
 
   // Sessions.
   const allowed = new Set(["me@x.example"]);

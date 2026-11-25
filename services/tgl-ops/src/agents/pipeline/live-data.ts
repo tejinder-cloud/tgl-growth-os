@@ -11,10 +11,14 @@ import { dailyCap } from "../outreach-sequencer/worker.js";
 import { dealStore } from "./live.js";
 import { buildLiveView, istDate, type AgentLine, type LiveProspect, type LiveView, type Spend } from "./live-view.js";
 
-/** The last "### " heading in a log, without the hashes. Empty when the log has none. */
+/** The last "### " heading in a log, without the hashes, or else the last timed "- HH:MM IST" line. Empty when neither. */
 export function lastHeading(markdown: string): string {
-  const lines = String(markdown || "").split("\n").filter((l) => l.startsWith("### "));
-  return lines.length ? lines[lines.length - 1].replace(/^###\s+/, "").trim() : "";
+  const text = String(markdown || "").split("\n");
+  const lines = text.filter((l) => l.startsWith("### "));
+  if (lines.length) return lines[lines.length - 1].replace(/^###\s+/, "").trim();
+  // Some agents log one timed line per run instead ("- 06:07 IST — Citation Tracker: ...").
+  const timed = text.filter((l) => /^- \d{1,2}:\d{2} IST/.test(l));
+  return timed.length ? timed[timed.length - 1].replace(/^- /, "").trim() : "";
 }
 
 let githubCache: { date: string; at: number; lines: AgentLine[] | null } | null = null;
