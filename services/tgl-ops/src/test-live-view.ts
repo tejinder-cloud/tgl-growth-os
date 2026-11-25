@@ -9,6 +9,7 @@ import { makeSession, SESSION_COOKIE } from "./agents/pipeline/auth.js";
 import { lastHeading, mergeAgentLines, sumSpend } from "./agents/pipeline/live-data.js";
 import { buildLiveView, pauseGroup, readableTimes, type LiveProspect } from "./agents/pipeline/live-view.js";
 import { renderOverviewMain, renderOverviewPage } from "./agents/pipeline/overview-page.js";
+import { BUILD_PLAN } from "./agents/pipeline/build-plan.js";
 import { renderOutreachMain, renderOutreachPage } from "./agents/pipeline/outreach-page.js";
 import type { Deal } from "./agents/pipeline/stages.js";
 import { setLiveLoaderForTests } from "./routes/pipeline.js";
@@ -106,7 +107,8 @@ async function main() {
   assert.ok(html.includes("₹513") && html.includes("TrueVisible"), "spend from the recorded table");
   assert.ok(html.includes('href="/pipeline/live" aria-current="page"') && html.includes('id="refresh"'), "current tab marked; a refresh button");
   assert.ok(html.includes("Smile &lt;Studio&gt;") && !html.includes("Smile <Studio>"), "escaped");
-  assert.ok(html.includes("Submit Meta App Review") || html.includes("submit Meta App Review"), "build tasks due this week join Needs you");
+  const planned = renderOverviewMain(v, NOW, { ...BUILD_PLAN, tasks: [{ title: "Sign the test plan", owner: "You", due: "2026-11-26", status: "todo" }, { title: "Far away", owner: "You", due: "2026-12-14", status: "todo" }] });
+  assert.ok(planned.includes("Sign the test plan") && !planned.includes("Far away"), "build tasks due this week join Needs you");
   assert.ok(!html.includes('href="tel:'), "no tap-to-call: no cold calls");
   assert.ok(!EMOJI.test(html), "no emojis");
   assert.ok(!html.includes("x@a.example"), "no email addresses on the page");
