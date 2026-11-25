@@ -56,3 +56,32 @@
 - **Tomorrow:** Execute next metro in rotation (Mumbai · ivf_fertility) at 09:30 IST.
 
 
+### Run — 09:42 IST (Mumbai · ivf_fertility)
+- **Scheduled Pair:** Mumbai × ivf_fertility
+- **Rubric:** v2 (qualified at 65 or above, benched from 50)
+- **Qualified Accounts:** 12 / 20
+- **Benched This Run (saved with status bench):** 4 (4 verified in the prospects table)
+- **Benched Re-score (v2, before discovery):** 0 eligible · 0 promoted · 0 still benched · 0 rejected · 0 not probed
+- **Dim 4 Probes (gemini):** 16 completed · 0 failed · 0 skipped at daily cap · 0 skipped, engine unavailable · probe spend $0.4383 USD
+- **Validator Funnel:**
+  - Raw Candidates (Places API): 56 (from 4 searches; 50 needed no separate details call)
+  - Live DNS Passed: 39 (Failed: 5)
+  - Playbook C Disqualified (Enterprise Chains): 12
+  - Place Details Enriched: 6 (Failed: 0)
+  - Email Verified via Hunter: 0
+  - Published Business Email (own website): 25
+  - Places Phone Verified (Owner-Run <50 staff only): 8
+  - Contact Unverified / Dropped: 6
+  - Fit Score >= 65: 12 (Sub-cutoff: 19, of which benched: 4, Not probed: 0)
+  - Write Gate Validated: 12 (Rejected: 0)
+- **Places API Daily Quota:** 33 / 95 calls
+- **Estimated Run Cost:** $0.0369 USD
+- **Review Card:** Dispatched to Slack (ts: 1795580445.242879)
+
+#### Standup Contribution (18:00 IST):
+- **Did:** Sourced and qualified 12 accounts for Door AEO in Mumbai (ivf_fertility) with avg fit score 77.5 (Shortfall of 8 accounts: 56 candidates discovered via Places, 39 DNS alive, 12 disqualified by Playbook C, 6 Place Details enriched, 0 email verified via Hunter, 8 owner phones, 12 scored >= 65, 4 benched); Places API quota: 33/95 calls; Dim 4 probes: 16 ($0.4383).
+- **Blocked:** None.
+- **Need from the Architect:** Architect review on Top 25 card in #revenue (ts: 1795580445.242879).
+- **Tomorrow:** Execute next metro in rotation (Ludhiana · high_ticket_coaching) at 09:30 IST.
+
+
