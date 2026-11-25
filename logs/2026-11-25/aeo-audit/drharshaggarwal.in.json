@@ -1,0 +1,1018 @@
+{
+  "brand": {
+    "name": "Dr. Harsh Aggarwal | Laparoscopic Surgeon",
+    "primaryDomain": "drharshaggarwal.in",
+    "domains": [
+      "drharshaggarwal.in"
+    ],
+    "variants": [
+      "Dr. Harsh Aggarwal | Laparoscopic Surgeon",
+      "drharshaggarwal"
+    ],
+    "setupStatus": "prospect_unverified"
+  },
+  "auditedAt": "2026-11-25T05:30:01.583Z",
+  "promptsCount": 5,
+  "enginesCount": 3,
+  "totalQueries": 15,
+  "summary": {
+    "totalMentions": 0,
+    "visibilityScorePercent": 0,
+    "mentionsByEngine": {
+      "chatgpt": 0,
+      "gemini": 0,
+      "perplexity": 0
+    },
+    "competitorMentions": {
+      "PGIMER": 14,
+      "Fortis Mohali": 10,
+      "Max Mohali": 8,
+      "Fortis Hospital": 10,
+      "Max Super Speciality Hospital": 9,
+      "Paras Health": 4,
+      "Ivy Hospital": 3,
+      "Homi Bhabha Cancer Hospital & Research Centre": 3,
+      "Max Cancer Care / Fortis Cancer Institute": 1,
+      "Cloudnine Hospital": 4,
+      "Motherhood Hospital": 4,
+      "Sohana Hospital": 3,
+      "GMCH": 5,
+      "GMSH-16": 1,
+      "Healing Hospital": 4,
+      "Eden Critical Care Hospital": 1,
+      "Alchemist Hospital": 3,
+      "Ojas Hospital": 1,
+      "Livasa": 1,
+      "Shalby": 1,
+      "Grewal Eye Institute": 2,
+      "PGIMER Advanced Eye Centre": 1
+    },
+    "citationDomains": {
+      "pgimer.edu.in": 4,
+      "fortishealthcare.com": 3,
+      "theweek.in": 3,
+      "mukathospital.com": 2,
+      "ydnews.in": 3,
+      "365doctor.in": 5,
+      "cancerrounds.com": 3,
+      "satyughealthcare.com": 2,
+      "adotrip.com": 2,
+      "top10consultants.com": 1,
+      "tribuneindia.com": 1,
+      "starhealth.in": 1,
+      "justdial.com": 4,
+      "hexahealth.com": 1,
+      "healthfinder.in": 1,
+      "sebi.gov.in": 1,
+      "whatclinic.com": 1,
+      "cloudninefertility.com": 1,
+      "hospitals-info.in": 1,
+      "scl.gov.in": 2,
+      "chandigarh.gov.in": 1,
+      "wowchandigarh.com": 1,
+      "reddit.com": 1,
+      "portal.nabh.co": 1,
+      "maxhealthcare.in": 1,
+      "threebestrated.in": 1
+    },
+    "totalCostUsd": 0.1263,
+    "totalCostInr": 11.7
+  },
+  "nextSteps": {
+    "weakestEngine": "ChatGPT",
+    "weakestEngineMentions": 0,
+    "zeroMentionEngines": [
+      "ChatGPT",
+      "Gemini",
+      "Perplexity"
+    ],
+    "queriesLost": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "weakestQueries": [
+      1,
+      2
+    ],
+    "winningCompetitor": "PGIMER",
+    "winningCompetitorCount": 14,
+    "topCitationGap": "365doctor.in",
+    "formattedText": "Dr. Harsh Aggarwal | Laparoscopic Surgeon was named in 0 of 15 answers (0%). ChatGPT, Gemini and Perplexity did not name Dr. Harsh Aggarwal | Laparoscopic Surgeon in any of the 5 questions. PGIMER was named most often instead, in 14 of 15 answers. The questions where Dr. Harsh Aggarwal | Laparoscopic Surgeon did worst: \"Best hospital in Chandigarh Tricity\" (0 of 3 assistants named Dr. Harsh Aggarwal | Laparoscopic Surgeon); \"Top hospital near me in Chandigarh Tricity\" (0 of 3 assistants named Dr. Harsh Aggarwal | Laparoscopic Surgeon)."
+  },
+  "matrix": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best hospital in Chandigarh Tricity",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "PGIMER Chandigarh is the strongest overall choice: it ranked first among Chandigarh-area multispecialty hospitals in the 2026 T..."
+      }
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top hospital near me in Chandigarh Tricity",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "“Top” depends on the treatment needed, and the closest hospital depends on your exact location. For a general multispecialty op..."
+      }
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which hospital in Chandigarh Tricity has the best reviews and results",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t a reliable single “best” hospital for all of Chandigarh Tricity: online ratings reflect patient experiences, not in..."
+      }
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a hospital cost in Chandigarh Tricity and which one is worth it",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "If you mean what it costs to get treated or stay in a hospital , there isn’t one standard price: it depends on the condition, r..."
+      }
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which hospital in Chandigarh Tricity should I trust",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one best hospital for every situation. For complex or uncommon conditions , PGIMER Chandigarh is a strong starting..."
+      }
+    }
+  ],
+  "rawAnswers": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best hospital in Chandigarh Tricity",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one “best” for every condition. **For complex or highly specialized care, PGIMER Chandigarh is a strong overall choice**—it’s a major regional referral centre with round-the-clock emergency and trauma services. ([pgimer.edu.in](https://pgimer.edu.in/PGIMER_PORTAL/PGIMERPORTAL/GlobalPages/JSP/Page_Data.jsp?dep_id=8&utm_source=openai))\n\nIf you prefer a **private hospital**, consider **Fortis Mohali** or **Max Mohali**; both offer multispecialty care. ([fortishealthcare.com](https://www.fortishealthcare.com/specialities/hospital/specialities/fortis-hospital-mohali?utm_source=openai))\n\nFor an emergency, go to the **nearest appropriate emergency department** rather than travelling across the Tricity. If you tell me the **specialty or condition**, your preferred area, and whether you need private care or have insurance, I can narrow it down.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "PGIMER",
+          "Fortis Mohali",
+          "Max Mohali"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "pgimer.edu.in",
+          "url": "https://pgimer.edu.in/PGIMER_PORTAL/PGIMERPORTAL/GlobalPages/JSP/Page_Data.jsp?dep_id=8&utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fortishealthcare.com",
+          "url": "https://www.fortishealthcare.com/specialities/hospital/specialities/fortis-hospital-mohali?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011437
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best hospital in Chandigarh Tricity",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "The best hospital in the Chandigarh Tricity (Chandigarh, Mohali, Panchkula) depends on whether you are looking for premier academic research care (public) or immediate, premium quaternary care (private). \n\n---\n\n### 1. The Apex Public Institute (Best Overall for Complex Cases)\n\n* **PGIMER (Post Graduate Institute of Medical Education & Research), Sector 12, Chandigarh**\n  * **Status:** Consistently ranked among the top 2 medical institutes in India (alongside AIIMS New Delhi).\n  * **Best For:** Extremely rare, critical, and complex medical conditions, organ transplants, advanced neurosurgery, pediatric surgery, and high-end tertiary care.\n  * **Pros:** World-class doctors, state-of-the-art diagnostic equipment, highly subsidized and affordable treatment.\n  * **Drawback:** Massive patient footfall, long waiting times for appointments/elective surgeries, and crowded OPDs.\n\n---\n\n### 2. Top Private Multi-Specialty Hospitals\n\nIf you require quick admission, advanced private infrastructure, cashless insurance processing, and minimal waiting times:\n\n#### **Fortis Hospital (Sector 62, Phase 8, Mohali)**\n* **Reputation:** Widely regarded as the top private tertiary/quaternary care hospital in the Tricity. It holds both JCI (international) and NABH accreditations.\n* **Specialties:** Cardiology & Cardiothoracic Surgery, Neurosciences, Joint Replacements & Orthopedics, Oncology, and Kidney/Liver Transplants.\n* **Why Choose:** Veteran clinical teams, top-tier critical care units, and strong emergency response.\n\n#### **Max Super Speciality Hospital (Phase 6, Mohali)**\n* **Reputation:** A close competitor to Fortis, known for cutting-edge technology and robotic surgery capabilities.\n* **Specialties:** Cancer Care (Max Institute of Cancer Care), Cardiology, Robotic Joint Replacement, Bariatric & GI Surgery, and Renal Sciences.\n* **Why Choose:** Modern infrastructure, comprehensive oncology setup (radiation, surgical, medical), and strong patient care protocols.\n\n#### **Paras Health (Sector 22, Panchkula)**\n* **Reputation:** The premier private multi-specialty hospital on the Panchkula/Haryana side of the Tricity.\n* **Specialties:** Neurosciences, Orthopedics & Trauma, Cardiology, and Critical Care.\n* **Why Choose:** Excellent option if you are located in or near Panchkula, avoiding cross-Tricity travel during medical emergencies.\n\n#### **Ivy Hospital (Sector 71, Mohali)**\n* **Reputation:** A prominent multi-specialty facility offering quality private care at relatively competitive price points.\n* **Specialties:** Nephrology, Urology, Oncology, and General Surgery.\n\n---\n\n### 3. Specialized Hospitals\n\n* **Cancer Care:** \n  * **Homi Bhabha Cancer Hospital & Research Centre (New Chandigarh / Mullanpur):** A 300-bed unit of Tata Memorial Centre (Govt. of India). It offers the most advanced and subsidized cancer therapies in the region.\n  * **Max Cancer Care / Fortis Cancer Institute (Mohali):** Best private options for advanced robotic surgical oncology and targeted therapies.\n* **Maternity, Obstetrics & Neonatal (Pediatrics):**\n  * **Cloudnine Hospital (Sector 35, Chandigarh & Panchkula)** and **Motherhood Hospital (Mohali):** Dedicated mother-and-child care with high-level NICUs.\n* **Affordable / Charitable Care:**\n  * **Sohana Hospital (Sri Guru Harkrishan Sahib Charitable Eye Hospital, Mohali):** Excellent for advanced ophthalmology (eye care), cardiology, and general surgeries at reasonable rates.\n  * **GMCH (Government Medical College and Hospital, Sector 32, Chandigarh):** The second-largest government hospital in Chandigarh; handles extensive trauma, general medicine, and surgery cases.\n\n---\n\n### Summary Recommendation: Which Should You Pick?\n\n* **For rare diseases, high-risk complex surgeries, or budget-friendly treatment:** Head to **PGIMER, Chandigarh**.\n* **For emergency trauma, private luxury, top cardiology, or transplants:** Head to **Fortis Mohali** or **Max Mohali**.\n* **For residents on the Haryana/Panchkula side:** Choose **Paras Health, Panchkula**.\n* **For specialized cancer treatment:** Go to **Homi Bhabha Cancer Hospital (TMC)** or **Max Mohali**.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "PGIMER",
+          "Fortis Hospital",
+          "Max Super Speciality Hospital",
+          "Paras Health",
+          "Ivy Hospital",
+          "Homi Bhabha Cancer Hospital & Research Centre",
+          "Max Cancer Care / Fortis Cancer Institute",
+          "Cloudnine Hospital",
+          "Motherhood Hospital",
+          "Sohana Hospital",
+          "GMCH",
+          "Max Mohali",
+          "Fortis Mohali"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.00746
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best hospital in Chandigarh Tricity",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "**PGIMER Chandigarh** is the strongest overall choice: it ranked first among Chandigarh-area multispecialty hospitals in the 2026 *THE WEEK–Hansa Research* survey and third nationally.[1][10]\n\nFor a **private hospital**, **Fortis Hospital, Mohali** ranked highest locally, at third in the Chandigarh-area list; **Max Super Speciality Hospital, Mohali** ranked fourth.[1] The best fit can still depend on the specialty, urgency, cost, and access—so for a specific condition, compare that department rather than relying only on an overall ranking.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "PGIMER",
+          "Fortis Hospital",
+          "Max Super Speciality Hospital"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "theweek.in",
+          "url": "https://www.theweek.in/theweek/cover/2026/11/21/the-week-hansa-research-survey-2026-a-look-at-indias-best-hospitals.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mukathospital.com",
+          "url": "https://www.mukathospital.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ydnews.in",
+          "url": "https://ydnews.in/10-best-private-hospitals-in-chandigarh-tricity/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "365doctor.in",
+          "url": "https://www.365doctor.in/hospitals-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fortishealthcare.com",
+          "url": "https://www.fortishealthcare.com/location/fortis-hospital-mohali",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cancerrounds.com",
+          "url": "https://cancerrounds.com/hospital/paras-hospital-panchkula/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "satyughealthcare.com",
+          "url": "https://satyughealthcare.com/hospitals/max-super-speciality-hospital-mohali-punjab-india",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "adotrip.com",
+          "url": "https://www.adotrip.com/medical-tourism/surgery/best-hospitals-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "top10consultants.com",
+          "url": "https://www.top10consultants.com/best-hospitals-in-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "tribuneindia.com",
+          "url": "https://www.tribuneindia.com/news/chandigarh/pgimer-third-best-multi-speciality-hospital-in-india/",
+          "channelType": "news",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00191
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top hospital near me in Chandigarh Tricity",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "For **general multispecialty care in Chandigarh Tricity**, these are strong options:\n\n- **PGIMER, Sector 12, Chandigarh** — major public tertiary-care hospital with round-the-clock emergency and trauma services. ([pgimer.edu.in](https://pgimer.edu.in/PGIMER_PORTAL/PGIMERPORTAL/GlobalPages/JSP/Page_Data.jsp?dep_id=388&utm_source=openai))\n- **Fortis Hospital, Mohali** — private multispecialty hospital with emergency and trauma care. ([fortishealthcare.com](https://www.fortishealthcare.com/specialities/hospital/emergency-and-trauma-11/fortis-hospital-mohali?utm_source=openai))\n- **Max Super Speciality Hospital, Phase 6, Mohali** — another private multispecialty option.\n\nI can’t see your exact location, so tell me your **sector or nearby landmark** and what kind of care you need, and I can narrow this to the closest suitable hospital. If it’s an emergency, go to the nearest emergency department rather than travelling farther for a particular hospital.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "PGIMER",
+          "Fortis Hospital",
+          "Max Super Speciality Hospital"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "pgimer.edu.in",
+          "url": "https://pgimer.edu.in/PGIMER_PORTAL/PGIMERPORTAL/GlobalPages/JSP/Page_Data.jsp?dep_id=388&utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fortishealthcare.com",
+          "url": "https://www.fortishealthcare.com/specialities/hospital/emergency-and-trauma-11/fortis-hospital-mohali?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.01154
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top hospital near me in Chandigarh Tricity",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "The Chandigarh Tricity region (Chandigarh, Mohali, and Panchkula) is home to some of the finest healthcare facilities in North India. Depending on whether you are looking for premier public institutions or advanced private multi-specialty care, here are the top hospitals in the Tricity:\n\n---\n\n### **1. Premier Government & Apex Institutions**\n*Best for complex tertiary care, advanced surgeries, and high clinical expertise at subsidized rates.*\n\n* **PGIMER (Post Graduate Institute of Medical Education and Research)** – *Sector 12, Chandigarh*\n  * **Highlights:** One of India’s top-ranked medical and research institutes. Unmatched expertise in complex surgeries, rare diseases, organ transplants, and advanced trauma care.\n  * **Note:** High patient volume; prior online OPD registration via the official PGI portal is recommended.\n* **GMCH-32 (Government Medical College & Hospital)** – *Sector 32, Chandigarh*\n  * **Highlights:** Major government teaching hospital with a 24/7 emergency unit, trauma center, cardiology, orthopedics, and pediatric care.\n* **GMSH-16 (Government Multi Specialty Hospital)** – *Sector 16, Chandigarh*\n  * **Highlights:** Reliable for general emergencies, maternity care, and standard medical treatments.\n\n---\n\n### **2. Top Private Hospitals – Mohali**\n*Mohali hosts the largest concentration of modern, quaternary-care private hospital campuses in the Tricity.*\n\n* **Fortis Hospital** – *Sector 62, Phase 8, Mohali*\n  * **Key Specialties:** Interventional Cardiology & Cardiac Surgery, Oncology, Neurosciences, Orthopedics & Joint Replacements, and Critical Care.\n  * **Highlights:** NABH & JCI accredited, state-of-the-art ICU infrastructure, and international patient care.\n* **Max Super Speciality Hospital** – *Phase 6, Mohali (Near Civil Hospital)*\n  * **Key Specialties:** Robotic Surgeries, Cancer Care (Medical, Surgical, Radiation), Organ Transplants (Liver & Kidney), and Cardiology.\n  * **Highlights:** Comprehensive diagnostic setup, 24/7 advanced emergency, and trauma care.\n* **Ivy Hospital** – *Sector 71, Mohali*\n  * **Key Specialties:** Oncology, Nephrology & Dialysis, Urology, and Cardiology.\n  * **Highlights:** High-capacity multi-specialty center with extensive insurance/TPA tie-ups.\n* **Sohana Hospital (Sri Guru Harkrishan Sahib)** – *Sector 77, Mohali*\n  * **Key Specialties:** Advanced Ophthalmology (renowned eye care center), Super-specialty Cardiology, Oncology, and Orthopedics.\n\n---\n\n### **3. Top Private Hospitals – Chandigarh**\n\n* **Healing Hospital** – *Sector 34-A, Chandigarh*\n  * **Key Specialties:** Cardiology, Orthopedics, Laparoscopic Surgery, and Critical Care.\n  * **Highlights:** Well-regarded for patient-centric care and centrally located.\n* **Eden Critical Care Hospital** – *Industrial Area Phase 1, Chandigarh*\n  * **Key Specialties:** Trauma, Critical Care/ICU, Neurosurgery, and Emergency Care.\n* **Cloudnine Hospital** – *Sector 47, Chandigarh*\n  * **Key Specialties:** Maternity, Obstetrics, Gynecology, Neonatal Care (NICU), and Pediatrics.\n\n---\n\n### **4. Top Private Hospitals – Panchkula**\n\n* **Paras Health** – *Sector 22, Panchkula*\n  * **Key Specialties:** Neurosciences, Cardiac Sciences, Gastroenterology, Emergency & Critical Care.\n  * **Highlights:** One of the most technologically advanced multi-specialty tertiary hospitals in Panchkula.\n* **Alchemist Hospital** – *Sector 21, Panchkula*\n  * **Key Specialties:** Cardiology, Oncology, Nephrology, and Joint Replacements.\n* **Ojas Hospital (Alchemist Group)** – *Sector 26, Panchkula*\n  * **Key Specialties:** Advanced Emergency, Stroke Management, and Multi-specialty Surgery.\n\n---\n\n### **Quick Recommendation:**\n* **For life-threatening emergencies / critical trauma:** Head to **PGIMER** (Chandigarh), **Fortis** (Mohali), or **Max Hospital** (Mohali).\n* **For high-end private inpatient care & planned surgeries:** **Fortis Mohali**, **Max Mohali**, or **Paras Panchkula**.\n* **For maternity and childcare:** **Cloudnine** (Chandigarh) or **Motherhood Hospital** (Mohali).",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "PGIMER",
+          "GMCH",
+          "GMSH-16",
+          "Fortis Hospital",
+          "Max Super Speciality Hospital",
+          "Ivy Hospital",
+          "Sohana Hospital",
+          "Healing Hospital",
+          "Eden Critical Care Hospital",
+          "Cloudnine Hospital",
+          "Paras Health",
+          "Alchemist Hospital",
+          "Ojas Hospital",
+          "Max Mohali",
+          "Fortis Mohali",
+          "Motherhood Hospital"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.007154
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top hospital near me in Chandigarh Tricity",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "“Top” depends on the treatment needed, and the closest hospital depends on your exact location. For a general multispecialty option in the Tricity, **Fortis Hospital** in Sector 62, Chandigarh, **Max Super Speciality Hospital** in Mohali, and **Paras Hospital** in Panchkula are prominent choices listed in local directories.[2][6]\n\nShare your area or sector—and, if relevant, the type of care—and I can narrow it down. If this is an emergency, call **112** or go to the nearest emergency department.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Fortis Hospital",
+          "Max Super Speciality Hospital"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "starhealth.in",
+          "url": "https://www.starhealth.in/hospitals-info/top-hospitals-in-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Hospitals/nct-10253670",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ydnews.in",
+          "url": "https://ydnews.in/10-best-private-hospitals-in-chandigarh-tricity/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "hexahealth.com",
+          "url": "https://www.hexahealth.com/chandigarh/hospitals",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "365doctor.in",
+          "url": "https://www.365doctor.in/hospitals-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cancerrounds.com",
+          "url": "https://cancerrounds.com/hospital/paras-hospital-panchkula/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "adotrip.com",
+          "url": "https://www.adotrip.com/medical-tourism/surgery/best-hospitals-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Amar-Hospital-Near-Mohali/0172PX172-X172-110508230540-S7M5_BZDET",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Clinics/nct-10101647",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Health-Services-in-Chandigarh-Sector-27B/nct-10565079",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00198
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which hospital in Chandigarh Tricity has the best reviews and results",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t a reliable **single “best” hospital for both reviews and treatment results**—the right choice depends heavily on the condition, and online ratings don’t measure clinical outcomes.\n\n**If you want one general private-hospital starting point:** **Fortis Hospital, Mohali** has a strong review signal: a third-party directory recently listed it at **4.7/5 from about 17,000 reviews**. Fortis also reports current NABH accreditation and repeated JCI accreditation. Those are useful quality signals, but they **don’t prove it has the best results for every treatment**. ([healthfinder.in](https://healthfinder.in/mohali/private-hospitals/?utm_source=openai))\n\n**For complex or highly specialized care:** consider **PGIMER Chandigarh** as well. It is a major government tertiary-care center; access, waiting times, and the specific department may matter as much as its clinical expertise. ([sebi.gov.in](https://www.sebi.gov.in/sebi_data/attachdocs/dec-2025/1765775863248.pdf?utm_source=openai))\n\nReview listings also show high ratings for hospitals such as **Livasa** and **Shalby** in Mohali, but ratings are not a substitute for procedure-specific outcome data. ([healthfinder.in](https://healthfinder.in/mohali/hospitals/?utm_source=openai))\n\n**Bottom line:** Fortis Mohali is a reasonable all-purpose private option to investigate—not a proven “best-results” winner. Tell me the **specialty or condition** (for example, heart, cancer, maternity, orthopedics, or emergency care), and I can narrow the comparison to the hospitals and doctors relevant to it.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Fortis Hospital",
+          "PGIMER",
+          "Livasa",
+          "Shalby",
+          "Fortis Mohali"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "healthfinder.in",
+          "url": "https://healthfinder.in/mohali/private-hospitals/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "sebi.gov.in",
+          "url": "https://www.sebi.gov.in/sebi_data/attachdocs/dec-2025/1765775863248.pdf?utm_source=openai",
+          "channelType": "reference",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "healthfinder.in",
+          "url": "https://healthfinder.in/mohali/hospitals/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021713
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which hospital in Chandigarh Tricity has the best reviews and results",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "When evaluating the **Chandigarh Tricity** (Chandigarh, Mohali, and Panchkula) for hospitals with the best clinical results and patient reviews, the answer usually divides between **premier government research institutes** (unmatched clinical outcomes for complex conditions) and **top private tertiary hospitals** (excellent clinical outcomes paired with top-tier patient experience and service).\n\n---\n\n### 1. The Gold Standard for Clinical Results: **PGIMER, Chandigarh**\n* **Best for:** Extremely complex cases, rare diseases, advanced organ transplants, and critical medical conditions.\n* **Reputation & Results:** Ranked consistently as the #2 medical institute in India (behind only AIIMS Delhi). Its clinical expertise, cutting-edge research, and success rates in high-risk surgeries are unmatched in North India.\n* **Patient Reviews:** Mixed. While medical outcomes are rated 5/5, non-medical reviews often reflect long wait times, overwhelming patient volume, and bureaucratic processes. \n* **Bottom Line:** If the condition is high-risk, rare, or medically intricate, PGIMER is universally considered the best choice.\n\n---\n\n### 2. Best Overall Private Hospital: **Fortis Hospital, Mohali**\n* **Best for:** Cardiology, Cardiac Surgery, Oncology, Orthopedics & Joint Replacement, and Robotic Surgery.\n* **Reputation & Results:** Fortis Mohali is widely regarded as the flagship private hospital in the Tricity. It holds dual **JCI (Joint Commission International)** and **NABH** accreditations, meaning it adheres to global patient safety and infection-control standards.\n* **Patient Reviews:** Consistently maintains some of the highest ratings in Tricity for doctor expertise, nursing care, post-op support, and emergency response.\n\n---\n\n### 3. Top Alternative for Multi-Specialty Care: **Max Super Speciality Hospital, Mohali**\n* **Best for:** Cancer care (Max Institute of Cancer Care), Neurosciences, Renal Sciences/Kidney Transplants, and Bariatric Surgery.\n* **Reputation & Results:** The primary competitor to Fortis in Mohali, Max has state-of-the-art diagnostic and surgical technology (including advanced Da Vinci robotic systems and TrueBeam radiotherapy). \n* **Patient Reviews:** Very high patient satisfaction scores, particularly praised for clear communication from senior consultants and modern, comfortable inpatient facilities.\n\n---\n\n### 4. Best in Panchkula: **Paras Health, Sector 22, Panchkula**\n* **Best for:** Neurosurgery, Emergency & Trauma, Interventional Cardiology, and Critical Care.\n* **Reputation & Results:** The standout multi-specialty tertiary care center in Panchkula. It bridges the gap for residents who want Fortis/Max-level private care without traveling to Mohali.\n* **Patient Reviews:** Highly rated for quick emergency intake, clean infrastructure, and responsive staff.\n\n---\n\n### 5. Best Mid-Sized Hospital with Outstanding Reviews: **Healing Hospital, Sector 34, Chandigarh**\n* **Best for:** Orthopedics, General & Laparoscopic Surgery, Cardiology, and Gynecology.\n* **Reputation & Results:** A mid-sized hospital in the heart of Chandigarh that punches above its weight in customer reviews. It offers reliable tertiary care at comparatively more accessible private pricing than Fortis or Max.\n* **Patient Reviews:** Frequently holds near-perfect Google and Practo ratings because of shorter wait times, personalized nursing attention, and transparent billing.\n\n---\n\n### Specialty-Specific Recommendations:\n* **Advanced Cancer Care:** **Homi Bhabha Cancer Hospital & Research Centre (Tata Memorial Centre), New Chandigarh** – State-of-the-art government-backed oncology center with world-class protocols at subsidized/fair rates.\n* **Maternity, Women & Child Care:** **Cloudnine Hospital (Chandigarh)** or **Motherhood Hospital (Mohali)**.\n* **Eye Care (Ophthalmology):** **Grewal Eye Institute (Sector 9, Chandigarh)** or **PGIMER Advanced Eye Centre**.\n\n---\n\n### Summary Recommendation:\n* Choose **PGIMER Chandigarh** if you are dealing with a critical, rare, or complex illness where clinical depth matters more than luxury or speed of admission.\n* Choose **Fortis Hospital, Mohali** or **Max Hospital, Mohali** for the best overall combination of leading medical expertise, fast admission, and patient-reviewed hospitality.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "PGIMER",
+          "Fortis Hospital",
+          "Fortis Mohali",
+          "Max Super Speciality Hospital",
+          "Paras Health",
+          "Healing Hospital",
+          "Homi Bhabha Cancer Hospital & Research Centre",
+          "Cloudnine Hospital",
+          "Motherhood Hospital",
+          "Grewal Eye Institute",
+          "PGIMER Advanced Eye Centre"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.006981
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which hospital in Chandigarh Tricity has the best reviews and results",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t a reliable single “best” hospital for all of Chandigarh Tricity: online ratings reflect patient experiences, not independently verified treatment outcomes, and the right choice depends on the specialty and urgency.\n\nFor **general or complex care**, PGIMER is a major public tertiary-care option; for **private multispecialty care**, Healing Hospital is one local listing with a strong rating and substantial review volume (4.6 from about 1,700 reviews), though that alone doesn’t establish better clinical results.[8] For **maternity and children’s care**, Motherhood Chaitanya is a specialty-focused option with a strong listed rating.[8] For **IVF**, Cloudnine Chandigarh has a 4.9 rating on its own site, but this is not a substitute for comparing age- and diagnosis-specific success rates.[5]\n\nBefore choosing, check the relevant department’s clinician credentials, whether it handles your specific condition, accreditation, emergency capability, and outcome data for that procedure. Share the specialty or condition—and whether you prefer public or private care—for a more useful recommendation.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "PGIMER",
+          "Healing Hospital"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Health-Services-in-Chandigarh-Sector-27B/nct-10565079",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "whatclinic.com",
+          "url": "https://www.whatclinic.com/cosmetic-plastic-surgery/india/chandigarh/tricity-institute-of-plastic-surgery-tips",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cloudninefertility.com",
+          "url": "https://www.cloudninefertility.com/ivf-doctors/fertility-specialists-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Health-Services/nct-10565079",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cloudninefertility.com",
+          "url": "https://www.cloudninefertility.com/city/fertility-ivf-hospitals-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "hospitals-info.in",
+          "url": "https://hospitals-info.in/contact-grover-eye-laser-ent-hospital-chandigarh-nabh-accredited-eye-hospital-since-1962/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Trehan-Hospital-Near-Ultimate-Fitness-Gym-Chandigarh-Sector-67/0172PX172-X172-190628192236-X4P6_BZDET",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "365doctor.in",
+          "url": "https://www.365doctor.in/hospitals-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Health-Services-in-Chandigarh-Sector-19A/nct-10565079",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cloudninefertility.com",
+          "url": "https://www.cloudninefertility.com/centre/fertility-ivf-hospitals-in-industrial-area-phase-ii",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00222
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a hospital cost in Chandigarh Tricity and which one is worth it",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "If you mean **the cost of treatment or a hospital stay**, there isn’t one standard price—it depends mainly on the diagnosis, procedure, length of stay, room type and insurance.\n\n**A useful starting point:**\n- **PGIMER (PGI), Chandigarh:** Usually the strongest value for complex care if you can manage its queues. PGIMER lists a private ward at **₹1,900 per day**, but that is **not** the total bill; tests, medicines, procedures and other charges may be separate. Confirm the current tariff with the hospital. ([pgimer.edu.in](https://www.pgimer.edu.in/PGIMER_PORTAL/PGIMERPORTAL/GlobalPages/JSP/Page_Data.jsp?dep_id=388&utm_source=openai))\n- **GMCH-32:** Another government option to ask about for lower-cost care.\n- **Fortis Mohali or Max Mohali:** Consider these for private-hospital access, particularly if your insurance covers them—but ask for a written estimate and confirm cashless eligibility before admission. The Tricity has several hospitals, so the right choice depends on the specialty and your coverage. ([scl.gov.in](https://www.scl.gov.in/footer_pdf/SCHS_Directory16072025.pdf?utm_source=openai))\n\n**Which is “worth it”?** For many complex or non-urgent cases, I’d first check PGI/GMCH if affordability matters and waiting is manageable. If quicker private access matters, compare Fortis and Max for the **specific department**, doctor, insurance coverage and itemised estimate—not just the hospital name.\n\nTell me **what treatment or procedure is needed**, whether it’s an emergency, and whether you have insurance, and I can help narrow down the likely cost and best-fit hospital. If you meant the cost to **build or buy a hospital**, say that—the answer is completely different.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "PGIMER",
+          "GMCH",
+          "Fortis Mohali",
+          "Max Mohali"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "pgimer.edu.in",
+          "url": "https://www.pgimer.edu.in/PGIMER_PORTAL/PGIMERPORTAL/GlobalPages/JSP/Page_Data.jsp?dep_id=388&utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "scl.gov.in",
+          "url": "https://www.scl.gov.in/footer_pdf/SCHS_Directory16072025.pdf?utm_source=openai",
+          "channelType": "reference",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021756
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a hospital cost in Chandigarh Tricity and which one is worth it",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "In the Chandigarh Tricity area (Chandigarh, Mohali, Panchkula), hospital costs vary drastically depending on whether you choose a government institution, a mid-tier private hospital, or a premium corporate healthcare facility.\n\n---\n\n### 1. Cost Breakdown in Chandigarh Tricity\n\n#### **Tier 1: Government & Subsidized Institutions**\n*(PGIMER Chandigarh, GMCH Sector 32, GMSH Sector 16)*\n* **OPD Consultation:** ₹10 – ₹50\n* **General Ward Bed:** Free to ₹100/day\n* **ICU:** ₹500 – ₹1,500/day\n* **Major Surgeries (Heart, Joint, Neuro):** Often ₹30,000 – ₹1.5 Lakh (mostly for implants/consumables, as doctor/facility fees are virtually zero).\n* **Summary:** Highly subsidized, practically negligible medical charges, but wait times are long and wards are heavily crowded.\n\n#### **Tier 2: Mid-Range Private Hospitals**\n*(Ivy Hospital Mohali, Alchemist Hospital Panchkula, Healing Hospital Sector 34, Mukat Hospital Sector 9)*\n* **OPD Consultation:** ₹500 – ₹900\n* **Private/Semi-Private Room:** ₹3,000 – ₹6,000/day\n* **ICU Charges:** ₹10,000 – ₹20,000/day\n* **Common Surgeries:**\n  * *Normal Delivery:* ₹40,000 – ₹70,000\n  * *C-Section Delivery:* ₹65,000 – ₹1,10,000\n  * *Gallbladder / Hernia (Laparoscopic):* ₹50,000 – ₹90,000\n  * *Joint Replacement:* ₹1.7 Lakh – ₹2.8 Lakh\n\n#### **Tier 3: Premium / Corporate Super-Specialty**\n*(Fortis Mohali, Max Super Speciality Hospital Mohali, Paras Health Panchkula)*\n* **OPD Consultation:** ₹1,000 – ₹1,800\n* **Private Room:** ₹7,000 – ₹14,000+/day\n* **ICU Charges:** ₹20,000 – ₹40,000+/day\n* **Common Surgeries:**\n  * *Normal Delivery:* ₹75,000 – ₹1.2 Lakh\n  * *C-Section Delivery:* ₹1.1 Lakh – ₹1.8 Lakh\n  * *Angioplasty / Cardiac stenting:* ₹1.8 Lakh – ₹3.5 Lakh\n  * *Knee/Hip Replacement (Single):* ₹2.5 Lakh – ₹4 Lakh\n\n---\n\n### 2. Which Hospital is \"Worth It\"?\n\nThe best choice depends on the medical condition, budget, and urgency:\n\n#### **Best for Complex / Critical Cases & Budget-Friendly: PGIMER (Sector 12)**\n* **Why it’s worth it:** Clinically, PGI is one of the top 3 medical research institutes in India. For complex oncology, rare diseases, advanced neurology, organ transplants, or difficult diagnoses, its medical expertise is virtually unmatched.\n* **Drawback:** Massive patient footfall, long queues, and limited private rooms. It is not suitable for routine conditions if you want quick, personalized attention.\n\n#### **Best for Serious Emergencies on a Moderate Budget: GMCH Sector 32**\n* **Why it’s worth it:** Less chaotic than PGI while offering government-subsidized rates and modern equipment. It is well-regarded for trauma, general surgery, and emergency admissions.\n\n#### **Best for Premium Care, Speed, and Corporate Facilities: Fortis Hospital (Mohali)**\n* **Why it’s worth it:** Generally considered the top private multi-specialty facility in the region. Strong departments in cardiology, oncology, joint replacement, and vascular surgery.\n* **Who it’s for:** Patients with corporate health insurance or personal insurance who prioritize zero waiting times, top-tier hotel-like infrastructure, and experienced consultants.\n\n#### **Best for Oncology & Robotic Surgery: Max Super Speciality (Mohali)**\n* **Why it’s worth it:** Max has built a particularly strong cancer care department (surgical, radiation, and medical oncology) and advanced robotic surgery setups. Excellent ICU nursing care and cashless TPA insurance desks.\n\n#### **Best Value-for-Money Private Care: Paras Health (Panchkula) / Ivy Hospital (Mohali)**\n* **Why it’s worth it:** If you want private rooms, short wait times, and modern equipment without paying top-tier Max/Fortis prices, Paras and Ivy generally price their procedures 20–30% lower while still providing quality tertiary care.\n\n#### **Best for Maternity & Pediatrics: Cloudnine (Chandigarh) or Chaitanya Hospital (Sector 44)**\n* **Why it’s worth it:** For childbirth and NICU care, dedicated mother-and-child boutique hospitals like Cloudnine offer luxury maternity suites and personalized birthing plans, while Chaitanya is widely trusted by Tricity locals for high-risk pediatric cases and cost-effective newborn care.\n\n---\n\n### Quick Recommendation:\n1. **Critical/Rare/Unresolved issue + Low/Moderate Budget:** Go to **PGIMER**.\n2. **Private care with full insurance coverage:** Choose **Fortis Mohali** or **Max Mohali**.\n3. **Paying out of pocket for a standard surgery (Gallbladder, Hernia, Maternity):** Look at **Ivy Hospital (Mohali)**, **Paras (Panchkula)**, or **Healing Hospital (Sec 34)**.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "PGIMER",
+          "GMCH",
+          "Ivy Hospital",
+          "Alchemist Hospital",
+          "Healing Hospital",
+          "Fortis Mohali",
+          "Paras Health",
+          "Max Super Speciality Hospital",
+          "Fortis Hospital",
+          "Max Mohali"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.008608
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a hospital cost in Chandigarh Tricity and which one is worth it",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "If you mean **what it costs to get treated or stay in a hospital**, there isn’t one standard price: it depends on the condition, room type, tests, surgery and length of stay. As a rough guide, local listings put consultations at about **₹300–₹800**, diagnostic tests at **₹500–₹5,000**, minor surgery at **₹10,000–₹50,000**, and major surgery at **₹50,000–₹3 lakh or more**; these are broad estimates, not hospital quotes.[6]\n\nFor a low-cost option, **PGIMER** or a government hospital is usually the sensible first choice if the case can tolerate public-hospital waiting times. Chandigarh’s Government Multi-Specialty Hospital, Sector 16, lists very low ward charges—for example, general-ward daily charges of ₹25 and private-ward daily charges of ₹50—though treatment, medicines and other services can add costs.[1] PGIMER ranked first among Chandigarh multispecialty hospitals in a 2026 survey.[2]\n\nFor private care, **Fortis Mohali** is a reasonable starting point for complex or time-sensitive treatment; it ranked highest among private multispecialty hospitals in the same survey, ahead of Max Mohali.[2] Private hospitals generally cost more, and exact totals can vary substantially.[3] Ask the hospital for a written estimate that separates room, doctor, procedure, tests and medicines, and check insurance network status before admission.\n\n**Quick pick:** PGIMER/government for affordability; Fortis Mohali for a private multispecialty option. The “worth it” choice depends on the **specific treatment**—share the procedure or diagnosis, whether you have insurance, and whether you mean consultation, surgery or a hospital stay for a more useful estimate.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "PGIMER",
+          "Fortis Mohali",
+          "Max Mohali"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "chandigarh.gov.in",
+          "url": "https://chandigarh.gov.in/departments/other-departments/health",
+          "channelType": "reference",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "theweek.in",
+          "url": "https://www.theweek.in/magazine/theweek/cover/2026/11/21/the-week-hansa-research-survey-2026-a-look-at-indias-best-hospitals.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "wowchandigarh.com",
+          "url": "https://www.wowchandigarh.com/health-wellness/best-hospitals-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "reddit.com",
+          "url": "https://www.reddit.com/r/Chandigarh/comments/1n45ymz/which_private_hospital_to_choose_incase_of/",
+          "channelType": "forum",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "365doctor.in",
+          "url": "https://www.365doctor.in/hospitals-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Hospitals-in-Chandigarh-Sector-31/nct-10253670",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Hospitals-in-Chandigarh-Sector-30/nct-10253670",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Clinics/nct-10101647",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Health-Services/nct-10565079",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Hospitals-in-Tricity-Hospital-Mani-Majra/nct-10253670",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00232
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which hospital in Chandigarh Tricity should I trust",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one hospital I’d recommend for every situation—it depends on the **medical problem, urgency, budget/insurance, and where you are**.\n\nAs a starting point in the Tricity:\n\n- **PGIMER, Sector 12, Chandigarh** — a major public tertiary-care center with round-the-clock emergency services and a dedicated trauma center. It may be a good fit for complex or specialist care, though public hospitals can be crowded. ([pgimer.edu.in](https://pgimer.edu.in/PGIMER_PORTAL/PGIMERPORTAL/GlobalPages/JSP/Page_Data.jsp?dep_id=388&utm_source=openai))\n- **Fortis Hospital, Mohali** — a private multispecialty option; its current NABH certificate is valid through **June 15, 2028**. ([portal.nabh.co](https://portal.nabh.co/Documents/AccreditedList/Hospitals/H-2008-0019_5th%20Edition.pdf?utm_source=openai))\n- **Max Super Speciality Hospital, Mohali** — another private multispecialty option; Max lists the Mohali hospital as NABH-accredited. ([maxhealthcare.in](https://www.maxhealthcare.in/award-accreditations?utm_source=openai))\n- **For cancer care:** Homi Bhabha Cancer Hospital & Research Centre in New Chandigarh is a specialty center listed in the regional hospital directory. ([scl.gov.in](https://www.scl.gov.in/footer_pdf/SCHS_Directory16072025.pdf?utm_source=openai))\n\nAccreditation is a useful quality signal, **not a guarantee of the best outcome**. If someone is having severe chest pain, trouble breathing, stroke symptoms, major bleeding, or a serious injury, go to the **nearest emergency department now** rather than traveling farther for a preferred hospital.\n\nWhat’s the health issue, and which part of the Tricity are you in? I can narrow this down to the most suitable hospital or specialty.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "PGIMER",
+          "Fortis Hospital",
+          "Max Super Speciality Hospital",
+          "Homi Bhabha Cancer Hospital & Research Centre"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "pgimer.edu.in",
+          "url": "https://pgimer.edu.in/PGIMER_PORTAL/PGIMERPORTAL/GlobalPages/JSP/Page_Data.jsp?dep_id=388&utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "portal.nabh.co",
+          "url": "https://portal.nabh.co/Documents/AccreditedList/Hospitals/H-2008-0019_5th%20Edition.pdf?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "maxhealthcare.in",
+          "url": "https://www.maxhealthcare.in/award-accreditations?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "scl.gov.in",
+          "url": "https://www.scl.gov.in/footer_pdf/SCHS_Directory16072025.pdf?utm_source=openai",
+          "channelType": "reference",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011626
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which hospital in Chandigarh Tricity should I trust",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Choosing a trustworthy hospital in the Chandigarh Tricity (Chandigarh, Mohali, Panchkula) depends on the nature of the condition, urgency, and preference between a public research institute and private tertiary care. \n\nThe most trusted and reputed hospitals in the Tricity are categorized below to help identify the best fit for specific needs:\n\n---\n\n### 1. The Gold Standard for Complex & Critical Cases (Government)\n*Best for rare diseases, complex tertiary surgeries, neurosurgery, and severe multi-organ conditions where medical depth matters most.*\n\n* **PGIMER (Post Graduate Institute of Medical Education and Research), Sector 12, Chandigarh**\n  * **Why trust it:** It is widely recognized as one of the premier medical institutions in India, second only to AIIMS New Delhi. Doctors across North India refer their most difficult cases here.\n  * **Strengths:** Unmatched academic depth, organ transplants, advanced cardiology/neurology, high-end trauma care (Advanced Trauma Centre), and cutting-edge research.\n  * **Trade-off:** High patient volumes mean long waiting times, crowded OPDs, and limited bed availability for non-emergencies.\n\n* **GMCH-32 (Government Medical College & Hospital), Sector 32, Chandigarh**\n  * **Why trust it:** A dependable government teaching hospital with strong emergency infrastructure and broad specialty coverage.\n  * **Strengths:** Excellent emergency care, burn unit, general surgery, and medicine at highly subsidized rates.\n\n---\n\n### 2. Top Tier Multi-Specialty Private Hospitals\n*Best for fast access, planned/elective surgeries, private rooms, and cashless insurance coverage.*\n\n* **Fortis Hospital, Sector 62, Mohali**\n  * **Why trust it:** One of the oldest and most established private tertiary hospitals in the region with JCI and NABH accreditations.\n  * **Strengths:** Cardiac sciences (interventional cardiology and bypass surgery), orthopedics (joint replacement), critical care, neurosciences, and nephrology.\n\n* **Max Super Speciality Hospital, Phase 6, Mohali**\n  * **Why trust it:** A leading tertiary care network hospital equipped with advanced surgical infrastructure (including robotic surgery).\n  * **Strengths:** Medical and surgical oncology (Cancer Care), liver/kidney transplants, aesthetic/bariatric surgery, and cardiology.\n\n* **Paras Hospital, Sector 22, Panchkula**\n  * **Why trust it:** The premier private tertiary hospital on the Panchkula/Haryana side of the Tricity.\n  * **Strengths:** Neurosciences (brain & spine surgery), emergency/trauma care, joint replacement, and cardiology.\n\n* **Sohana Hospital (Sri Guru Harkrishan Sahib Multi Speciality), Mohali**\n  * **Why trust it:** Run under a charitable trust, it bridges the gap between premium private care and affordable healthcare.\n  * **Strengths:** Advanced eye care (one of the largest centers in the region), robotic knee replacements, dialysis, and oncology.\n\n---\n\n### 3. Specialty-Specific Recommendations\nFor targeted medical conditions, consider dedicated centers:\n\n* **Cancer Care / Oncology:**\n  * **Homi Bhabha Cancer Hospital and Research Centre (Tata Memorial Centre), New Chandigarh (Mullanpur):** A state-of-the-art national cancer institute providing evidence-based, subsidized, and comprehensive oncology care.\n* **Maternity, Obstetrics & Neonatal (NICU):**\n  * **Cloudnine Hospital (Sector 43, Chandigarh)** or **Motherhood Hospital (Sector 43 / Mohali)** for specialized mother-and-child care.\n* **Eye Care (Ophthalmology):**\n  * **Advanced Eye Centre at PGIMER** (tertiary complex issues).\n  * **Grewal Eye Institute (Sector 9, Chandigarh)** for private refractive and retina care.\n\n---\n\n### How to Decide\n1. **For an undiagnosed or extremely rare/high-risk condition:** Seek an OPD consultation at **PGIMER**.\n2. **For planned surgeries using private health insurance:** Evaluate the specific department head at **Fortis Mohali** or **Max Mohali**.\n3. **If living in Panchkula / Pinjore / Zirakpur:** **Paras Hospital** or **Alchemist Hospital (Sector 21, Panchkula)** provide the fastest access.\n4. **General Advice:** In any private hospital, **trust the specific specialist/surgeon** rather than just the hospital brand. Look for doctors who are ex-PGI or AIIMS-trained and seek a second opinion before major non-emergency surgeries.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "PGIMER",
+          "GMCH",
+          "Fortis Hospital",
+          "Max Super Speciality Hospital",
+          "Sohana Hospital",
+          "Cloudnine Hospital",
+          "Motherhood Hospital",
+          "Grewal Eye Institute",
+          "Fortis Mohali",
+          "Max Mohali",
+          "Alchemist Hospital"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.007729
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which hospital in Chandigarh Tricity should I trust",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one best hospital for every situation. For **complex or uncommon conditions**, PGIMER Chandigarh is a strong starting point: it ranked first among Chandigarh multispecialty hospitals in *The Week–Hansa Research Survey 2026* and is also listed among India’s leading hospitals.[2] For **private multispecialty care**, Fortis Mohali and Max Mohali are also highly ranked locally in that survey.[2]\n\nChoose based on the **specific specialty, the treating doctor’s experience, availability, cost, and insurance coverage**—not rankings alone. If you tell me the condition or specialty, your location, and whether you prefer public or private care, I can narrow it down. For an emergency, go to the nearest emergency department or call local emergency services.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "PGIMER",
+          "Fortis Mohali",
+          "Max Mohali"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "ydnews.in",
+          "url": "https://ydnews.in/10-best-private-hospitals-in-chandigarh-tricity/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "theweek.in",
+          "url": "https://www.theweek.in/magazine/theweek/cover/2026/11/21/the-week-hansa-research-survey-2026-a-look-at-indias-best-hospitals.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cancerrounds.com",
+          "url": "https://cancerrounds.com/hospital/paras-hospital-panchkula/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mukathospital.com",
+          "url": "https://www.mukathospital.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "365doctor.in",
+          "url": "https://www.365doctor.in/hospitals-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Amar-Hospital-Near-Chandigarh-Sector-69/0172PX172-X172-110508230540-S7M5_BZDET",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/Clinics/nct-10101647",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "threebestrated.in",
+          "url": "https://threebestrated.in/multispeciality-hospitals-in-chandigarh-ch",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/list/hi/top-15-reliable-hospitals-chandigarh?wkwebview=1",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "satyughealthcare.com",
+          "url": "https://satyughealthcare.com/hospitals/max-super-speciality-hospital-mohali-punjab-india",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00182
+    }
+  ]
+}
