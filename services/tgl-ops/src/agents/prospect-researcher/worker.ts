@@ -25,6 +25,8 @@ import { saveProspectsCsv, postTop25ReviewCard } from "./reports.js";
 import { getPlacesQuotaState, validateProspectRecord } from "./guardrails.js";
 import { appendFileInRepo } from "../../lib/github-client.js";
 import { extractBrandToken } from "./sources/website-scraper.js";
+import { recordEvent } from "../../lib/events.js";
+import { categoryLabel } from "../outreach-sequencer/sequence.js";
 
 export interface ValidationFunnelMetrics {
   discovered: number;
@@ -647,6 +649,15 @@ export async function runProspectResearch(
     // Several runs a day, so the next pair may run minutes later, not tomorrow (25 Nov 2026).
     tomorrow: `Next pair in rotation: ${getNextRotation(options).city} · ${getNextRotation(options).category}.`,
   };
+
+  // The record the dashboard reads (25 Nov 2026).
+  const withEmail = qualifiedProspects.filter((p) => /\S+@\S+\.\S+/.test(p.decision_maker?.email || "")).length;
+  await recordEvent({
+    agent: "prospect-researcher",
+    kind: "run",
+    summary: `${city}, ${categoryLabel(category)}: ${rawCandidates.length} found on Google, ${qualifiedProspects.length} qualified (${withEmail} with an email).`,
+    detail: { city, category, discovered: rawCandidates.length, qualified: qualifiedProspects.length, withEmail, benched: benchedProspects.length, placesCalls: quota.count },
+  });
 
   // Write daily agent log
   appendProspectResearcherLog({

@@ -493,7 +493,10 @@ export async function handleApproveAction(payload: any, action: any): Promise<vo
   if (agent === "prospect-researcher") {
     try {
       const { updateProspectStatus, cardScopes } = await import("../agents/prospect-researcher/db.js");
-      for (const scope of cardScopes(meta)) await updateProspectStatus(scope, "reviewed");
+      const scopes = cardScopes(meta);
+      for (const scope of scopes) await updateProspectStatus(scope, "reviewed");
+      const { recordEvent } = await import("../lib/events.js");
+      await recordEvent({ agent: "prospect-researcher", kind: "approved", summary: `${actor} approved the businesses from ${scopes.map((x) => `${x.city} (${x.category.replace(/_/g, " ")})`).join(", ") || "this card"}.` });
     } catch (err: any) {
       console.warn("[Prospects Status Update Error on Approve]:", err.message);
     }
@@ -686,7 +689,10 @@ async function handleRejectSubmission(payload: any): Promise<void> {
   if (agent === "prospect-researcher") {
     try {
       const { updateProspectStatus, cardScopes } = await import("../agents/prospect-researcher/db.js");
-      for (const scope of cardScopes(meta)) await updateProspectStatus(scope, "rejected");
+      const scopes = cardScopes(meta);
+      for (const scope of scopes) await updateProspectStatus(scope, "rejected");
+      const { recordEvent } = await import("../lib/events.js");
+      await recordEvent({ agent: "prospect-researcher", kind: "rejected", summary: `${actor} rejected the businesses from ${scopes.map((x) => `${x.city} (${x.category.replace(/_/g, " ")})`).join(", ") || "this card"}.` });
     } catch (err: any) {
       console.warn("[Prospects Status Update Error on Reject]:", err.message);
     }

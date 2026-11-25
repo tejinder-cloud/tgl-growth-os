@@ -11,6 +11,9 @@
 //   5. Three failed one-pager attempts post to #alerts and the sequence stays paused.
 
 import { plainError } from "../../lib/plain-error.js";
+import { recordEvent } from "../../lib/events.js";
+import { cleanBusinessName } from "./names.js";
+const TOUCH_LABEL: Record<number, string> = { 1: "First email", 2: "WhatsApp note", 3: "Report email", 4: "Follow-up", 5: "Last note" };
 
 export const TOUCH_COUNT = 5;
 /** Touch that carries the prospect's one-pager PDF (Architect cadence: T3, email, day 4). Mirrors sequence.ts. */
@@ -169,6 +172,12 @@ export async function runTick(ports: TickPorts): Promise<TickSummary> {
     }
 
     outcomes.push({ item, result });
+    // The record the dashboard reads (25 Nov 2026). Dry runs and skips are not events.
+    if (result.status === "sent") {
+      await recordEvent({ agent: "outreach-sequencer", kind: "sent", prospectId: item.prospectId, summary: `${TOUCH_LABEL[item.touch] || `Message ${item.touch}`} sent to ${cleanBusinessName(item.company)}.`, detail: { touch: item.touch } });
+    } else if (result.status === "held") {
+      await recordEvent({ agent: "outreach-sequencer", kind: "held", prospectId: item.prospectId, summary: `${cleanBusinessName(item.company)} held before ${(TOUCH_LABEL[item.touch] || `message ${item.touch}`).toLowerCase()}: ${plainError(result.reason || "")}`, detail: { touch: item.touch, attempts: result.attempts ?? null } });
+    }
   }
 
   return {

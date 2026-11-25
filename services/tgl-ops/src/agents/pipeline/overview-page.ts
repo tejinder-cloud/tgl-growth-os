@@ -30,6 +30,9 @@ export const OVERVIEW_CSS = `.stats{display:grid;grid-template-columns:repeat(4,
 .probs{list-style:none;margin:0;padding:0}.probs li{border-left:3px solid var(--terra);padding:4px 0 4px 12px;margin:8px 0}.probs .sub{margin-top:2px}
 .act li{grid-template-columns:76px 1fr auto}.act time{font-size:.85rem;color:var(--ink-2);font-variant-numeric:tabular-nums;padding-top:1px}.act time.none{color:var(--mute)}
 .money{list-style:none;margin:0;padding:0}.money li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--paper-2)}.money li:last-child{border-bottom:0}.money b{font-size:1.05rem}.money li.sm{font-size:.86rem;color:var(--mute);padding-left:12px}
+.feed{list-style:none;margin:0;padding:0}.feed li{display:grid;grid-template-columns:76px 130px 1fr;gap:10px;padding:8px 0;border-bottom:1px solid var(--paper-2);font-size:.9rem}.feed li:last-child{border-bottom:0}
+.feed time{color:var(--ink-2);font-variant-numeric:tabular-nums}.feed .who{font-weight:600}.feed li.warn span:last-child{color:var(--terra-text)}
+@media (max-width:600px){.feed li{grid-template-columns:62px 1fr}.feed li span:last-child{grid-column:1/-1}}
 @media (max-width:900px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.journey{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:6px}.journey li:nth-child(4){padding-left:0}.journey li:nth-child(4)::before{display:none}.stuck{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:600px){.act li{grid-template-columns:62px 1fr}.act .pill{grid-column:2;justify-self:start}}
 @media (prefers-reduced-motion:reduce){.stats a:hover{transform:none}}`;
@@ -90,10 +93,22 @@ export function renderOverviewMain(v: LiveView, now: Date, plan: BuildPlan = BUI
       : `<p class="ok">Spend could not be read just now.</p>`
   }</section>`;
 
+  const WHO: Record<string, string> = { "prospect-researcher": "Researcher", "outreach-sequencer": "Outreach", "aeo-audit-engine": "Citation tracker", booking: "Booking", system: "System" };
+  const FEED_SHOW = 12;
+  const feedItem = (e: { at: string; agent: string; kind: string; summary: string }) => `<li class="${e.kind === "error" || e.kind === "held" || e.kind === "bounce" ? "warn" : ""}"><time datetime="${esc(e.at)}">${esc(timeOnly(e.at))}</time><span class="who">${esc(WHO[e.agent] || e.agent)}</span><span>${esc(e.summary)}</span></li>`;
+  const feedPanel = `<section class="panel"><h2>Recent activity${v.feed?.length ? ` <span class="count">${v.feed.length} today</span>` : ""}</h2>${
+    v.feed === null
+      ? `<p class="ok">The activity record could not be read just now.</p>`
+      : v.feed.length
+        ? `<ul class="feed">${v.feed.slice(0, FEED_SHOW).map(feedItem).join("")}</ul>${v.feed.length > FEED_SHOW ? `<details id="feed-more"><summary>Show ${v.feed.length - FEED_SHOW} more</summary><ul class="feed">${v.feed.slice(FEED_SHOW).map(feedItem).join("")}</ul></details>` : ""}`
+        : `<p class="ok">Nothing recorded yet today.</p>`
+  }</section>`;
+
   return `${stats}
 <div class="row">${journey}</div>
 <div class="row two">${needsPanel}${probsPanel}</div>
 <div class="row two">${actPanel}${moneyPanel}</div>
+<div class="row">${feedPanel}</div>
 <p class="foot">Updated ${esc(timeOnly(v.generatedAt))} IST, ${esc(dayOnly(v.generatedAt))}. Refreshes every minute while open.</p>`;
 }
 

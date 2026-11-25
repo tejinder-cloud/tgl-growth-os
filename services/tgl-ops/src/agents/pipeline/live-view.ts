@@ -56,7 +56,11 @@ export interface LiveInput {
   spend: Spend | null;
   /** Emails allowed today (the warm-up cap). */
   capToday: number;
+  /** Today's rows from ops_events, newest first (25 Nov 2026); null when they could not be read. */
+  events?: FeedEvent[] | null;
 }
+
+export interface FeedEvent { at: string; agent: string; kind: string; summary: string }
 
 export interface OutboxRow { company: string; city: string; what: string; sentAt: string; today: boolean }
 export interface QueueRow { company: string; city: string; type: string; fit: number }
@@ -88,6 +92,8 @@ export interface LiveView {
   calls: CallRow[];
   paused: Problem[];
   spend: Spend | null;
+  /** Today's events, newest first; null when the record could not be read. */
+  feed: FeedEvent[] | null;
 }
 
 export function istDate(iso: string | Date): string {
@@ -130,8 +136,11 @@ function plural(n: number, one: string, many: string): string {
 }
 
 /** "06:07 IST, Citation Tracker: 1 brand(s) ..." -> time and text, from the last log entry. */
-function citationActivity(agents: AgentLine[] | null, now: Date, minutes: number): Activity {
+function citationActivity(agents: AgentLine[] | null, now: Date, minutes: number, events?: FeedEvent[] | null): Activity {
   const name = "Citation tracker";
+  // The events record first; the log file only until events exist for today.
+  const ev = (events || []).find((e) => e.agent === "aeo-audit-engine" && e.kind === "run");
+  if (ev) return { name, at: ev.at, what: ev.summary, state: "done" };
   if (!agents) return { name, at: null, what: "Today's log could not be read.", state: "problem" };
   const line = agents.find((a) => a.agent === "aeo-audit-engine")?.last;
   if (!line) {
@@ -144,7 +153,8 @@ function citationActivity(agents: AgentLine[] | null, now: Date, minutes: number
     if (!Number.isNaN(d.getTime())) at = d.toISOString();
   }
   const named = line.match(/named in (\d+)\/(\d+) answers/i);
-  const what = named ? `TGL named in ${named[1]} of ${named[2]} AI answers.` : line.replace(/^.*?IST\s*[—–-]\s*/, "");
+  const brands = line.match(/(\d+) brand\(s\)/);
+  const what = named ? `Checked ${brands ? `${brands[1]} ${brands[1] === "1" ? "brand" : "brands"}` : "brands"}: named in ${named[1]} of ${named[2]} AI answers.` : line.replace(/^.*?IST\s*[—–-]\s*/, "");
   return { name, at, what, state: "done" };
 }
 
@@ -248,7 +258,7 @@ export function buildLiveView(input: LiveInput): LiveView {
       ? { name: "Advance AI checks", at: latest(checkedToday.map((p) => p.signals?.preaudit?.audited_at as string)), what: `Checked ${plural(checkedToday.length, "phone-only business", "phone-only businesses")}.`, state: "done" }
       : { name: "Advance AI checks", at: null, what: minutes < 11 * 60 + 30 ? "Runs at 11:00." : calls.length ? "None ran today." : "Nothing to check.", state: "waiting" }
   );
-  activity.push(citationActivity(input.agents, input.now, minutes));
+  activity.push(citationActivity(input.agents, input.now, minutes, input.events));
   activity.push(
     repliesToday
       ? { name: "Replies", at: latest(replyTimes), what: `${plural(repliesToday, "reply", "replies")} came in today.`, state: "done" }
@@ -256,7 +266,8 @@ export function buildLiveView(input: LiveInput): LiveView {
   );
 
   const paused: Problem[] = [...groups.entries()].map(([text, names]) => ({ text, names }));
-  const problems: Problem[] = [...paused, ...activity.filter((a) => a.state === "problem").map((a) => ({ text: `${a.name}: ${a.what}`, names: [] }))];
+  const failures = (input.events || []).filter((e) => e.kind === "error").map((e) => ({ text: e.summary, names: [] as string[] }));
+  const problems: Problem[] = [...paused, ...activity.filter((a) => a.state === "problem").map((a) => ({ text: `${a.name}: ${a.what}`, names: [] })), ...failures];
 
   sentRows.sort((a, b) => b.sentAt.localeCompare(a.sentAt));
   const pausedCount = paused.reduce((n, g) => n + g.names.length, 0);
@@ -274,6 +285,7 @@ export function buildLiveView(input: LiveInput): LiveView {
     calls,
     paused,
     spend: input.spend,
+    feed: input.events === undefined ? null : input.events,
   };
 }
 

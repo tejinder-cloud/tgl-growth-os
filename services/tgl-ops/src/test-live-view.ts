@@ -85,7 +85,7 @@ async function main() {
   assert.equal(act["Replies"].state, "done");
   const cit = buildLiveView({ now: NOW, prospects, deals, agents: [{ agent: "aeo-audit-engine", last: "06:07 IST — Citation Tracker: 1 brand(s) · brand named in 6/48 answers · engine spend $0.4590" }], spend, capToday: 5 }).activity.find((a) => a.name === "Citation tracker");
   assert.equal(cit?.state, "done");
-  assert.equal(cit?.what, "TGL named in 6 of 48 AI answers.");
+  assert.equal(cit?.what, "Checked 1 brand: named in 6 of 48 AI answers.");
   assert.equal(cit?.at, "2026-11-24T00:37:00.000Z");
   assert.equal(lastHeading("# Log\n- 06:07 IST — Citation Tracker: x\n- 07:10 IST — again"), "07:10 IST — again", "timed lines count as entries");
 

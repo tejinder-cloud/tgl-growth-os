@@ -5,6 +5,8 @@
 // a day, means those messages are ready the day WhatsApp opens. The result is stored in signals.preaudit and shown
 // on the live view. Nothing is sent to anyone here.
 import type { AuditSummary } from "./types.js";
+import { recordEvent } from "../../lib/events.js";
+import { cleanBusinessName } from "./names.js";
 
 export interface PreauditCandidate {
   id: string;
@@ -68,6 +70,7 @@ export async function runPreaudits(ports: PreauditPorts): Promise<PreauditRun> {
       const summary = await ports.audit({ company: p.company, website: String(p.website), category: p.category || "", city: p.city || "" });
       await ports.save(p.id, summary);
       out.done.push({ company: p.company, mentions: summary.mentions, total: summary.total_queries });
+      await recordEvent({ agent: "outreach-sequencer", kind: "check", prospectId: p.id, summary: `Advance AI check for ${cleanBusinessName(p.company)}: named in ${summary.mentions} of ${summary.total_queries} answers.` });
     } catch (err) {
       out.failed.push({ company: p.company, error: (err as Error)?.message || String(err) });
     }
