@@ -1,0 +1,899 @@
+{
+  "brand": {
+    "name": "Arjunaa Academy for Achievers",
+    "primaryDomain": "aaaedu.in",
+    "domains": [
+      "aaaedu.in"
+    ],
+    "variants": [
+      "Arjunaa Academy for Achievers",
+      "aaaedu"
+    ],
+    "setupStatus": "prospect_unverified"
+  },
+  "auditedAt": "2026-11-25T05:38:20.691Z",
+  "promptsCount": 5,
+  "enginesCount": 3,
+  "totalQueries": 15,
+  "summary": {
+    "totalMentions": 0,
+    "visibilityScorePercent": 0,
+    "mentionsByEngine": {
+      "chatgpt": 0,
+      "gemini": 0,
+      "perplexity": 0
+    },
+    "competitorMentions": {
+      "Insights IAS": 6,
+      "Shankar IAS Academy": 5,
+      "Legacy IAS Academy": 3,
+      "Rau’s IAS Study Circle": 2,
+      "ALLEN Career Institute": 5,
+      "Aakash Institute": 5,
+      "BASE Educational Services": 3,
+      "FIITJEE": 5,
+      "IMS": 6,
+      "T.I.M.E": 5,
+      "Career Launcher": 5,
+      "MADE EASY": 1,
+      "ACE Engineering Academy": 1,
+      "Veranda RACE": 1,
+      "Himalai IAS / KPSC Coaching": 1,
+      "Jamboree Education": 2,
+      "Manya – The Princeton Review": 2,
+      "Sri Chaitanya": 2,
+      "Bharat IAS & KAS": 2,
+      "Deeksha PU College / Integrated": 1,
+      "National IAS Academy": 1,
+      "Elite IIT": 1,
+      "RSR Academy": 2,
+      "Narayana": 1,
+      "JSpiders / QSpiders": 2,
+      "Scaler Academy": 1,
+      "Scaler / Masai School": 1,
+      "Besant Technologies": 1
+    },
+    "citationDomains": {
+      "justdial.com": 5,
+      "collegedunia.com": 4,
+      "indianyellowpages.com": 1,
+      "academycheck.com": 2,
+      "merithub.com": 2,
+      "imsindia.com": 1,
+      "nomoreclass.com": 1,
+      "iproledge.com": 1,
+      "toppersacademy.app": 1,
+      "threebestrated.in": 2,
+      "ieltsacademy.org": 1,
+      "excelpucollege.org": 1,
+      "whataftercollege.com": 1,
+      "collegemarker.com": 1,
+      "coachingrank.in": 1,
+      "successcentre.in": 1
+    },
+    "totalCostUsd": 0.0558,
+    "totalCostInr": 5.17
+  },
+  "nextSteps": {
+    "weakestEngine": "ChatGPT",
+    "weakestEngineMentions": 0,
+    "zeroMentionEngines": [
+      "ChatGPT",
+      "Gemini",
+      "Perplexity"
+    ],
+    "queriesLost": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "weakestQueries": [
+      1,
+      2
+    ],
+    "winningCompetitor": "Insights IAS",
+    "winningCompetitorCount": 6,
+    "topCitationGap": "justdial.com",
+    "formattedText": "Arjunaa Academy for Achievers was named in 0 of 15 answers (0%). ChatGPT, Gemini and Perplexity did not name Arjunaa Academy for Achievers in any of the 5 questions. Insights IAS was named most often instead, in 6 of 15 answers. The questions where Arjunaa Academy for Achievers did worst: \"Best coaching institute in Bengaluru\" (0 of 3 assistants named Arjunaa Academy for Achievers); \"Top coaching institute near me in Bengaluru\" (0 of 3 assistants named Arjunaa Academy for Achievers)."
+  },
+  "matrix": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best coaching institute in Bengaluru",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one best coaching institute in Bengaluru for every student—it depends on the exam and your preferred location. For..."
+      }
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top coaching institute near me in Bengaluru",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "“Best” depends on what you’re preparing for and your Bengaluru neighbourhood. For a starting shortlist, listings show Elite IIT..."
+      }
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which coaching institute in Bengaluru has the best reviews and results",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one “best” coaching institute for all students—it depends on the exam and course. For IIT-JEE/NEET , NoMoreClass is..."
+      }
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a coaching institute cost in Bengaluru and which one is worth it",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "Coaching costs in Bengaluru depend mainly on the exam, course length, and whether it’s online, classroom, or residential . As a..."
+      }
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which coaching institute in Bengaluru should I trust",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one Bengaluru coaching institute I’d recommend for everyone—the right choice depends on the exam or subject, your l..."
+      }
+    }
+  ],
+  "rawAnswers": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best coaching institute in Bengaluru",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "What kind of coaching are you looking for in Bengaluru—**UPSC, JEE/NEET, CAT, GATE, IELTS, government exams, or something else**? If you share your preferred area and budget too, I can suggest suitable options.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [],
+      "costUsd": 0.000523
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best coaching institute in Bengaluru",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because the \"best\" coaching institute depends entirely on the exam or field you are preparing for, here is a breakdown of the top-rated and most reputable coaching institutes in Bengaluru across different categories:\n\n---\n\n### 1. UPSC / Civil Services Coaching\n*   **Insights IAS (Chandra Layout / Vijayanagar):** One of the most famous institutes nationwide, known for its test series, answer-writing initiatives (Secure/Insta), and guidance.\n*   **Shankar IAS Academy (Vijayanagar):** Excellent track record, especially strong in Environment, Ecology, and General Studies.\n*   **Legacy IAS Academy (Jayanagar):** Known for small batch sizes, personalized mentorship, and regular answer evaluation.\n*   **Rau’s IAS Study Circle (Koramangala):** Long-standing national reputation with structured foundational courses.\n\n---\n\n### 2. IIT-JEE & NEET Coaching (Engineering & Medical)\n*   **Allen Career Institute (Multiple branches: HSR Layout, Jayanagar, Bannerghatta Road, Marathahalli):** Currently among the most popular choices in Bengaluru with top-tier faculty and rigorous test schedules.\n*   **Aakash Institute (Multiple branches):** Widely regarded as the industry leader specifically for **NEET/Medical** preparation.\n*   **BASE Educational Services (Multiple branches):** A homegrown Karnataka legacy institute; excellent integration with the PU Board curriculum alongside JEE/NEET.\n*   **FIITJEE (HSR Layout, Jayanagar):** High-intensity training with a strong focus on advanced problem-solving for **JEE Advanced**.\n\n---\n\n### 3. CAT & Management Entrances (XAT, SNAP, NMAT)\n*   **IMS (Indiranagar, Jayanagar, Malleshwaram, Koramangala):** Known for comprehensive test series (SimCAT), GD/PI prep, and experienced mentors.\n*   **T.I.M.E. (Multiple branches):** Renowned for its AIMCAT mock tests, extensive study material, and quantitative aptitude training.\n*   **Career Launcher (CL):** Strong faculty base, good online portal, and robust personality assessment training for IIM interviews.\n\n---\n\n### 4. GATE & ESE (Engineering Services)\n*   **ACE Engineering Academy (BTM Layout):** Top-ranked for core engineering branches (Civil, Mechanical, Electrical, ECE).\n*   **MADE EASY:** Widely considered the gold standard nationwide for GATE/ESE syllabus coverage and rank-producing test series.\n\n---\n\n### 5. Bank PO, Clerk, SSC, & Karnataka Govt. Exams (KPSC)\n*   **Veranda RACE (Vijayanagar / Jayanagar):** Popular for banking and SSC exams with structured library and practice lab facilities.\n*   **Himalai IAS / KPSC Coaching:** Specialized focus on Karnataka State Civil Services and state-level exams.\n\n---\n\n### 6. Study Abroad (GRE, GMAT, IELTS, TOEFL)\n*   **Jamboree Education (Malleshwaram, Indiranagar, Jayanagar):** Specialized curriculum for GRE/GMAT quant and verbal, along with admissions consulting.\n*   **Manya – The Princeton Review:** Strong global curriculum for SAT, GRE, and IELTS prep.\n\n---\n\n### Tips for Choosing the Right Institute in Bengaluru:\n1. **Location & Commute:** Bengaluru traffic can drain hours of study time. Pick a center close to your residence or along the Namma Metro line.\n2. **Demo Classes:** Most institutes offer 1–2 trial lectures. Check the faculty’s teaching style and clarity.\n3. **Batch Size:** Confirm whether the batch has 30–40 students (better for doubts) or 100+ students.\n4. **Offline vs. Hybrid Support:** Ensure they provide backup recorded lectures and library facilities for self-study.\n\n***\n\n*If you are looking for coaching in a specific exam (e.g., UPSC, NEET, CAT, or IT certifications), let me know so I can give you more detailed recommendations!*",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Insights IAS",
+          "Shankar IAS Academy",
+          "Legacy IAS Academy",
+          "Rau’s IAS Study Circle",
+          "ALLEN Career Institute",
+          "Aakash Institute",
+          "BASE Educational Services",
+          "FIITJEE",
+          "IMS",
+          "T.I.M.E",
+          "Career Launcher",
+          "MADE EASY",
+          "ACE Engineering Academy",
+          "Veranda RACE",
+          "Himalai IAS / KPSC Coaching",
+          "Jamboree Education",
+          "Manya – The Princeton Review"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.005543
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best coaching institute in Bengaluru",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one best coaching institute in Bengaluru for every student—it depends on the exam and your preferred location. For **JEE/NEET**, options listed in recent Bengaluru rankings include **Excel Academics, Aakash, Allen, Base Education, Sri Chaitanya, and FIITJEE**.[10] For **UPSC/KAS**, institutes such as **Insights IAS** and **Bharat IAS & KAS** appear in local listings.[4]\n\nBefore enrolling, compare the specific branch’s recent results, faculty, batch size, fees, commute, and trial-class experience. Which exam or subject are you preparing for?",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Sri Chaitanya",
+          "FIITJEE",
+          "Insights IAS",
+          "Bharat IAS & KAS"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Tutorials/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/bangalore-institutes",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Institutes/nct-10268288",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Competitive-Exam-Tutorials/nct-10966995",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indianyellowpages.com",
+          "url": "https://www.indianyellowpages.com/bangalore/coaching-classes.htm",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "academycheck.com",
+          "url": "https://academycheck.com/coaching/list/bengaluru",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Coaching-Centres/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "merithub.com",
+          "url": "https://merithub.com/coaching/coaching-centers-in-bangalore",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bengaluru/Coaching-Institutes/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/jee-main-institutes-in-bangalore",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00194
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top coaching institute near me in Bengaluru",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "Which area of Bengaluru are you in, and what do you want coaching for—such as JEE/NEET, UPSC, CAT, coding, or school subjects? I can shortlist well-rated options nearby.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [],
+      "costUsd": 0.000498
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top coaching institute near me in Bengaluru",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because Bengaluru hosts top-tier coaching centers for different competitive exams and academic goals, the best institute depends on the **exam/course** you are targeting and your **neighborhood**.\n\nHere is a breakdown of the top coaching institutes in Bengaluru by category and their major hubs:\n\n---\n\n### 1. Engineering (JEE Main / Advanced) & Medical (NEET)\n* **Allen Career Institute:** One of the most sought-after national brands for both JEE and NEET.\n  * *Major Hubs:* Jayanagar, HSR Layout, Marathahalli, Bannerghatta Road, Hebbal.\n* **Aakash Institute:** Renowned particularly for NEET prep and medical foundation, with strong JEE programs.\n  * *Major Hubs:* Jayanagar, Malleshwaram, Indiranagar, Marathahalli, Yelahanka.\n* **BASE Educational Services:** A premier Karnataka-based institute known for strong results in JEE, NEET, and KCET.\n  * *Major Hubs:* Basavanagudi, Rajajinagar, Kalyan Nagar, Koramangala.\n* **FIITJEE:** Highly regarded for rigorous JEE Advanced preparation.\n  * *Major Hubs:* HSR Layout, Jayanagar.\n* **Deeksha PU College / Integrated:** Popular for integrated Pre-University (PUC) board + competitive exam coaching across multiple residential and day campuses.\n\n---\n\n### 2. UPSC / Civil Services & KPSC\nBengaluru’s primary hub for civil services preparation is centered around **Vijayanagar** and **Chandra Layout**.\n* **Insights IAS:** Founded in Bengaluru, widely recognized nationally for its UPSC test series, mentorship, and core batches.\n  * *Location:* Vijayanagar / Chandra Layout.\n* **Shankar IAS Academy:** A well-established South Indian civil services institute with a strong faculty base.\n  * *Location:* Vijayanagar.\n* **Legacy IAS Academy:** Known for small batch sizes, regular personal mentoring, and answer-writing practice.\n  * *Location:* Jayanagar.\n* **National IAS Academy:** Another reputed center in Vijayanagar for foundation and test-series programs.\n\n---\n\n### 3. Management / MBA (CAT, GMAT, XAT)\n* **T.I.M.E. (Triumphant Institute of Management Education):** Extensive mock test series (AIMCAT) and large alumni network.\n  * *Major Hubs:* Koramangala, Jayanagar, Malleshwaram, Indiranagar.\n* **IMS Learning:** Excellent for personalized GD/PI prep and CAT/GMAT coaching.\n  * *Major Hubs:* Indiranagar, Jayanagar, Marathahalli, Malleshwaram.\n* **Career Launcher (CL):** Popular for CAT and Law (CLAT) entrance training.\n  * *Major Hubs:* Jayanagar, Koramangala, Malleshwaram.\n\n---\n\n### 4. Law Entrance (CLAT / AILET)\n* **Career Launcher (LST - Law School Tutorials):** Leading provider for national law school entrance tests.\n* **Career Launcher / LegalEdge:** Widely preferred for intensive CLAT prep and mock test series.\n  * *Major Hubs:* Jayanagar, Malleshwaram, Koramangala.\n\n---\n\n### Main Educational Hubs in Bengaluru\nIf you want to visit multiple centers on the same day to compare:\n* **Jayanagar / Basavanagudi (South Bengaluru):** Best for JEE, NEET, CAT, and Foundation.\n* **Vijayanagar (West Bengaluru):** The undisputed hub for UPSC, KPSC, and Government Job exams.\n* **Malleshwaram / Rajajinagar (North-West):** Strong for JEE, KCET, and Board tuitions.\n* **HSR Layout / Koramangala (South-East):** Convenient for tech corridor residents targeting JEE, NEET, and MBA exams.\n\n---\n\n**To narrow this down:**\n1. What **exam or subject** are you preparing for (e.g., JEE, NEET, UPSC, CAT, School/College Boards)?\n2. Which **area or locality** of Bengaluru are you closest to?",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "ALLEN Career Institute",
+          "Aakash Institute",
+          "BASE Educational Services",
+          "FIITJEE",
+          "Deeksha PU College / Integrated",
+          "Insights IAS",
+          "Shankar IAS Academy",
+          "Legacy IAS Academy",
+          "National IAS Academy",
+          "T.I.M.E",
+          "IMS",
+          "Career Launcher"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.005672
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top coaching institute near me in Bengaluru",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "“Best” depends on **what you’re preparing for** and your Bengaluru neighbourhood. For a starting shortlist, listings show **Elite IIT** branches in Koramangala, Malleswaram, and Yelahanka, while **RSR Academy** is in Indiranagar; ratings vary by branch, so check the specific course and recent reviews before enrolling.[1][2]\n\nFor **CAT, CLAT, GRE/GMAT, or GATE**, IMS has Bengaluru centres and offers coaching for those exams.[8]\n\nShare your **area or PIN code** and the **exam/subject** (for example, JEE, NEET, KCET, UPSC, CAT, or school tuition), and I can narrow this down to nearby options.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Elite IIT",
+          "RSR Academy",
+          "IMS"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Tutorials/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Coaching-Centres/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/bangalore-institutes",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bengaluru/Coaching-Institutes/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Institutes/nct-10268288",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bengaluru/Institutes/nct-10268288",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Coaching-Institutes/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "imsindia.com",
+          "url": "https://www.imsindia.com/center/bangalore/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Competitive-Exam-Tutorials/nct-10966995",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "merithub.com",
+          "url": "https://merithub.com/coaching/coaching-centers-in-bangalore",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00246
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which coaching institute in Bengaluru has the best reviews and results",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "It depends on **what you’re preparing for**—there isn’t one institute that’s best across Bengaluru. Are you looking for **UPSC/KPSC, JEE, NEET, CAT/GMAT, banking, or something else**? If you share your exam and preferred part of Bengaluru, I can compare options by reviews and results.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [],
+      "costUsd": 0.000524
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which coaching institute in Bengaluru has the best reviews and results",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because \"coaching institute\" covers several different competitive exams, the best institute depends on what you are preparing for. In Bengaluru, institutes generally specialize by domain. \n\nHere are the top-rated coaching institutes in Bengaluru based on **student reviews, faculty reputation, and track record of results** across the major exam categories:\n\n---\n\n### 1. Engineering (IIT-JEE) & Medical (NEET)\n* **Allen Career Institute**\n  * **Locations:** Jayanagar, HSR Layout, Marathahalli, Hebbal, Bannerghatta Road.\n  * **Results & Reputation:** Widely considered the current leader for both JEE (Main & Advanced) and NEET in terms of top ranks and volume of selections.\n  * **Reviews:** High praise for standardized study materials, frequent testing (All India test series), and national-level competition. Class sizes can be large, requiring proactive self-study.\n* **Aakash Institute**\n  * **Locations:** Jayanagar, Indiranagar, Koramangala, Rajajinagar, etc.\n  * **Results & Reputation:** The gold standard in Bengaluru particularly for **NEET/Medical**, with a growing and consistent JEE track record.\n  * **Reviews:** Excellent modular notes, doubt-clearing sessions, and test analysis.\n* **BASE Educational Services**\n  * **Reputation:** A homegrown Karnataka institution with a deep understanding of the Karnataka state board / PU curriculum alongside JEE/KCET/NEET.\n  * **Reviews:** Very strong for balanced prep (Board/KCET + JEE/NEET), known for disciplined teaching and accessible local faculty.\n* *Notable mentions for integrated day-scholar/PU models:* **Sri Chaitanya** and **Narayana** (very rigorous, high study hours, strong results).\n\n---\n\n### 2. UPSC / Civil Services (IAS / KAS)\n* **Insights IAS**\n  * **Location:** Hebbal, Chandra Layout, Vijayanagar.\n  * **Results & Reputation:** Bangalore is the birthplace of Insights IAS, making it the most famous UPSC coaching institute in the city, with dozens of top-100 AIR rankers annually.\n  * **Reviews:** Highly regarded for its Answer Writing Focus (OGP - Offline Guidance Program) and mentorship. \n* **Shankar IAS Academy**\n  * **Location:** Vijayanagar.\n  * **Results & Reputation:** A major South Indian powerhouse with strong results in UPSC Prelims and Mains.\n  * **Reviews:** Good foundation courses, structured test series, and strong environment in the Vijayanagar education hub.\n* **Legacy IAS / Rau’s IAS Study Circle**\n  * **Reviews:** Legacy IAS (Jayanagar) is praised for smaller batch sizes and personalized mentorship, while Rau's (Koramangala) brings its historic national brand value.\n\n---\n\n### 3. MBA / Management (CAT, XAT, GMAT)\n* **IMS Bangalore**\n  * **Locations:** Indiranagar, Koramangala, Jayanagar, Marathahalli.\n  * **Results & Reputation:** Consistently delivers 99+ percentilers and IIM admits. \n  * **Reviews:** Praised for one-on-one mentorship, its myIMS portal, and personalized interview/WAT preparation.\n* **T.I.M.E. (Triumphant Institute of Management Education)**\n  * **Locations:** Koramangala, Jayanagar, Malleshwaram, Whitefield.\n  * **Results & Reputation:** The AIMCAT test series is considered the industry benchmark for CAT aspirants.\n  * **Reviews:** Very rigorous pedagogy and strong peer group, though personal attention can vary by branch.\n* **Career Launcher (CL)**\n  * **Reviews:** Strong test series and highly rated Quant and Verbal faculty across major centers like Jayanagar and Koramangala.\n\n---\n\n### Key Tips Before Enrolling:\n1. **Branch over Brand:** For national chains (like Allen, Aakash, or TIME), the quality of teachers often varies between centers. Always visit the specific branch, take a demo class, and speak to students exiting a class.\n2. **Batch Size:** Top branches can have 80–120 students per class. If you prefer personal attention, ask about teacher-student ratios and dedicated doubt-clearing schedules.\n\n***\n\n**If you have a specific exam in mind (e.g., JEE, NEET, UPSC, CAT, GATE, or Banking), let me know so I can give you center-specific recommendations and recent rank details.**",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "ALLEN Career Institute",
+          "Aakash Institute",
+          "BASE Educational Services",
+          "Sri Chaitanya",
+          "Narayana",
+          "Insights IAS",
+          "Shankar IAS Academy",
+          "Rau’s IAS Study Circle",
+          "IMS",
+          "T.I.M.E",
+          "Career Launcher"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.006227
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which coaching institute in Bengaluru has the best reviews and results",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one “best” coaching institute for all students—it depends on the exam and course. **For IIT-JEE/NEET**, NoMoreClass is one option with a reported 4.5/5 from 245+ reviews, but its outcome figures are self-reported, so verify them independently.[3] For JEE specifically, a comparison also lists Allen and Aakash among institutes with strong 2026 results; those results are not Bengaluru-centre-specific.[7]\n\nFor a general review-based shortlist, RSR Academy has a 4.9 rating from 95 reviews, while Bharat IAS & KAS Coaching Institute has a 4.7 rating from about 1,200 reviews—though these serve different needs, and ratings alone don’t establish results.[1][2]\n\nShare the **exam or subject**—for example, JEE, NEET, UPSC/KAS, banking, or school tuition—and the preferred part of Bengaluru for a more useful recommendation. Before enrolling, ask for recent, verifiable results from that specific branch, meet the instructor, and attend a demo class.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "RSR Academy",
+          "Bharat IAS & KAS"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Tutorials/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Institutes/nct-10268288",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "nomoreclass.com",
+          "url": "https://nomoreclass.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "iproledge.com",
+          "url": "https://www.iproledge.com/post/top-5-academy-for-cs-coaching-in-bangalore",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Competitive-Exam-Tutorials/nct-10966995",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "toppersacademy.app",
+          "url": "https://toppersacademy.app/top-iit-jee-coaching-in-bangalore/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/jee-main-institutes-in-bangalore",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Kolar/Tutorials-For-Ssc-Cgl/nct-11238853",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "threebestrated.in",
+          "url": "https://threebestrated.in/coaching-classes-in-bengaluru-ka",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Tutorials-For-UGC-Net-Exam/nct-11239009",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00282
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a coaching institute cost in Bengaluru and which one is worth it",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "It depends heavily on **what you’re preparing for**—there isn’t one typical “coaching institute” price in Bengaluru. For a rough idea, a Bengaluru institute currently lists a four-week IELTS course at **₹7,500**, while a full UPSC foundation course at another institute is listed at **₹1.4 lakh offline**. ([ieltsacademy.org](https://www.ieltsacademy.org/m/IELTS.php?utm_source=openai))\n\nTo suggest one that’s actually worth the money, tell me:\n- **Which exam or subject?** (JEE/NEET, UPSC/KPSC, CAT, IELTS, coding, etc.)\n- **Your level and preferred area** in Bengaluru—or online?\n- **Your approximate budget?**\n\nBefore enrolling, try a demo class and check who teaches the regular batch, how large it is, and whether tests get useful feedback—not just a score.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "ieltsacademy.org",
+          "url": "https://www.ieltsacademy.org/m/IELTS.php?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011632
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a coaching institute cost in Bengaluru and which one is worth it",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because the term **coaching institute** covers several different domains, the fees in Bengaluru vary widely depending on whether you are preparing for **competitive school/college exams (JEE/NEET)**, **Civil Services (UPSC)**, **Management (CAT)**, or **Tech/Software placements**.\n\nHere is a breakdown of the typical costs in Bengaluru by domain, along with an evaluation of which institutes are actually worth your money.\n\n---\n\n### 1. JEE & NEET (Engineering & Medical Entrance)\n* **Average Cost:**\n  * **2-Year Program (Class 11 & 12):** ₹1.8 Lakh – ₹3.5 Lakh\n  * **1-Year Dropper/Repeater Program:** ₹1.0 Lakh – ₹1.8 Lakh\n  * *(Integrated school tie-ups can go up to ₹4 Lakh – ₹6 Lakh including schooling).*\n\n#### Which one is worth it?\n* **ALLEN Career Institute (HSR Layout / Jayanagar):** Currently the strongest overall track record in Bengaluru for both JEE and NEET. Their test series, faculty consistency, and doubt-clearing ecosystem are among the best in the city.\n* **Aakash Institute (Malleshwaram / Indiranagar / South BLR):** The gold standard specifically for **NEET (Medical)**. Their biology and chemistry modules are exceptionally aligned with NCERT.\n* **FIITJEE:** Strong for JEE Advanced, but be cautious with branch selection—faculty stability can vary between centers.\n* **Verdict:** For **NEET**, pick **Aakash**. For **JEE Main/Advanced**, pick **Allen (HSR or Jayanagar branch)**.\n\n---\n\n### 2. UPSC / Civil Services (IAS/IPS/KPSC)\n* **Average Cost:**\n  * **General Studies (Prelims + Mains + CSAT):** ₹1.1 Lakh – ₹1.6 Lakh (1 year)\n  * **Optional Subject:** ₹30,000 – ₹50,000\n  * **Total Foundation Package:** ₹1.4 Lakh – ₹2.1 Lakh\n\n#### Which one is worth it?\n* **Insights IAS (Hebbal / Vijayanagar):** Started in Bengaluru and remains the undisputed local heavyweight. Their answer-writing initiatives (Secure/IPM) and mentorship culture make them the top recommendation in the city.\n* **Shankar IAS Academy (Vijayanagar):** Highly reputed, particularly strong in Environment, Economy, and Prelims test series.\n* **Rau’s IAS (Koramangala):** Great infrastructure and experienced Delhi faculty, though on the higher end of the fee spectrum.\n* **Verdict:** **Insights IAS** offers the best return on investment (ROI) in Bengaluru due to its rigorous daily answer-writing culture and peer environment in Vijayanagar.\n\n---\n\n### 3. CAT / MBA Entrance Exams\n* **Average Cost:**\n  * **Comprehensive Classroom/Hybrid (1 Year):** ₹65,000 – ₹1,10,000\n  * **Test Series + GD/PI only:** ₹20,000 – ₹35,000\n\n#### Which one is worth it?\n* **IMS (Indiranagar / Koramangala / Jayanagar):** Consistently rated best in Bengaluru for personalized mentoring, small batch sizes, and excellent GD/WAT/PI interview preparation.\n* **T.I.M.E. (Multiple centers):** Has the industry-standard test series (AIMCAT). However, classroom quality can vary across different franchise branches.\n* **Career Launcher (CL):** Very strong online/hybrid ecosystem and strong VARC faculty.\n* **Verdict:** If you need heavy mentoring and interview prep, **IMS** is generally the best-reviewed in Bengaluru. If your basics are already decent, buying the **T.I.M.E. AIMCAT test series** alongside self-study or hybrid coaching offers the highest ROI.\n\n---\n\n### 4. Software / IT / Data Science Bootcamps\n* **Average Cost:**\n  * **Short-term Placement Training (Java/Testing):** ₹35,000 – ₹60,000\n  * **Intensive Full-Stack / Data Science Bootcamps:** ₹1.2 Lakh – ₹2.5 Lakh (or ISA / Income Share Agreement models)\n\n#### Which one is worth it?\n* **JSpiders / QSpiders (Basavanagudi / BTM / Rajajinagar):** Budget-friendly and an institution in Bengaluru for fresh graduates trying to break into service-based IT companies (TCS, Infosys, Wipro, Capgemini). Worth it if you need basic Java/SQL/testing skills and direct interview drives.\n* **Scaler Academy:** Expensive (₹2.5L+), but worth it for software engineers with 1–3 years of experience targeting Tier-1 product companies (MAANG, top startups) for DSA and System Design.\n* **Verdict:** For freshers breaking into tech on a budget, **JSpiders**. For mid-level engineers looking for a major salary bump, **Scaler**.\n\n---\n\n### How to Decide if a Bengaluru Branch is \"Worth It\":\n1. **Never enroll based on the national brand name alone:** A coaching institute's HSR branch might have top-tier faculty, while their suburban center might rely on rotating guest lecturers. Ask to speak to current students in the lobby before paying.\n2. **Batch Size:** Any classroom with more than 70–80 students severely limits doubt resolution.\n3. **Refund & Trial Policy:** Most reputable institutes in Bengaluru offer 2–3 demo classes. Attend them during peak batch hours, not off-hours, to gauge the true classroom environment.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "ALLEN Career Institute",
+          "Aakash Institute",
+          "FIITJEE",
+          "Insights IAS",
+          "Shankar IAS Academy",
+          "IMS",
+          "T.I.M.E",
+          "Career Launcher",
+          "JSpiders / QSpiders",
+          "Scaler Academy"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.007891
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a coaching institute cost in Bengaluru and which one is worth it",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "Coaching costs in Bengaluru depend mainly on **the exam, course length, and whether it’s online, classroom, or residential**. As a rough guide, school tuition may be ₹2,500–₹6,000 per subject per month; JEE classroom coaching is commonly around ₹1.4–₹3.55 lakh, while NEET courses range from roughly ₹70,000 for basic options to ₹2.5 lakh or more for residential programmes.[2][7][8]\n\n**Which is worth it?** There’s no clear winner without knowing your exam and class. For JEE, compare Allen, Excel Academics, and Base Education; listed fees are about ₹1.8 lakh for Excel and ₹1.9 lakh for Allen, though the exact course and campus can change the price.[7] For NEET, compare local options such as CFAL, Vaidya Medical Academy, or GATEIIT; published estimates vary by course and facilities, so confirm the current fee directly.[1][8]\n\nBefore paying, attend a trial class and ask who teaches your batch, how many students are in it, how doubts are handled, what tests and materials are included, and whether the quoted fee includes taxes or extra charges. Choose the institute that fits your learning style and budget—not just the one with the biggest advertised results.\n\nTell me **which exam, your class, and your approximate budget**, and I can narrow this down to a more useful shortlist.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "excelpucollege.org",
+          "url": "https://excelpucollege.org/12BestNEETCoachingCentresinBangalore",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Tutorials/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "whataftercollege.com",
+          "url": "https://whataftercollege.com/iit-jee-coaching-bangalore/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/bangalore-institutes",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bengaluru/Coaching-Institutes/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Institutes/nct-10268288",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/jee-advanced-institutes-in-bangalore",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegemarker.com",
+          "url": "https://collegemarker.com/blogs/best-neet-coaching-centres-in-bangalore",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/jee-main-institutes-in-bangalore/page-2",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/bangalore-institutes/page-9",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00209
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which coaching institute in Bengaluru should I trust",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "What are you looking for coaching in—UPSC, JEE/NEET, CAT, banking, coding, or something else? If you share your preferred Bengaluru area and budget too, I can suggest options and how to check whether they’re trustworthy.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [],
+      "costUsd": 0.000538
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which coaching institute in Bengaluru should I trust",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because Bengaluru has thousands of institutes, the most trustworthy option depends entirely on **what you are preparing for**. \n\nHere are the most established and reputed coaching institutes in Bengaluru, categorized by goal:\n\n---\n\n### 1. UPSC / Civil Services (IAS / IPS / KPSC)\n* **Insights IAS (Chandra Layout / Vijayanagar):** Born in Bengaluru, this is arguably the most trusted home-grown institute for UPSC preparation, especially renowned for answer writing and mentorship.\n* **Shankar IAS Academy (Vijayanagar):** Excellent track record, especially for Prelims test series and interview guidance.\n* **Legacy IAS Academy (Jayanagar):** Known for smaller batch sizes and personalized mentorship compared to massive commercial institutes.\n\n---\n\n### 2. Engineering & Medical Entrances (JEE Mains/Advanced, NEET, KCET)\n* **Allen Career Institute (Jayanagar, HSR Layout, Hebbal, etc.):** Currently the national benchmark for JEE and NEET with high faculty standards and structured study material.\n* **BASE Academy:** A Bengaluru staple with deep experience in both state board/KCET and national competitive exams. Excellent reputation among local schools.\n* **Aakash Institute:** Historically the strongest for NEET/Medical prep, though performance can vary depending on the specific branch.\n*(Note: Be cautious with FIITJEE currently, as several branches across India have faced faculty strikes and management issues).*\n\n---\n\n### 3. Management / MBA (CAT, XAT, GMAT)\n* **IMS (Indiranagar, Koramangala, Jayanagar):** Known for consistent mentorship, good GD/PI preparation, and reliable test series.\n* **T.I.M.E. (Triumphant Institute of Management Education):** Extensive mock test series (AIMCAT) and experienced quant/verbal faculty.\n* **Career Launcher (CL):** Strong verbal faculty and personalized mentoring programs.\n\n---\n\n### 4. Software Development, Data Science & Tech Placements\n* **JSpiders / QSpiders (Basavanagudi, Rajajinagar, Marathahalli, BTM):** Best-known for freshers aiming for core Java, testing, and service-based/product company placement drives.\n* **Scaler / Masai School:** Stronger for modern tech stacks (Full Stack, Data Science, System Design), though they operate mostly online or in hybrid modes.\n* **Besant Technologies (BTM Layout, Marathahalli):** Good for modular technical courses (Cloud, DevOps, Python), provided you verify the specific trainer beforehand.\n\n---\n\n### 5. Study Abroad (GRE, GMAT, IELTS, TOEFL)\n* **Manya – The Princeton Review:** Strong for structured GMAT/GRE prep and end-to-end admissions consulting.\n* **Jamboree Education (Koramangala, Malleshwaram):** Excellent quant shortcuts, high-scoring alumni network, and standardized curriculum.\n\n---\n\n### 4 Steps to Verify Any Institute Before Paying Fees:\n1. **Branch over Brand:** A brand may be famous in Kota or Delhi, but its Bengaluru branch might rely on junior or temporary faculty. Ask to meet the **exact teachers** who will take your batch.\n2. **Attend 2–3 Demo Classes:** Never pay full upfront fees based on a marketing counselor’s pitch. \n3. **Talk to Current Students:** Stand outside the branch during break time and ask students about faculty availability for doubt-clearing and syllabus completion speed.\n4. **Check Refund/Exit Policies:** Ensure you understand what portion of the fee is refundable if you decide to discontinue.\n\n---\n\n**Which exam, domain, or location in Bengaluru (e.g., Jayanagar, BTM, Whitefield) are you looking at?** If you share your goal, I can give you a much more specific recommendation.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Insights IAS",
+          "Shankar IAS Academy",
+          "Legacy IAS Academy",
+          "ALLEN Career Institute",
+          "Aakash Institute",
+          "FIITJEE",
+          "IMS",
+          "T.I.M.E",
+          "Career Launcher",
+          "JSpiders / QSpiders",
+          "Scaler / Masai School",
+          "Besant Technologies",
+          "Jamboree Education",
+          "Manya – The Princeton Review"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.004893
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which coaching institute in Bengaluru should I trust",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one Bengaluru coaching institute I’d recommend for everyone—the right choice depends on the **exam or subject, your level, and preferred area**. The listings show very different options, and directory ratings alone don’t establish teaching quality or trustworthy results.[2][5][10]\n\nBefore paying, shortlist two or three institutes and:\n- Attend a **demo class** with the actual instructor who would teach your batch.\n- Ask for recent, verifiable results and clarify how many students enrolled—not just standout ranks.\n- Check batch size, faculty consistency, doubt-clearing, attendance, and access to practice tests.\n- Speak privately with current students, and read recent reviews for recurring complaints.\n- Get the full fee, refund terms, and course schedule in writing; avoid pressure to pay immediately.\n\nIf you tell me **which exam or course** you’re preparing for (for example, JEE, NEET, UPSC/KAS, banking, or school tuition) and your preferred Bengaluru area, I can suggest a more useful shortlist.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "coachingrank.in",
+          "url": "https://coachingrank.in/city/best-coaching-institutes-in-bangalore",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Institutes/nct-10268288",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "threebestrated.in",
+          "url": "https://threebestrated.in/coaching-classes-in-bengaluru-ka",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "successcentre.in",
+          "url": "https://successcentre.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Competitive-Exam-Tutorials/nct-10966995",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Training-Centres/nct-11003170",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Tutorials-For-UGC-Net-Exam/nct-11239009",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bangalore/Tutorials/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "academycheck.com",
+          "url": "https://academycheck.com/blog/top-5-neet-coaching-in-bangalore",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Bengaluru/Coaching-Institutes/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00256
+    }
+  ]
+}
