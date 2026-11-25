@@ -22,15 +22,16 @@ const plan: BuildPlan = {
     { title: "Soon thing", owner: "Claude", due: "2026-11-28", status: "doing" },
     { title: "Later thing", owner: "Meta", due: "2026-11-30", status: "todo" },
   ],
-  risks: [{ kind: "Risk", what: "R1", impact: "High", owner: "You", action: "Act", status: "Open" }, { kind: "Issue", what: "R2", impact: "Low", owner: "Claude", action: "x", status: "Closed" }],
+  risks: [{ kind: "Issue", what: "{phone_only} phone-only", impact: "Medium", owner: "Claude", action: "x", status: "Open" }, { kind: "Risk", what: "R1", impact: "High", owner: "You", action: "Act", status: "Open" }, { kind: "Issue", what: "R2", impact: "Low", owner: "Claude", action: "x", status: "Closed" }],
   decisions: [{ date: "2026-11-24", what: "Decided" }],
   agents: [{ key: "outreach-sequencer", name: "Outreach", job: "Sends", when: "Daily", live: true }, { key: "prospect-researcher", name: "Researcher", job: "Finds", when: "09:30", live: true }, { key: "whatsapp", name: "WhatsApp", job: "Messages", when: "Later", live: false }],
 };
 
 const view = {
-  generatedAt: "", today: { sent: 2, cap: 5, replies: 1, callsBooked: 0, nextCall: null }, funnel: [], funnelNote: null, waiting: [],
-  calls: [{ company: "a", city: "", type: "", fit: 70, check: "" }], problems: [], outbox: [],
-  agents: [{ agent: "outreach-sequencer", last: "Tick 2026-11-26T08:00:00Z (live)" }],
+  generatedAt: "", today: { sent: 2, cap: 5, replies: 1, callsBooked: 0, nextCall: null }, journey: [], stuck: { approval: 0, nextInLine: 0, whatsapp: 1, paused: 0 },
+  waiting: [], problems: [], outbox: [], nextInLine: [], paused: [],
+  calls: [{ company: "a", city: "", type: "", fit: 70, check: "" }],
+  activity: [{ name: "Outreach", at: "2026-11-26T08:00:00Z", what: "Sent 2 emails", state: "done" }, { name: "Prospect researcher", at: null, what: "x", state: "problem" }],
   spend: { todayInr: 40.4, monthInr: 512.6, byProduct: { tgl_ops: 100, truevisible: 412.6 } },
 } as LiveView;
 
@@ -52,16 +53,15 @@ async function main() {
   assert.ok(main.includes("Day 3<small> of 7</small>"));
   assert.ok(main.includes("1 late"));
   assert.ok(main.includes("Goal &lt;here&gt;") && !main.includes("Goal <here>"), "escaped");
-  assert.ok(main.includes("Ran today") && main.includes("No run yet today") && main.includes("Not live yet"), "agent states");
-  assert.ok(main.includes("1:30 pm IST"), "readable times");
-  assert.ok(main.includes("₹513") && main.includes("Research and audits"), "spend");
-  assert.ok(main.includes("2 of 5") && main.includes("waiting for WhatsApp"));
+  assert.ok(main.includes("Ran today") && main.includes("Problem") && main.includes("Not live yet"), "team states from today's records");
+  assert.ok(!main.includes("₹513"), "money is on the Overview, not repeated here");
   assert.ok(main.includes('aria-current="date"'), "today marked on the timeline");
-  assert.ok(main.includes("1 open"), "closed risks not counted");
+  assert.ok(main.includes("2 open"), "closed risks not counted");
+  assert.ok(main.includes("1 phone-only"), "live count in the risk text");
   assert.ok(!EMOJI.test(main), "no emojis");
 
   const noData = renderBuildMain(null, now, plan);
-  assert.ok(noData.includes("could not be read") && noData.includes("Late thing"), "the plan shows without live data");
+  assert.ok(noData.includes("Late thing") && noData.includes("Many phone-only"), "the plan shows without live data");
 
   // The real plan is internally consistent.
   assert.ok(BUILD_PLAN.start <= BUILD_PLAN.goLive);

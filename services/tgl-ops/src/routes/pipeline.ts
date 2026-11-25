@@ -6,12 +6,16 @@
 // GET /pipeline/whatsapp        connect TGL's WhatsApp Business app number (coexistence)
 // POST /pipeline/whatsapp/exchange  completes it with Meta's signup code
 // GET /pipeline/whatsapp/console     templates (list, create) and sending one template message
-// GET /pipeline/live                today at a glance: numbers, funnel, outbox, agents, problems, spend (?part=main: the refreshing part)
+// GET /pipeline/live                Overview: the journey, needs you, problems, today's activity, money (?part=main: the refreshing part)
+// GET /pipeline/outreach            sent, next in line, waiting for WhatsApp, paused (?part=main)
+// GET /pipeline/build               the build tracker (?part=main)
 import { Router, type Request, type Response } from "express";
 import { configIssues, exchangeCode, loadGoogleBookingConfig, makeState, verifyState } from "../agents/booking/google.js";
 import { allowedEmails, boardAuthUrl, BOARD_CALLBACK_PATH, cookieValue, makeSession, readSession, sessionSecret, SESSION_COOKIE, SESSION_DAYS } from "../agents/pipeline/auth.js";
 import { loginPage, renderBoard } from "../agents/pipeline/board.js";
-import { renderLiveMain, renderLivePage, type LiveView } from "../agents/pipeline/live-view.js";
+import type { LiveView } from "../agents/pipeline/live-view.js";
+import { renderOverviewMain, renderOverviewPage } from "../agents/pipeline/overview-page.js";
+import { renderOutreachMain, renderOutreachPage } from "../agents/pipeline/outreach-page.js";
 import { dealStore } from "../agents/pipeline/live.js";
 import type { Deal } from "../agents/pipeline/stages.js";
 import { completeConnection, loadMetaConfig, metaConfigIssues, supabaseConnectStore, type ConnectStore } from "../agents/whatsapp/connect.js";
@@ -36,8 +40,18 @@ let auditReader: AuditReader = async (ids) => {
   return out;
 };
 let listDeals: () => Promise<Deal[]> = () => dealStore().list();
+/** Prospects the Architect rejected: their deals leave the board. */
+let rejectedReader = async (ids: string[]): Promise<Set<string>> => {
+  if (ids.length === 0) return new Set();
+  const { getSupabase } = await import("../agents/prospect-researcher/db.js");
+  const sb = getSupabase();
+  if (!sb) return new Set();
+  const { data } = await sb.from("prospects").select("id").in("id", ids).eq("status", "rejected");
+  return new Set(((data || []) as { id: string }[]).map((r) => r.id));
+};
 
-export function setBoardSourcesForTests(list: (() => Promise<Deal[]>) | null, audits?: AuditReader | null): void {
+export function setBoardSourcesForTests(list: (() => Promise<Deal[]>) | null, audits?: AuditReader | null, rejected?: ((ids: string[]) => Promise<Set<string>>) | null): void {
+  if (rejected !== undefined) rejectedReader = rejected || (async () => new Set());
   listDeals = list || (() => dealStore().list());
   if (audits !== undefined) auditReader = audits || (async () => ({}));
 }
@@ -60,8 +74,8 @@ pipelineRouter.get("/", async (req: Request, res: Response) => {
   try {
     const deals = await listDeals();
     const ids = Array.from(new Set(deals.map((d) => d.prospect_id).filter(Boolean) as string[]));
-    const audits = await auditReader(ids).catch(() => ({}));
-    res.status(200).type("html").send(renderBoard(deals, { now: new Date(), email, audits }));
+    const [audits, rejected] = await Promise.all([auditReader(ids).catch(() => ({})), rejectedReader(ids).catch(() => new Set<string>())]);
+    res.status(200).type("html").send(renderBoard(deals, { now: new Date(), email, audits, rejected }));
   } catch (err) {
     console.error("[Pipeline] board failed:", (err as Error).message);
     res.status(503).type("html").send(loginPage("The pipeline could not be read just now. Refresh in a minute."));
@@ -84,11 +98,31 @@ pipelineRouter.get("/live", async (req: Request, res: Response) => {
   }
   try {
     const view = await liveLoader();
-    res.status(200).type("html").send(part ? renderLiveMain(view) : renderLivePage(view, email));
+    const now = new Date();
+    res.status(200).type("html").send(part ? renderOverviewMain(view, now) : renderOverviewPage(view, email, now));
   } catch (err) {
     console.error("[Pipeline] live view failed:", (err as Error).message);
     if (part) res.status(503).end();
     else res.status(503).type("html").send(loginPage("The live view could not be read just now. Refresh in a minute."));
+  }
+});
+
+pipelineRouter.get("/outreach", async (req: Request, res: Response) => {
+  noStore(res);
+  const email = signedIn(req);
+  const part = req.query.part === "main";
+  if (!email) {
+    if (part) res.status(401).end();
+    else res.status(200).type("html").send(loginPage());
+    return;
+  }
+  try {
+    const view = await liveLoader();
+    res.status(200).type("html").send(part ? renderOutreachMain(view) : renderOutreachPage(view, email));
+  } catch (err) {
+    console.error("[Pipeline] outreach view failed:", (err as Error).message);
+    if (part) res.status(503).end();
+    else res.status(503).type("html").send(loginPage("Outreach could not be read just now. Refresh in a minute."));
   }
 });
 

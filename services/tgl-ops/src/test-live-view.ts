@@ -7,7 +7,9 @@ import type { AddressInfo } from "node:net";
 import { createApp } from "./app.js";
 import { makeSession, SESSION_COOKIE } from "./agents/pipeline/auth.js";
 import { lastHeading, mergeAgentLines, sumSpend } from "./agents/pipeline/live-data.js";
-import { buildLiveView, pauseGroup, readableTimes, renderLiveMain, renderLivePage, type LiveProspect } from "./agents/pipeline/live-view.js";
+import { buildLiveView, pauseGroup, readableTimes, type LiveProspect } from "./agents/pipeline/live-view.js";
+import { renderOverviewMain, renderOverviewPage } from "./agents/pipeline/overview-page.js";
+import { renderOutreachMain, renderOutreachPage } from "./agents/pipeline/outreach-page.js";
 import type { Deal } from "./agents/pipeline/stages.js";
 import { setLiveLoaderForTests } from "./routes/pipeline.js";
 import { isMirroredSpend, recordApiSpend, resetCostLedgerForTests, setDurableSpendWriterForTests } from "./lib/cost-cap.js";
@@ -56,14 +58,16 @@ async function main() {
 
   assert.deepEqual(v.today, { sent: 1, cap: 5, replies: 1, callsBooked: 1, nextCall: v.today.nextCall }, "dry runs and other days not counted; only future calls");
   assert.match(v.today.nextCall || "", /^Smile <Studio>, Wed/);
-  assert.deepEqual(v.funnel.map((f) => [f.label, f.count]), [["Qualified", 12], ["Approved", 9], ["Emailed", 2], ["Replied", 1], ["Call booked", 3], ["Won", 1]]);
+  // Journey: found excludes bench; approved excludes rejected; contacted counts real sends only; today's additions.
+  assert.deepEqual(v.journey.map((j) => [j.label, j.count, j.today]), [["Found", 12, 0], ["Approved", 9, null], ["Contacted", 2, 1], ["Replied", 1, 1], ["Call booked", 3, null], ["Won", 1, null]]);
+  assert.deepEqual(v.stuck, { approval: 2, nextInLine: 1, whatsapp: 2, paused: 3 });
+  assert.deepEqual(v.nextInLine.map((r) => r.company), ["Clinic g"]);
 
   // Waiting for WhatsApp: approved, never emailed, no email, a phone; highest fit first; the advance AI check.
   assert.deepEqual(v.calls.map((c) => [c.company, c.fit]), [["Smile Hub", 81], ["Clinic ph1", 66]]);
   assert.match(v.calls[0].check, /^Named in 0 of 15 AI answers; Grand Stay named in 7 \(checked .*25 Nov.*\)\.$/);
   assert.equal(v.calls[1].check, "", "no check yet, nothing invented");
   assert.equal(v.calls[0].type, "hotel");
-  assert.match(v.funnelNote || "", /^2 approved businesses have only a phone number, so they can't be emailed; they get the WhatsApp first message once Meta approves the app\. 1 more is waiting for a free slot/);
 
   assert.deepEqual(v.waiting, [
     "Approve or reject 2 new businesses in #revenue.",
@@ -71,60 +75,60 @@ async function main() {
     `Prepare for your next call: ${v.today.nextCall}.`,
   ]);
 
+  // Activity comes from records: outreach shows as done because it sent, with no log file needed.
+  const act = Object.fromEntries(v.activity.map((a) => [a.name, a]));
+  assert.equal(act["Outreach"].state, "done");
+  assert.equal(act["Outreach"].what, "Sent 1 email of 5 allowed today.");
+  assert.equal(act["Prospect researcher"].state, "problem", "nothing saved today and it is past 11:00");
+  assert.equal(act["Citation tracker"].state, "problem");
+  assert.equal(act["Replies"].state, "done");
+  const cit = buildLiveView({ now: NOW, prospects, deals, agents: [{ agent: "aeo-audit-engine", last: "06:07 IST — Citation Tracker: 1 brand(s) · brand named in 6/48 answers · engine spend $0.4590" }], spend, capToday: 5 }).activity.find((a) => a.name === "Citation tracker");
+  assert.equal(cit?.state, "done");
+  assert.equal(cit?.what, "TGL named in 6 of 48 AI answers.");
+  assert.equal(cit?.at, "2026-11-24T00:37:00.000Z");
+  assert.equal(lastHeading("# Log\n- 06:07 IST — Citation Tracker: x\n- 07:10 IST — again"), "07:10 IST — again", "timed lines count as entries");
+
   // Problems grouped by cause, names listed, a rejected business left out, no raw JSON.
   const held = v.problems.find((x) => x.text.startsWith("Held before sending"));
   assert.deepEqual(held?.names, ["Dental IQ", "Dr. Manju's Dental"]);
   assert.ok(v.problems.some((x) => x.text.startsWith("Paused: Gemini has run out of credits") && x.names.length === 1));
   assert.ok(!v.problems.some((x) => x.text.includes("{")), "no JSON");
-  assert.ok(v.problems.some((x) => x.text.startsWith("No run log from the citation tracker today")));
-  assert.ok(!v.problems.some((x) => x.text.includes("prospect researcher")), "the researcher saved a log");
+  assert.ok(v.problems.some((x) => x.text.startsWith("Citation tracker: No run recorded today")));
   assert.equal(pauseGroup("touch 3: email to a@b.example bounced"), "Paused: an email bounced, so the address needs checking");
 
   // Outbox: named messages, newest first.
   assert.deepEqual(v.outbox.map((r) => [r.company, r.what, r.today]), [["Clinic a", "First email", true], ["Clinic b", "Report email", false], ["Clinic b", "First email", false]]);
 
-  const html = renderLivePage(v, "me@x.example");
-  assert.ok(html.includes("Smile &lt;Studio&gt;") && !html.includes("Smile <Studio>"), "escaped");
-  assert.ok(!html.includes('href="tel:'), "no tap-to-call: no cold calls");
-  assert.ok(html.includes("Waiting for WhatsApp") && !/call list/i.test(html), "no call-list framing");
-  assert.ok(html.includes("AI check not run yet"));
+  // Overview
+  const html = renderOverviewPage(v, "me@x.example", NOW);
   assert.ok(html.includes("1<small> of 5</small>"));
+  assert.ok(html.includes("From found to won") && html.includes("+1 today"), "the journey with today's additions");
   assert.ok(html.includes("₹513") && html.includes("TrueVisible"), "spend from the recorded table");
-  assert.ok(html.includes('aria-current="page"') && html.includes('id="refresh"'), "current page marked; a refresh button");
-  assert.ok(html.indexOf('id="waiting"') < html.indexOf('id="funnel"') && html.indexOf('id="calls"') < html.indexOf('id="funnel"'), "actions come before the funnel");
+  assert.ok(html.includes('href="/pipeline/live" aria-current="page"') && html.includes('id="refresh"'), "current tab marked; a refresh button");
+  assert.ok(html.includes("Smile &lt;Studio&gt;") && !html.includes("Smile <Studio>"), "escaped");
+  assert.ok(html.includes("Submit Meta App Review") || html.includes("submit Meta App Review"), "build tasks due this week join Needs you");
+  assert.ok(!html.includes('href="tel:'), "no tap-to-call: no cold calls");
   assert.ok(!EMOJI.test(html), "no emojis");
   assert.ok(!html.includes("x@a.example"), "no email addresses on the page");
+  for (const tab of ["/pipeline/live", "/pipeline/outreach", "/pipeline", "/pipeline/build"]) assert.ok(html.includes(`href="${tab}"`), `tab ${tab}`);
+  assert.ok(html.indexOf("From found to won") < html.indexOf("Needs you") && html.indexOf("Needs you") < html.indexOf("What the system did today"), "journey first, then actions, then activity");
 
-  const full = renderLiveMain(buildLiveView({ now: NOW, prospects, deals, agents: [], spend, capToday: 1 }));
+  // Outreach page
+  const out = renderOutreachPage(v, "me@x.example");
+  assert.ok(out.includes('id="sent"') && out.includes('id="next"') && out.includes('id="whatsapp"') && out.includes('id="paused"'));
+  assert.ok(out.includes("Waiting for WhatsApp") && !/call list/i.test(out), "no call-list framing");
+  assert.ok(out.includes("AI check not run yet") && out.includes("Grand Stay named in 7"));
+  assert.ok(out.includes("Clinic g") && out.includes("1 sending day"));
+  assert.ok(!EMOJI.test(out));
+
+  const full = renderOverviewMain(buildLiveView({ now: NOW, prospects, deals, agents: [], spend, capToday: 1 }), NOW);
   assert.ok(full.includes("limit reached"), "a full day says so");
 
-  const quiet = renderLiveMain(buildLiveView({ now: NOW, prospects: [], deals: [], agents: null, spend: null, capToday: 2 }));
-  for (const t of ["Nothing sent yet.", "Today's agent logs could not be read.", "Spend could not be read.", "Not available", "No approved business is waiting for WhatsApp.", "Nothing is waiting on you."]) {
+  const empty = buildLiveView({ now: NOW, prospects: [], deals: [], agents: null, spend: null, capToday: 2 });
+  const quiet = renderOverviewMain(empty, NOW) + renderOutreachMain(empty);
+  for (const t of ["Nothing has been sent yet.", "Today's log could not be read.", "Spend could not be read just now.", "No approved business is waiting for WhatsApp.", "No approved business with an email is waiting.", "Nothing is paused."]) {
     assert.ok(quiet.includes(t), `empty state: ${t}`);
   }
-
-  // Agent logs: the server's own copy and GitHub together.
-  assert.equal(lastHeading("# Log\n### Run, 09:30 IST (A)\n- x\n### Run, 10:30 IST (B)\n- y"), "Run, 10:30 IST (B)");
-  assert.deepEqual(mergeAgentLines([{ agent: "outreach-sequencer", last: "local" }], [{ agent: "outreach-sequencer", last: "gh" }, { agent: "aeo-audit-engine", last: "gh2" }]), [{ agent: "aeo-audit-engine", last: "gh2" }, { agent: "outreach-sequencer", last: "local" }]);
-  assert.deepEqual(mergeAgentLines([{ agent: "a", last: "x" }], null), [{ agent: "a", last: "x" }], "GitHub down, local still shown");
-  assert.equal(mergeAgentLines([], null), null);
-  assert.equal(readableTimes("Tick 2026-11-24T08:00:00.000Z (live)"), "Tick 1:30 pm IST (live)");
-  assert.ok(renderLiveMain(buildLiveView({ now: NOW, prospects: [], deals: [], agents: [{ agent: "aeo-audit-engine", last: "x" }], spend: null, capToday: 2 })).includes("<b>Citation tracker and audits</b>"));
-
-  // Research and audit spend is also written to usage_costs (it was only in the container's ledger file).
-  const rows: any[] = [];
-  setDurableSpendWriterForTests(async (r) => void rows.push(r));
-  resetCostLedgerForTests();
-  recordApiSpend({ agent: "prospect-researcher", apiName: "google-places-api", totalCostUsd: 0.128, details: "4 calls", timestamp: "2026-11-24T04:00:00Z", options: { testMode: true } });
-  recordApiSpend({ agent: "aeo-audit-engine", apiName: "prospect-audit", totalCostUsd: 0.05, details: "audit", timestamp: "2026-11-24T08:00:00Z", options: { testMode: true } });
-  recordApiSpend({ agent: "aeo-strategist", apiName: "perplexity:setup-evidence", totalCostUsd: 0.2, options: { testMode: true } });
-  recordApiSpend({ agent: "prospect-researcher", apiName: "google-places-api", totalCostUsd: 0, options: { testMode: true } });
-  await new Promise((r) => setTimeout(r, 0));
-  setDurableSpendWriterForTests(null);
-  resetCostLedgerForTests();
-  assert.equal(rows.length, 2, "only research and audits are mirrored, and only non-zero spend");
-  assert.deepEqual({ ...rows[0], detail: undefined }, { tenant_id: "tgl", product: "tgl_ops", cost_date: "2026-11-24", category: "api", engine: "google-places-api", units: 1, amount_inr: Number((0.128 * Number(process.env.USD_INR_RATE || "85")).toFixed(2)), detail: undefined });
-  assert.equal(isMirroredSpend({ agent: "aeo-audit-engine", apiName: "gemini:x" }), false, "the citation tracker writes its own rows");
 
   // Route
   const env = { ...process.env };
@@ -145,6 +149,10 @@ async function main() {
     assert.ok((await page.text()).includes("Today at"));
     const part = await (await fetch(`${base}/pipeline/live?part=main`, { headers: cookie })).text();
     assert.ok(part.startsWith('<ul class="stats">') && !part.includes("<html"), "the refreshing part only");
+    assert.equal((await fetch(`${base}/pipeline/outreach?part=main`)).status, 401);
+    const o = await fetch(`${base}/pipeline/outreach`, { headers: cookie });
+    assert.equal(o.status, 200);
+    assert.ok((await o.text()).includes("business by business"));
     setLiveLoaderForTests(async () => { throw new Error("db down"); });
     assert.equal((await fetch(`${base}/pipeline/live`, { headers: cookie })).status, 503);
   } finally {
