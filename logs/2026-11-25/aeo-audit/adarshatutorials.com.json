@@ -1,0 +1,915 @@
+{
+  "brand": {
+    "name": "Adarsha Tutorials/JEE/NEET TUTORIALS",
+    "primaryDomain": "adarshatutorials.com",
+    "domains": [
+      "adarshatutorials.com"
+    ],
+    "variants": [
+      "Adarsha Tutorials/JEE/NEET TUTORIALS",
+      "adarshatutorials"
+    ],
+    "setupStatus": "prospect_unverified"
+  },
+  "auditedAt": "2026-11-25T04:00:18.015Z",
+  "promptsCount": 5,
+  "enginesCount": 3,
+  "totalQueries": 15,
+  "summary": {
+    "totalMentions": 0,
+    "visibilityScorePercent": 0,
+    "mentionsByEngine": {
+      "chatgpt": 0,
+      "gemini": 0,
+      "perplexity": 0
+    },
+    "competitorMentions": {
+      "Allen Career Institute": 5,
+      "PACE IIT & Medical": 5,
+      "Aakash Institute": 5,
+      "FIITJEE": 5,
+      "IMS Learning Resources": 2,
+      "T.I.M.E": 5,
+      "Career Launcher": 6,
+      "CATKing": 2,
+      "J.K. Shah Classes": 5,
+      "Ednovate": 4,
+      "The Unique Academy": 4,
+      "Chahal Academy": 2,
+      "Aakar Foundation / Paradigm IAS Academy": 1,
+      "LegalEdge": 1,
+      "LST": 2,
+      "IMS / Career Launcher": 2,
+      "A.A. Shah’s IAS Institute": 1,
+      "Jamboree Education": 2,
+      "Beyond Prep IIT & Medical": 1,
+      "Excel Academy": 1,
+      "Vidyalankar Classes": 2,
+      "CATKing Educare": 1,
+      "Chahal Academy / Dhyeya IAS": 2,
+      "IMS / CrackVerbal": 1,
+      "Kalrashukla Classes": 1,
+      "Chanakya IAS Academy": 1,
+      "Dronacharya IAS Academy": 1,
+      "Mahesh Tutorials": 1,
+      "Sinhal Classes": 1,
+      "Resonance": 1,
+      "State Institute for Administrative Careers": 1,
+      "IMS Law Prep / LegalEdge": 1
+    },
+    "citationDomains": {
+      "synergyacademy.co.in": 1,
+      "aadityaparmar.in": 2,
+      "justdial.com": 5,
+      "careerlauncher.com": 2,
+      "collegedunia.com": 5,
+      "imsindia.com": 1,
+      "merithub.com": 1,
+      "aakash.ac.in": 1,
+      "gokalki.com": 1,
+      "shiksha.com": 1,
+      "engineering.careers360.com": 1,
+      "iasbabuji.com": 1,
+      "collegedekho.com": 1,
+      "engvarta.com": 1,
+      "coachingrank.in": 1,
+      "threebestrated.in": 1,
+      "arihantacademy.com": 1,
+      "academycheck.com": 1
+    },
+    "totalCostUsd": 0.0726,
+    "totalCostInr": 6.73
+  },
+  "nextSteps": {
+    "weakestEngine": "ChatGPT",
+    "weakestEngineMentions": 0,
+    "zeroMentionEngines": [
+      "ChatGPT",
+      "Gemini",
+      "Perplexity"
+    ],
+    "queriesLost": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "weakestQueries": [
+      1,
+      2
+    ],
+    "winningCompetitor": "Career Launcher",
+    "winningCompetitorCount": 6,
+    "topCitationGap": "justdial.com",
+    "formattedText": "Adarsha Tutorials/JEE/NEET TUTORIALS was named in 0 of 15 answers (0%). ChatGPT, Gemini and Perplexity did not name Adarsha Tutorials/JEE/NEET TUTORIALS in any of the 5 questions. Career Launcher was named most often instead, in 6 of 15 answers. The questions where Adarsha Tutorials/JEE/NEET TUTORIALS did worst: \"Best coaching institute in Mumbai\" (0 of 3 assistants named Adarsha Tutorials/JEE/NEET TUTORIALS); \"Top coaching institute near me in Mumbai\" (0 of 3 assistants named Adarsha Tutorials/JEE/NEET TUTORIALS)."
+  },
+  "matrix": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best coaching institute in Mumbai",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one best coaching institute for every student—it depends on the exam or subject . For a quick shortlist: - JEE/NEET..."
+      }
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top coaching institute near me in Mumbai",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "The best choice depends on what you’re preparing for—“coaching institute” can mean school tuition, JEE/NEET, or competitive exa..."
+      }
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which coaching institute in Mumbai has the best reviews and results",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one “best” coaching institute across Mumbai—the right choice depends on the exam and subject. For JEE, ALLEN Mumbai..."
+      }
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a coaching institute cost in Mumbai and which one is worth it",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "The cost depends mainly on what you’re studying . As a rough guide in Mumbai, school tuition is about ₹2,500–₹6,000 per subject..."
+      }
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which coaching institute in Mumbai should I trust",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one Mumbai coaching institute I’d recommend for everyone—the right choice depends on the exam or subject, your area..."
+      }
+    }
+  ],
+  "rawAnswers": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best coaching institute in Mumbai",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "Which exam or goal—**JEE, NEET, UPSC, CAT, MPSC, or something else**—and which part of Mumbai? The best institute depends a lot on that.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [],
+      "costUsd": 0.000513
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best coaching institute in Mumbai",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because Mumbai is a major educational hub, the \"best\" coaching institute depends entirely on the **exam or stream** you are preparing for. \n\nHere is a breakdown of the top-rated coaching institutes in Mumbai categorized by exam type:\n\n---\n\n### 1. Engineering (IIT-JEE) & Medical (NEET)\n* **Allen Career Institute:** Widely recognized for rigorous testing systems and consistent top ranks in both JEE Advanced and NEET. Major centers are located in Andheri, Thane, Borivali, and Nerul.\n* **PACE IIT & Medical:** One of the most established home-grown institutes in Mumbai with integrated tie-ups with multiple junior colleges.\n* **Aakash Institute:** Especially dominant for **NEET/Medical** preparation with strong test series and faculty, alongside JEE batches.\n* **FIITJEE:** Highly regarded for advanced-level problem-solving and mathematics in JEE Advanced.\n\n---\n\n### 2. Management & MBA Entrance (CAT, XAT, NMAT, MAH-CET)\n* **IMS Learning Resources:** Headquartered in Mumbai, IMS has an extensive network across the city (Churchgate, Dadar, Andheri, Thane, Vashi). Known for comprehensive study material and the popular SimCAT mock series.\n* **T.I.M.E. (Triumphant Institute of Management Education):** Excellent for the AIMCAT test series, quant preparation, and GD/PI training.\n* **Career Launcher (CL):** Strong faculty mentoring, structured test series, and good focus on non-CAT exams (XAT, SNAP, NMAT).\n* **CatKing:** Popular in Mumbai for targeted strategy workshops, profile-building, and MAH-MBA CET preparation.\n\n---\n\n### 3. Chartered Accountancy (CA Foundation / Inter / Final) & Commerce\n* **J.K. Shah Classes:** The undisputed leader in Mumbai for commerce and CA coaching, with centers spread across almost every major suburban station.\n* **Ednovate:** A prominent institute founded by leading CA educators, known for modern infrastructure, conceptual clarity, and hybrid learning options.\n\n---\n\n### 4. Civil Services (UPSC & MPSC)\n* **The Unique Academy:** One of Maharashtra’s most reputed institutes for both UPSC and MPSC preparation, with a key branch in Dadar.\n* **Chahal Academy:** Known for small batch sizes, personalized mentorship, and foundation courses for working professionals and college students.\n* **Aakar Foundation / Paradigm IAS Academy:** Good options for students specifically targeting Maharashtra state services (MPSC) alongside UPSC.\n* *Note:* Many Mumbai UPSC aspirants also opt for online live batches from Delhi-based institutes like Vajiram & Ravi or Next IAS while studying from reading rooms in Dadar or Navi Mumbai.\n\n---\n\n### 5. Law Entrance (CLAT, AILET, MH-CET Law)\n* **LegalEdge:** Considered a top choice nationwide for CLAT with exhaustive mocks and sectional tests.\n* **IMS / Career Launcher (LST):** Both have long-running, structured classroom programs in Mumbai specifically designed for high-school students targeting National Law Universities (NLUs) and GLC Mumbai.\n\n---\n\n### Key Coaching Hubs in Mumbai\nMost top institutes are clustered around well-connected railway stations to reduce travel time:\n* **Western Suburbs:** Andheri (West/East), Borivali (West), Vile Parle\n* **Central Suburbs:** Dadar, Ghatkopar, Thane\n* **Navi Mumbai:** Vashi, Nerul\n\n---\n\n### Tips Before Enrolling:\n1. **Commute Time:** In Mumbai, long travel times can drain your study energy. Always prioritize a center that is within 30–45 minutes of your residence or college.\n2. **Batch Size & Faculty Stability:** Ask current students whether the faculty assigned at the demo stage actually takes the full year's classes.\n3. **Doubt-Solving Support:** Ensure the center has dedicated offline doubt-clearing counters or faculty hours rather than app-only support.\n\n*(If you are preparing for a specific exam or looking in a particular locality like Dadar, Andheri, or Thane, let me know for a more targeted recommendation!)*",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Allen Career Institute",
+          "PACE IIT & Medical",
+          "Aakash Institute",
+          "FIITJEE",
+          "IMS Learning Resources",
+          "T.I.M.E",
+          "Career Launcher",
+          "CATKing",
+          "J.K. Shah Classes",
+          "Ednovate",
+          "The Unique Academy",
+          "Chahal Academy",
+          "Aakar Foundation / Paradigm IAS Academy",
+          "LegalEdge",
+          "LST",
+          "IMS / Career Launcher"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.006319
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best coaching institute in Mumbai",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one best coaching institute for every student—it depends on the **exam or subject**. For a quick shortlist:\n\n- **JEE/NEET:** Aakash has multiple Mumbai branches, including Andheri, Borivali, and Dadar; compare the specific branch’s faculty, batch size, and recent results before enrolling.[10]\n- **CAT, CLAT, IPMAT, or other entrance tests:** IMS offers preparation for these exams in Mumbai.[6]\n- **School subjects or general tutoring:** Options vary widely by neighborhood and curriculum; directory listings include local tutors and institutes, but ratings alone aren’t enough to judge teaching quality.[3][9]\n\nTell me the **exam/class, subject, and your Mumbai area**, and I can narrow it down.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "synergyacademy.co.in",
+          "url": "https://www.synergyacademy.co.in/course",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "aadityaparmar.in",
+          "url": "https://aadityaparmar.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Coaching-Centres/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "careerlauncher.com",
+          "url": "https://www.careerlauncher.com/coaching-centers/mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/mumbai-institutes/page-3",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "imsindia.com",
+          "url": "https://www.imsindia.com/center/mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Coaching-Institutes/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "merithub.com",
+          "url": "https://merithub.com/coaching/coaching-centers-in-mumbai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Tutorials/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "aakash.ac.in",
+          "url": "https://www.aakash.ac.in/mumbai-city",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00236
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top coaching institute near me in Mumbai",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "What are you looking to study—JEE, NEET, UPSC/MPSC, CA, or something else? And which Mumbai area should I search near (for example, Andheri, Dadar, Thane, or Navi Mumbai)?",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [],
+      "costUsd": 0.000603
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top coaching institute near me in Mumbai",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because Mumbai is home to hundreds of coaching centers specializing in different fields, the “best” institute depends on the specific exam or subject you are preparing for. \n\nThe top, most reputable coaching institutes across Mumbai are categorized below by stream, along with their key hubs:\n\n---\n\n### 1. Engineering & Medical Entrance (IIT-JEE, NEET, MHT-CET)\n* **Allen Career Institute:** Widely considered the current leader for NEET and JEE.  \n  * *Key Locations:* Andheri, Borivali, Thane, Nerul, Kharghar, Chembur.\n* **PACE IIT & Medical:** A premier Mumbai-origin institute known for producing top ranks in JEE Advanced and NEET.  \n  * *Key Locations:* Andheri (W), Dadar, Borivali, Powai, Thane.\n* **Aakash Institute:** Top choice especially for medical (NEET) aspirants, with strong foundation batches (classes 8–10).  \n  * *Key Locations:* Andheri, Borivali, Dadar, Ghatkopar, Thane, Vashi.\n* **FIITJEE:** Known for rigorous JEE Advanced preparation.  \n  * *Key Locations:* Andheri, Chembur, Navi Mumbai, Thane.\n\n---\n\n### 2. MBA Entrance Exams (CAT, XAT, NMAT, SNAP, MAH-CET)\n* **IMS:** One of the oldest and most trusted MBA prep institutes in Mumbai, with comprehensive study material and mentorship.  \n  * *Key Locations:* Churchgate, Dadar, Andheri, Borivali, Thane, Vashi.\n* **T.I.M.E. (Triumphant Institute of Management Education):** Strong faculty and test series for CAT and OMETs.  \n  * *Key Locations:* Andheri, Dadar, Borivali, Thane, Vashi.\n* **Career Launcher:** Reputed for CAT percentiles, personalized GD-PI training, and CLAT prep.  \n  * *Key Locations:* Andheri, Borivali, Dadar.\n* **CATKing:** Highly popular in Mumbai for modern mentorship, workshops, and non-CAT exams.  \n  * *Key Locations:* Powai, Andheri, Borivali.\n\n---\n\n### 3. Civil Services (UPSC / MPSC)\n* **The Unique Academy:** A leading institute in Maharashtra for both UPSC and MPSC prep.  \n  * *Key Locations:* Dadar, Thane.\n* **Chahal Academy:** Consistently rated well for foundation courses and personal mentoring in Mumbai.  \n  * *Key Locations:* Dadar, Borivali.\n* **A.A. Shah’s IAS Institute:** One of Mumbai’s oldest dedicated civil service preparation academies.  \n  * *Key Locations:* Fort (CSMT), Dadar.\n\n---\n\n### 4. Commerce & Chartered Accountancy (CA Foundation / Inter / Final)\n* **J.K. Shah Classes:** The undisputed leader in Mumbai for CA, CS, and CMA coaching.  \n  * *Key Locations:* Charni Road, Dadar, Andheri, Borivali, Ghatkopar, Mulund, Thane.\n* **Ednovate:** A newer, high-tech alternative to traditional CA coaching with strong faculty.  \n  * *Key Locations:* Andheri, Borivali, Ghatkopar, Dadar.\n\n---\n\n### 5. Study Abroad & Global Tests (GRE, GMAT, SAT, IELTS, TOEFL)\n* **Jamboree Education:** Renowned for high-scoring GMAT/GRE prep and university admissions consulting.  \n  * *Key Locations:* Andheri, Dadar.\n* **IMS / Career Launcher (Study Abroad Divisions):** Excellent test prep and end-to-end profile building.\n\n---\n\n### Major Coaching Hubs in Mumbai\nIf you prefer attending classes in a centralized education zone:\n* **Western Suburbs:** **Andheri (West)** (near the station/SV Road) and **Borivali (West)** have the highest concentration of coaching institutes.\n* **Central / South Mumbai:** **Dadar** (East & West) is the primary hub, well-connected by both Central and Western railway lines.\n* **Navi Mumbai & Thane:** **Vashi (Sector 17)** and **Thane (West, Gokhale Road / Station area)**.\n\n***\n\n**To get a precise recommendation:**\nPlease share:\n1. **Which exam/course** you are targeting (e.g., JEE, CAT, UPSC, CA, Class 10/12 Boards).\n2. **Your preferred location or suburban line** (e.g., Western, Central, Harbour, Navi Mumbai).",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Allen Career Institute",
+          "PACE IIT & Medical",
+          "Aakash Institute",
+          "FIITJEE",
+          "T.I.M.E",
+          "Career Launcher",
+          "CATKing",
+          "The Unique Academy",
+          "Chahal Academy",
+          "A.A. Shah’s IAS Institute",
+          "J.K. Shah Classes",
+          "Ednovate",
+          "Jamboree Education",
+          "IMS / Career Launcher"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.006921
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top coaching institute near me in Mumbai",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "The best choice depends on what you’re preparing for—“coaching institute” can mean school tuition, JEE/NEET, or competitive exams. In Mumbai, **Beyond Prep IIT & Medical** in Kandivali East is listed for JEE/NEET, while **Excel Academy** in Andheri West appears in a 2026 Mumbai coaching-institute ranking.[1][7]\n\nTell me your **Mumbai neighbourhood** and **course or exam** (for example, Class 10, JEE, NEET, UPSC, or CA), and I can narrow it down to nearby options.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Beyond Prep IIT & Medical",
+          "Excel Academy"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/mumbai-institutes",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Coaching-Centres/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Coaching-Centers/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Institutes/nct-10268288?",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Training-Centres/nct-11003170",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/mumbai-institutes/page-3",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Coaching/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/mumbai-institutes/page-13",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/mumbai-institutes/page-9",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Tutorials/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00206
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which coaching institute in Mumbai has the best reviews and results",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "“Best” depends heavily on the exam—an institute with strong JEE results may not be a good choice for UPSC or CAT. **Which exam or course are you looking for** (for example, JEE, NEET, UPSC, CAT, or CA), and which part of Mumbai is convenient?",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [],
+      "costUsd": 0.00055
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which coaching institute in Mumbai has the best reviews and results",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because \"coaching institutes\" cater to vastly different streams, the best institute depends heavily on the specific exam or career path you are targeting. \n\nBelow is a breakdown of the highest-rated and most reputable coaching institutes in Mumbai categorized by exam, based on consistent track records, student reviews, and overall results:\n\n---\n\n### 1. Engineering Entrance (IIT-JEE / MHT-CET)\n* **Allen Career Institute:** \n  * **Locations:** Andheri, Borivali, Dadar, Thane, Nerul, etc.\n  * **Reputation & Results:** Currently one of the dominant names in Mumbai. Allen has consistently produced top 100 All India Ranks (AIR) in both JEE Main and Advanced. Known for rigorous testing, structured study material, and strong faculty discipline.\n* **PACE IIT & Medical:**\n  * **Locations:** Andheri, Dadar, Borivali, Powai, Thane.\n  * **Reputation & Results:** PACE has a long-standing history in Mumbai with tie-ups across several top junior colleges (integrated programs). They produce strong Mumbai toppers, though review quality can vary significantly by center.\n* **Vidyalankar Classes:**\n  * **Locations:** Dadar, Chembur, Borivali, Thane, Dombivli, etc.\n  * **Reputation & Results:** A household name in Mumbai, especially renowned for **MHT-CET** and engineering diploma/degree coaching. Excellent student support and strong local results.\n\n---\n\n### 2. Medical Entrance (NEET)\n* **Allen Career Institute:**\n  * Top choice for NEET in Mumbai in recent years, producing several top rankers entering AIIMS and top state medical colleges (KEM, GSMC).\n* **Aakash Institute:**\n  * **Locations:** Andheri, Dadar, Borivali, Thane, Vashi, etc.\n  * **Reputation & Results:** Highly specialized in medical entrance exams. Known for high-quality test series (AIATS), comprehensive biology/chemistry modules, and consistent selections across Mumbai centers.\n\n---\n\n### 3. Management Entrance (CAT / MBA CET / XAT)\n* **IMS Learning Resources:**\n  * **Locations:** Churchgate, Andheri, Dadar, Borivali, Thane, Vashi.\n  * **Reputation & Results:** Founded in Mumbai, IMS is widely regarded as one of the best for CAT and MBA CET. Known for its realistic mock tests (SimCATs), excellent GD-PI mentoring, and experienced local faculty.\n* **T.I.M.E. (Triumphant Institute of Management Education):**\n  * **Locations:** Vile Parle, Dadar, Andheri, Thane.\n  * **Reputation & Results:** Outstanding national repute, especially for quantitative aptitude training and the AIMCAT test series.\n* **CATKing Educare:**\n  * **Locations:** Andheri, Powai, Churchgate.\n  * **Reputation & Results:** Very popular among Mumbai students for personalized mentoring, profile-building sessions, and strong digital/offline hybrid support.\n\n---\n\n### 4. Commerce & Chartered Accountancy (CA / CS / CMA)\n* **J.K. Shah Classes:**\n  * **Locations:** Andheri, Dadar, Borivali, Ghatkopar, Mulund, Thane, Charni Road.\n  * **Reputation & Results:** Undisputed market leader in Mumbai for CA (Foundation, Inter, and Final). Known for producing multiple All India Rank 1 holders year after year. \n\n---\n\n### 5. Civil Services (UPSC / MPSC)\n* **The Unique Academy:**\n  * **Locations:** Dadar, Thane.\n  * **Reputation & Results:** One of the most reliable institutes in Maharashtra for both UPSC (IAS/IPS) and MPSC. Known for comprehensive coverage, GS test series, and optional subject coaching.\n* **Chahal Academy / Dhyeya IAS:**\n  * **Locations:** Borivali, Dadar, Navi Mumbai.\n  * **Reputation & Results:** Popular for UPSC preparation with smaller batch sizes and personalized mentorship.\n\n---\n\n### 6. Study Abroad (GRE / GMAT / SAT / IELTS)\n* **Jamboree Education:**\n  * **Locations:** Andheri, Dadar.\n  * **Reputation & Results:** Highly rated for high-percentile GRE/GMAT prep and end-to-end admissions consulting.\n* **IMS / CrackVerbal:**\n  * Strong track record for verbal and quantitative score improvements.\n\n---\n\n### Tips Before Enrolling:\n1. **Visit the Specific Branch:** In large national chains (like Allen, Aakash, or FIITJEE), faculty quality and management can vary between the Dadar, Andheri, or Thane centers.\n2. **Batch Size:** Confirm whether the batch has 30 students or 100+ students.\n3. **Ask for Demo Lectures:** Most reputable institutes in Mumbai will offer 1–2 trial or demo sessions before payment.\n\n***\n\n*If you are preparing for a specific exam or have a preferred location in Mumbai (Western, Central, or Navi Mumbai), share the details to get more targeted recommendations.*",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Allen Career Institute",
+          "PACE IIT & Medical",
+          "Vidyalankar Classes",
+          "Aakash Institute",
+          "IMS Learning Resources",
+          "T.I.M.E",
+          "CATKing Educare",
+          "J.K. Shah Classes",
+          "The Unique Academy",
+          "Chahal Academy / Dhyeya IAS",
+          "Jamboree Education",
+          "IMS / CrackVerbal",
+          "FIITJEE"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.007243
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which coaching institute in Mumbai has the best reviews and results",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one “best” coaching institute across Mumbai—the right choice depends on the exam and subject. **For JEE, ALLEN Mumbai looks like a strong results-led option:** a 2026 comparison reports its students earned JEE Advanced AIR 216, with six in the top 500 and 15 in the top 1,000; it also lists JEE Main top performers.[8]\n\nFor **reviews**, ratings vary by branch and directory: Justdial lists Antech Coaching Institute at 4.9/5 from 145 reviews, while some local tutorials have similarly high ratings.[5] Reviews alone don’t establish exam outcomes, so ask each centre for **recent, verifiable results from its own Mumbai branch**, plus the faculty assigned to your batch, class size, fees, and a trial class. Which exam are you preparing for—JEE, NEET, UPSC, MHT-CET, or something else?",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "gokalki.com",
+          "url": "https://gokalki.com/for/coaching-centres/mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Aakash-Institute/nct-11988476?stype=category_list",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Tutorials/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Tutorials-For-UGC-Net-Exam/nct-11239009",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Coaching-Centres/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Training-Centres/nct-11003170",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Fiitjee-Coaching-Centres/nct-11216685",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/jee-main-institutes-in-mumbai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/mumbai-institutes/page-3",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Tutorials-For-Ssc-Cgl/nct-11238853",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00293
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a coaching institute cost in Mumbai and which one is worth it",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "It depends a lot on **which exam or course** you mean. As a rough guide for Mumbai:\n\n- **JEE/NEET:** Published listings show roughly **₹2.4–₹4.4 lakh for some two-year classroom courses**; the exact price depends on the branch, batch and course package. ([collegedunia.com](https://collegedunia.com/coaching/jee-main-institutes-in-mumbai?utm_source=openai))  \n- **CAT:** Around **₹30,000–₹75,000** for a full course, based on reported Mumbai fees; mock-test-only options cost less. ([shiksha.com](https://www.shiksha.com/mba/articles/cat-coaching-institutes-in-mumbai-blogId-236375?utm_source=openai))  \n\n**Which is worth it?** Don’t choose by brand or advertised results alone. Attend a demo at the **specific branch** you’d travel to, check who actually teaches your batch, how doubts are handled, class size, mock tests and the full fee/refund terms. For CAT, IMS, T.I.M.E. and Career Launcher are reasonable options to compare—not a guaranteed ranking. For JEE/NEET, compare the actual local branches and teachers rather than just the institute name.\n\nTell me **what you’re preparing for** and which part of Mumbai you’re in, and I can narrow it down.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "T.I.M.E",
+          "Career Launcher"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/jee-main-institutes-in-mumbai?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "shiksha.com",
+          "url": "https://www.shiksha.com/mba/articles/cat-coaching-institutes-in-mumbai-blogId-236375?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021768
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a coaching institute cost in Mumbai and which one is worth it",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "The cost of coaching institutes in Mumbai varies significantly depending on the **exam/course** you are targeting (JEE, NEET, CAT, CA, UPSC, or Board exams). \n\nA breakdown covers typical costs, the most reputed institutes, and what makes them “worth it.”\n\n---\n\n### 1. Engineering & Medical Entrances (JEE & NEET)\n* **Average Cost:** \n  * **2-Year Classroom Program (11th & 12th):** ₹1,80,000 – ₹4,50,000\n  * **1-Year Repeater/Dropper Batch:** ₹1,00,000 – ₹2,00,000\n* **Top Institutes in Mumbai:**\n  * **Allen Career Institute:** (Branches in Andheri, Thane, Nerul, Borivali, etc.) Currently one of the most organized setups, with disciplined test series and structured material.\n  * **PACE IIT & Medical:** A long-time Mumbai staple, especially well-integrated with junior college tie-ups (integrated schooling).\n  * **Aakash Institute:** Generally preferred more for **NEET** than JEE; strong biology/chemistry faculty.\n  * **Kalrashukla Classes:** Renowned legacy in Mumbai for 11th–12th Science and state-level entrance (MHT-CET/JEE Main).\n* **Which is worth it?**\n  * For **NEET:** **Allen** or **Aakash** are usually the safest bets due to their national-level benchmarking and question banks.\n  * For **JEE Advanced:** **Allen** or **PACE** (specifically PACE’s top batches in Andheri or Dadar). \n\n---\n\n### 2. MBA Entrances (CAT, XAT, NMAT, MAH-CET)\n* **Average Cost:** \n  * **Full Classroom Course (9–12 months):** ₹60,000 – ₹1,20,000\n  * **CET/Crash Course Only:** ₹25,000 – ₹45,000\n* **Top Institutes in Mumbai:**\n  * **IMS Learning:** Headquartered in Mumbai with deep roots here (Churchgate, Dadar, Andheri, Vashi). Exceptional mock tests (SimCAT) and strong mentorship.\n  * **TIME (Triumphant Institute of Management Education):** Extensive study material, rigorous classroom hours, and large batch sizes (AIMCAT is industry-standard).\n  * **Career Launcher (CL):** Good online-offline hybrid models, strong percentile prediction.\n* **Which is worth it?**\n  * **IMS** often edges out competitors in Mumbai due to localized student support, GDPI preparation, and the quality of their center managers/mentors.\n\n---\n\n### 3. Commerce & Chartered Accountancy (CA Foundation / Inter / Final)\n* **Average Cost:** \n  * **CA Foundation:** ₹30,000 – ₹50,000\n  * **CA Intermediate (Both Groups):** ₹70,000 – ₹1,20,000\n  * **CA Final:** ₹1,00,000 – ₹1,80,000\n* **Top Institutes in Mumbai:**\n  * **J.K. Shah Classes (JKSC):** The undisputed market leader in Mumbai for Commerce, 11th–12th, and CA.\n  * **Ednovate:** Rapidly growing competitor founded by former top faculty from JKSC, known for smaller batches and better personal attention.\n* **Which is worth it?**\n  * **J.K. Shah Classes** remains the standard due to its scale and track record, but **Ednovate** has gained strong traction if you prefer more responsive faculty interaction.\n\n---\n\n### 4. Civil Services (UPSC / MPSC)\n* **Average Cost:** \n  * **Full Foundation Course (Prelims + Mains):** ₹1,00,000 – ₹2,20,000\n* **Top Institutes in Mumbai:**\n  * **The Unique Academy** (Dadar/Thane)\n  * **Dronacharya IAS Academy**\n  * **Chanakya IAS Academy**\n* **Which is worth it?**\n  * For **UPSC**, Mumbai historically lags behind Delhi. Many students find self-study with **Delhi-based online subscriptions** (VisionIAS, NextIAS, Vajiram) more effective and cheaper than local offline centers. However, if an offline routine in Mumbai is necessary, **The Unique Academy** has the most consistent regional presence (particularly strong if also targeting MPSC).\n\n---\n\n### 5. School & Junior College (CBSE / ICSE / State Board 9th–12th)\n* **Average Cost:** ₹40,000 – ₹1,20,000 per academic year.\n* **Top Institutes:** **Mahesh Tutorials (MT Educare)**, **Sinhal Classes**, and neighborhood-specific boutique coaching.\n* **Which is worth it?**\n  * Hyper-local, boutique coaching centers run by well-known local teachers often yield better personal tracking than large corporate chains for standard board exams.\n\n---\n\n### How to Decide Which Institute is \"Worth It\" in Mumbai\n\n1. **The Commute Factor (Most Important):** \n   * Mumbai travel fatigue can ruin your preparation. Spending 90 minutes each way on the Western or Central line to reach a \"famous\" branch will drain the energy needed for self-study. A slightly less hyped center **within 20–30 minutes of your home** is almost always the better choice.\n2. **The \"Center\" Matters More Than the \"Brand\":** \n   * A coaching brand might have 15 branches in MMR, but only 2 or 3 (usually Dadar, Andheri, or Thane) get the senior \"star\" faculty. Always visit the specific branch and ask who the faculty will be for your batch.\n3. **Never Pay Full Price Upfront:** \n   * Almost all major JEE/NEET/CAT institutes run admission or scholarship tests (e.g., TALLENTEX, PACE Ace of Pace). Taking these can easily reduce tuition fees by **20% to 75%**.\n\n***\n\n*If you can share the **specific exam, board, or stream** you are preparing for—along with your **preferred location/suburb** in Mumbai—a more tailored recommendation on exact centers and faculty can be provided.*",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Allen Career Institute",
+          "PACE IIT & Medical",
+          "Aakash Institute",
+          "Kalrashukla Classes",
+          "Career Launcher",
+          "J.K. Shah Classes",
+          "Ednovate",
+          "The Unique Academy",
+          "Chanakya IAS Academy",
+          "Dronacharya IAS Academy",
+          "Mahesh Tutorials",
+          "Sinhal Classes"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.009721
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a coaching institute cost in Mumbai and which one is worth it",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "The cost depends mainly on **what you’re studying**. As a rough guide in Mumbai, school tuition is about **₹2,500–₹6,000 per subject per month**; competitive-exam coaching can range from roughly **₹80,000 to ₹3.5 lakh or more** for a longer program. Fees vary by course, branch, duration, and what’s included, so treat published figures as estimates and confirm the current fee directly.[1][2][5]\n\nFor **JEE**, **Allen** is a sensible first institute to compare: one listing gives an approximate fee of ₹1.89 lakh, while another reports an average around ₹1.54 lakh—evidence that the actual price depends on the batch and program.[3][9] **Resonance** may be a lower-cost option in some listings, at roughly ₹1.4–1.5 lakh; **PACE** and **FIITJEE** also appear among Mumbai options, with listed fees varying by course.[3][5]\n\nThere isn’t one “worth it” institute for everyone. Before enrolling, attend a trial class and compare the **specific branch’s teachers, batch size, doubt-solving support, test schedule, commute, and total fees**—including materials and taxes. If you tell me the **exam or subject, class/year, and preferred area of Mumbai**, I can narrow this down.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Resonance",
+          "FIITJEE"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Tutorials/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Home-Tutors/nct-10575643",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "engineering.careers360.com",
+          "url": "https://engineering.careers360.com/articles/best-jee-main-coaching-institutes-in-mumbai-with-fees-structure",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "iasbabuji.com",
+          "url": "https://iasbabuji.com/upsc-coaching/best-ias-coaching-in-mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedekho.com",
+          "url": "https://www.collegedekho.com/articles/best-iit-jee-coaching-institutes-in-mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/mumbai-institutes",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/mumbai-institutes",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Training-Centres/nct-11003170",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "collegedunia.com",
+          "url": "https://collegedunia.com/coaching/jee-advanced-institutes-in-mumbai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "engvarta.com",
+          "url": "https://engvarta.com/best-english-speaking-courses-in-mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00173
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which coaching institute in Mumbai should I trust",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "Which exam or subject are you looking for coaching in—**JEE/NEET, UPSC/MPSC, CAT, CA, coding, or something else**? The best options in Mumbai depend a lot on that.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [],
+      "costUsd": 0.00049
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which coaching institute in Mumbai should I trust",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because \"coaching\" covers many fields, the most trusted institute depends entirely on the **exam or stream** you are preparing for. \n\nBelow is a breakdown of the most established and reputable coaching institutes in Mumbai by category, followed by critical factors to watch out for before paying fees.\n\n---\n\n### 1. Engineering (JEE Main & Advanced / MHT-CET)\n* **Allen Career Institute:** Currently one of the most reliable and disciplined options in Mumbai (major centres in Andheri, Borivali, Thane, Nerul). High faculty accountability and rigorous study material.\n* **PACE IIT & Medical:** Historically Mumbai’s home-grown powerhouse for JEE with tie-ups across many junior colleges (integrated programs). Quality can vary between centres, so check the specific branch (Andheri and Dadar are generally preferred).\n* **Vidyalankar:** Highly trusted for **MHT-CET** and Maharashtra State Board preparation, with deep roots across Mumbai.\n* *Note on FIITJEE:* While historically elite, national faculty churn in recent years means you should speak to current students at the specific Mumbai centre before enrolling.\n\n---\n\n### 2. Medical (NEET-UG)\n* **Allen Career Institute:** Strong track record, structured biology modules, and rigorous test series.\n* **Aakash Institute:** Established leader for NEET (centres in Andheri, Dadar, Thane, Vashi). Their NCERT-focused material and All India Aakash Test Series (AIATS) are widely considered top-tier.\n* **PACE Medical:** Good alternative, especially if opting for an integrated college tie-up.\n\n---\n\n### 3. Management Entrances (CAT, XAT, NMAT, MAH-CET)\n* **IMS:** Headquartered in Mumbai with decades of trust (Churchgate, Andheri, Dadar). Excellent test series (SimCAT) and GD/PI mentoring.\n* **T.I.M.E. (Triumphant Institute of Management Education):** Strong nationwide curriculum and mock percentiles that closely reflect the real CAT.\n* **Career Launcher (CL):** Known for good verbal ability mentoring and personalized percentile tracking.\n\n---\n\n### 4. Commerce & Chartered Accountancy (CA Foundation / Inter / Final)\n* **J.K. Shah Classes:** The undisputed market leader in Mumbai for CA/CS preparation across almost all suburban and south Mumbai centres.\n* **Ednovate:** A popular alternative formed by top senior faculty, gaining strong traction among Mumbai commerce students.\n\n---\n\n### 5. Civil Services (UPSC / MPSC)\n* *Mumbai is generally less centralized for UPSC than Delhi, but top local options include:*\n  * **State Institute for Administrative Careers (SIAC):** Government-run body at Churchgate; low fees and historically high pedigree.\n  * **Chahal Academy / Dhyeya IAS:** Decent foundational programs in Dadar and Navi Mumbai.\n  * *Tip:* Many serious UPSC aspirants in Mumbai rely on national test series (VisionIAS, ForumIAS) online while studying locally.\n\n---\n\n### 6. Law Entrances (CLAT / AILET / MH-CET Law)\n* **LST (Law School Tutorials by Career Launcher):** Proven track record for CLAT.\n* **IMS Law Prep / LegalEdge:** Both have a strong presence in Mumbai with comprehensive legal aptitude coverage.\n\n---\n\n### Crucial Ground Rules Before Trusting Any Institute in Mumbai\n\n1. **Branch Matters More Than the Brand:** A coaching institute's Andheri branch might have senior \"star\" faculty, while their Navi Mumbai or Thane branch might rely on junior, visiting teachers. Always ask who will teach your specific batch.\n2. **Account for the Mumbai Commute:** Spending 2 hours a day traveling on the local train will drain the energy you need for self-study. A slightly less famous centre that is a 15-minute walk from home is often better than a \"star\" centre an hour away.\n3. **Talk to Current Students (Not Counsellors):** Wait outside the centre around batch changeover time and ask 2–3 students enrolled in the current year about doubt-solving support, faculty retention, and whether teachers finish the syllabus on time.\n4. **Clarify the Refund & Batch Shuffling Policy:** Large corporate coachings frequently shuffle top teachers to \"star batches\" (batches of already high-scoring students) while leaving general batches with average faculty.\n\n***\n\n**To get a more tailored recommendation:** \nWhich exam are you targeting, which area of Mumbai (Western, Central, Navi Mumbai, South Mumbai) do you stay in, and are you looking for classroom or hybrid/online coaching?",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Allen Career Institute",
+          "PACE IIT & Medical",
+          "FIITJEE",
+          "Aakash Institute",
+          "T.I.M.E",
+          "Career Launcher",
+          "J.K. Shah Classes",
+          "Ednovate",
+          "State Institute for Administrative Careers",
+          "Chahal Academy / Dhyeya IAS",
+          "LST",
+          "IMS Law Prep / LegalEdge"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.006933
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which coaching institute in Mumbai should I trust",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one Mumbai coaching institute I’d recommend for everyone—the right choice depends on **the exam or subject, your area, and your budget**. For broad school and entrance-exam coaching, **Arihant Academy** and **Vidyalankar Classes** are names to compare; for CAT, CLAT, or IPMAT, **Career Launcher** has Mumbai centres, including Vashi, Dadar, and Borivali.[4][5][10]\n\nBefore enrolling, visit the **specific branch** and ask to sit in on a class. Check who will teach your batch, class size, recent results you can verify, total fees and refund terms, and whether you can speak privately with current students. Online rankings and star ratings are useful starting points, not proof that a particular branch is right for you.\n\nTell me **what you’re preparing for** and **which part of Mumbai you’re in**, and I can narrow this down.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Vidyalankar Classes",
+          "Career Launcher"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "coachingrank.in",
+          "url": "https://coachingrank.in/city/best-coaching-institutes-in-mumbai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "threebestrated.in",
+          "url": "https://threebestrated.in/coaching-classes-in-mumbai-mh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Tutorials/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "arihantacademy.com",
+          "url": "https://arihantacademy.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "academycheck.com",
+          "url": "https://academycheck.com/blog/best-5-neet-coaching-in-mumbai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "aadityaparmar.in",
+          "url": "https://aadityaparmar.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Coaching-Centres/nct-10502492",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Training-Centres/nct-11003170",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Mumbai/Education-Consultants/nct-10180006",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "careerlauncher.com",
+          "url": "https://www.careerlauncher.com/coaching-centers/mumbai/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00248
+    }
+  ]
+}
