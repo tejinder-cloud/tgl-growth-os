@@ -49,7 +49,7 @@ export function renderOverviewMain(v: LiveView, now: Date, plan: BuildPlan = BUI
 <li><a href="/pipeline/outreach#sent"><b>${v.today.sent}<small> of ${v.today.cap}</small></b><span>emails sent today${capReached ? ", limit reached" : ""}</span></a></li>
 <li><a href="/pipeline"><b>${v.today.replies}</b><span>${v.today.replies === 1 ? "reply" : "replies"} today</span></a></li>
 <li><a href="/pipeline"><b>${v.today.callsBooked}</b><span>${v.today.nextCall ? `next call: ${esc(v.today.nextCall)}` : "calls coming up"}</span></a></li>
-<li><a href="/pipeline/build"><b>${s.daysLeft}<small> days</small></b><span>to WhatsApp go-live (${esc(shortDay(plan.goLive))}); build ${s.percent}% done</span></a></li>
+<li><a href="/pipeline/build"><b>Day ${Math.min(s.dayIndex, s.totalDays)}<small> of ${s.totalDays}</small></b><span>WhatsApp build; go-live target ${esc(shortDay(plan.goLive))}</span></a></li>
 </ul>`;
 
   const max = Math.max(1, ...v.journey.map((j) => j.count));
@@ -69,9 +69,10 @@ export function renderOverviewMain(v: LiveView, now: Date, plan: BuildPlan = BUI
 </ul></section>`;
 
   // One list of what needs the Architect: today's pipeline asks, then his build tasks that are late or due this week.
-  const soon = new Date(Date.parse(`${s.today}T00:00:00Z`) + 7 * 86_400_000).toISOString().slice(0, 10);
-  const buildAsks = s.yours.filter((t) => t.due <= soon);
-  const needs = [...v.waiting.map((w) => `<li>${esc(w)}</li>`), ...buildAsks.map((t) => `<li class="build">${esc(t.title)}<span class="sub">Build task, ${t.due < s.today ? `was due ${esc(shortDay(t.due))}` : `due ${esc(shortDay(t.due))}`}</span></li>`)];
+  // Build tasks of his that are up now: in the current or next work day, and not waiting on Meta first.
+  const metaBefore = (day: number) => plan.tasks.some((m) => m.owner === "Meta" && m.status !== "done" && m.day < day);
+  const buildAsks = s.yours.filter((t) => t.day <= s.dayIndex + 1 && !metaBefore(t.day));
+  const needs = [...v.waiting.map((w) => `<li>${esc(w)}</li>`), ...buildAsks.map((t) => `<li class="build">${esc(t.title)}<span class="sub">Build task, day ${t.day}</span></li>`)];
   const needsPanel = `<section class="panel" id="needs"><h2>Needs you${needs.length ? ` <span class="count">${needs.length}</span>` : ""}</h2>${needs.length ? `<ul class="todo">${needs.join("")}</ul>` : `<p class="ok">Nothing needs you right now.</p>`}</section>`;
 
   const probsPanel = `<section class="panel"><h2>Problems${v.problems.length ? ` <span class="count">${v.problems.length}</span>` : ""}</h2>${

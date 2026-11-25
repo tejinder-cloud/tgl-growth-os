@@ -1,13 +1,24 @@
 // services/tgl-ops/src/agents/pipeline/build-plan.ts
 // The TGL build plan shown at /pipeline/build. Finish line (Architect, 24 Nov 2026): WhatsApp outreach live by
-// 15 Dec 2026. Claude keeps this file current in each PR; Tejinder can edit it too. Only facts and his decisions:
-// no invented numbers. Dates are IST calendar days (YYYY-MM-DD).
+// 15 Dec 2026. A "day" is a block of work, not a calendar day (Architect, 25 Nov 2026): several can be finished
+// in one sitting. Calendar dates appear only where someone else sets the pace (Meta) and on the go-live target.
+// Claude keeps this file current in each PR; Tejinder can edit it too. Only facts and his decisions.
 
 export type Owner = "You" | "Claude" | "Meta";
 export type TaskStatus = "done" | "doing" | "todo" | "blocked";
 
-export interface PlanPhase { name: string; start: string; end: string }
-export interface PlanTask { title: string; owner: Owner; due: string; status: TaskStatus; note?: string }
+/** A phase covers a range of work days, inclusive. */
+export interface PlanPhase { name: string; from: number; to: number }
+export interface PlanTask {
+  title: string;
+  owner: Owner;
+  /** The work day this task belongs to. */
+  day: number;
+  status: TaskStatus;
+  /** Only for tasks whose timing someone else sets (YYYY-MM-DD, IST): the date we plan around. */
+  date?: string;
+  note?: string;
+}
 export interface PlanRisk { kind: "Risk" | "Issue"; what: string; impact: "High" | "Medium" | "Low"; owner: Owner; action: string; status: "Open" | "Watching" | "Closed" }
 export interface PlanDecision { date: string; what: string; why?: string }
 export interface PlanAgent { key: string; name: string; job: string; when: string; live: boolean }
@@ -15,8 +26,11 @@ export interface PlanAgent { key: string; name: string; job: string; when: strin
 export interface BuildPlan {
   title: string;
   goal: string;
+  /** Calendar day the build started. */
   start: string;
+  /** Calendar target for go-live. */
   goLive: string;
+  totalDays: number;
   phases: PlanPhase[];
   tasks: PlanTask[];
   risks: PlanRisk[];
@@ -29,36 +43,38 @@ export const BUILD_PLAN: BuildPlan = {
   goal: "Email and WhatsApp outreach both running on their own, so phone-only businesses are reached too.",
   start: "2026-11-24",
   goLive: "2026-12-15",
+  totalDays: 22,
   phases: [
-    { name: "Fix and widen", start: "2026-11-24", end: "2026-11-26" },
-    { name: "Less work for you", start: "2026-11-27", end: "2026-12-03" },
-    { name: "WhatsApp build", start: "2026-12-04", end: "2026-12-10" },
-    { name: "Connect, test, go live", start: "2026-12-11", end: "2026-12-15" },
+    { name: "Fix and widen", from: 1, to: 3 },
+    { name: "Less work for you", from: 4, to: 10 },
+    { name: "WhatsApp build", from: 11, to: 17 },
+    { name: "Connect, test, go live", from: 18, to: 22 },
   ],
   tasks: [
-    { title: "Replace the Gemini key so audits run again", owner: "You", due: "2026-11-24", status: "done" },
-    { title: "Regenerate the GitHub token (1 year)", owner: "You", due: "2026-11-24", status: "done" },
-    { title: "Resume the 10 businesses held by the Gemini failure", owner: "Claude", due: "2026-11-24", status: "done" },
-    { title: "Gmail fallback sender and warm-up cap (PR #220)", owner: "Claude", due: "2026-11-24", status: "done" },
-    { title: "Short daily brief in Slack (PR #221)", owner: "Claude", due: "2026-11-24", status: "done" },
-    { title: "Widen the researcher: 6 industries, Tier 1/2/3 cities (PR #222)", owner: "Claude", due: "2026-11-24", status: "done" },
-    { title: "Live view at /pipeline/live (PRs #223, #224)", owner: "Claude", due: "2026-11-24", status: "done" },
-    { title: "Advance AI checks for phone-only businesses (PR #225)", owner: "Claude", due: "2026-11-24", status: "done" },
-    { title: "Build tracker at /pipeline/build (PR #226)", owner: "Claude", due: "2026-11-24", status: "done" },
-    { title: "Submit Meta App Review; all 3 test calls complete", owner: "You", due: "2026-11-25", status: "done", note: "Meta shows Review in progress (checked 25 Nov)." },
-    { title: "Check the first 3 widened researcher runs: 31 qualified, 24 with an email", owner: "Claude", due: "2026-11-25", status: "done" },
-    { title: "Dashboard rebuilt: Overview, Outreach, Pipeline, Build in one frame", owner: "Claude", due: "2026-11-25", status: "done" },
-    { title: "One daily approval card in Slack instead of 3", owner: "Claude", due: "2026-11-27", status: "done" },
-    { title: "Events table as the record, replacing GitHub logs", owner: "Claude", due: "2026-11-30", status: "done", note: "Log files stay as a backup for now." },
-    { title: "Suggested replies to prospect emails, with calendar slots", owner: "Claude", due: "2026-12-03", status: "done", note: "Sent only when you press a button." },
-    { title: "Meta approves the app (Tech Provider)", owner: "Meta", due: "2026-12-08", status: "doing", note: "In review. Meta says most reviews finish within 20 days; the date is our planning guess." },
-    { title: "WhatsApp first message in the sequence, dry run only", owner: "Claude", due: "2026-12-08", status: "todo" },
-    { title: "Inbound WhatsApp replies reach Slack and the pipeline", owner: "Claude", due: "2026-12-10", status: "todo" },
-    { title: "Publish the app and connect 98720 09997 by coexistence", owner: "You", due: "2026-12-11", status: "todo", note: "Not through the new-number flow." },
-    { title: "Submit template tgl_ai_visibility_first_touch", owner: "Claude", due: "2026-12-11", status: "todo" },
-    { title: "Meta approves the template", owner: "Meta", due: "2026-12-13", status: "todo" },
-    { title: "Test send to your own number, then approve the first batch", owner: "You", due: "2026-12-14", status: "todo" },
-    { title: "First WhatsApp messages go to phone-only businesses", owner: "Claude", due: "2026-12-15", status: "todo" },
+    { day: 1, title: "Replace the Gemini key so audits run again", owner: "You", status: "done" },
+    { day: 1, title: "Regenerate the GitHub token (1 year)", owner: "You", status: "done" },
+    { day: 1, title: "Resume the 10 businesses held by the Gemini failure", owner: "Claude", status: "done" },
+    { day: 1, title: "Gmail fallback sender and warm-up cap (PR #220)", owner: "Claude", status: "done" },
+    { day: 1, title: "Short daily brief in Slack (PR #221)", owner: "Claude", status: "done" },
+    { day: 2, title: "Widen the researcher: 6 industries, Tier 1/2/3 cities (PR #222)", owner: "Claude", status: "done" },
+    { day: 2, title: "Live view at /pipeline/live (PRs #223, #224)", owner: "Claude", status: "done" },
+    { day: 3, title: "Advance AI checks for phone-only businesses (PR #225)", owner: "Claude", status: "done" },
+    { day: 3, title: "Build tracker at /pipeline/build (PR #226)", owner: "Claude", status: "done" },
+    { day: 3, title: "Check the first 3 widened researcher runs: 31 qualified, 24 with an email", owner: "Claude", status: "done" },
+    { day: 4, title: "Submit Meta App Review; all 3 test calls complete", owner: "You", status: "done", note: "Meta shows Review in progress (checked 25 Nov)." },
+    { day: 5, title: "Dashboard rebuilt: Overview, Outreach, Pipeline, Build in one frame (PR #227)", owner: "Claude", status: "done" },
+    { day: 6, title: "One daily approval card in Slack instead of 3 (PR #228)", owner: "Claude", status: "done" },
+    { day: 7, title: "Events table as the record, replacing GitHub logs (PR #230)", owner: "Claude", status: "done", note: "Log files stay as a backup for now." },
+    { day: 9, title: "Suggested replies to prospect emails, with calendar slots (PR #231)", owner: "Claude", status: "done", note: "Sent only when you press a button." },
+    { day: 10, title: "Build plan counted in work days, not calendar days", owner: "Claude", status: "done" },
+    { day: 11, title: "WhatsApp first message in the sequence, dry run only", owner: "Claude", status: "todo" },
+    { day: 14, title: "Inbound WhatsApp replies reach Slack and the pipeline", owner: "Claude", status: "todo" },
+    { day: 16, title: "Meta approves the app (Tech Provider)", owner: "Meta", status: "doing", date: "2026-12-08", note: "In review. Meta says most reviews finish within 20 days; the date is our planning guess." },
+    { day: 17, title: "Publish the app and connect 98720 09997 by coexistence", owner: "You", status: "todo", note: "After Meta approves. Not through the new-number flow." },
+    { day: 18, title: "Submit template tgl_ai_visibility_first_touch", owner: "Claude", status: "todo" },
+    { day: 19, title: "Meta approves the template", owner: "Meta", status: "todo", date: "2026-12-13" },
+    { day: 20, title: "Test send to your own number, then approve the first batch", owner: "You", status: "todo" },
+    { day: 22, title: "First WhatsApp messages go to phone-only businesses", owner: "Claude", status: "todo", date: "2026-12-15" },
   ],
   risks: [
     { kind: "Risk", what: "Meta App Review is slow or rejected", impact: "High", owner: "You", action: "Submitted and in review (25 Nov); Meta says most finish within 20 days. If Meta asks for changes, we answer the same day. If not approved by 10 Dec, the go-live date moves.", status: "Open" },
@@ -69,6 +85,7 @@ export const BUILD_PLAN: BuildPlan = {
     { kind: "Risk", what: "GitHub token expires in Nov 2027", impact: "Low", owner: "You", action: "Set a reminder a week before expiry.", status: "Watching" },
   ],
   decisions: [
+    { date: "2026-11-25", what: "A build day is a block of work, not a calendar day; several can be done in one sitting" },
     { date: "2026-11-24", what: "Finish line: WhatsApp outreach live by 15 Dec 2026", why: "Phone-only businesses can only be reached on WhatsApp." },
     { date: "2026-11-24", what: "No cold calls. Phone-only businesses wait for WhatsApp" },
     { date: "2026-11-24", what: "Outreach starts at fit 65 (was 70)" },
@@ -87,6 +104,6 @@ export const BUILD_PLAN: BuildPlan = {
     { key: "aeo-audit-engine", name: "Citation tracker and audits", job: "Asks AI engines about each business and its rivals", when: "With each touch, and 11:00 for phone-only", live: true },
     { key: "chief-of-staff", name: "Chief of staff", job: "Morning plan and evening brief in Slack", when: "09:00 and 18:00", live: true },
     { key: "booking", name: "Booking", job: "Books calls into your calendar and checks cancellations", when: "When someone books", live: true },
-    { key: "whatsapp", name: "WhatsApp", job: "First message and replies for phone-only businesses", when: "From 15 Dec", live: false },
+    { key: "whatsapp", name: "WhatsApp", job: "First message and replies for phone-only businesses", when: "From go-live", live: false },
   ],
 };

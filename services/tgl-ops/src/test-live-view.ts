@@ -107,8 +107,15 @@ async function main() {
   assert.ok(html.includes("₹513") && html.includes("TrueVisible"), "spend from the recorded table");
   assert.ok(html.includes('href="/pipeline/live" aria-current="page"') && html.includes('id="refresh"'), "current tab marked; a refresh button");
   assert.ok(html.includes("Smile &lt;Studio&gt;") && !html.includes("Smile <Studio>"), "escaped");
-  const planned = renderOverviewMain(v, NOW, { ...BUILD_PLAN, tasks: [{ title: "Sign the test plan", owner: "You", due: "2026-11-26", status: "todo" }, { title: "Far away", owner: "You", due: "2026-12-14", status: "todo" }] });
-  assert.ok(planned.includes("Sign the test plan") && !planned.includes("Far away"), "build tasks due this week join Needs you");
+  const planned = renderOverviewMain(v, NOW, { ...BUILD_PLAN, totalDays: 9, tasks: [
+    { day: 1, title: "Done", owner: "Claude", status: "done" },
+    { day: 2, title: "Sign the test plan", owner: "You", status: "todo" },
+    { day: 5, title: "Meta first", owner: "Meta", status: "todo", date: "2026-12-01" },
+    { day: 6, title: "After Meta", owner: "You", status: "todo" },
+    { day: 9, title: "Far away", owner: "You", status: "todo" },
+  ] });
+  assert.ok(planned.includes("Sign the test plan") && planned.includes("Build task, day 2"), "his task in the current work day joins Needs you");
+  assert.ok(!planned.includes("Far away") && !planned.includes("After Meta"), "later work and work waiting on Meta stay off");
   assert.ok(!html.includes('href="tel:'), "no tap-to-call: no cold calls");
   assert.ok(!EMOJI.test(html), "no emojis");
   assert.ok(!html.includes("x@a.example"), "no email addresses on the page");
