@@ -15,12 +15,15 @@ const plan: BuildPlan = {
   goal: "Goal <here>",
   start: "2026-11-24",
   goLive: "2026-11-30",
-  phases: [{ name: "One", start: "2026-11-24", end: "2026-11-26" }, { name: "Two", start: "2026-11-27", end: "2026-11-30" }],
+  totalDays: 6,
+  phases: [{ name: "One", from: 1, to: 3 }, { name: "Two", from: 4, to: 6 }],
   tasks: [
-    { title: "Done thing", owner: "Claude", due: "2026-11-24", status: "done" },
-    { title: "Late thing", owner: "You", due: "2026-11-25", status: "todo" },
-    { title: "Soon thing", owner: "Claude", due: "2026-11-28", status: "doing" },
-    { title: "Later thing", owner: "Meta", due: "2026-11-30", status: "todo" },
+    { day: 1, title: "Done thing", owner: "Claude", status: "done" },
+    { day: 2, title: "Done too", owner: "Claude", status: "done" },
+    { day: 3, title: "Current thing", owner: "Claude", status: "doing" },
+    { day: 3, title: "Your thing", owner: "You", status: "todo" },
+    { day: 4, title: "Meta thing", owner: "Meta", status: "todo", date: "2026-11-25" },
+    { day: 6, title: "Later thing", owner: "Claude", status: "todo", date: "2026-11-30" },
   ],
   risks: [{ kind: "Issue", what: "{phone_only} phone-only", impact: "Medium", owner: "Claude", action: "x", status: "Open" }, { kind: "Risk", what: "R1", impact: "High", owner: "You", action: "Act", status: "Open" }, { kind: "Issue", what: "R2", impact: "Low", owner: "Claude", action: "x", status: "Closed" }],
   decisions: [{ date: "2026-11-24", what: "Decided" }],
@@ -39,39 +42,51 @@ async function main() {
   const now = new Date("2026-11-26T06:00:00Z"); // 26 Nov, 11:30 IST
   const s = summarize(plan, now);
   assert.equal(s.today, "2026-11-26");
-  assert.equal(s.dayIndex, 3);
-  assert.equal(s.totalDays, 7);
-  assert.equal(s.daysLeft, 4);
-  assert.equal(s.percent, 25);
-  assert.deepEqual(s.overdue.map((t) => t.title), ["Late thing"]);
-  assert.deepEqual(s.yours.map((t) => t.title), ["Late thing"]);
-  assert.deepEqual(s.next3.map((t) => t.title), ["Soon thing"], "due today to 3 days ahead, not done, not already under Waiting on you");
+  assert.equal(s.dayIndex, 3, "the first work day with unfinished work, whatever the calendar says");
+  assert.equal(s.daysDone, 2);
+  assert.equal(s.totalDays, 6);
+  assert.equal(s.daysLeft, 4, "calendar days to the go-live target");
+  assert.equal(s.percent, 33);
+  assert.deepEqual(s.overdue.map((t) => t.title), ["Meta thing"], "only a passed date set by others is late");
+  assert.deepEqual(s.yours.map((t) => t.title), ["Your thing"]);
+  assert.deepEqual(s.next.map((t) => t.title), ["Current thing", "Meta thing"], "others' work in the current and next work day");
   assert.equal(s.onTrack, false);
   assert.equal(shortDay("2026-12-15"), "Tue 15 Dec");
 
+  // Finishing work moves the day forward on the same calendar day.
+  const faster = summarize({ ...plan, tasks: plan.tasks.map((t) => (t.day <= 3 ? { ...t, status: "done" as const } : t)) }, now);
+  assert.equal(faster.dayIndex, 4);
+  const all = summarize({ ...plan, tasks: plan.tasks.map((t) => ({ ...t, status: "done" as const })) }, now);
+  assert.equal(all.dayIndex, 7);
+  assert.equal(all.daysDone, 6);
+
   const main = renderBuildMain(view, now, plan);
-  assert.ok(main.includes("Day 3<small> of 7</small>"));
+  assert.ok(main.includes("Day 3<small> of 6</small>") && main.includes("2 work days done"));
   assert.ok(main.includes("1 late"));
   assert.ok(main.includes("Goal &lt;here&gt;") && !main.includes("Goal <here>"), "escaped");
   assert.ok(main.includes("Ran today") && main.includes("Problem") && main.includes("Not live yet"), "team states from today's records");
   assert.ok(!main.includes("₹513"), "money is on the Overview, not repeated here");
-  assert.ok(main.includes('aria-current="date"'), "today marked on the timeline");
+  assert.ok(main.includes('aria-current="step"'), "current work day marked on the timeline");
+  assert.ok(main.includes("Dates that depend on others") && main.includes("Wed 25 Nov") && main.includes("Mon 30 Nov"), "only dated tasks show dates");
+  assert.ok(main.includes("Day 4, planned for Wed 25 Nov") && main.includes("Day 3"), "tasks show their work day");
+  assert.ok(!main.includes("due "), "no calendar due dates on ordinary tasks");
   assert.ok(main.includes("2 open"), "closed risks not counted");
   assert.ok(main.includes("1 phone-only"), "live count in the risk text");
   assert.ok(!EMOJI.test(main), "no emojis");
 
   const noData = renderBuildMain(null, now, plan);
-  assert.ok(noData.includes("Late thing") && noData.includes("Many phone-only"), "the plan shows without live data");
+  assert.ok(noData.includes("Your thing") && noData.includes("Many phone-only"), "the plan shows without live data");
 
   // The real plan is internally consistent.
   assert.ok(BUILD_PLAN.start <= BUILD_PLAN.goLive);
-  assert.equal(BUILD_PLAN.phases[0].start, BUILD_PLAN.start);
-  assert.equal(BUILD_PLAN.phases[BUILD_PLAN.phases.length - 1].end, BUILD_PLAN.goLive);
-  for (let i = 1; i < BUILD_PLAN.phases.length; i++) {
-    const prev = new Date(`${BUILD_PLAN.phases[i - 1].end}T00:00:00Z`).getTime();
-    assert.equal(new Date(`${BUILD_PLAN.phases[i].start}T00:00:00Z`).getTime() - prev, 86_400_000, "phases are back to back");
+  assert.equal(BUILD_PLAN.phases[0].from, 1);
+  assert.equal(BUILD_PLAN.phases[BUILD_PLAN.phases.length - 1].to, BUILD_PLAN.totalDays);
+  for (let i = 1; i < BUILD_PLAN.phases.length; i++) assert.equal(BUILD_PLAN.phases[i].from, BUILD_PLAN.phases[i - 1].to + 1, "phases are back to back");
+  for (const t of BUILD_PLAN.tasks) {
+    assert.ok(Number.isInteger(t.day) && t.day >= 1 && t.day <= BUILD_PLAN.totalDays, `task inside the plan: ${t.title}`);
+    if (t.date) assert.match(t.date, /^\d{4}-\d{2}-\d{2}$/);
   }
-  for (const t of BUILD_PLAN.tasks) assert.ok(t.due >= BUILD_PLAN.start && t.due <= BUILD_PLAN.goLive, `task inside the plan: ${t.title}`);
+  assert.ok(BUILD_PLAN.tasks.filter((t) => t.date).every((t) => t.owner === "Meta" || t.day === BUILD_PLAN.totalDays), "dates only where others set the pace, and go-live");
   for (const d of BUILD_PLAN.decisions) assert.match(d.date, /^\d{4}-\d{2}-\d{2}$/);
   const page = renderBuildPage(view, "me@x.example", now);
   assert.ok(!EMOJI.test(page), "no emojis in the real plan");
