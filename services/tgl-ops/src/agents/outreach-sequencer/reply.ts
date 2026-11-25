@@ -14,6 +14,7 @@ export interface ParsedReply {
   messageId?: string;
   /** The message was machine-sent (auto-reply headers). Never treated as a real answer. */
   autoReply?: boolean;
+  subject?: string;
 }
 
 const ACTION_INTENTS: ReplyIntent[] = ["meeting_request", "positive_interest", "question", "referral"];
@@ -82,6 +83,7 @@ export function parseGhlReplyPayload(body: any): ParsedReply | null {
     text: clean,
     messageId: messageId ? String(messageId) : undefined,
     autoReply: body.autoReply === true,
+    ...(typeof body.subject === "string" && body.subject.trim() ? { subject: body.subject.trim() } : {}),
   };
 }
 
@@ -91,6 +93,8 @@ export interface ReplyDeps {
   notify?: (channel: string, text: string) => Promise<unknown>;
   now?: () => Date;
   salesDeskChannel?: string;
+  /** Drafts a suggested reply for the Architect (25 Nov 2026). Never sends anything itself. */
+  suggest?: (input: import("./suggested-reply.js").SuggestInput) => Promise<unknown>;
 }
 
 export interface ReplyResult {
@@ -205,6 +209,13 @@ export async function handleReply(payload: any, deps: ReplyDeps): Promise<ReplyR
   );
 
   await deps.store.saveState(prospect.id, { ...next, last_reply_routed: true }, status);
+
+  // A suggested reply with free calendar slots; a failure here never affects the reply's routing.
+  if (deps.suggest && parsed.email && next.state === "replied") {
+    await deps
+      .suggest({ prospect, state: { ...next, last_reply_routed: true }, intent, from: parsed.email, subject: parsed.subject, messageId: parsed.messageId })
+      .catch((err: any) => console.warn("[Outreach Reply] suggested reply failed:", err?.message || err));
+  }
 
   return { status: "routed", matched: true, intent, sequenceAction };
 }

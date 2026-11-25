@@ -1,4 +1,5 @@
 import { handlePipelineAction, handlePipelineModal, isPipelineAction, isPipelineModal, pipelineModalResponse } from "../agents/pipeline/slack.js";
+import { handleSuggestedReplyAction, handleSuggestedReplyModal, isSuggestedReplyAction, isSuggestedReplyModal, suggestedReplyModalResponse } from "../agents/outreach-sequencer/suggested-reply.js";
 import { Router, type Request, type Response } from "express";
 import { config } from "../config.js";
 import { slackClient, openModal, getActorDisplayName } from "../lib/slack-client.js";
@@ -55,6 +56,8 @@ interactionsRouter.post("/", async (req: Request, res: Response): Promise<void> 
           await handlePipelineAction(payload, action, await liveSlackPorts());
         } else if (isProspectAuditAction(action.action_id)) {
           await handleProspectAuditAction(payload, action);
+        } else if (isSuggestedReplyAction(action.action_id)) {
+          await handleSuggestedReplyAction(payload, action);
         } else if (typeof action.action_id === "string" && action.action_id.startsWith("setup_")) {
           await handleSetupAction(payload, action);
         } else if (action.action_id === "plan_approve" || action.action_id === "plan_changes") {
@@ -86,6 +89,15 @@ interactionsRouter.post("/", async (req: Request, res: Response): Promise<void> 
         import("../agents/pipeline/live.js")
           .then(async ({ liveSlackPorts }) => handlePipelineModal(payload, await liveSlackPorts()))
           .catch((err) => console.error("[Pipeline Modal Error]", err));
+      }
+      return;
+    }
+    if (isSuggestedReplyModal(payload.view?.callback_id)) {
+      // The box stays open with a message if the text cannot be sent; otherwise it closes and the reply goes.
+      const response = suggestedReplyModalResponse(payload);
+      res.json(response);
+      if (response.response_action === "clear") {
+        handleSuggestedReplyModal(payload).catch((err) => console.error("[Suggested Reply Modal Error]", err));
       }
       return;
     }
