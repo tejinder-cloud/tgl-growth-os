@@ -27,3 +27,32 @@
 - **Tomorrow:** Execute next metro in rotation (Chandigarh Tricity · cosmetic_dental) at 09:30 IST.
 
 
+### Run — 09:34 IST (Chandigarh Tricity · cosmetic_dental)
+- **Scheduled Pair:** Chandigarh Tricity × cosmetic_dental
+- **Rubric:** v2 (qualified at 65 or above, benched from 50)
+- **Qualified Accounts:** 13 / 20
+- **Benched This Run (saved with status bench):** 1 (1 verified in the prospects table)
+- **Benched Re-score (v2, before discovery):** 0 eligible · 0 promoted · 0 still benched · 0 rejected · 0 not probed
+- **Dim 4 Probes (gemini):** 15 completed · 0 failed · 0 skipped at daily cap · 0 skipped, engine unavailable · probe spend $0.5269 USD
+- **Validator Funnel:**
+  - Raw Candidates (Places API): 79 (from 4 searches; 63 needed no separate details call)
+  - Live DNS Passed: 52 (Failed: 12)
+  - Playbook C Disqualified (Enterprise Chains): 15
+  - Place Details Enriched: 13 (Failed: 0)
+  - Email Verified via Hunter: 0
+  - Published Business Email (own website): 31
+  - Places Phone Verified (Owner-Run <50 staff only): 9
+  - Contact Unverified / Dropped: 12
+  - Fit Score >= 65: 13 (Sub-cutoff: 18, of which benched: 1, Not probed: 0)
+  - Write Gate Validated: 13 (Rejected: 0)
+- **Places API Daily Quota:** 23 / 95 calls
+- **Estimated Run Cost:** $0.0393 USD
+- **Review Card:** Dispatched to Slack (ts: 1795579940.014469)
+
+#### Standup Contribution (18:00 IST):
+- **Did:** Sourced and qualified 13 accounts for Door AEO in Chandigarh Tricity (cosmetic_dental) with avg fit score 77.7 (Shortfall of 7 accounts: 79 candidates discovered via Places, 52 DNS alive, 15 disqualified by Playbook C, 13 Place Details enriched, 0 email verified via Hunter, 9 owner phones, 13 scored >= 65, 1 benched); Places API quota: 23/95 calls; Dim 4 probes: 15 ($0.5269).
+- **Blocked:** None.
+- **Need from the Architect:** Architect review on Top 25 card in #revenue (ts: 1795579940.014469).
+- **Tomorrow:** Execute next metro in rotation (Mumbai · ivf_fertility) at 09:30 IST.
+
+
