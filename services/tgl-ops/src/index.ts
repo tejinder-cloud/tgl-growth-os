@@ -346,6 +346,28 @@ cron.schedule(
   { timezone: config.timezone }
 );
 
+// 11:30 IST on sending days: the WhatsApp first message for phone-only businesses. Dry run unless
+// WHATSAPP_OUTREACH_MODE=live and Meta has approved the template; WHATSAPP_PER_DAY, default 5 (Build day 11).
+cron.schedule(
+  "30 11 * * *",
+  wrapCronJob("11:30 IST WhatsApp first messages", async () => {
+    const { sendDays } = await import("./agents/outreach-sequencer/worker.js");
+    const days = sendDays();
+    const ist = new Date(Date.now() + 330 * 60_000);
+    if (days && !days.has(ist.getUTCDay() === 0 ? 7 : ist.getUTCDay())) return;
+    const { runWhatsAppFirstTouchLive } = await import("./agents/outreach-sequencer/whatsapp-first-touch.js");
+    const run = await runWhatsAppFirstTouchLive();
+    console.log(`[WhatsApp] ${run.mode}: ${run.sent.length} sent, ${run.wouldSend.length} would send, ${run.failed.length} failed, ${run.skipped.length} skipped${run.stopped ? `; stopped: ${run.stopped}` : ""}`);
+    if (run.mode === "live" && (run.stopped || run.failed.length)) {
+      const { postLine } = await import("./lib/post.js");
+      const { getAlertsChannel } = await import("./lib/cron-wrapper.js");
+      const why = run.stopped ? `nothing sent: ${run.stopped}` : `${run.sent.length} sent, ${run.failed.length} could not be sent (${run.failed.map((f) => `${f.company}: ${f.error}`).join("; ")})`;
+      await postLine({ channel: getAlertsChannel(), text: `*WhatsApp first messages:* ${why}.` });
+    }
+  }),
+  { timezone: config.timezone }
+);
+
 // 11:00 IST daily: AI checks in advance for approved businesses with only a phone number (no cold calls; their first
 // message will be WhatsApp once Meta approves). PREAUDITS_PER_DAY, default 5. Nothing is sent to anyone.
 cron.schedule(

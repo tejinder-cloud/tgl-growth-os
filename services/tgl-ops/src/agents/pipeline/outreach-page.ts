@@ -12,6 +12,7 @@ section.panel{scroll-margin-top:14px}
 .when{white-space:nowrap;color:var(--ink-2)}
 .fit{font-size:.74rem;font-weight:600;border:1.5px solid var(--grey);border-radius:999px;padding:1px 8px;color:var(--mute);white-space:nowrap}
 .chk{display:block;font-size:.86rem;color:var(--ink-2);margin-top:3px}.chk.wait{color:var(--mute);font-style:italic}
+.msg{margin-top:6px}.msg summary{font-size:.8rem;color:var(--sage-dk);margin:0}.msg p{margin-top:6px;padding:10px 12px;background:#E3EEDC;border-radius:10px 10px 10px 2px;font-size:.86rem;line-height:1.45;color:var(--ink)}
 .probs{list-style:none;margin:0;padding:0}.probs li{border-left:3px solid var(--terra);padding:4px 0 4px 12px;margin:8px 0}
 @media (prefers-reduced-motion:reduce){.jump a:hover{transform:none}}`;
 
@@ -51,8 +52,15 @@ export function renderOutreachMain(v: LiveView): string {
     v.nextInLine.length ? capped(v.nextInLine, (c) => queueItem(c), "next") : `<p class="ok">No approved business with an email is waiting.</p>`
   }</section>`;
 
-  const wa = `<section class="panel" id="whatsapp"><h2>Waiting for WhatsApp <span class="count">${v.calls.length}</span></h2><p class="lead">Approved, no email address, a phone number. Their first message is the WhatsApp note once Meta approves the app. Each gets its AI check in advance, a few each day, so the message is ready.</p>${
-    v.calls.length ? capped(v.calls, (c) => queueItem(c, c.check ? `<span class="chk">${esc(c.check)}</span>` : `<span class="chk wait">AI check not run yet</span>`), "wa") : `<p class="ok">No approved business is waiting for WhatsApp.</p>`
+  const waItem = (c: (typeof v.calls)[number]) =>
+    queueItem(
+      c,
+      `${c.check ? `<span class="chk">${esc(c.check)}</span>` : ""}${
+        c.message ? `<details class="msg"><summary>WhatsApp message ready</summary><p>${esc(c.message)}</p></details>` : `<span class="chk wait">${esc(c.skip || "AI check not run yet")}</span>`
+      }`
+    );
+  const wa = `<section class="panel" id="whatsapp"><h2>Waiting for WhatsApp <span class="count">${v.calls.length}</span></h2><p class="lead">Approved, no email address, a phone number. Their first message is a WhatsApp note, sent once Meta approves the app and the message template. <b>${v.whatsappReady}</b> ${v.whatsappReady === 1 ? "message is" : "messages are"} ready; open one to read it exactly as the business would. Nothing is sent yet.</p>${
+    v.calls.length ? capped(v.calls, waItem, "wa") : `<p class="ok">No approved business is waiting for WhatsApp.</p>`
   }</section>`;
 
   const paused = `<section class="panel" id="paused"><h2>Paused <span class="count">${pausedCount}</span></h2>${
