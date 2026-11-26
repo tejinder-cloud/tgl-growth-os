@@ -38,7 +38,7 @@ import { SEQUENCE, TOTAL_TOUCHES, istDateKey, resolveChannel } from "./sequence.
 import { createSupabaseStore, getOutreachState, type OutreachProspect, type ProspectStore } from "./store.js";
 import { loadTemplates, makeTemplateRenderer, resolveTemplatesDir, type TemplateSet } from "./templates.js";
 import type { AuditSummary, OutreachState, RenderedMessage } from "./types.js";
-import { dailyCap, isLive, isSendWindow, runTick, type DueTouch, type TickPorts, type TickSummary, type TouchNumber } from "./worker.js";
+import { dailyCap, emailHealth, guardedCap, isLive, isSendWindow, runTick, type DueTouch, type TickPorts, type TickSummary, type TouchNumber } from "./worker.js";
 
 export const DEFAULT_TICK_CRON = "30 9-16 * * *";
 export const DEFAULT_SENDER_NAME = "The Growth Lab";
@@ -361,6 +361,7 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
 
   // The Gmail inbox pool (26 Nov 2026): rotation, warm-up limits, same inbox for a business's follow-ups.
   const pool = emailCfg.via === "pool";
+  let heldAlerted = "";
   const poolSender = pool
     ? createPoolSender({
         inboxes: () => loadInboxes(),
@@ -535,7 +536,20 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
             return poolCapacity(await loadInboxes(), istDateKey(at), rampFrom(env));
           },
         }
-      : {}),
+      : (env.OUTREACH_CAP_SCHEDULE || "").trim()
+        ? {
+            // The warm-up schedule with its safety rule: a step up waits until the last 7 days were clean.
+            capFor: async (at: Date) => {
+              const g = guardedCap(env, at, emailHealth(await store.loadSequenced(), at));
+              const day = istDateKey(at);
+              if (g.held && heldAlerted !== day) {
+                heldAlerted = day;
+                await alert(`*Daily email limit held at ${g.cap}* ${g.held}. The next step waits until the last 7 days are clean; check the bounced addresses on the board.`).catch(() => {});
+              }
+              return g.cap;
+            },
+          }
+        : {}),
   };
 
   function preflight(): string[] {
