@@ -1,0 +1,1277 @@
+{
+  "brand": {
+    "name": "Guardians of Teeth -Best Dentist",
+    "primaryDomain": "guardiansofteeth.in",
+    "domains": [
+      "guardiansofteeth.in"
+    ],
+    "variants": [
+      "Guardians of Teeth -Best Dentist",
+      "guardiansofteeth"
+    ],
+    "setupStatus": "prospect_unverified"
+  },
+  "auditedAt": "2026-11-26T05:02:54.140Z",
+  "promptsCount": 5,
+  "enginesCount": 3,
+  "totalQueries": 15,
+  "summary": {
+    "totalMentions": 0,
+    "visibilityScorePercent": 0,
+    "mentionsByEngine": {
+      "chatgpt": 0,
+      "gemini": 0,
+      "perplexity": 0
+    },
+    "competitorMentions": {
+      "The Dental Specialists — Banjara Hills": 1,
+      "Kalyani Dental Hospital — Begumpet": 1,
+      "FMS Dental Hospitals": 4,
+      "FMS International Dental Center": 6,
+      "Apollo Dental": 4,
+      "Dr. Gowd’s Dental Clinics": 1,
+      "Focus Dental Care": 4,
+      "Clove Dental": 4,
+      "Partha Dental": 3,
+      "Eledent Dental Hospital": 1,
+      "Q Dental Hospitals": 2,
+      "Dr. Gowds Dental Hospital": 2,
+      "Eledent International Digital Dentistry": 2,
+      "Apollo Dental Clinic": 1,
+      "Cosmedent Speciality Dental Clinic": 1,
+      "Adithri Dental & Maxillofacial Surgery Centre": 1,
+      "Danta Vaidhya Dental Clinic in Kukatpally": 1,
+      "Dr Reddis Dental Clinic": 1,
+      "Dr. Gowd’s Dental Hospital": 1,
+      "LBR Dental & Implant Center": 1
+    },
+    "citationDomains": {
+      "portal.nabh.co": 2,
+      "youtube.com": 5,
+      "yashodahospitals.com": 3,
+      "fmsdental.com": 9,
+      "apollodental.in": 6,
+      "connectinputs.com": 2,
+      "focusdentalcare.com": 4,
+      "exploretelangana.com": 4,
+      "parkdentalcare.in": 3,
+      "parthadental.com": 2,
+      "nationaldentalcare.in": 3,
+      "projectsmilesdental.com": 1,
+      "eledenthospitals.com": 1,
+      "justdial.com": 4,
+      "pagenearby.com": 1,
+      "drgowdsdentalhospitals.com": 2,
+      "placidway.com": 4,
+      "dentavacation.com": 3,
+      "practo.com": 3,
+      "careinsurance.com": 2,
+      "gokalki.com": 1,
+      "whatclinic.com": 4,
+      "reddit.com": 1,
+      "gcr.org": 2,
+      "gnathosdental.in": 1,
+      "business.google.com": 1,
+      "smilebookdental.in": 3,
+      "clovedental.in": 1,
+      "ida.org.in": 1,
+      "orodentalcare.com": 1,
+      "carehospitals.com": 1,
+      "magicpin.in": 1,
+      "teeth.in": 1,
+      "telanganastatedentalcouncil.in": 1,
+      "ketto.org": 1,
+      "linkedin.com": 1
+    },
+    "totalCostUsd": 0.2424,
+    "totalCostInr": 22.47
+  },
+  "nextSteps": {
+    "weakestEngine": "ChatGPT",
+    "weakestEngineMentions": 0,
+    "zeroMentionEngines": [
+      "ChatGPT",
+      "Gemini",
+      "Perplexity"
+    ],
+    "queriesLost": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "weakestQueries": [
+      1,
+      2
+    ],
+    "winningCompetitor": "FMS International Dental Center",
+    "winningCompetitorCount": 6,
+    "topCitationGap": "fmsdental.com",
+    "formattedText": "Guardians of Teeth -Best Dentist was named in 0 of 15 answers (0%). ChatGPT, Gemini and Perplexity did not name Guardians of Teeth -Best Dentist in any of the 5 questions. FMS International Dental Center was named most often instead, in 6 of 15 answers. The questions where Guardians of Teeth -Best Dentist did worst: \"Best dental clinic in Hyderabad\" (0 of 3 assistants named Guardians of Teeth -Best Dentist); \"Top dental clinic near me in Hyderabad\" (0 of 3 assistants named Guardians of Teeth -Best Dentist)."
+  },
+  "matrix": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best dental clinic in Hyderabad",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "FMS International Dental Center in Jubilee Hills is a strong all-round option, particularly for dental implants and cosmetic de..."
+      }
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top dental clinic near me in Hyderabad",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "“Near me” depends on your Hyderabad neighborhood. FMS Dental is one option with multiple branches across the city; the director..."
+      }
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which dental clinic in Hyderabad has the best reviews and results",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "FMS International Dental Center in Jubilee Hills is the strongest overall pick from the available review rankings: it ranks fir..."
+      }
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a dental clinic cost in Hyderabad and which one is worth it",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "If you mean dental treatment , prices in Hyderabad vary by procedure and clinic. Typical private-clinic estimates are: consulta..."
+      }
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which dental clinic in Hyderabad should I trust",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "If you want one starting point, FMS International Dental Center in Jubilee Hills stands out: it ranked first among the Hyderaba..."
+      }
+    }
+  ],
+  "rawAnswers": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best dental clinic in Hyderabad",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "If you mean **Hyderabad, Telangana**, I’d shortlist these two rather than call one universally “best”:\n\n- **The Dental Specialists — Banjara Hills:** NABH-accredited through **February 23, 2029**, with services including general dentistry, orthodontics, oral surgery, and children’s dentistry. ([portal.nabh.co](https://portal.nabh.co/Documents/AccreditedList/Dental%20Facilities/D-2022-0192_3rd%20Edition.pdf?utm_source=openai))\n- **Kalyani Dental Hospital — Begumpet:** NABH-accredited through **June 4, 2029**, with general dentistry, root-canal care, orthodontics, and other specialties. ([portal.nabh.co](https://portal.nabh.co/Documents/AccreditedList/Dental%20Facilities/D-2025-0493_3rd%20Edition.pdf?utm_source=openai))\n\nFor a routine visit, choose whichever is more convenient; for a complex procedure, ask to see the relevant specialist and get a written treatment plan and cost estimate. Tell me your **neighborhood** and what treatment you need, and I can narrow it down.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "The Dental Specialists — Banjara Hills",
+          "Kalyani Dental Hospital — Begumpet"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "portal.nabh.co",
+          "url": "https://portal.nabh.co/Documents/AccreditedList/Dental%20Facilities/D-2022-0192_3rd%20Edition.pdf?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "portal.nabh.co",
+          "url": "https://portal.nabh.co/Documents/AccreditedList/Dental%20Facilities/D-2025-0493_3rd%20Edition.pdf?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011503
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best dental clinic in Hyderabad",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Choosing the \"best\" dental clinic in Hyderabad depends on the specific treatment needed (routine check-up, invisible aligners, dental implants, or maxillofacial surgery). Hyderabad has several renowned dental hospital chains and boutique multi-specialty centers known for modern technology, strict sterilization protocols, and experienced specialists.\n\n---\n\n### 1. Top Tier Dental Hospitals & Multi-Specialty Clinics\n\n#### **FMS Dental Hospitals**\n* **Locations:** Jubilee Hills (FMS International Dental Center), Kondapur, Koti, Secunderabad, Madhapur, and others.\n* **Best Known For:** Dental implants, full-mouth rehabilitation, cosmetic smile design, and maxillofacial surgery.\n* **Why Choose Them:** FMS is widely considered one of the leading dental setups in India. They feature in-house digital CAD/CAM labs, laser dentistry, and international patient care. The Jubilee Hills branch is their flagship facility.\n\n#### **Apollo Dental**\n* **Locations:** Jubilee Hills, Kondapur, Banjara Hills, Secunderabad, and more.\n* **Best Known For:** Laser dentistry, pediatric dentistry, advanced oral surgery, and dental implants.\n* **Why Choose Them:** Backed by the Apollo Hospitals healthcare infrastructure, they adhere to hospital-grade sterilization, NABH standards, and have experienced specialists across all dental fields. Ideal if you have underlying medical conditions requiring monitored care.\n\n#### **Dr. Gowd’s Dental Clinics**\n* **Locations:** Banjara Hills, Gachibowli, Madhapur, Koti.\n* **Best Known For:** Implantology, clear aligners, and aesthetic smile makeovers.\n* **Why Choose Them:** One of the oldest and most respected dental brands in Hyderabad, with over 50 years of clinical legacy and high patient trust.\n\n#### **The Dental Specialists**\n* **Location:** Banjara Hills (Road No. 12).\n* **Best Known For:** Single-day implants, bone grafting, and full-mouth restorations.\n* **Why Choose Them:** Known for handling complex dental surgical cases and dental tourism with an emphasis on minimally invasive techniques.\n\n#### **Focus Dental Care**\n* **Location:** Gachibowli / Financial District.\n* **Best Known For:** Digital smile design, painless root canals, and modern implant treatments.\n* **Why Choose Them:** Very popular in the IT corridor for transparent pricing, modern digital diagnostic setups, and prompt service.\n\n---\n\n### 2. Large Accessible Dental Chains (Everyday Care & General Procedures)\n\nIf you are looking for routine fillings, cleanings, root canals, or braces near your neighborhood:\n\n* **Clove Dental:** India’s largest dental clinic chain with numerous branches throughout Hyderabad (Gachibowli, Kukatpally, Madhapur, Miyapur, etc.). They are known for standardized multi-step sterilization and transparent billing.\n* **Partha Dental:** One of the largest and most affordable regional chains in Telugu states with dozens of neighborhood branches across Hyderabad.\n\n---\n\n### How to Choose the Right Clinic:\n\n1. **For Implants & Complex Surgeries:** Look for clinics with an in-house **CBCT (3D imaging)** machine and dedicated prosthodontists/implantologists (e.g., *FMS Dental* or *Apollo Dental*).\n2. **For Aligners / Braces:** Ensure the consultation is directly with an MDS Orthodontist rather than a general practitioner.\n3. **Location & Follow-ups:** Procedures like braces and root canal treatments require multiple visits, so choosing a reputable branch reasonably close to home or work is often best.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "FMS Dental Hospitals",
+          "FMS International Dental Center",
+          "Apollo Dental",
+          "Dr. Gowd’s Dental Clinics",
+          "Focus Dental Care",
+          "Clove Dental",
+          "Partha Dental"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "youtube.com",
+          "url": null,
+          "channelType": "video",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "yashodahospitals.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fmsdental.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "apollodental.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "connectinputs.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "focusdentalcare.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.034547
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best dental clinic in Hyderabad",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "**FMS International Dental Center in Jubilee Hills** is a strong all-round option, particularly for dental implants and cosmetic dentistry; it reports NABH accreditation and specialist-led services.[2][4] There’s no single objective “best” clinic, though—the right choice depends on your treatment and which part of Hyderabad is convenient.\n\nOther options include **Partha Dental**, with many Hyderabad branches, and **Eledent Dental Hospital**, which reports five locations across the city.[6][9] Before booking, check the treating dentist’s qualifications and experience with your specific procedure, ask for a written treatment plan and cost estimate, and confirm the clinic’s current accreditation.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "FMS International Dental Center",
+          "Partha Dental",
+          "Eledent Dental Hospital"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "apollodental.in",
+          "url": "https://apollodental.in/hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fmsdental.com",
+          "url": "https://www.fmsdental.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "exploretelangana.com",
+          "url": "https://www.exploretelangana.com/best-dentist-in-hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fmsdental.com",
+          "url": "https://www.fmsdental.com/best-dental-clinic-in-jubilee-hills/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "parkdentalcare.in",
+          "url": "https://parkdentalcare.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "parthadental.com",
+          "url": "https://parthadental.com/dental-hospital-hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "nationaldentalcare.in",
+          "url": "https://www.nationaldentalcare.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "projectsmilesdental.com",
+          "url": "https://projectsmilesdental.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "eledenthospitals.com",
+          "url": "https://eledenthospitals.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Hyderabad/Dental-Clinics/nct-10156036/page-19",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00172
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top dental clinic near me in Hyderabad",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "I can’t see your exact location in Hyderabad. **Which area or PIN code are you near**—for example, Gachibowli, Kondapur, Kukatpally, Banjara Hills, Secunderabad?\n\nAs a starting point, recent review listings include **Best Smiles Dental Clinic** in Kondapur, **Q Dental Hospitals** in Kukatpally, and **The Dental Specialists** in Banjara Hills. Ratings and review counts can change, and online reviews don’t guarantee clinical quality. ([pagenearby.com](https://pagenearby.com/blog/hyderabad/best-dental-clinics-in-hyderabad/?utm_source=openai))\n\nTell me your locality—and, if relevant, whether you need a check-up, root canal, braces, or another treatment—and I can narrow it down.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Q Dental Hospitals"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "pagenearby.com",
+          "url": "https://pagenearby.com/blog/hyderabad/best-dental-clinics-in-hyderabad/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011569
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top dental clinic near me in Hyderabad",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "To find the best dental clinic closest to your specific location in Hyderabad, here is a curated list of the **top-rated dental hospitals and multi-branch clinic chains** categorized by reputation and area:\n\n---\n\n### 1. Premier Dental Hospitals (Multiple Branches Across Hyderabad)\n\n* **FMS Dental Hospital / FMS International Dental Center**\n  * **Reputation:** Consistently rated as one of the best dental healthcare groups in India; NABH-accredited with advanced 3D CBCT imaging, CAD/CAM labs, and laser technology.\n  * **Key Locations:** Jubilee Hills (Flagship), Kondapur, Kukatpally, Secunderabad, Koti, Dilsukhnagar, Chandanagar, and A.S. Rao Nagar.\n  * **Best For:** Dental implants, full-mouth rehabilitation, smile makeovers, and maxillofacial surgery.\n\n* **Dr. Gowds Dental Hospital**\n  * **Reputation:** Established in 1967, one of Hyderabad’s most trusted and longest-running multi-specialty dental groups.\n  * **Key Locations:** Banjara Hills, Gachibowli/Gowlidoddy, Madhapur, and Koti.\n  * **Best For:** Orthodontics (braces & aligners), pediatric dentistry, and root canal therapy.\n\n* **Apollo Dental**\n  * **Reputation:** Part of the Apollo Hospitals network, offering strict sterilization protocols and hospital-grade surgical backings.\n  * **Key Locations:** Jubilee Hills (Apollo Health City), Kondapur, Hitec City, Secunderabad, and Hyderguda.\n  * **Best For:** Complex oral surgeries, emergency dental procedures, and general family dentistry.\n\n* **Clove Dental**\n  * **Reputation:** India’s largest dental chain with standardized pricing and strict hygiene standards across 20+ neighborhood clinics in Hyderabad.\n  * **Key Locations:** Madhapur, Gachibowli, Manikonda, Miyapur, Kukatpally, Begumpet, Himayatnagar, and Attapur.\n  * **Best For:** Routine checkups, fillings, single-sitting root canals, and teeth whitening.\n\n---\n\n### 2. Top-Rated Clinics by Area\n\n#### **Hitec City, Gachibowli & Kondapur**\n* **Focus Dental Care** (Gachibowli) – Renowned for dental implants and cosmetic dentistry.\n* **Eledent International Digital Dentistry** (Kondapur) – Known for digital dentistry, 3D scanning, and CAD/CAM crowns.\n* **Apollo Dental Clinic** (Kondapur / Hitec City).\n\n#### **Jubilee Hills & Banjara Hills**\n* **FMS International Dental Center** (Road No. 37, Jubilee Hills)\n* **The Dental Specialists** (Banjara Hills) – Highly rated for endodontics and invisible aligners.\n* **Cosmedent Speciality Dental Clinic** (Banjara Hills) – Renowned for aesthetic smile makeovers.\n\n#### **Secunderabad & Begumpet**\n* **FMS Dental Hospital** (Secunderabad – near Clock Tower)\n* **Smile Dental Hospital / Partha Dental** (Begumpet / SP Road)\n* **Apollo Dental** (Secunderabad)\n\n#### **Kukatpally, Miyapur & Chandanagar**\n* **Adithri Dental & Maxillofacial Surgery Centre** (KPHB / Kukatpally)\n* **FMS Dental** (KPHB Colony)\n* **Clove Dental** (KPHB & Miyapur)\n\n---\n\n### Recommendations for Booking:\n1. **For General/Routine Dental Care (Cleaning, Cavities, Simple Extractions):** Neighborhood chains like **Clove Dental** or local NABH-accredited clinics are typically fast, accessible, and affordable.\n2. **For Major Surgeries, Implants, or Cosmetic Smile Design:** Consider specialized centers like **FMS Dental (Jubilee Hills/Kondapur)** or **Dr. Gowds Dental Hospital**.\n3. **Check Insurance/Consultation:** General dental treatments are often out-of-pocket, but major oral and maxillofacial surgeries may be covered if performed at hospital-attached dental centers (e.g., Apollo or Yashoda Dental departments).",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "FMS International Dental Center",
+          "Dr. Gowds Dental Hospital",
+          "Apollo Dental",
+          "Clove Dental",
+          "Focus Dental Care",
+          "Eledent International Digital Dentistry",
+          "Apollo Dental Clinic",
+          "Cosmedent Speciality Dental Clinic",
+          "Partha Dental",
+          "Adithri Dental & Maxillofacial Surgery Centre"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "youtube.com",
+          "url": null,
+          "channelType": "video",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fmsdental.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "youtube.com",
+          "url": null,
+          "channelType": "video",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drgowdsdentalhospitals.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "placidway.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "apollodental.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "connectinputs.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "focusdentalcare.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "dentavacation.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "yashodahospitals.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.035352
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top dental clinic near me in Hyderabad",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "“Near me” depends on your Hyderabad neighborhood. **FMS Dental** is one option with multiple branches across the city; the directory listing also shows highly rated clinics in areas including Jubilee Hills, Kondapur, Kukatpally, and Himayatnagar.[1][2]\n\nTell me your **area or PIN code** (for example, Gachibowli or 500032), and I can narrow this down to nearby clinics. Check the branch’s current hours and appointment availability before visiting.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "fmsdental.com",
+          "url": "https://www.fmsdental.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Hyderabad/Dental-Clinics/nct-10156036",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Hyderabad/Dental-Hospitals/nct-11273042",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "parkdentalcare.in",
+          "url": "https://parkdentalcare.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "nationaldentalcare.in",
+          "url": "https://www.nationaldentalcare.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Hyderabad/Dental-Clinics-for-Surgical-Tooth-Extraction/nct-10156036-att-hos753",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Hyderabad/Dentists/nct-10156331",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "careinsurance.com",
+          "url": "https://www.careinsurance.com/health-insurance/dental-hospitals-in-hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Hyderabad/Dental-Clinics/nct-10156036/page-19",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Hyderabad/Dental-Hospitals-for-Dental-Laser/nct-11273042-att-den1394",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00193
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which dental clinic in Hyderabad has the best reviews and results",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "If you mean **Hyderabad, Telangana**, **Danta Vaidhya Dental Clinic in Kukatpally** is a strong pick **by public review volume**: a recent city ranking lists it at **5.0/5 from about 1,580 Google reviews**. Other highly reviewed options include **Q Dental Hospitals** and **Dr Reddis Dental Clinic**. ([gokalki.com](https://gokalki.com/for/dental-clinics/hyderabad/?utm_source=openai))\n\nBut reviews can’t reliably tell you which clinic gets the **best treatment results**—and near-perfect ratings are common in Hyderabad. For a root canal, implant, braces, or other major work, check that the treating dentist has the relevant specialty, ask for a written treatment plan and costs, and consider a second opinion before committing. ([gokalki.com](https://gokalki.com/for/dental-clinics/hyderabad/?utm_source=openai))\n\nTell me your **area in Hyderabad** and what treatment you need, and I can narrow it down to nearby options.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Danta Vaidhya Dental Clinic in Kukatpally",
+          "Q Dental Hospitals",
+          "Dr Reddis Dental Clinic"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "gokalki.com",
+          "url": "https://gokalki.com/for/dental-clinics/hyderabad/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011549
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which dental clinic in Hyderabad has the best reviews and results",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "When evaluating dental clinics in Hyderabad based on **verified patient reviews, clinical track record, advanced infrastructure, and accreditations**, a few consistently stand out at the top of the list:\n\n---\n\n### 1. **FMS Dental Hospitals / FMS International Dental Center** *(Jubilee Hills, Kondapur, Secunderabad, etc.)*\n* **Reputation & Reviews:** Widely recognized as one of the top multi-specialty dental centers not just in Hyderabad, but nationwide. It holds **NABH accreditation** and has consistently ranked near the top in Global Clinic Rating (GCR) benchmarks.\n* **Strengths / Results:** \n  * Advanced dental implantology (All-on-4, All-on-6, zygomatic implants).\n  * Comprehensive in-house CAD/CAM digital labs and 3D CBCT imaging.\n  * Full-mouth rehabilitations, laser dentistry, and cosmetic smile makeovers.\n* **Best For:** Complex dental surgeries, international patients, and full-mouth restorations.\n\n---\n\n### 2. **Dr. Gowd’s Dental Hospital** *(Banjara Hills, Madhapur, Gachibowli, Secunderabad)*\n* **Reputation & Reviews:** One of the most established dental legacies in Hyderabad with over 50 years of clinical experience. Reviews frequently praise the ethical advice, senior faculty experience, and gentle approach.\n* **Strengths / Results:**\n  * Preventive care, root canal treatments, and cosmetic dentistry.\n  * Orthodontics (braces and clear aligners/Invisalign).\n  * Long-term durability and predictable outcomes for implants.\n* **Best For:** Family dentistry, orthodontics, and patients who prefer decades-long institutional trust.\n\n---\n\n### 3. **Focus Dental Care** *(Gachibowli & Jubilee Hills)*\n* **Reputation & Reviews:** Holds exceptionally high patient satisfaction ratings on Google and Practo, especially from working professionals in the HITEC City/Gachibowli corridor.\n* **Strengths / Results:**\n  * Single-visit CEREC restorations and digital smile design.\n  * Immediate loading dental implants and aesthetic veneers.\n  * Known for minimal pain protocols and state-of-the-art hygiene standards.\n* **Best For:** Cosmetic enhancements, porcelain veneers, and quick turnaround times.\n\n---\n\n### 4. **LBR Dental & Implant Center** *(Madhapur)*\n* **Reputation & Reviews:** Highly rated for specialized implantology, particularly among patients needing complex bone reconstructions or elderly patients seeking fixed teeth.\n* **Strengths / Results:**\n  * Pioneers in immediate loading and basal/cortical implants.\n  * Full-mouth rehabilitation without the need for extensive bone grafting.\n* **Best For:** Seniors, severe bone loss cases, and immediate teeth replacements.\n\n---\n\n### 5. **Eledent International Digital Dentistry** *(Kondapur & Kukatpally)*\n* **Reputation & Reviews:** Modern digital dental setup praised for high-precision diagnostic equipment and clear cost transparency.\n* **Strengths / Results:**\n  * Microscopic endodontics (root canal treatments with high salvage rates).\n  * Digital smile analysis and clear aligners.\n* **Best For:** Root canals, invisible aligners, and painless routine procedures.\n\n---\n\n### How to Choose the Right One for You:\n1. **For Major Surgeries & Implants:** Look toward **FMS Jubilee Hills** or **LBR Dental**, which have specialized surgical suites and high-volume implant teams.\n2. **For Braces / Clear Aligners & Cosmetic Veneers:** **Dr. Gowd's** or **Focus Dental Care** have strong portfolios of before-and-after cases.\n3. **Independent Opinions:** For major procedures (like full-mouth implants or extensive root canals), it is often wise to get a primary consultation with an OPG/CBCT scan and cross-check the treatment plan at a second clinic to compare the proposed approach and pricing.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "FMS Dental Hospitals",
+          "FMS International Dental Center",
+          "Dr. Gowd’s Dental Hospital",
+          "Focus Dental Care",
+          "LBR Dental & Implant Center",
+          "Eledent International Digital Dentistry"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "youtube.com",
+          "url": null,
+          "channelType": "video",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fmsdental.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "whatclinic.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "placidway.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "focusdentalcare.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "youtube.com",
+          "url": null,
+          "channelType": "video",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "youtube.com",
+          "url": null,
+          "channelType": "video",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "reddit.com",
+          "url": null,
+          "channelType": "forum",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.034285
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which dental clinic in Hyderabad has the best reviews and results",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "**FMS International Dental Center in Jubilee Hills is the strongest overall pick** from the available review rankings: it ranks first among Hyderabad clinics on GCR, with a 4.965/5 score based on verified reviews, patient-reported outcomes, and clinical results.[1] Its large volume of reviews is another positive signal: Justdial lists 2,486 reviews and a 4.8 rating.[6]\n\nIf you’re choosing for a particular treatment, the best fit may differ. WhatClinic lists Dr. Motiwala Dental Clinic and Implant Center at 5.0/5 from 158 reviews, while The Dental Specialists has 5.0/5 from 100 reviews.[3] Ratings don’t guarantee an individual outcome, so ask for a consultation, a written treatment plan and cost estimate, and the treating dentist’s relevant experience before deciding.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "FMS International Dental Center"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "gcr.org",
+          "url": "https://gcr.org/rankings/dental-clinics/hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fmsdental.com",
+          "url": "https://www.fmsdental.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "whatclinic.com",
+          "url": "https://www.whatclinic.com/reviews/dentists/india/hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fmsdental.com",
+          "url": "https://www.fmsdental.com/best-cosmetic-dental-clinic-in-hyderabad-india/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "parthadental.com",
+          "url": "https://parthadental.com/dental-hospital-hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Hyderabad/Dentists/nct-10156331",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "gnathosdental.in",
+          "url": "https://www.gnathosdental.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "exploretelangana.com",
+          "url": "https://www.exploretelangana.com/best-dentist-in-hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fmsdental.com",
+          "url": "https://www.fmsdental.com/dentist-test/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "business.google.com",
+          "url": "https://business.google.com/v/mk-dental-best-dental-clinic-and-implant-center-near-me-in-miyapur-hyderabad/012213615453424969669/95b8/_/rev/",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00196
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a dental clinic cost in Hyderabad and which one is worth it",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "If you mean **dental treatment as a patient** in Hyderabad, the price depends on what you need. Published clinic price lists suggest roughly:\n\n| Treatment | Approx. cost |\n|---|---:|\n| Consultation | ₹200–₹600 |\n| Cleaning/scaling | ₹1,200–₹2,500 |\n| Filling | ₹1,400–₹2,000 |\n| Root canal | ₹3,500–₹7,000 |\n| Crown/tooth cap | ₹4,000–₹20,000 |\n| Single dental implant | ₹25,000–₹55,000 |\n\nThese are **indicative prices**, not a citywide fixed rate; the tooth, materials, scans and complexity can change the bill. For example, implant prices may not include the crown or other add-ons, so ask for the **total written estimate**. ([smilebookdental.in](https://smilebookdental.in/dental-treatment-price-list-in-hyderabad/?utm_source=openai))\n\n**Which clinic is worth considering?** The Dental Specialists in Banjara Hills or Kondapur is a reasonable place to compare: Practo lists consultation fees around ₹350–₹600 and many patient reviews. That’s a shortlist, not a guarantee of quality—check that the dentist is registered and ask them to explain the diagnosis and alternatives before agreeing to major work. ([practo.com](https://www.practo.com/hyderabad/clinics/dental-clinics?utm_source=openai))\n\nFor a root canal, implant, braces or other expensive treatment, I’d get **two opinions and itemized quotes**. Tell me your Hyderabad area and the treatment you need, and I can narrow this down. If you meant the **cost to set up/own a dental clinic**, say so—that’s a different estimate.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "smilebookdental.in",
+          "url": "https://smilebookdental.in/dental-treatment-price-list-in-hyderabad/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": "https://www.practo.com/hyderabad/clinics/dental-clinics?utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011773
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a dental clinic cost in Hyderabad and which one is worth it",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Dental costs in Hyderabad are very affordable compared to international benchmarks and major Indian metros. Exact costs depend on the complexity of your case, the materials used (e.g., metal vs. zirconia, implant brands), and whether you choose a local neighborhood clinic or an international multi-specialty chain.\n\n---\n\n### 1. Estimated Costs for Common Dental Treatments in Hyderabad\n\n| Procedure | Typical Price Range (INR) | Notes |\n| :--- | :--- | :--- |\n| **Doctor Consultation & Checkup** | ₹200 – ₹800 | Often waived if you proceed with treatment. |\n| **Digital X-Ray / OPG** | ₹300 – ₹1,000 | CBCT 3D scans cost ₹2,000–₹4,000. |\n| **Teeth Cleaning & Polishing** | ₹1,000 – ₹2,500 | Deep scaling/curettage may cost up to ₹4,000. |\n| **Composite Filling (Per Tooth)** | ₹1,000 – ₹2,500 | Based on depth and number of surfaces. |\n| **Root Canal Treatment (RCT)** | ₹3,500 – ₹7,000 | Molars and laser RCT are on the higher end (excludes crown). |\n| **Dental Crowns (Caps)** | ₹3,500 – ₹15,000+ | PFM/Ceramic: ₹3.5k–₹6k; Monolithic Zirconia / E-max: ₹8k–₹18k. |\n| **Simple Extraction** | ₹1,000 – ₹2,000 | Routine tooth removal. |\n| **Surgical Wisdom Tooth Removal** | ₹4,000 – ₹8,500 | Dependent on impaction severity and bone coverage. |\n| **Single Dental Implant** | ₹25,000 – ₹55,000 | Value brands (Osstem/Adin): ₹25k–₹35k; Premium (Straumann/Nobel Biocare): ₹45k–₹60k+. |\n| **Braces (Metal / Ceramic)** | ₹30,000 – ₹65,000 | Comprehensive treatment for upper & lower arches. |\n| **Clear Aligners (Invisalign / Others)** | ₹60,000 – ₹2,50000+ | Domestic aligners: ~₹60k–₹1.2L; Invisalign: ₹1.5L–₹3.5L. |\n| **In-Office Teeth Whitening** | ₹6,000 – ₹12,000 | Laser or Zoom whitening. |\n\n---\n\n### 2. Which Clinics Are Worth It?\n\nDepending on the nature of your treatment, several clinics stand out in terms of hygiene, advanced equipment, and clinical expertise:\n\n#### **A. For Complex Cases, Implants, & Full-Mouth Rehab**\n* **FMS Dental Hospitals (Multiple branches: Jubilee Hills, Kondapur, Secunderabad, etc.)**\n  * *Why it’s worth it:* FMS is widely recognized as one of the best dental centers in India for surgical work, dental implants, and cosmetic makeovers. They have an in-house CAD/CAM digital lab and seasoned specialists for every sub-discipline.\n  * *Price point:* Mid to Premium.\n\n* **The Dental Specialists (Banjara Hills)**\n  * *Why it’s worth it:* Highly rated for guided dental implants and laser dentistry. They are popular for fast-turnaround full-arch implants and advanced restorations.\n  * *Price point:* Premium.\n\n* **Focus Dental Care (Gachibowli / Jubilee Hills)**\n  * *Why it’s worth it:* Excellent for tech-driven implantology, EMS Airflow cleanings, and painless treatment protocols. Very transparent with treatment plans.\n  * *Price point:* Mid to Premium.\n\n#### **B. For General Care, Regular Cleanings, & Routine RCTs**\n* **Clove Dental (Pan-Hyderabad)**\n  * *Why it’s worth it:* With dozens of branches across Hyderabad, Clove has standardized safety, sterilization protocols, and transparent pricing menus. Great for routine checkups, simple fillings, and standard RCTs.\n  * *Price point:* Standardized / Mid-range.\n\n* **Smilebook Dental / Smiles by Sneha (Bachupally & Gachibowli)**\n  * *Why it’s worth it:* Known for publishing 100% upfront pricing charts online with zero hidden charges and having very patient-friendly staff.\n  * *Price point:* Affordable to Mid-range.\n\n#### **C. For Maxillofacial Surgery or Medically Complex Patients**\n* **Apollo Dental / Yashoda Dental Departments (Somajiguda, Secunderabad, Jubilee Hills)**\n  * *Why it’s worth it:* Ideal if you have systemic conditions (uncontrolled diabetes, cardiac issues, bleeding disorders) or require deep sedation/general anesthesia for jaw surgery or severe impactions.\n  * *Price point:* Premium.\n\n---\n\n### Tips Before Getting Treated\n1. **Always ask for the implant/crown brand:** If getting an implant or crown, confirm which company's system is being used (e.g., Osstem, Nobel Biocare, 3M Lava) and ask if a manufacturer warranty card is included.\n2. **Watch out for unnecessary Root Canals:** Some chain clinics aggressively recommend root canals for deep cavities that could be resolved with a simple composite restoration or pulp cap. If in doubt, get a second opinion.\n3. **Get an OPG (panoramic X-ray) first:** Having a single full-mouth OPG (₹400–₹600) allows you to consult multiple specialists without having to retake X-rays every time.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "FMS Dental Hospitals",
+          "Focus Dental Care",
+          "Clove Dental",
+          "Apollo Dental"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "dentavacation.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "clovedental.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "smilebookdental.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ida.org.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "orodentalcare.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "carehospitals.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fmsdental.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "youtube.com",
+          "url": null,
+          "channelType": "video",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fmsdental.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "focusdentalcare.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "yashodahospitals.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "apollodental.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.034831
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a dental clinic cost in Hyderabad and which one is worth it",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "If you mean **dental treatment**, prices in Hyderabad vary by procedure and clinic. Typical private-clinic estimates are: consultation **₹200–₹800**, cleaning **₹500–₹3,000**, filling **₹800–₹4,800**, root canal **₹3,000–₹8,000** (crown may cost extra), and a single implant roughly **₹20,000–₹75,000**.[2][5]\n\nFor a **good-value starting point**, Smilebook Dental lists check-ups at ₹200–₹300, cleaning at ₹1,200–₹2,000, and root canals at ₹4,000–₹5,000; those are the clinic’s own advertised prices, not an independent quality assessment.[5] For low-cost care, Government Dental College & Hospital is a subsidized option, though waits may be longer.[2]\n\nTo choose what’s worth it, prioritize the **dentist and treatment plan over the cheapest quote**: for root canals, implants, or braces, ask whether a relevant specialist is involved, get an itemized written estimate, and compare two clinics. Costs can change with complexity, materials, X-rays, and whether crowns or follow-up visits are included.[2][5]",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "magicpin.in",
+          "url": "https://magicpin.in/blog/india/hyderabad/health/best-dental-clinics-in-hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "teeth.in",
+          "url": "https://teeth.in/dentists/hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "exploretelangana.com",
+          "url": "https://www.exploretelangana.com/best-dentist-in-hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "placidway.com",
+          "url": "https://www.placidway.com/search-medical-centers/Dentistry/Hyderabad+India/1",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "smilebookdental.in",
+          "url": "https://smilebookdental.in/dental-treatment-price-list-in-hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Hyderabad/Dental-Hospitals/nct-11273042",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "teeth.in",
+          "url": "https://teeth.in/dentist-costs/hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Hyderabad/Dental-Clinics-in-Thc/nct-10156036",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Hyderabad/Dental-Clinics-For-Rct-Root-Canal-in-Kphb-Colony/nct-10156036?undefined=",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "dentavacation.com",
+          "url": "https://www.dentavacation.com/clinics/dentists/india/hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00249
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which dental clinic in Hyderabad should I trust",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "Assuming you mean **Hyderabad, Telangana, India**, I’d start with **The Dental Specialists in Banjara Hills**: its NABH certificate lists a broad range of dental services and is valid through **February 23, 2029**. Accreditation is a useful quality signal, not a guarantee of your individual treatment or experience. ([portal.nabh.co](https://portal.nabh.co/Documents/AccreditedList/Dental%20Facilities/D-2022-0192_3rd%20Edition.pdf?utm_source=openai))\n\nIf Begumpet is more convenient, **Kalyani Dental Hospital** is another option; its NABH certificate is valid through **June 4, 2029**. ([portal.nabh.co](https://portal.nabh.co/Documents/AccreditedList/Dental%20Facilities/D-2025-0493_3rd%20Edition.pdf?utm_source=openai))\n\nBefore booking, check that the treating dentist’s registration is current, and ask for a written diagnosis, treatment plan, and itemized estimate. The Telangana Dental Council says qualified dentists should have a valid registration certificate displayed at the clinic. ([telanganastatedentalcouncil.in](https://telanganastatedentalcouncil.in/assets/img/046_Public%20Advisory_18.11.2025.pdf?utm_source=openai))\n\nTell me your **neighborhood and what treatment you need**—for example, a cleaning, root canal, braces, or implant—and I can narrow it down.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "portal.nabh.co",
+          "url": "https://portal.nabh.co/Documents/AccreditedList/Dental%20Facilities/D-2022-0192_3rd%20Edition.pdf?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "portal.nabh.co",
+          "url": "https://portal.nabh.co/Documents/AccreditedList/Dental%20Facilities/D-2025-0493_3rd%20Edition.pdf?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "telanganastatedentalcouncil.in",
+          "url": "https://telanganastatedentalcouncil.in/assets/img/046_Public%20Advisory_18.11.2025.pdf?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011601
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which dental clinic in Hyderabad should I trust",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Trust in a dental clinic depends largely on whether you need a **routine procedure** (cleanings, fillings, single root canals) or **complex work** (implants, full-mouth rehabilitation, aligners, oral surgery). \n\nSeveral dental clinics and hospital networks in Hyderabad have established long-standing reputations for hygiene, advanced technology, and specialist qualifications.\n\n---\n\n### 1. Premier Super-Specialty Dental Hospitals\n*(Best for: Dental implants, full-mouth restoration, cosmetic smile design, and complex surgeries)*\n\n* **FMS Dental Hospitals (Flagship in Jubilee Hills, multiple branches across Koti, Kondapur, etc.)**\n  * **Why trust them:** Operating for over 30 years, FMS is widely considered the gold standard for advanced dentistry in Hyderabad. Their Jubilee Hills International Center is **NABH-accredited** and maintains strict international sterilization protocols. They have an in-house digital CAD/CAM dental lab, full-time maxillofacial surgeons, and advanced 3D imaging (CBCT).\n  * **Best suited for:** Implants (All-on-4, zygomatic), veneers, clear aligners, and dental emergencies.\n\n* **Dr. Gowds Dental Hospital (Banjara Hills, Hitech City, Secunderabad)**\n  * **Why trust them:** Founded in 1967, it is one of Hyderabad’s oldest and most prestigious family-led dental institutions. They have a strong reputation for ethical practice, avoiding unnecessary overtreatment, and utilizing cutting-edge prosthodontic technology.\n  * **Best suited for:** Long-lasting bridge/crown work, implants, prosthodontics, and orthodontic alignment.\n\n---\n\n### 2. Large Standardized Chains & Hospital Networks\n*(Best for: Neighborhood access, routine care, corporate tie-ups, and transparent pricing)*\n\n* **Apollo Dental (Multiple branches city-wide)**\n  * **Why trust them:** Backed by the Apollo Hospitals network, they adhere to rigorous clinical governance, strict audit systems, and patient safety protocols. They are especially well-equipped to handle patients with systemic co-morbidities (e.g., severe diabetes, cardiac patients on blood thinners) because they integrate easily with hospital care.\n  * **Best suited for:** Standard family dentistry, medically complex patients, and corporate insurance claims.\n\n* **Clove Dental (Widespread across Madhapur, Gachibowli, Kukatpally, etc.)**\n  * **Why trust them:** As India’s largest dental chain, Clove operates with standardized 4-step sterilization protocols and transparent digital pricing. You do not have to worry about pricing discrepancies, and every clinic logs digital records accessible across their network.\n  * **Best suited for:** Routine cleanings, fillings, basic root canal treatments (RCT), and clear aligners.\n\n---\n\n### Which One Should You Pick?\n\n| Your Situation | Recommended Choice |\n| :--- | :--- |\n| **Complex Implant, Bone Graft, or Smile Makeover** | **FMS Dental** (Jubilee Hills) or **Dr. Gowds Dental** |\n| **Existing Health Issues (Heart condition, bleeding disorders)** | **Apollo Dental** or hospital dental wings (e.g., KIMS / Care Hospitals) |\n| **Routine Cleaning, Single Crown, or Quick Filling** | **Clove Dental** (closest branch) or an established neighborhood specialist |\n\n---\n\n### 4 Quick Checks Before Confirming Any Treatment\nNo matter which clinic you walk into in Hyderabad, verify these four points to ensure your trust is well-placed:\n1. **Check the Doctor’s MDS Specialization:** A general dentist (BDS) can do basic procedures, but you should insist on an **Endodontist** for root canals, an **Implantologist/Periodontist** for implants, and an **Orthodontist** for braces/aligners.\n2. **Observe Sterilization Protocols:** Ensure instrument pouches are sealed, autoclaved, and opened right in front of you.\n3. **Ask for a 3D CBCT Scan Before Implants:** A clinic that relies solely on a flat 2D X-ray (OPG) for implants instead of a 3D scan is taking shortcuts.\n4. **Demand Written Estimates:** Reputable clinics provide an itemized printed estimate and warranty details (e.g., for crowns/implants) before starting the procedure.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "FMS Dental Hospitals",
+          "Dr. Gowds Dental Hospital",
+          "Apollo Dental",
+          "Clove Dental"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "youtube.com",
+          "url": null,
+          "channelType": "video",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ketto.org",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "youtube.com",
+          "url": null,
+          "channelType": "video",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fmsdental.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "whatclinic.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fmsdental.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drgowdsdentalhospitals.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "apollodental.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.035646
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which dental clinic in Hyderabad should I trust",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "If you want one starting point, **FMS International Dental Center in Jubilee Hills** stands out: it ranked first among the Hyderabad clinics in a recent GCR comparison and says its flagship center is NABH-accredited[1][3]. That’s a useful shortlist signal, not a guarantee that it’s the right fit for every treatment.\n\nBefore committing, check that the treating dentist has relevant specialist credentials, ask for a written diagnosis and itemized estimate, and get a second opinion for major work such as implants or extensive cosmetic treatment. If you share your neighborhood and what care you need, I can narrow down nearby options.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "FMS International Dental Center"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "gcr.org",
+          "url": "https://gcr.org/rankings/dental-clinics/hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "whatclinic.com",
+          "url": "https://www.whatclinic.com/reviews/dentists/india/hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fmsdental.com",
+          "url": "https://www.fmsdental.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "exploretelangana.com",
+          "url": "https://www.exploretelangana.com/best-dentist-in-hyderabad/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "careinsurance.com",
+          "url": "https://www.careinsurance.com/health-insurance/dental-hospitals-in-hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "nationaldentalcare.in",
+          "url": "https://www.nationaldentalcare.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "placidway.com",
+          "url": "https://www.placidway.com/search-medical-centers/Dentistry/Hyderabad+India/1",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "linkedin.com",
+          "url": "https://www.linkedin.com/pulse/top-10-dental-clinics-hyderabad-ritika-aggarwal-te01f",
+          "channelType": "social",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "parkdentalcare.in",
+          "url": "https://parkdentalcare.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "apollodental.in",
+          "url": "https://apollodental.in/hyderabad",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00165
+    }
+  ]
+}
