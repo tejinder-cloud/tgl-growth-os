@@ -56,3 +56,32 @@
 - **Next:** Next pair in rotation: Bengaluru · real_estate.
 
 
+### Run — 09:32 IST (Bengaluru · real_estate)
+- **Scheduled Pair:** Bengaluru × real_estate
+- **Rubric:** v2 (qualified at 65 or above, benched from 50)
+- **Qualified Accounts:** 20 / 20
+- **Benched This Run (saved with status bench):** 16 (16 verified in the prospects table)
+- **Benched Re-score (v2, before discovery):** 0 eligible · 0 promoted · 0 still benched · 0 rejected · 0 not probed
+- **Dim 4 Probes (gemini):** 37 completed · 0 failed · 0 skipped at daily cap · 0 skipped, engine unavailable · probe spend $0.2665 USD
+- **Validator Funnel:**
+  - Raw Candidates (Places API): 76 (from 4 searches; 61 needed no separate details call)
+  - Live DNS Passed: 63 (Failed: 13)
+  - Playbook C Disqualified (Enterprise Chains): 0
+  - Place Details Enriched: 15 (Failed: 0)
+  - Email Verified via Hunter: 0
+  - Published Business Email (own website): 34
+  - Places Phone Verified (Owner-Run <50 staff only): 15
+  - Contact Unverified / Dropped: 12
+  - Fit Score >= 65: 20 (Sub-cutoff: 29, of which benched: 16, Not probed: 0)
+  - Write Gate Validated: 20 (Rejected: 0)
+- **Places API Daily Quota:** 33 / 95 calls
+- **Estimated Run Cost:** $0.0561 USD
+- **Review Card:** Not posted (Slack dispatch unavailable or skipped)
+
+#### Standup Contribution (18:00 IST):
+- **Did:** Sourced and qualified 20 accounts for Door AEO in Bengaluru (real_estate) with avg fit score 69.0; Places API quota: 33/95 calls; Dim 4 probes: 37 ($0.2665).
+- **Blocked:** None.
+- **Need from the Architect:** Architect review on the daily approval card in #revenue.
+- **Next:** Next pair in rotation: Jaipur · hospitals.
+
+
