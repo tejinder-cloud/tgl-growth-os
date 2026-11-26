@@ -1,0 +1,1162 @@
+{
+  "brand": {
+    "name": "Shape Dental Aesthetics Clinics",
+    "primaryDomain": "shapeclinics.in",
+    "domains": [
+      "shapeclinics.in"
+    ],
+    "variants": [
+      "Shape Dental Aesthetics Clinics",
+      "shapeclinics"
+    ],
+    "setupStatus": "prospect_unverified"
+  },
+  "auditedAt": "2026-11-26T05:36:01.010Z",
+  "promptsCount": 5,
+  "enginesCount": 3,
+  "totalQueries": 15,
+  "summary": {
+    "totalMentions": 0,
+    "visibilityScorePercent": 0,
+    "mentionsByEngine": {
+      "chatgpt": 0,
+      "gemini": 0,
+      "perplexity": 0
+    },
+    "competitorMentions": {
+      "Pitampura Dental Clinic": 1,
+      "Safdarjung Hospital’s Dental Surgery department": 1,
+      "The Dental Roots": 5,
+      "Stunning Dentistry": 4,
+      "Meraki Dental Studio": 1,
+      "Cosmodent India": 5,
+      "Medanta – The Medicity": 4,
+      "Max Healthcare Dental Dept": 1,
+      "Indraprastha Apollo Hospitals": 3,
+      "Clove Dental": 7,
+      "Sterling Dental Clinic": 2,
+      "Dr. Malhotra’s Dental Centre": 1,
+      "Smile Delhi – The Dental Clinic": 2,
+      "Dentem": 1,
+      "Dentzz Dental": 1,
+      "Dr. Kathuria’s Dental Clinic": 2,
+      "Neo Dental Care": 1,
+      "Max Super Speciality Hospital": 2,
+      "Fortis Memorial Research Institute": 1,
+      "Apollo White Dental": 1,
+      "Jain Dental Hospital": 2,
+      "Dr. Kathuria’s Dentistry": 2,
+      "Max Healthcare": 1,
+      "Bite Dental Clinic": 1,
+      "Artize Dental Clinic": 1,
+      "KB Dental": 1,
+      "Delhi Dentist Clinic": 1,
+      "Dent-Ally": 1,
+      "Apollo Dental": 1,
+      "Fortis Healthcare": 1,
+      "MAIDS": 4,
+      "Max Multi Speciality Dental Centres": 1,
+      "Indraprastha Apollo Dental Centre": 1
+    },
+    "citationDomains": {
+      "portal.nabh.co": 1,
+      "vmmc-sjh.mohfw.gov.in": 1,
+      "thedentalroots.com": 4,
+      "dentaltown.com": 2,
+      "stunningdentistry.com": 3,
+      "dentaldepartures.com": 1,
+      "cosmodentindia.com": 3,
+      "indianhealthguru.com": 2,
+      "maxhealthcare.in": 2,
+      "bestdelhi.in": 3,
+      "tarashadental.com": 4,
+      "ksdentalclinic.com": 1,
+      "drbhutanidentalclinic.com": 3,
+      "dentaldelhi.in": 2,
+      "bestinhood.com": 5,
+      "thedentaris.com": 1,
+      "crownandroots.com": 1,
+      "muskandentalcare.com": 1,
+      "dentalhealingtouch.in": 1,
+      "nandadental.com": 1,
+      "practo.com": 1,
+      "justdial.com": 4,
+      "ad.dentally.in": 1,
+      "happinesscreativity.com": 1,
+      "intop10.in": 1,
+      "de9to.com": 1,
+      "manipalhospitals.com": 1,
+      "healthfinder.in": 1,
+      "so.city": 2,
+      "delhidental.com": 3,
+      "delhidentalrating.com": 1,
+      "gcr.org": 2,
+      "jaindentistdelhi.com": 1,
+      "arkdental.in": 1,
+      "bitedentalclinic.com": 1,
+      "delhidentistclinic.com": 1,
+      "kbdentaldelhi.com": 2,
+      "northdelhidentalclinic.com": 1,
+      "ida.org.in": 1,
+      "delhidentalhospital.com": 1,
+      "yallahind.com": 1,
+      "magicpin.in": 2,
+      "medicaltourismco.com": 1,
+      "teeth.in": 1,
+      "maids.delhi.gov.in": 1,
+      "delhidentalsolutions.co.in": 1,
+      "dentally.in": 1
+    },
+    "totalCostUsd": 0.2304,
+    "totalCostInr": 21.36
+  },
+  "nextSteps": {
+    "weakestEngine": "ChatGPT",
+    "weakestEngineMentions": 0,
+    "zeroMentionEngines": [
+      "ChatGPT",
+      "Gemini",
+      "Perplexity"
+    ],
+    "queriesLost": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "weakestQueries": [
+      1,
+      2
+    ],
+    "winningCompetitor": "Clove Dental",
+    "winningCompetitorCount": 7,
+    "topCitationGap": "bestinhood.com",
+    "formattedText": "Shape Dental Aesthetics Clinics was named in 0 of 15 answers (0%). ChatGPT, Gemini and Perplexity did not name Shape Dental Aesthetics Clinics in any of the 5 questions. Clove Dental was named most often instead, in 7 of 15 answers. The questions where Shape Dental Aesthetics Clinics did worst: \"Best dental clinic in Delhi NCR\" (0 of 3 assistants named Shape Dental Aesthetics Clinics); \"Top dental clinic near me in Delhi NCR\" (0 of 3 assistants named Shape Dental Aesthetics Clinics)."
+  },
+  "matrix": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best dental clinic in Delhi NCR",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one objectively “best” clinic across Delhi NCR—it depends on your location and treatment. Clove Dental is a practic..."
+      }
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top dental clinic near me in Delhi NCR",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "“Near me” depends on your Delhi NCR neighbourhood. A strong-rated option in Indirapuram, Ghaziabad is Jain Dental Hospital , li..."
+      }
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which dental clinic in Delhi NCR has the best reviews and results",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t a reliable single “best” clinic for all of Delhi NCR, and online ratings don’t prove clinical outcomes. For the str..."
+      }
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a dental clinic cost in Delhi NCR and which one is worth it",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "If you mean the cost of dental treatment , not opening or buying a clinic, Delhi NCR private-clinic prices vary by procedure. T..."
+      }
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which dental clinic in Delhi NCR should I trust",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t one clinic I can confidently recommend for all of Delhi NCR—the right choice depends on your area and treatment. If..."
+      }
+    }
+  ],
+  "rawAnswers": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best dental clinic in Delhi NCR",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one objectively “best” clinic for all of Delhi NCR—location and treatment matter. **A reasonable starting point:** **Pitampura Dental Clinic** in North-West Delhi; NABH lists it as accredited through **July 23, 2029**, with services across general dentistry and multiple specialties. ([portal.nabh.co](https://portal.nabh.co/Documents/AccreditedList/Dental%20Facilities/D-2025-0521_3rd%20Edition.pdf?utm_source=openai))\n\nFor a hospital-based dental department or a more complex case, **Safdarjung Hospital’s Dental Surgery department** lists several specialty clinics. ([vmmc-sjh.mohfw.gov.in](https://www.vmmc-sjh.mohfw.gov.in/dental-surgery?utm_source=openai))\n\nTell me your **area** (Delhi, Gurugram, Noida, Ghaziabad, or Faridabad) and what you need—such as a root canal, braces, implant, or extraction—and I can narrow it down.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Pitampura Dental Clinic",
+          "Safdarjung Hospital’s Dental Surgery department"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "portal.nabh.co",
+          "url": "https://portal.nabh.co/Documents/AccreditedList/Dental%20Facilities/D-2025-0521_3rd%20Edition.pdf?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "vmmc-sjh.mohfw.gov.in",
+          "url": "https://www.vmmc-sjh.mohfw.gov.in/dental-surgery?utm_source=openai",
+          "channelType": "reference",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021539
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best dental clinic in Delhi NCR",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because Delhi NCR is a large region with diverse dental needs, the \"best\" clinic depends on whether you are looking for routine care, high-end cosmetic smile design, dental implants, or complex maxillofacial surgery. \n\nHere are the top-rated and most reputable dental clinics and centers across Delhi NCR, categorized by specialty and service model:\n\n---\n\n### 1. Premier Multi-Specialty Clinics (Best for Implants, Aesthetics & Aligners)\n\n*   **The Dental Roots** *(South Delhi – Panchsheel Park | Gurugram – Sushant Lok 1 & Golf Course Road)*  \n    * **Reputation:** Consistently rated among the top dental clinics in North India. Known for high-end digital dentistry, 3D imaging, pain-free root canals, and Invisalign.\n    * **Best for:** Dental implants, full-mouth rehabilitation, and smile makeovers.\n\n*   **Dent Ally** *(South Delhi – Gulmohar Park | Gurugram – Sushant Lok)*  \n    * **Reputation:** Internationally recognized clinic emphasizing minimally invasive, evidence-based, and microscopic dentistry.\n    * **Best for:** Complex root canals (under dental microscope), dental implants, and pediatric dentistry.\n\n*   **Stunning Dentistry** *(South Delhi – South Extension)*  \n    * **Reputation:** A luxury dental clinic catering to high-profile and international patients. They specialize in painless computerized anesthesia and 3D digital smile design.\n    * **Best for:** Cosmetic dentistry, porcelain veneers, and All-on-4 / All-on-6 implants.\n\n*   **Meraki Dental Studio** *(South Delhi – Green Park)*  \n    * **Reputation:** Highly rated boutique dental practice focusing on patient comfort, gentle dentistry, and aesthetics.\n    * **Best for:** Cosmetic dental work, invisible aligners, and aesthetic restorations.\n\n*   **Cosmodent India** *(Gurugram – Sector 51 / South City | Delhi)*  \n    * **Reputation:** Led by Dr. Aman Ahuja, known for modern surgical and implant setups.\n    * **Best for:** Immediate-load dental implants (teeth in a day) and advanced restorations.\n\n---\n\n### 2. Best Hospital-Backed Dental Departments (Best for Medically Compromised Patients & Surgeries)\nIf you require complex maxillofacial surgery, have underlying medical conditions (such as cardiac issues, severe diabetes, or bleeding disorders), or need general anesthesia, hospital-based dental departments are ideal:\n\n*   **Medanta – The Medicity (Division of Dental Sciences)** *(Gurugram)*: Led by highly experienced senior consultants, equipped with advanced operating facilities.\n*   **Max Healthcare Dental Dept.** *(Saket, New Delhi & Gurugram)*: Renowned for oral and maxillofacial surgeries, TMJ disorder treatments, and facial trauma care.\n*   **Indraprastha Apollo Hospitals** *(Sarita Vihar, South Delhi)*: Comprehensive dental and oral surgery unit with strict hospital-grade sterilization protocols.\n\n---\n\n### 3. Accessible Multi-Branch Chains (Best for Routine & Standardized Care)\n\n*   **Clove Dental** *(Over 100+ branches across Delhi, Noida, Gurugram, Ghaziabad, and Faridabad)*  \n    * **Reputation:** India’s largest dental chain. They follow standardized 4-step sterilization protocols and maintain centralized digital patient records across all branches.\n    * **Best for:** Regular dental check-ups, cleanings, standard root canals, and affordable transparent pricing across NCR.\n\n---\n\n### Regional Picks Across NCR\n\n| Region | Recommended Clinics |\n| :--- | :--- |\n| **South Delhi** | The Dental Roots, Dent Ally, Stunning Dentistry, Smile Delhi |\n| **Central / West Delhi** | Dr. Garg’s Multispeciality Dental Centre (Rajouri Garden), Sterling Dental Clinic |\n| **Gurugram** | The Dental Roots, Dent Ally, Aspen Dental, Cosmodent India |\n| **Noida / Greater Noida**| Dentessence Dental Care (Sector 50), Clove Dental clinics, Jaypee Hospital Dental Dept. |\n| **Faridabad** | Arora’s Smile Dental Clinic, Metro Hospital Dental Wing |\n\n---\n\n### Quick Checklist Before Choosing:\n1. **Specialist vs. General Dentist:** For root canals, ensure you are treated by an **Endodontist**; for braces/aligners, an **Orthodontist**; and for implants, an **Implantologist/Oral Surgeon/Periodontist**.\n2. **Sterilization Standards:** Always check if the clinic utilizes class-B autoclaves and sterile, sealed instrument pouches.\n3. **In-House Technology:** Clinics with in-house CBCT (3D X-rays), digital intraoral scanners, and dental operating microscopes typically offer more precise and faster treatments.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "The Dental Roots",
+          "Stunning Dentistry",
+          "Meraki Dental Studio",
+          "Cosmodent India",
+          "Medanta – The Medicity",
+          "Max Healthcare Dental Dept",
+          "Indraprastha Apollo Hospitals",
+          "Clove Dental",
+          "Sterling Dental Clinic"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "thedentalroots.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "dentaltown.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "stunningdentistry.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "dentaldepartures.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cosmodentindia.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indianhealthguru.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "maxhealthcare.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.034591
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best dental clinic in Delhi NCR",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one objectively “best” clinic across Delhi NCR—it depends on your location and treatment. **Clove Dental** is a practical starting point if you want multiple branches and a broad range of services; for example, its Sector 7, Rohini clinic is listed with a 4.9 rating across 1,629 reviews in one local comparison.[1]\n\nOther options include **Dr. Malhotra’s Dental Centre** on Pusa Road, which reports a 4.9 rating from 850+ reviews, and **The Dental Roots**, with clinics in Delhi and Gurugram.[2][3] These ratings and rankings can change, so check recent reviews and confirm the specific dentist’s qualifications before booking.\n\nFor a more tailored recommendation, share your **neighbourhood** and what you need—such as a root canal, implant, braces, or routine care.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Clove Dental",
+          "Dr. Malhotra’s Dental Centre",
+          "The Dental Roots"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "bestdelhi.in",
+          "url": "https://bestdelhi.in/best-dental-clinic-in-delhi-ncr/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "tarashadental.com",
+          "url": "https://tarashadental.com/top-10-dental-clinics-in-delhi-2026-best-dentist-in-delhi/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ksdentalclinic.com",
+          "url": "https://ksdentalclinic.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drbhutanidentalclinic.com",
+          "url": "https://www.drbhutanidentalclinic.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "dentaldelhi.in",
+          "url": "https://dentaldelhi.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bestinhood.com",
+          "url": "https://www.bestinhood.com/delhi/dentists/best-dentists-in-delhi/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thedentalroots.com",
+          "url": "https://www.thedentalroots.com/dental-clinic-in-delhi",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thedentaris.com",
+          "url": "https://www.thedentaris.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "crownandroots.com",
+          "url": "https://www.crownandroots.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "muskandentalcare.com",
+          "url": "https://www.muskandentalcare.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00159
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top dental clinic near me in Delhi NCR",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "I can narrow it down—**which area are you in** (for example, a Gurgaon or Noida sector, or South/West Delhi), and what do you need: check-up, root canal, braces, implants, or something else?\n\nA few options to start with:\n- **Gurgaon:** Healing Touch Dental, with clinics in Sector 45 and Palam Vihar; its site lists current locations and review scores. ([dentalhealingtouch.in](https://dentalhealingtouch.in/?utm_source=openai))\n- **Gurgaon or South Delhi:** Nanda Dental Clinic, with locations on Golf Course Road and in Defence Colony. ([nandadental.com](https://www.nandadental.com/?utm_source=openai))\n- **Noida:** Malhotra Dental Care & Implant Centre, Sector 52; Practo lists its address, dentist and patient reviews. ([practo.com](https://www.practo.com/noida/clinic/malhotra-dental-care-and-implant-centre-sector-52?specialization=Dentist&utm_source=openai))\n\nThese are starting points, not an independent ranking. Tell me your nearest sector or landmark and I’ll suggest the closest fit.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "dentalhealingtouch.in",
+          "url": "https://dentalhealingtouch.in/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "nandadental.com",
+          "url": "https://www.nandadental.com/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "practo.com",
+          "url": "https://www.practo.com/noida/clinic/malhotra-dental-care-and-implant-centre-sector-52?specialization=Dentist&utm_source=openai",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.011539
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top dental clinic near me in Delhi NCR",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Because Delhi NCR spans a vast area, the best dental clinic for you will depend on your exact location and whether you need routine care, advanced cosmetic dentistry, or complex oral surgery.\n\nBelow is a curated list of the top-rated and most reputable dental clinics and departments across Delhi NCR, categorized by region and type:\n\n---\n\n### 1. Top Renowned Boutique & Aesthetic Clinics\nThese clinics are widely recognized for advanced implantology, smile makeovers/veneers, painless root canals, and modern digital dentistry (CBCT, intraoral 3D scanners):\n\n* **The Dental Roots**\n  * **Locations:** Panchsheel Park (South Delhi) & Sushant Lok 1 (Gurugram)\n  * **Known for:** Award-winning clinic led by Dr. Dheeraj Setia. Highly rated for dental implants, clear aligners, and painless laser treatments.\n* **Smile Delhi – The Dental Clinic**\n  * **Location:** New Friends Colony (South Delhi)\n  * **Known for:** Directed by Dr. Suprriya B. Bhatia; acclaimed for cosmetic dentistry, dental tourism, veneers, and full-mouth rehabilitation.\n* **Dentem**\n  * **Locations:** Vasant Vihar, Defence Colony (South Delhi)\n  * **Known for:** Premium setup with in-house labs, experienced specialists for orthodontics (Invisalign), and surgical implants.\n* **Dentzz Dental**\n  * **Location:** Connaught Place (Central Delhi)\n  * **Known for:** Part of a premier chain catering to aesthetic dentistry, digital smile design, and instant teeth whitening.\n* **Cosmodent India**\n  * **Locations:** Gurugram (Golf Course Road) & South Extension (Delhi)\n  * **Known for:** Advanced implantology, Zygomatic implants, and cosmetic dental treatments.\n* **Dr. Kathuria’s Dental Clinic**\n  * **Location:** East of Kailash (South Delhi)\n  * **Known for:** One of the oldest and most established cosmetic and general dental clinics in South Delhi.\n* **Neo Dental Care**\n  * **Location:** Sector 61, Noida\n  * **Known for:** One of the highest-rated multi-speciality dental clinics in Noida for root canals, crowns, and pediatric care.\n\n---\n\n### 2. Major Hospital-Affiliated Dental Departments\n*Best suited for complex maxillofacial surgeries, medically compromised patients (e.g., severe cardiac issues, diabetes), or treatments requiring general anesthesia.*\n\n* **Medanta – The Medicity (Division of Dental Sciences):** Sector 38, Gurugram\n* **Max Super Speciality Hospital (Max Dental):** Saket & Panchsheel Park, South Delhi\n* **Indraprastha Apollo Hospitals:** Sarita Vihar, South-East Delhi\n* **Fortis Memorial Research Institute (FMRI):** Sector 44, Gurugram\n\n---\n\n### 3. Widespread Chains (Best for Accessibility \"Near Me\")\nIf you are looking for standardized quality within a 10–15 minute drive of your neighborhood for routine scaling, fillings, or check-ups:\n\n* **Clove Dental:** \n  * The largest network with **over 150+ clinics across Delhi, Noida, Gurgaon, Ghaziabad, and Faridabad**. They follow strict standardized sterilization protocols (four-step sterilization) and offer centralized records across branches.\n* **Apollo White Dental:** \n  * Located at multiple Apollo clinics across the NCR, providing multi-speciality dental consultations and standardized pricing.\n\n---\n\n### How to Choose the Right One:\n1. **Specialist Availability:** For root canals, ensure an **Endodontist** treats you; for implants, look for an **Implantologist / Periodontist / Oral Surgeon**; for braces or aligners, choose an **Orthodontist**.\n2. **Diagnostic Tech:** Top clinics have in-house digital OPG (X-ray) or CBCT scans, which prevents having to visit a separate diagnostic lab.\n3. **Sterilization Standards:** Always check if the clinic uses autoclaved, single-use packaged instruments.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "The Dental Roots",
+          "Smile Delhi – The Dental Clinic",
+          "Dentem",
+          "Dentzz Dental",
+          "Cosmodent India",
+          "Dr. Kathuria’s Dental Clinic",
+          "Neo Dental Care",
+          "Medanta – The Medicity",
+          "Max Super Speciality Hospital",
+          "Indraprastha Apollo Hospitals",
+          "Fortis Memorial Research Institute",
+          "Clove Dental",
+          "Apollo White Dental"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.006333
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top dental clinic near me in Delhi NCR",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "“Near me” depends on your Delhi NCR neighbourhood. A strong-rated option in **Indirapuram, Ghaziabad** is **Jain Dental Hospital**, listed at 4.9/5 from over 3,200 reviews; in **Greater Kailash, South Delhi**, **Stunning Dentistry** is listed at 4.6/5 with over 1,100 reviews.[1][10]\n\nTell me your **locality or PIN code**—for example, Noida Sector 62, Gurgaon Sector 56, Dwarka, or Rohini—and I can narrow it down. Ratings and listings can change, so confirm the clinic’s current hours, dentist’s credentials, and treatment costs before booking.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Jain Dental Hospital",
+          "Stunning Dentistry"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Delhi-Ncr/Dental-Clinics/nct-10156036",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ad.dentally.in",
+          "url": "https://ad.dentally.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "happinesscreativity.com",
+          "url": "https://www.happinesscreativity.com/top-6-dental-chain-clinics-in-delhi-ncr-location/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "intop10.in",
+          "url": "https://www.intop10.in/dentist-in-delhi/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/nearme/Dental-Clinics/nct-10156036",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "de9to.com",
+          "url": "https://de9to.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drbhutanidentalclinic.com",
+          "url": "https://www.drbhutanidentalclinic.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "manipalhospitals.com",
+          "url": "https://www.manipalhospitals.com/delhi-ncr/specialities/dental-medicine/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Delhi-Ncr/Dentists/nct-10156331",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bestinhood.com",
+          "url": "https://www.bestinhood.com/delhi/dentists/best-dentists-in-delhi/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00207
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which dental clinic in Delhi NCR has the best reviews and results",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t a reliable single “best” for all of Delhi NCR: online ratings reflect patient experience, not necessarily long-term treatment outcomes.\n\n**Based on review volume plus an independent quality signal, Goel’s Multispeciality Dental Clinic & Implant Centre in Shahdara is a strong option to investigate.** A recent listing reports **4.9/5 from about 6,165 Google reviews**, and the Delhi government’s empanelment list identifies it as **NABH-accredited**. That’s a promising combination, but it doesn’t prove it has the best clinical results. ([healthfinder.in](https://healthfinder.in/delhi/dental-clinics/?utm_source=openai))\n\nBefore committing to a major treatment—such as implants, braces, or multiple crowns—get a second opinion from a specialist, and ask for a written treatment plan, itemized estimate, and explanation of alternatives and risks. If you share your **neighbourhood and what treatment you need**, I can narrow the shortlist to clinics that are convenient and relevant to that procedure.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": []
+      },
+      "citations": [
+        {
+          "domain": "healthfinder.in",
+          "url": "https://healthfinder.in/delhi/dental-clinics/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021755
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which dental clinic in Delhi NCR has the best reviews and results",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "While there is no single clinic universally declared as the sole \"best,\" several dental clinics in Delhi NCR consistently earn top industry awards, thousands of positive verified reviews, and proven track records in clinical results. \n\nThe top-rated clinics in the region stand out based on reputation, patient reviews, and specialization:\n\n---\n\n### 1. The Dental Roots (Panchsheel Park, South Delhi & Sushant Lok, Gurugram)\n* **Best for:** Overall excellence, Full-Mouth Implants, and Cosmetic Veneers.\n* **Reputation:** Frequently awarded the \"Best Dental Clinic in Delhi NCR\" by healthcare and dental industry bodies (including FAMDENT). \n* **Key Doctor:** Led by Dr. Dheeraj Setia.\n* **Why it stands out:** Known for combining cutting-edge digital dentistry (CBCT, 3D intraoral scanners) with a five-star clinical environment. They hold near-perfect Google and Practo ratings across thousands of reviews for painless root canals, smile makeovers, and long-term implant success.\n\n---\n\n### 2. Dent Ally (Gulmohar Park, South Delhi & DLF Phase 4, Gurugram)\n* **Best for:** Ethical dentistry, Microscopic Root Canals, and Dental Implants.\n* **Reputation:** Multi-award-winning clinic that follows European sterilization protocols and an evidence-based, conservative approach (focusing on preserving natural tooth structure).\n* **Key Doctors:** Dr. Shashi Bhushan and Dr. Vidushi Mayor.\n* **Why it stands out:** Highly regarded by professionals, expats, and diplomatic staff. They are known for microscopic endodontics (high-precision root canals done under high-magnification dental microscopes) and transparent treatment plans without unnecessary upselling.\n\n---\n\n### 3. Dr. Kathuria’s Dentistry (Tagore Garden, West Delhi & South Delhi)\n* **Best for:** Smile Makeovers, Cosmetic Dentistry, and Dental Tourism.\n* **Reputation:** One of Delhi’s longest-running and most internationally recognized aesthetic dental clinics (in practice for over 20 years).\n* **Key Doctors:** Dr. Puneet Kathuria and Dr. Sween Kathuria.\n* **Why it stands out:** If your goal is a comprehensive aesthetic smile transformation (veneers, digital smile design, teeth whitening), Dr. Kathuria’s clinic has one of the largest portfolios of verified before-and-after case results in the region.\n\n---\n\n### 4. Cosmodent India (DLF Phase 1, Gurugram & Delhi)\n* **Best for:** Complex Dental Implants (All-on-4, All-on-6) and Immediate Implantation.\n* **Reputation:** A major destination clinic for patients with severe bone loss or full tooth loss seeking immediate-load dental implants.\n* **Key Doctor:** Dr. Aman Ahuja.\n* **Why it stands out:** Hundreds of video testimonials documenting full-mouth reconstructions. They have an in-house digital lab, allowing faster turnaround times for ceramic bridges and crowns.\n\n---\n\n### 5. Stunning Dentistry (Greater Kailash 1, South Delhi)\n* **Best for:** Luxury Patient Care, TMJ/Bite Correction, and Celebrity Smile Design.\n* **Reputation:** Positioned as an elite, boutique dental destination catering heavily to NRI patients, high-profile clients, and international dental tourists.\n* **Why it stands out:** High emphasis on patient comfort, sedation/sleep dentistry for dental anxiety, and facial aesthetics integration alongside dental restoration.\n\n---\n\n### 6. Dr. Rajat Sachdeva’s Dental Institute (Ashok Vihar, North Delhi)\n* **Best for:** Value-for-money Implants, General Dentistry, and High-Volume Quality Care.\n* **Reputation:** Regularly holds the highest review count and ratings in North Delhi.\n* **Why it stands out:** Excellent option if you want reliable, high-end implantology or oral surgery without the South Delhi/Gurugram luxury clinic markups.\n\n---\n\n### Hospital Departments (For Medically Complex Cases)\nIf the patient is elderly or has severe systemic conditions (e.g., uncontrolled cardiac issues, severe diabetes, bleeding disorders), a freestanding clinic may not be ideal. Consider:\n* **Indraprastha Apollo Hospitals (Sarita Vihar)** – Highly experienced maxillofacial surgeons and prosthodontists.\n* **Max Healthcare (Saket)** – Fully equipped for major jaw surgeries, dental procedures under general anesthesia, and medically compromised patients.\n\n---\n\n### How to Choose the Right One for You\n1. **Match the specialist (MDS) to your procedure:** \n   * For braces/aligners $\\rightarrow$ **Orthodontist**\n   * For veneers/crowns $\\rightarrow$ **Prosthodontist / Cosmetic Dentist**\n   * For implants/extractions $\\rightarrow$ **Oral & Maxillofacial Surgeon or Periodontist**\n   * For root canals $\\rightarrow$ **Endodontist**\n2. **Review before-and-after cases:** Ask to see raw, unedited photos of cases similar to yours (especially for veneers or full-mouth rehab).\n3. **Verify technology:** Look for clinics with an in-house **CBCT (3D X-ray)** machine and **digital intraoral scanners**, as these drastically reduce human error during implant placement and crown fabrication.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "The Dental Roots",
+          "Dr. Kathuria’s Dentistry",
+          "Cosmodent India",
+          "Stunning Dentistry",
+          "Indraprastha Apollo Hospitals",
+          "Max Healthcare"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "thedentalroots.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "so.city",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "dentaltown.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "delhidental.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "delhidental.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cosmodentindia.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "stunningdentistry.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "delhidentalrating.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indianhealthguru.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "maxhealthcare.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.037402
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which dental clinic in Delhi NCR has the best reviews and results",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t a reliable single “best” clinic for all of Delhi NCR, and online ratings don’t prove clinical outcomes. **For the strongest review-volume signal in the results, Jain Dental Hospital in Indirapuram, Ghaziabad, stands out:** Justdial lists 4.9/5 from 3,216 ratings; the clinic separately claims a 4.9 Google rating with 2,500+ reviews, so verify the current ratings on the platform before booking.[6][7]\n\nOther options to compare:\n- **Clove Dental, Sector 7 Rohini:** 4.9/5 across 1,629 Google reviews in a 2026 roundup.[1]\n- **Bite Dental Clinic, Meera Bagh and Gurugram:** reports 4.9 stars and 1,400+ reviews, with orthodontic and implant services.[9]\n- **Artize Dental Clinic:** ranked first among three Delhi clinics in GCR’s rating, which incorporates reviews and patient-reported outcomes; the listing doesn’t show review counts.[4]\n\nFor “results,” ask for the treating dentist’s credentials and relevant case examples, a written treatment plan and itemized estimate, and whether the clinician performing your procedure will handle follow-up. For major work such as implants or full-mouth rehabilitation, consider an independent second opinion.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Jain Dental Hospital",
+          "Clove Dental",
+          "Bite Dental Clinic",
+          "Artize Dental Clinic"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "bestinhood.com",
+          "url": "https://www.bestinhood.com/delhi/dentists/best-dentists-in-delhi/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "tarashadental.com",
+          "url": "https://tarashadental.com/top-10-dental-clinics-in-delhi-2026-best-dentist-in-delhi/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "delhidental.com",
+          "url": "https://www.delhidental.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "gcr.org",
+          "url": "https://gcr.org/rankings/dental-clinics/delhi",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "dentaldelhi.in",
+          "url": "https://dentaldelhi.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Delhi-Ncr/Dental-Clinics/nct-10156036",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "jaindentistdelhi.com",
+          "url": "https://www.jaindentistdelhi.com/best-dental-clinic-in-delhi-ncr/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "arkdental.in",
+          "url": "https://arkdental.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bitedentalclinic.com",
+          "url": "https://www.bitedentalclinic.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "stunningdentistry.com",
+          "url": "https://www.stunningdentistry.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00191
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a dental clinic cost in Delhi NCR and which one is worth it",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "If you mean **the cost of dental treatment at a clinic** (not the cost of opening a clinic), these are rough Delhi NCR private-clinic prices:\n\n| Treatment | Typical price |\n|---|---:|\n| Consultation | ₹500–₹1,000 |\n| Cleaning/scaling | ₹1,500–₹3,000+ |\n| Tooth-coloured filling | ₹1,200–₹2,500 |\n| Root canal | ₹4,800–₹12,000; a crown may cost extra |\n| Crown | About ₹4,500–₹22,000, depending on material |\n| Single implant **with crown** | About ₹28,000–₹60,000 |\n| Metal braces | From around ₹30,000; clear aligners can cost considerably more |\n\nThese are published clinic prices, not guaranteed quotes; the tooth, materials and any extra procedures change the bill. In particular, check whether an implant quote includes **both the implant and the crown**—some clinics list the implant placement separately. ([delhidentistclinic.com](https://www.delhidentistclinic.com/dental-treatment-cost?utm_source=openai))\n\n**Which is worth it?** There isn’t one best clinic for all of Delhi NCR, and a price list alone can’t establish treatment quality. If you’re in South Delhi, you could compare the published charges at **KB Dental** and **Delhi Dentist Clinic** as a starting point—not as an endorsement. Ask each for a written, itemized plan and, for expensive or irreversible treatment, consider a second opinion from the relevant specialist. ([kbdentaldelhi.com](https://www.kbdentaldelhi.com/our-charges?utm_source=openai))\n\nTell me your **area** and the treatment you need—such as a filling, root canal, braces or implant—and I can narrow down what’s a reasonable price and what to compare. If you meant **setting up/ buying a dental clinic**, say that instead.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "KB Dental",
+          "Delhi Dentist Clinic"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "delhidentistclinic.com",
+          "url": "https://www.delhidentistclinic.com/dental-treatment-cost?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "kbdentaldelhi.com",
+          "url": "https://www.kbdentaldelhi.com/our-charges?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021928
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a dental clinic cost in Delhi NCR and which one is worth it",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "The cost of dental care in Delhi NCR varies significantly based on the complexity of the procedure, materials used (e.g., standard vs. imported Swiss implants, metal vs. zirconia crowns), and the type of clinic (local neighborhood clinic vs. premium dental chain).\n\n---\n\n### 1. Typical Treatment Costs in Delhi NCR\n\n| Dental Procedure | Average Cost Range (INR) | Notes |\n| :--- | :--- | :--- |\n| **Doctor Consultation & X-Ray (IOPA)** | ₹300 – ₹1,000 | Usually includes basic digital imaging. |\n| **Teeth Cleaning & Polishing (Scaling)** | ₹1,000 – ₹3,000 | Deep root planing costs slightly more. |\n| **Tooth Filling (Composite/Glass Ionomer)** | ₹1,000 – ₹3,000 per tooth | Varies by the number of surfaces decayed. |\n| **Root Canal Treatment (RCT)** | ₹3,500 – ₹8,000 | Anterior teeth are cheaper; molars/calcified teeth cost more. Re-RCT costs extra. |\n| **Dental Crowns (Caps)** | ₹3,500 – ₹15,000+ per tooth | Metal: ₹3,500–₹5,000; PFM: ₹4,000–₹7,000; Zirconia/E-max: ₹8,000–₹16,000+. |\n| **Tooth Extraction** | ₹1,000 – ₹3,000 | Routine extraction. |\n| **Wisdom Tooth Surgery (Impaction)** | ₹4,000 – ₹10,000 | Involves minor surgical extraction under local anesthesia. |\n| **Dental Implants** | ₹20,000 – ₹55,000+ per implant | Indian/Korean brands (Osstem/Adin) are ₹20k–₹35k; Premium European brands (Straumann/Nobel Biocare) are ₹40k–₹60k+. |\n| **Orthodontics (Braces)** | ₹35,000 – ₹80,000 | Metal braces are cheapest; ceramic/self-ligating are higher. |\n| **Clear Aligners (Invisalign / Others)** | ₹60,000 – ₹2,50,000+ | Depends on duration, number of trays, and brand. |\n| **Teeth Whitening (Bleaching)** | ₹7,000 – ₹18,000 | In-office laser/zoom treatments. |\n\n---\n\n### 2. Which Dental Clinics are \"Worth It\"?\n\nA clinic's value depends on your specific condition, budget, and geographic location:\n\n#### A. Top Premium & Specialized Clinics *(Best for Implants, Full-Mouth Rehab, Cosmetic Makeovers)*\n*If you need precision work, advanced aesthetics, or complex surgeries and want top-tier hygiene and global standard materials:*\n* **Dent-Ally (Gulmohar Park, South Delhi):** Internationally accredited, widely recognized for strict 4-step sterilization protocols and specialized MDS doctors handling specific disciplines rather than a single general dentist doing everything.\n* **Dr. Kathuria’s Dentistry (Greater Kailash, South Delhi):** Long-running and reputed center specializing in painless single-sitting root canals, dental implants, and cosmetic smiles. Very popular for medical tourists and local residents alike.\n* **Stunning Dentistry (Kailash Colony & NSP):** A luxury-tier clinic featuring imported digital planning systems, German/US robotic imaging, and in-house HEPA sterilization. Premium pricing, but known for comprehensive cosmetic makeovers.\n* **Cosmodent India (Gurugram & South Delhi):** Popular across Delhi NCR for transparent pricing tiers and high volumes of implantology cases.\n\n#### B. Well-Regulated Chains *(Best for Routine Care, Transparent Pricing, Convenience)*\n*If you need cleanings, standard fillings, routine extractions, or basic braces and want fixed corporate rate cards with accessible branches:*\n* **Clove Dental:** The largest dental chain across Delhi NCR with dozens of neighborhood clinics. They follow standardized hygiene protocols and digital record-keeping, making it easy to transfer treatments between branches.\n* **Apollo Dental:** Backed by the Apollo healthcare network, providing audited sterilization standards and transparent package options.\n\n#### C. Multi-Specialty Hospital Dental Wings *(Best for High-Risk Patients & Jaw Surgery)*\n*If you have severe medical comorbidities (cardiac conditions, uncontrolled diabetes, bleeding disorders) or require general anesthesia for complex maxillofacial surgery:*\n* **Max Super Speciality Hospital (Saket / Patparganj / Vaishali)**\n* **Fortis Healthcare (Vasant Kunj / Gurgaon / Noida)**\n* **Medanta – The Medicity (Gurugram)**\n\n#### D. Government / Subsidized Option *(Best Value on a Tight Budget)*\n* **MAIDS (Maulana Azad Institute of Dental Sciences, Bahadur Shah Zafar Marg, New Delhi):** Consistently ranked as one of the best dental colleges and hospitals in India. Treatment costs are purely nominal (fractions of private costs), but it requires enduring long waiting queues.\n\n---\n\n### 3. Checklist to Ensure a Clinic is Worth the Money\n1. **Specialist Handling:** Ensure an **Endodontist** performs your Root Canal, an **Oral & Maxillofacial Surgeon** or **Periodontist** places your implants, and an **Orthodontist** manages aligners.\n2. **Sterilization Protocols:** Watch for autoclaved, sealed pouch instrument sets opened in front of you and disposable barriers on chairs/drills.\n3. **Written Treatment Plan & Warranty:** A reputable clinic will provide an itemized quote in advance and offer manufacturer warranties (with authentic serial numbers) for implants and zirconia crowns.\n\n*(Note: If you were inquiring about the cost to **open/set up** a commercial dental clinic in Delhi NCR rather than patient care, a 2-chair modern dental clinic setup typically requires a capital expenditure of ₹18 lakh to ₹45 lakh, depending on equipment tiers, digital sensors/CBCT, and commercial lease security deposits.)*",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Dent-Ally",
+          "Dr. Kathuria’s Dentistry",
+          "Stunning Dentistry",
+          "Cosmodent India",
+          "Clove Dental",
+          "Apollo Dental",
+          "Fortis Healthcare",
+          "Max Super Speciality Hospital",
+          "Medanta – The Medicity",
+          "MAIDS"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "cosmodentindia.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "northdelhidentalclinic.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ida.org.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "delhidentalhospital.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "kbdentaldelhi.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "delhidental.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "so.city",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.03716
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a dental clinic cost in Delhi NCR and which one is worth it",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "If you mean **the cost of dental treatment**, not opening or buying a clinic, Delhi NCR private-clinic prices vary by procedure. Typical estimates are **₹500–₹2,500 for a consultation, ₹550–₹3,400 for cleaning, ₹550–₹5,600 for a filling, ₹2,200–₹9,000 for a root canal (crown extra), and roughly ₹22,500–₹67,000 for a single implant**.[1][2] Treat these as guide prices, not a quote—get a written, itemized estimate because scans, crowns, materials, and case complexity can change the total.[1][2]\n\n**Which is worth it?**\n- **Best value if you’re comfortable with a public hospital:** Maulana Azad Institute of Dental Sciences (MAIDS) is a low-cost option, but expect potentially longer waits.[1]\n- **For convenient private care:** Consider a nearby established clinic or chain such as Clove, then compare its written treatment plan and total price with another clinic. A Delhi directory reports strong review numbers for its Rohini Clove branch, but reviews alone don’t establish clinical quality.[3]\n- **For implants or other major work:** Choose based on the treating specialist’s relevant experience, clear diagnosis, itemized all-in quote, and follow-up plan—not the lowest advertised price.\n\nBefore agreeing, ask whether the estimate includes X-rays/scans, temporary and final crown, medicines, follow-ups, and any likely extra procedures. Share your **area in NCR and the treatment you need** for a more specific shortlist and cost estimate.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "MAIDS"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "bestdelhi.in",
+          "url": "https://bestdelhi.in/best-dental-clinic-in-delhi-ncr/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "yallahind.com",
+          "url": "https://www.yallahind.com/best-dental-clinics-in-delhi-2025-the-ultimat/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bestinhood.com",
+          "url": "https://www.bestinhood.com/delhi/dentists/best-dentists-in-delhi/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "magicpin.in",
+          "url": "https://magicpin.in/blog/india/delhi/health/best-dental-clinics-in-delhi",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thedentalroots.com",
+          "url": "https://www.thedentalroots.com/blog/dental-implants-in-ncr-cost-guide-and-best-clinics-compared",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "medicaltourismco.com",
+          "url": "https://www.medicaltourismco.com/dental-tourism-in-delhi/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "teeth.in",
+          "url": "https://teeth.in/dentists/delhi/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "tarashadental.com",
+          "url": "https://tarashadental.com/top-10-dental-clinics-in-delhi-2026-best-dentist-in-delhi/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Delhi-Ncr/Dental-Clinics/nct-10156036",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "teeth.in",
+          "url": "https://teeth.in/dentist-costs/delhi/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00219
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which dental clinic in Delhi NCR should I trust",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "If I had to name one **safe starting point**, I’d choose **Maulana Azad Institute of Dental Sciences (MAIDS), near Delhi Gate**—especially for a second opinion or specialist treatment. It’s a government dental teaching institute with multiple specialty departments, and its NABH accreditation is listed as valid through **July 21, 2028**. ([maids.delhi.gov.in](https://maids.delhi.gov.in/maids/infrastructure?utm_source=openai))\n\nFor a convenient private clinic, the **individual dentist and their relevant specialty matter more than the clinic’s branding**. Before agreeing to a costly or irreversible treatment, ask for the diagnosis, alternatives, itemized cost, and copies of relevant X-rays; consider a second opinion if you’re unsure.\n\nTell me **your area in Delhi NCR** and what you need done—such as a filling, root canal, braces, implant, or extraction—and I can narrow it down.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "MAIDS"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "maids.delhi.gov.in",
+          "url": "https://maids.delhi.gov.in/maids/infrastructure?utm_source=openai",
+          "channelType": "reference",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021584
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which dental clinic in Delhi NCR should I trust",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Choosing a trustworthy dental clinic in Delhi NCR depends on whether you are looking for **routine care, advanced specialist treatments (implants, full-mouth rehab, braces), or hospital-grade surgical care**. \n\nHere are the most trusted dental clinics and centers across Delhi NCR, broken down by category:\n\n---\n\n### 1. Premier Academic & Research Centers *(Best for Complex Cases & Highest Clinical Authority)*\nIf you want treatment supervised by the country's top dental professors and specialists at highly subsidized rates (though with waiting times):\n* **Maulana Azad Institute of Dental Sciences (MAIDS), Delhi Gate:** Consistently ranked as India's #1 dental institute. It handles everything from rare oral pathology to advanced maxillofacial surgery.\n* **CDER, AIIMS (Centre for Dental Education and Research), Ansari Nagar:** The apex center in India for complex tertiary dental and maxillofacial care.\n\n---\n\n### 2. Top-Tier Private Specialist Clinics *(Best for High Quality, Modern Tech & Implants)*\nThese clinics have built strong reputations over years for hygiene, digital dentistry (CBCT scans, 3D intraoral scanners), and specialist-led treatments:\n\n* **The Dental Roots (Gurgaon & South Delhi):**\n  * *Locations:* Sushant Lok (Gurgaon) and Panchsheel Park (Delhi).\n  * *Known for:* Consistently rated among the best in NCR for dental implants, invisible aligners, and painless root canals. They have an in-house team of MDS specialists and state-of-the-art diagnostic equipment.\n* **Smile Delhi – The Dental Clinic (Defence Colony, South Delhi):**\n  * *Known for:* Highly trusted by expats, diplomats, and international patients for cosmetic dentistry, veneers, and full-mouth rehabilitation. Very transparent treatment planning.\n* **Dr. Kathuria’s Dental Clinic (East of Kailash, South Delhi):**\n  * *Known for:* Over two decades of trust, specialized in single-sitting root canals, dental implants, and aesthetic smile design.\n* **Sterling Dental Clinic (Vasant Vihar, South Delhi):**\n  * *Known for:* Premium multi-speciality practice known for stringent sterilization standards and experienced prosthodontists.\n* **Cosmodent India (Gurgaon & Delhi):**\n  * *Known for:* Full-mouth dental implants (All-on-4/All-on-6) and digital smile designing.\n\n---\n\n### 3. Multi-Specialty Hospital Dental Wings *(Best for High-Risk & Medically Compromised Patients)*\nIf you have underlying health conditions (cardiac issues, diabetes, bleeding disorders) or require general anesthesia for extensive oral surgery:\n* **Medanta – The Medicity (Dental Department, Sector 38, Gurgaon):** Comprehensive team of oral surgeons, prosthodontists, and pediatric dentists equipped for complex reconstructions.\n* **Max Multi Speciality Dental Centres (Saket, Panchsheel Park, Vaishali):** Well-regulated, standardized clinical protocols backed by tertiary hospital infrastructure.\n* **Indraprastha Apollo Dental Centre (Sarita Vihar, South Delhi):** Reliable for geriatric dentistry and medically complex patients.\n\n---\n\n### 4. Large Dental Chains *(Best for Routine Care & Neighborhood Accessibility)*\n* **Clove Dental:**\n  * *Network:* Hundreds of branches across Delhi, Noida, Gurgaon, and Faridabad.\n  * *Trust Factor:* They follow strict, standardized 4-tier sterilization and radiation safety protocols.\n  * *Note:* Great for regular checkups, cleanings, and standard fillings. However, for complex treatments (like impactions or implants), ensure an experienced visiting **MDS specialist** handles your case rather than a junior resident.\n\n---\n\n### How to Verify and Pick the Right One for You:\n1. **Match the Doctor to the Procedure:** \n   * Root Canal $\\rightarrow$ **Endodontist (MDS)**\n   * Implants & Crowns $\\rightarrow$ **Prosthodontist / Periodontist (MDS)**\n   * Wisdom Tooth Extraction $\\rightarrow$ **Oral & Maxillofacial Surgeon (MDS)**\n   * Braces/Aligners $\\rightarrow$ **Orthodontist (MDS)**\n2. **Ask About Sterilization:** A reliable clinic will openly show you their autoclave packaging, pouch sealers, and disposable barrier covers.\n3. **Request a Written Treatment Plan:** A trustworthy clinic will provide an itemized quote, clinical rationale, and potential alternatives before starting any procedure.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "MAIDS",
+          "The Dental Roots",
+          "Smile Delhi – The Dental Clinic",
+          "Dr. Kathuria’s Dental Clinic",
+          "Sterling Dental Clinic",
+          "Cosmodent India",
+          "Medanta – The Medicity",
+          "Max Multi Speciality Dental Centres",
+          "Indraprastha Apollo Dental Centre",
+          "Clove Dental"
+        ]
+      },
+      "citations": [],
+      "costUsd": 0.006986
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which dental clinic in Delhi NCR should I trust",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t one clinic I can confidently recommend for all of Delhi NCR—the right choice depends on your area and treatment. **If you’re in Rohini, Clove Dental’s Sector 7 branch is one reasonable option to investigate:** a recent directory reports a 4.9 rating across 1,629 reviews, though ratings alone don’t establish clinical quality.[1]\n\nBefore booking, check that the **specific dentist** is registered and experienced in the procedure you need, ask for a written diagnosis and itemized treatment plan, and get a second opinion before costly or irreversible work. A recent Delhi clinic ranking also advises asking which dentist will actually treat you.[1]\n\nShare your **neighborhood/city** and what you need—such as a check-up, root canal, braces, or implant—and I can narrow down nearby options.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Clove Dental"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "bestdelhi.in",
+          "url": "https://bestdelhi.in/best-dental-clinic-in-delhi-ncr/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bestinhood.com",
+          "url": "https://www.bestinhood.com/delhi/dentists/best-dentists-in-delhi/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "tarashadental.com",
+          "url": "https://tarashadental.com/top-10-dental-clinics-in-delhi-2026-best-dentist-in-delhi/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "magicpin.in",
+          "url": "https://magicpin.in/blog/india/delhi/health/best-dental-clinics-in-delhi",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "gcr.org",
+          "url": "https://gcr.org/rankings/dental-clinics/delhi",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "delhidentalsolutions.co.in",
+          "url": "https://www.delhidentalsolutions.co.in/ncr/index.html",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drbhutanidentalclinic.com",
+          "url": "https://www.drbhutanidentalclinic.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "dentally.in",
+          "url": "https://dentally.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "dentally.in",
+          "url": "https://dentally.in/dentist-in-delhi/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Delhi-Ncr/Dental-Clinics/nct-10156036",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00187
+    }
+  ]
+}
