@@ -64,16 +64,20 @@ export function verifyState(state: string, secret: string, now: Date = new Date(
   return Number.isFinite(age) && age >= 0 && age <= STATE_TTL_MS;
 }
 
-export function authUrl(cfg: GoogleBookingConfig, state: string): string {
+/** Email only, for an outreach sending inbox (no calendar). */
+export const INBOX_SCOPES = ["openid", "email", "https://www.googleapis.com/auth/gmail.send", "https://www.googleapis.com/auth/gmail.readonly"];
+export const INBOX_CALLBACK_PATH = "/book/inbox/callback";
+
+export function authUrl(cfg: GoogleBookingConfig, state: string, opts: { redirectPath?: string; scopes?: string[]; loginHint?: string } = {}): string {
   const q = new URLSearchParams({
     client_id: cfg.clientId,
-    redirect_uri: cfg.publicUrl + CALLBACK_PATH,
+    redirect_uri: cfg.publicUrl + (opts.redirectPath || CALLBACK_PATH),
     response_type: "code",
-    scope: BOOKING_SCOPES.join(" "),
+    scope: (opts.scopes || BOOKING_SCOPES).join(" "),
     access_type: "offline",
     prompt: "consent",
     include_granted_scopes: "false",
-    login_hint: cfg.calendarEmail,
+    login_hint: opts.loginHint ?? cfg.calendarEmail,
     state,
   });
   return `https://accounts.google.com/o/oauth2/v2/auth?${q.toString()}`;

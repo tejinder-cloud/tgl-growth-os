@@ -77,7 +77,9 @@ export interface ExecutorPorts {
   /** Create or update the GHL contact and return its id. Returns "" when no GHL contact is needed for this send. */
   upsertContact: (prospect: ProspectView, channel: TouchChannel) => Promise<string>;
   /** Send one message. Only called in live mode. `via` says what carried it. */
-  sendMessage: (msg: OutboundMessage) => Promise<{ messageId?: string; via?: "gmail" | "resend" | "ghl" }>;
+  sendMessage: (msg: OutboundMessage) => Promise<{ messageId?: string; via?: "gmail" | "resend" | "ghl"; inbox?: string }>;
+  /** Before a first email: why the address cannot receive mail (no mail server for its domain), or null. */
+  checkAddress?: (email: string) => Promise<string | null>;
 }
 
 function errMessage(err: unknown): string {
@@ -209,6 +211,15 @@ export function makeExecute(ports: ExecutorPorts): (item: DueTouch, mode: SendMo
       return { status: "held", reason };
     }
 
+    // A first email only goes to an address whose domain can receive mail; a bounce costs every inbox reputation.
+    if (item.touch === 1 && channel === "Email" && prospect.email && ports.checkAddress) {
+      const why = await ports.checkAddress(prospect.email).catch(() => null);
+      if (why) {
+        await ports.saveState(prospect.id, { ...state, state: "paused", pause_reason: `touch 1: ${why}` });
+        return { status: "skipped", reason: why };
+      }
+    }
+
     try {
       let contactId = state.ghl_contact_id || "";
       if (!contactId) {
@@ -234,6 +245,7 @@ export function makeExecute(ports: ExecutorPorts): (item: DueTouch, mode: SendMo
         attachment_url: attachmentUrl,
         ...(sent.via ? { via: sent.via } : {}),
         ...(message.variant ? { variant: message.variant } : {}),
+        ...(sent.inbox ? { inbox: sent.inbox } : {}),
       };
       const touches = state.touches.filter((t) => !(t.dry_run && t.n === item.touch)).concat(record);
       const done = item.touch >= TOTAL_TOUCHES;

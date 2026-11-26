@@ -39,9 +39,29 @@ export function liveGmailSender(env: NodeJS.ProcessEnv = process.env, fetchImpl:
 
 const seen = new Set<string>();
 
-/** One inbox poll. Does nothing unless outreach email runs through Gmail. */
+/** One inbox poll. Does nothing unless outreach email runs through Gmail. With the pool, every inbox is read. */
 export async function runGmailInboxPoll(env: NodeJS.ProcessEnv = process.env): Promise<InboxPollResult | null> {
   const cfg = loadEmailConfig(env);
+  if (cfg.via === "pool") {
+    const { inboxTokenProvider, loadInboxes } = await import("./pool.js");
+    const total: InboxPollResult = { connected: false, checked: 0, replies: [], bounces: [] };
+    for (const inbox of await loadInboxes()) {
+      const r = await pollGmailInbox({
+        token: inboxTokenProvider(inbox.email, env),
+        ownAddress: inbox.email,
+        store: createSupabaseStore(),
+        sender: liveGmailSender(env),
+        forwardTo: cfg.forwardTo,
+        seen,
+      });
+      if (!r.connected) console.warn(`[Gmail Inbox] ${inbox.email} is not connected: sign in at /book/inbox/connect`);
+      total.connected ||= r.connected;
+      total.checked += r.checked;
+      total.replies.push(...r.replies);
+      total.bounces.push(...r.bounces);
+    }
+    return total;
+  }
   if (cfg.via !== "gmail") return null;
   const result = await pollGmailInbox({
     token: gmailTokenProvider(env),

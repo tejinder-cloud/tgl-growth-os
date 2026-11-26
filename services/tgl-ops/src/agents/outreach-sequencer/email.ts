@@ -17,7 +17,8 @@
 //   OUTREACH_PUBLIC_URL          public base URL of this service; defaults to https://$RAILWAY_PUBLIC_DOMAIN
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-export type EmailVia = "gmail" | "resend" | "ghl";
+/** pool: several Gmail inboxes in rotation (gmail/pool.ts, 26 Nov 2026). */
+export type EmailVia = "gmail" | "pool" | "resend" | "ghl";
 
 export interface OutreachEmailConfig {
   via: EmailVia;
@@ -41,7 +42,7 @@ export function addressOf(value: string): string {
 
 function viaOf(raw: string | undefined): EmailVia {
   const v = (raw || "").trim().toLowerCase();
-  return v === "gmail" || v === "resend" ? v : "ghl";
+  return v === "gmail" || v === "pool" || v === "resend" ? v : "ghl";
 }
 
 export function loadEmailConfig(env: NodeJS.ProcessEnv = process.env): OutreachEmailConfig {
@@ -64,7 +65,7 @@ export function loadEmailConfig(env: NodeJS.ProcessEnv = process.env): OutreachE
 /** Problems that would make a live send through this service fail, or leave replies unread. Empty when clean. */
 export function emailConfigIssues(cfg: OutreachEmailConfig): string[] {
   const issues: string[] = [];
-  if (cfg.via === "gmail") {
+  if (cfg.via === "gmail" || cfg.via === "pool") {
     // Gmail needs only the unsubscribe link here; the account itself is checked when a token is requested.
     if (!cfg.unsubscribeSecret || !cfg.publicUrl) issues.push("the unsubscribe link cannot be built (OUTREACH_WEBHOOK_SECRET and OUTREACH_PUBLIC_URL or RAILWAY_PUBLIC_DOMAIN)");
     return issues;
