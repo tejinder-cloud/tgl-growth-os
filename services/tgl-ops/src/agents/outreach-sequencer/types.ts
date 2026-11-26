@@ -28,6 +28,8 @@ export interface TouchRecord {
   attachment_url?: string;
   /** What carried the message: this service's own email provider, or GoHighLevel. Absent on older records. */
   via?: "gmail" | "resend" | "ghl";
+  /** The subject-line variant sent ("A" or "B"), when the template has two. */
+  variant?: "A" | "B";
 }
 
 export interface AuditSummary {
@@ -85,6 +87,8 @@ export interface SequenceTouchDef {
 }
 
 export interface RenderedMessage {
+  /** Which subject line was used when a template has two ("A" or "B"), so replies can be compared. */
+  variant?: "A" | "B";
   subject?: string;
   html?: string;
   text: string;

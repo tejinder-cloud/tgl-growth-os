@@ -31,6 +31,8 @@ export interface SuggestedReply {
   in_reply_to?: string;
   intent: ReplyIntent;
   needs_edit: boolean;
+  /** Storage path of the one-page PDF to attach: a YES to the first email asked for it (26 Nov 2026). */
+  attach_path?: string;
   created_at: string;
   status: "draft" | "sending" | "sent";
   sent_at?: string;
@@ -78,6 +80,8 @@ export function replySubject(subject?: string | null): string {
 
 export interface DraftInput {
   intent: ReplyIntent;
+  /** The report is attached to this reply (they asked for it and have not had it yet). */
+  withReport?: boolean;
   name?: string | null;
   company: string;
   slots: string[];
@@ -95,7 +99,12 @@ export function draftReply(d: DraftInput): { text: string; needsEdit: boolean } 
   const offer = (lead: string) => [lead, times, link].filter(Boolean).join("\n\n");
   let body: string;
   let needsEdit = false;
-  if (d.intent === "meeting_request" || d.intent === "positive_interest") {
+  if (d.withReport && (d.intent === "meeting_request" || d.intent === "positive_interest")) {
+    body = [
+      `Thank you. The one-page result for ${company} is attached: the five questions, what each assistant said, and who they named.`,
+      times || link ? offer(times ? "If it helps, I can take you through it in 20 minutes. These times are free:" : "If it helps, I can take you through it in 20 minutes.") : "If it helps, I can take you through it in 20 minutes. When would suit you?",
+    ].join("\n\n");
+  } else if (d.intent === "meeting_request" || d.intent === "positive_interest") {
     body = [
       `Thank you for getting back to me. I would be glad to take you through what we found for ${company} and what to fix first. It takes 20 minutes.`,
       times || link ? offer(times ? "Would one of these times suit you?" : "") : "When would suit you for a 20-minute call?",
@@ -119,7 +128,7 @@ export function suggestionBlocks(company: string, reply: SuggestedReply, prospec
   if (!reply.needs_edit) buttons.push({ type: "button", text: { type: "plain_text", text: "Send as written" }, style: "primary", action_id: SEND_ACTION, value: prospectId });
   buttons.push({ type: "button", text: { type: "plain_text", text: "Edit and send" }, action_id: EDIT_ACTION, value: prospectId });
   return [
-    { type: "section", text: { type: "mrkdwn", text: `*Suggested reply to ${cleanBusinessName(company)}*${reply.needs_edit ? " (add your answer before sending)" : ""}\nSubject: ${reply.subject}` } },
+    { type: "section", text: { type: "mrkdwn", text: `*Suggested reply to ${cleanBusinessName(company)}*${reply.needs_edit ? " (add your answer before sending)" : ""}\nSubject: ${reply.subject}${reply.attach_path ? "\nThe one-page report PDF is attached." : ""}` } },
     { type: "section", text: { type: "mrkdwn", text: quoted.slice(0, 2900) } },
     { type: "actions", elements: buttons },
     { type: "context", elements: [{ type: "mrkdwn", text: "Nothing is sent until you press a button. It goes as a reply in the same email thread." }] },
@@ -152,7 +161,10 @@ export interface SuggestPorts {
 export async function suggestReply(input: SuggestInput, ports: SuggestPorts): Promise<SuggestedReply | null> {
   if (input.state.state === "opted_out") return null;
   const slots = await ports.slots().catch(() => [] as string[]);
-  const draft = draftReply({ intent: input.intent, name: input.prospect.decision_maker?.name, company: input.prospect.company, slots, bookingLink: ports.bookingLink, senderName: ports.senderName });
+  // They have not had the report yet (it goes with touch 3) and it is stored: the reply carries it.
+  const reportSent = (input.state.touches || []).some((t) => t.n === 3 && !t.dry_run && t.sent_at);
+  const withReport = !reportSent && Boolean(input.state.onepager_path) && (input.intent === "positive_interest" || input.intent === "meeting_request");
+  const draft = draftReply({ intent: input.intent, withReport, name: input.prospect.decision_maker?.name, company: input.prospect.company, slots, bookingLink: ports.bookingLink, senderName: ports.senderName });
   if (!draft) return null;
   const reply: SuggestedReply = {
     text: draft.text,
@@ -161,6 +173,7 @@ export async function suggestReply(input: SuggestInput, ports: SuggestPorts): Pr
     ...(input.messageId && /^<[^<>\s]+@[^<>\s]+>$/.test(input.messageId) ? { in_reply_to: input.messageId } : {}),
     intent: input.intent,
     needs_edit: draft.needsEdit,
+    ...(withReport ? { attach_path: input.state.onepager_path as string } : {}),
     created_at: ports.now().toISOString(),
     status: "draft",
   };
@@ -181,6 +194,8 @@ export interface SendPorts {
   load: (id: string) => Promise<{ prospect: OutreachProspect; state: OutreachState } | null>;
   save: (id: string, state: OutreachState) => Promise<void>;
   send: (email: OutreachEmail) => Promise<{ messageId: string }>;
+  /** A signed link to a stored one-pager, for the attachment. */
+  signReport: (path: string) => Promise<string>;
   tell: (channel: string, ts: string | undefined, text: string) => Promise<void>;
   openModal: (triggerId: string, view: any) => Promise<void>;
   recordSent: (prospect: OutreachProspect) => Promise<void>;
@@ -231,7 +246,8 @@ async function doSend(id: string, text: string, user: any, where: { channel: str
   // Mark as sending first, so a double click never sends twice.
   await ports.save(id, { ...state, suggested_reply: { ...r, status: "sending" } } as OutreachState);
   try {
-    const sent = await ports.send({ prospectId: id, to: r.to, subject: r.subject, text, inReplyTo: r.in_reply_to });
+    const attach = r.attach_path ? { attachmentUrl: await ports.signReport(r.attach_path), attachmentFilename: `${cleanBusinessName(prospect.company).replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "")}-AI-visibility.pdf` } : {};
+    const sent = await ports.send({ prospectId: id, to: r.to, subject: r.subject, text, inReplyTo: r.in_reply_to, ...attach });
     const by = await ports.actorName(user).catch(() => "the Architect");
     const at = ports.now().toISOString();
     await ports.save(id, { ...state, suggested_reply: { ...r, text, status: "sent", sent_at: at, sent_by: by, message_id: sent.messageId } } as OutreachState);
@@ -358,6 +374,10 @@ async function liveSendPorts(): Promise<SendPorts> {
       return p && s ? { prospect: p, state: s } : null;
     },
     save: (id, state) => store.saveState(id, state),
+    async signReport(path) {
+      const { signOnePagerPath } = await import("./live.js");
+      return signOnePagerPath(path, env);
+    },
     async send(email) {
       if (cfg.via === "gmail") {
         const { liveGmailSender } = await import("../gmail/live.js");

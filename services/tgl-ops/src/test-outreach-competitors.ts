@@ -55,5 +55,6 @@ assert.match(t3.text, /The one I would fix first: "Which dental clinic in Chandi
 const noComp = renderFromTemplates(set, 3, "Email", ctx({ ...s, top_competitors: [], competitor_mentions: undefined, weakest_competitor: undefined }));
 assert.match(noComp.text, /No engine named Chandigarh Dental Clinic there\./);
 const twelve = renderFromTemplates(set, 1, "Email", ctx({ ...s, total_queries: 10 }));
-assert.match(twelve.subject!, /in 3 of 10 AI answers/, "the real number of answers, not 15");
+assert.match(twelve.text, /named in 3 of 10 answers/, "the real number of answers, not 15");
+if (twelve.variant === "A") assert.match(twelve.subject!, /in 3 of 10 AI answers/, "subject A carries the real number too");
 console.log("test-outreach-competitors: all checks passed");

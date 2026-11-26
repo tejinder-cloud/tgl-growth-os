@@ -75,6 +75,7 @@ export function toView(p: OutreachProspect): ViewWithWebsite {
     decisionMakerName: dm?.name || undefined,
     outreach: getOutreachState(p),
     website: p.website,
+    status: p.status,
   };
 }
 
@@ -204,6 +205,11 @@ async function defaultStoreOnePager(p: OnePagerProspect, summary: AuditSummary, 
   const pdf = renderOnePagerPdf(p, summary);
   const stored = await uploadOnePager(p.company || domainOf(p.website), pdf, env);
   return stored.path;
+}
+
+/** A 7-day signed link to a stored one-pager PDF. */
+export async function signOnePagerPath(storagePath: string, env: NodeJS.ProcessEnv = process.env): Promise<string> {
+  return defaultSignUrl(storagePath, env);
 }
 
 async function defaultSignUrl(storagePath: string, env: NodeJS.ProcessEnv): Promise<string> {
@@ -454,6 +460,8 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
       for (const r of list) {
         const s = getOutreachState(r);
         if (!s || s.state !== "active") continue;
+        // Never due for a business the Architect rejected (replies from it are still routed).
+        if (r.status === "rejected") continue;
         const def = SEQUENCE.find((t) => t.n === s.next_touch);
         if (!def) continue;
         if (new Date(s.next_due_at).getTime() > at.getTime()) continue;

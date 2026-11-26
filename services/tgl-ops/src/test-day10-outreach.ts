@@ -90,7 +90,7 @@ async function main() {
     assert.deepEqual(p.modes, ["live"]);
   }
 
-  // Cap: oldest first, remainder rolls over
+  // Cap: follow-ups first (26 Nov 2026), then oldest due; remainder rolls over
   {
     const p = ports({
       env: { OUTREACH_DAILY_SEND_CAP: "2" },
@@ -98,7 +98,7 @@ async function main() {
       items: [due(3, 1, "2026-03-09T03:00:00Z"), due(1, 1, "2026-03-06T03:00:00Z"), due(2, 3, "2026-03-07T03:00:00Z")],
     });
     const s = await runTick(p);
-    assert.deepEqual(p.executed, ["p1:1"], "only one slot left, oldest due first");
+    assert.deepEqual(p.executed, ["p2:3"], "only one slot left: the follow-up goes before an older first email");
     assert.equal(s.deferredByCap, 2);
   }
 

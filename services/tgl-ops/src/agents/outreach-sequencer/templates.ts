@@ -29,6 +29,8 @@ export interface TouchTemplate {
   channel: "email" | "whatsapp";
   day?: number;
   subject?: string;
+  /** A second subject line to test against the first (26 Nov 2026). Each business always gets the same one. */
+  subjectB?: string;
   fallback?: string;
   body: string;
 }
@@ -67,6 +69,7 @@ export function parseTemplate(source: string, label = "template"): TouchTemplate
     channel,
     day: day !== undefined && Number.isFinite(day) ? day : undefined,
     subject: meta.subject || undefined,
+    subjectB: meta.subject_b || undefined,
     fallback: meta.fallback ? meta.fallback.toLowerCase() : undefined,
     body,
   };
@@ -341,15 +344,16 @@ export function renderFromTemplates(set: TemplateSet, n: number, channel: TouchC
   const text = fixArticles(fill(tpl.body, vars, missing).replace(/\bHello,? Hello\b/g, "Hello"));
 
   let subject: string | undefined;
+  let variant: "A" | "B" | undefined;
   if (channel === "Email") {
-    if (tpl.subject) {
-      subject = fixArticles(fill(tpl.subject, vars, missing));
-    } else {
-      // Email fallback for a WhatsApp touch: reply-style subject on the touch 1 thread.
-      const first = set.get(1);
-      if (!first?.subject) throw new Error(`Touch ${n} has no subject and touch 1 has none to fall back on`);
-      subject = `Re: ${fill(first.subject, vars, missing)}`;
-    }
+    const own = tpl.subject ? tpl : undefined;
+    const source = own || set.get(1);
+    if (!source?.subject) throw new Error(`Touch ${n} has no subject and touch 1 has none to fall back on`);
+    // The same business always gets the same variant, so a follow-up on its thread matches its first subject.
+    if (source.subjectB) variant = subjectVariant(ctx.company);
+    const line = variant === "B" ? (source.subjectB as string) : source.subject;
+    // Email fallback for a WhatsApp touch: reply-style subject on the touch 1 thread.
+    subject = own ? fixArticles(fill(line, vars, missing)) : `Re: ${fixArticles(fill(line, vars, missing))}`;
   }
 
   if (missing.size > 0) {
@@ -359,7 +363,15 @@ export function renderFromTemplates(set: TemplateSet, n: number, channel: TouchC
   if (EMOJI.test(text) || (subject && EMOJI.test(subject))) throw new Error(`Touch ${n} rendered with an emoji`);
 
   if (channel === "WhatsApp") return { text };
-  return { subject, text, html: toHtml(text) };
+  return { subject, text, html: toHtml(text), ...(variant ? { variant } : {}) };
+}
+
+/** "A" or "B" for a business, from its cleaned name: stable across touches and restarts. */
+export function subjectVariant(company: string): "A" | "B" {
+  const key = cleanBusinessName(company).toLowerCase();
+  let h = 0;
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+  return h % 2 === 0 ? "A" : "B";
 }
 
 /** Returns a renderer bound to a loaded template set, shaped for ExecutorPorts.render. */
