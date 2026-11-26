@@ -193,3 +193,53 @@ export async function runTick(ports: TickPorts): Promise<TickSummary> {
     outcomes,
   };
 }
+
+export interface SendHealth {
+  sent: number;
+  bounced: number;
+  complained: number;
+}
+
+/** Real emails sent, and bounces and spam complaints on them, over the 7 days before now. */
+export function emailHealth(rows: { signals?: unknown }[], now: Date): SendHealth {
+  const since = now.getTime() - 7 * 86_400_000;
+  const out: SendHealth = { sent: 0, bounced: 0, complained: 0 };
+  for (const r of rows) {
+    const o = ((r.signals || {}) as { outreach?: { touches?: { channel?: string; sent_at?: string; dry_run?: boolean }[]; state?: string; pause_reason?: string } }).outreach;
+    const recent = (o?.touches || []).filter((t) => !t.dry_run && t.channel === "Email" && t.sent_at && Date.parse(t.sent_at) >= since && Date.parse(t.sent_at) <= now.getTime());
+    out.sent += recent.length;
+    if (!recent.length) continue;
+    const why = o?.pause_reason || "";
+    if (/marked the email as spam/i.test(why)) out.complained++;
+    else if (o?.state === "paused" && /bounced/i.test(why)) out.bounced++;
+  }
+  return out;
+}
+
+/**
+ * The warm-up safety rule (Architect, 26 Nov 2026): a step in OUTREACH_CAP_SCHEDULE only takes effect when the
+ * last 7 days were clean, meaning bounces under 3% of sends and no spam complaint. Otherwise the previous step's
+ * limit stays. It looks at a rolling week, so the step goes ahead once the bad days are more than 7 days old.
+ */
+export function guardedCap(env: NodeJS.ProcessEnv, now: Date, health: SendHealth): { cap: number; held?: string } {
+  const scheduled = dailyCap(env, now);
+  if (scheduled === 0) return { cap: 0 };
+  const today = new Date(now.getTime() + IST_OFFSET_MINUTES * 60_000).toISOString().slice(0, 10);
+  const steps = (env.OUTREACH_CAP_SCHEDULE || "")
+    .split(",")
+    .map((p) => /^\s*(\d{4}-\d{2}-\d{2})\s*=\s*(\d+)\s*$/.exec(p))
+    .filter((m): m is RegExpExecArray => !!m)
+    .map((m) => ({ date: m[1], cap: Number(m[2]) }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const i = steps.reduce((at, s, k) => (s.date <= today ? k : at), -1);
+  if (i <= 0) return { cap: scheduled };
+  const previous = steps[i - 1].cap;
+  if (scheduled <= previous) return { cap: scheduled };
+  const rate = health.bounced / Math.max(1, health.sent);
+  const reason = health.complained > 0
+    ? `${health.complained} spam complaint${health.complained === 1 ? "" : "s"} in the last 7 days`
+    : health.bounced > 0 && rate >= 0.03
+      ? `${health.bounced} bounce${health.bounced === 1 ? "" : "s"} in ${health.sent} emails over the last 7 days (${Math.round(rate * 1000) / 10}%, the limit is under 3%)`
+      : "";
+  return reason ? { cap: previous, held: reason } : { cap: scheduled };
+}
