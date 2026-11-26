@@ -8,6 +8,7 @@ import { plainError } from "../../lib/plain-error.js";
 import { cleanBusinessName } from "../outreach-sequencer/names.js";
 import { categoryLabel } from "../outreach-sequencer/sequence.js";
 import type { Deal } from "./stages.js";
+import { planFirstTouch, type WaCandidate } from "../outreach-sequencer/whatsapp-first-touch.js";
 export { esc } from "./shell.js";
 
 export interface LiveProspect {
@@ -30,7 +31,8 @@ export interface LiveProspect {
       touches?: { n: number; channel?: string; sent_at?: string; dry_run?: boolean; via?: string }[];
     };
     /** The AI check run in advance for a phone-only business (preaudit.ts). */
-    preaudit?: { mentions?: number; total_queries?: number; audited_at?: string; weakest_competitor?: string; competitor_mentions?: Record<string, number> };
+    preaudit?: { mentions?: number; total_queries?: number; audited_at?: string; weakest_competitor?: string; competitor_mentions?: Record<string, number>; mentions_by_engine?: Record<string, number> };
+    whatsapp?: { first_touch_at?: string; opted_out?: boolean };
   } | null;
 }
 
@@ -67,6 +69,10 @@ export interface QueueRow { company: string; city: string; type: string; fit: nu
 export interface CallRow extends QueueRow {
   /** The advance AI check in one sentence, or "" when it has not run yet. */
   check: string;
+  /** The WhatsApp first message exactly as it would be sent, or "" when it cannot be sent yet. */
+  message: string;
+  /** Why there is no message yet ("" when there is one). */
+  skip: string;
 }
 export interface Problem { text: string; names: string[] }
 export interface Stage { label: string; count: number; /** Added today, when the records say; null when unknown. */ today: number | null }
@@ -90,6 +96,8 @@ export interface LiveView {
   nextInLine: QueueRow[];
   /** Approved, no email, a phone: they get the WhatsApp first message once Meta approves (no cold calls). */
   calls: CallRow[];
+  /** How many of the phone-only businesses have a WhatsApp first message ready. */
+  whatsappReady: number;
   paused: Problem[];
   spend: Spend | null;
   /** Today's events, newest first; null when the record could not be read. */
@@ -209,7 +217,10 @@ export function buildLiveView(input: LiveInput): LiveView {
   const calls: CallRow[] = notContacted
     .filter((p) => !hasEmail(p) && hasPhone(p))
     .sort(byFit)
-    .map((p) => ({ ...queueRow(p), check: checkLine(cleanBusinessName(p.company), p.signals?.preaudit) }));
+    .map((p) => {
+      const plan = planFirstTouch(p as unknown as WaCandidate, input.now);
+      return { ...queueRow(p), check: checkLine(cleanBusinessName(p.company), p.signals?.preaudit), message: plan.ok ? plan.touch.text : "", skip: plan.ok ? "" : plan.reason };
+    });
 
   const activeDeals = input.deals.filter((d) => !(d.prospect_id && all.some((p) => p.id === d.prospect_id && p.status === "rejected")));
   const callDeals = activeDeals.filter((d) => CALL_STAGES.has(d.stage)).length;
@@ -283,6 +294,7 @@ export function buildLiveView(input: LiveInput): LiveView {
     outbox: sentRows.slice(0, 60),
     nextInLine,
     calls,
+    whatsappReady: calls.filter((c) => c.message).length,
     paused,
     spend: input.spend,
     feed: input.events === undefined ? null : input.events,

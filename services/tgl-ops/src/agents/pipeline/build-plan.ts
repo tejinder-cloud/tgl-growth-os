@@ -67,7 +67,7 @@ export const BUILD_PLAN: BuildPlan = {
     { day: 7, title: "Events table as the record, replacing GitHub logs (PR #230)", owner: "Claude", status: "done", note: "Log files stay as a backup for now." },
     { day: 9, title: "Suggested replies to prospect emails, with calendar slots (PR #231)", owner: "Claude", status: "done", note: "Sent only when you press a button." },
     { day: 10, title: "Build plan counted in work days, not calendar days", owner: "Claude", status: "done" },
-    { day: 11, title: "WhatsApp first message in the sequence, dry run only", owner: "Claude", status: "todo" },
+    { day: 11, title: "WhatsApp first message, dry run: exact message per business on the Outreach page", owner: "Claude", status: "done", note: "Sending is locked until Meta approves the template." },
     { day: 14, title: "Inbound WhatsApp replies reach Slack and the pipeline", owner: "Claude", status: "todo" },
     { day: 16, title: "Meta approves the app (Tech Provider)", owner: "Meta", status: "doing", date: "2026-12-08", note: "In review. Meta says most reviews finish within 20 days; the date is our planning guess." },
     { day: 17, title: "Publish the app and connect 98720 09997 by coexistence", owner: "You", status: "todo", note: "After Meta approves. Not through the new-number flow." },
