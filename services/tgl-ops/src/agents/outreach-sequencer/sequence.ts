@@ -188,11 +188,11 @@ export function renderTouch(n: number, channel: TouchChannel, ctx: MessageContex
     case 4: {
       const finding = auditFinding(ctx);
       const cited = ctx.audit?.top_cited_domains?.[0];
-      const body = `${hello} one line from the report: ${finding}.${cited ? ` The source the assistants cited most was ${cited}.` : ""} That is usually a two-week fix, not a campaign. Want the 20-minute walkthrough? Reply with a day. ${OPT_OUT_LINE}`;
+      const body = `${hello} one line from the report: ${finding}.${cited ? ` The source the assistants cited most was ${cited}.` : ""} Want the 20-minute walkthrough? Reply with a day. ${OPT_OUT_LINE}`;
       if (channel === "WhatsApp") return { text: body };
       return build(`One fix from the report, ${ctx.company}`, [
         hello,
-        `One line from the report: ${finding}.${cited ? ` The source the assistants cited most was ${cited}.` : ""} That is usually a two-week fix, not a campaign.`,
+        `One line from the report: ${finding}.${cited ? ` The source the assistants cited most was ${cited}.` : ""}`,
         "Want the 20-minute walkthrough? Reply with a day that suits you. You keep the audit whether or not we work together.",
         sign,
         OPT_OUT_LINE,

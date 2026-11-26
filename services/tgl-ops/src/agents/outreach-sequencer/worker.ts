@@ -142,7 +142,9 @@ export async function runTick(ports: TickPorts): Promise<TickSummary> {
   if (!isSendWindow(now)) return { ...base, ran: false, reason: "outside_window" };
 
   const sentToday = await ports.countToday(now);
-  const due = (await ports.listDue(now)).slice().sort((a, b) => a.dueAt.localeCompare(b.dueAt));
+  // Follow-ups first, then first emails (26 Nov 2026): the daily limit was being used up by new first emails,
+  // so the report emails, which carry the finding and the ask, never got a slot.
+  const due = (await ports.listDue(now)).slice().sort((a, b) => Number(a.touch === 1) - Number(b.touch === 1) || a.dueAt.localeCompare(b.dueAt));
   const remaining = Math.max(0, cap - sentToday);
 
   if (due.length === 0) return { ...base, sentToday, ran: true, reason: "nothing_due" };

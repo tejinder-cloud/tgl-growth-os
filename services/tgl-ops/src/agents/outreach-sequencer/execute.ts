@@ -30,6 +30,8 @@ export interface ProspectView {
   decisionMakerName?: string;
   /** Sequence state from prospects.signals.outreach. Absent means the prospect is not enrolled. */
   outreach?: OutreachState;
+  /** The prospect's status. A rejected business is never sent anything, whatever its sequence says. */
+  status?: string;
 }
 
 export interface OutboundMessage {
@@ -100,6 +102,8 @@ export function makeExecute(ports: ExecutorPorts): (item: DueTouch, mode: SendMo
   return async function execute(item: DueTouch, mode: SendMode): Promise<ExecuteResult> {
     const prospect = await ports.loadProspect(item.prospectId);
     if (!prospect) return { status: "skipped", reason: "prospect not found" };
+    // The Architect's rejection wins over any sequence state (26 Nov 2026: a rejected business was resumed by hand).
+    if (prospect.status === "rejected") return { status: "skipped", reason: "rejected by the Architect" };
 
     let state = prospect.outreach;
     if (!state) return { status: "skipped", reason: "prospect is not enrolled" };
@@ -229,6 +233,7 @@ export function makeExecute(ports: ExecutorPorts): (item: DueTouch, mode: SendMo
         dry_run: false,
         attachment_url: attachmentUrl,
         ...(sent.via ? { via: sent.via } : {}),
+        ...(message.variant ? { variant: message.variant } : {}),
       };
       const touches = state.touches.filter((t) => !(t.dry_run && t.n === item.touch)).concat(record);
       const done = item.touch >= TOTAL_TOUCHES;
