@@ -12,6 +12,11 @@ export const OVERVIEW_CSS = `.stats{display:grid;grid-template-columns:repeat(4,
 .stats li:nth-child(2) a{box-shadow:3px 3px 0 var(--coral)}.stats li:nth-child(3) a{box-shadow:3px 3px 0 var(--terra)}.stats li:nth-child(4) a{box-shadow:3px 3px 0 var(--sage)}
 .stats a:hover{transform:translate(-1px,-1px)}
 .stats b{display:block;font-size:1.6rem;letter-spacing:-.02em;line-height:1.2}.stats small{font-size:.9rem;font-weight:500;color:var(--mute)}.stats span{display:block;font-size:.82rem;color:var(--mute);margin-top:2px}
+.target{display:grid;grid-template-columns:auto 1fr;gap:6px 28px;align-items:center;box-shadow:3px 3px 0 var(--terra)}
+.target b{display:block;font-size:2rem;letter-spacing:-.03em;line-height:1.1}.target b small{font-size:1rem;font-weight:500;color:var(--mute)}
+.target p{font-size:.92rem}.tlabel{display:block;font-size:.78rem;font-weight:600;color:var(--terra-text);margin-bottom:2px}
+.target .bar{grid-column:1/-1;display:block;height:8px;border-radius:99px;background:var(--paper-2);overflow:hidden}.target .bar i{display:block;height:100%;background:var(--terra);border-radius:99px}
+@media (max-width:600px){.target{grid-template-columns:1fr}}
 .journey{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;margin:4px 0 0;padding:0;list-style:none}
 .journey li{position:relative;padding:12px 14px 12px 0}
 .journey li+li{padding-left:22px}
@@ -53,6 +58,9 @@ export function renderOverviewMain(v: LiveView, now: Date, plan: BuildPlan = BUI
 </ul>`;
 
   const max = Math.max(1, ...v.journey.map((j) => j.count));
+  const won = v.journey.find((j) => j.label === "Won")?.count ?? 0;
+  const next = plan.target.checkpoints.find((c) => c.by >= s.today);
+  const target = `<section class="panel target"><div><span class="tlabel">Target</span><b>${won}<small> of ${plan.target.clients} paying clients</small></b><span class="sub">by ${esc(shortDay(plan.target.by))}</span></div>${next ? `<p><span class="tlabel">Next checkpoint, ${esc(shortDay(next.by))}</span>${esc(next.what)}</p>` : ""}<i class="bar"><i style="width:${Math.min(100, Math.round((won / plan.target.clients) * 100))}%"></i></i></section>`;
   const journey = `<section class="panel"><h2>From found to won</h2><p class="lead">Every business the system has found, and how far each has got. The percentage is how many moved on from the stage before.</p>
 <ol class="journey">${v.journey
     .map((j, i) => {
@@ -106,6 +114,7 @@ export function renderOverviewMain(v: LiveView, now: Date, plan: BuildPlan = BUI
   }</section>`;
 
   return `${stats}
+<div class="row">${target}</div>
 <div class="row">${journey}</div>
 <div class="row two">${needsPanel}${probsPanel}</div>
 <div class="row two">${actPanel}${moneyPanel}</div>

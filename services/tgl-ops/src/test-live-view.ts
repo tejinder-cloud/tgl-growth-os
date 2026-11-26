@@ -104,6 +104,8 @@ async function main() {
   const html = renderOverviewPage(v, "me@x.example", NOW);
   assert.ok(html.includes("1<small> of 5</small>"));
   assert.ok(html.includes("From found to won") && html.includes("+1 today"), "the journey with today's additions");
+  assert.ok(html.includes("1<small> of 5 paying clients</small>") && html.includes("by Sun 28 Feb"), "the revenue target, from won deals");
+  assert.ok(html.includes("Next checkpoint, Thu 10 Dec") && html.includes("200 sends done"), "the next checkpoint");
   assert.ok(html.includes("₹513") && html.includes("TrueVisible"), "spend from the recorded table");
   assert.ok(html.includes('href="/pipeline/live" aria-current="page"') && html.includes('id="refresh"'), "current tab marked; a refresh button");
   assert.ok(html.includes("Smile &lt;Studio&gt;") && !html.includes("Smile <Studio>"), "escaped");
