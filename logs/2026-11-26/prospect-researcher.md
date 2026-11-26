@@ -27,3 +27,32 @@
 - **Next:** Next pair in rotation: Patiala · hotels.
 
 
+### Run — 09:31 IST (Patiala · hotels)
+- **Scheduled Pair:** Patiala × hotels
+- **Rubric:** v2 (qualified at 65 or above, benched from 50)
+- **Qualified Accounts:** 1 / 20
+- **Benched This Run (saved with status bench):** 0 (0 verified in the prospects table)
+- **Benched Re-score (v2, before discovery):** 0 eligible · 0 promoted · 0 still benched · 0 rejected · 0 not probed
+- **Dim 4 Probes (gemini):** 1 completed · 0 failed · 0 skipped at daily cap · 0 skipped, engine unavailable · probe spend $0.0331 USD
+- **Validator Funnel:**
+  - Raw Candidates (Places API): 20 (from 1 searches; 10 needed no separate details call)
+  - Live DNS Passed: 3 (Failed: 2)
+  - Playbook C Disqualified (Enterprise Chains): 15
+  - Place Details Enriched: 3 (Failed: 0)
+  - Email Verified via Hunter: 0
+  - Published Business Email (own website): 3
+  - Places Phone Verified (Owner-Run <50 staff only): 0
+  - Contact Unverified / Dropped: 0
+  - Fit Score >= 65: 1 (Sub-cutoff: 2, of which benched: 0, Not probed: 0)
+  - Write Gate Validated: 1 (Rejected: 0)
+- **Places API Daily Quota:** 14 / 95 calls
+- **Estimated Run Cost:** $0.0105 USD
+- **Review Card:** Not posted (Slack dispatch unavailable or skipped)
+
+#### Standup Contribution (18:00 IST):
+- **Did:** Sourced and qualified 1 accounts for Door AEO in Patiala (hotels) with avg fit score 73.0 (Shortfall of 19 accounts: 20 candidates discovered via Places, 3 DNS alive, 15 disqualified by Playbook C, 3 Place Details enriched, 0 email verified via Hunter, 0 owner phones, 1 scored >= 65, 0 benched); Places API quota: 14/95 calls; Dim 4 probes: 1 ($0.0331).
+- **Blocked:** None.
+- **Need from the Architect:** Architect review on the daily approval card in #revenue.
+- **Next:** Next pair in rotation: Bengaluru · real_estate.
+
+
