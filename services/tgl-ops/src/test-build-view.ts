@@ -27,6 +27,7 @@ const plan: BuildPlan = {
   ],
   risks: [{ kind: "Issue", what: "{phone_only} phone-only", impact: "Medium", owner: "Claude", action: "x", status: "Open" }, { kind: "Risk", what: "R1", impact: "High", owner: "You", action: "Act", status: "Open" }, { kind: "Issue", what: "R2", impact: "Low", owner: "Claude", action: "x", status: "Closed" }],
   decisions: [{ date: "2026-11-24", what: "Decided" }],
+  target: { clients: 5, by: "2027-02-28", checkpoints: [{ by: "2026-12-10", what: "200 sends" }] },
   agents: [{ key: "outreach-sequencer", name: "Outreach", job: "Sends", when: "Daily", live: true }, { key: "prospect-researcher", name: "Researcher", job: "Finds", when: "09:30", live: true }, { key: "whatsapp", name: "WhatsApp", job: "Messages", when: "Later", live: false }],
 };
 

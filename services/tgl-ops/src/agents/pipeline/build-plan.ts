@@ -36,6 +36,8 @@ export interface BuildPlan {
   risks: PlanRisk[];
   decisions: PlanDecision[];
   agents: PlanAgent[];
+  /** The revenue target the build serves (Architect, 26 Nov 2026), with checkpoints to see early if it is off. */
+  target: { clients: number; by: string; checkpoints: { by: string; what: string }[] };
 }
 
 export const BUILD_PLAN: BuildPlan = {
@@ -86,6 +88,7 @@ export const BUILD_PLAN: BuildPlan = {
     { kind: "Risk", what: "GitHub token expires in Nov 2027", impact: "Low", owner: "You", action: "Set a reminder a week before expiry.", status: "Watching" },
   ],
   decisions: [
+    { date: "2026-11-26", what: "Target: 5 paying clients by 28 Feb 2027", why: "Every build day is judged by whether it moves this number." },
     { date: "2026-11-25", what: "A build day is a block of work, not a calendar day; several can be done in one sitting" },
     { date: "2026-11-24", what: "Finish line: WhatsApp outreach live by 15 Dec 2026", why: "Phone-only businesses can only be reached on WhatsApp." },
     { date: "2026-11-24", what: "No cold calls. Phone-only businesses wait for WhatsApp" },
@@ -99,6 +102,17 @@ export const BUILD_PLAN: BuildPlan = {
     { date: "2026-11-21", what: "WhatsApp through Meta App Review as a Tech Provider; 98720 09997 joins by coexistence" },
     { date: "2026-11-21", what: "The WhatsApp console uses the mylabos admin system-user token" },
   ],
+  target: {
+    clients: 5,
+    by: "2027-02-28",
+    checkpoints: [
+      { by: "2026-12-10", what: "200 sends done; reply rate read (1% or more, or fix the copy first)" },
+      { by: "2026-12-31", what: "First call booked; sending 25 a day" },
+      { by: "2027-01-15", what: "Sending 50 a day; 8 calls so far; 1 client" },
+      { by: "2027-01-31", what: "15 calls; 2 clients" },
+      { by: "2027-02-28", what: "30 calls; 5 clients" },
+    ],
+  },
   agents: [
     { key: "prospect-researcher", name: "Prospect researcher", job: "Finds businesses on Google Places and scores fit", when: "09:30 daily, 3 city-industry pairs", live: true },
     { key: "outreach-sequencer", name: "Outreach", job: "Sends approved emails with each business's AI check", when: "09:30 to 16:30, on the half hour", live: true },
