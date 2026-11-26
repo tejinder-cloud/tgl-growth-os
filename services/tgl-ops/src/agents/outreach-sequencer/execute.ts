@@ -79,7 +79,7 @@ export interface ExecutorPorts {
   /** Send one message. Only called in live mode. `via` says what carried it. */
   sendMessage: (msg: OutboundMessage) => Promise<{ messageId?: string; via?: "gmail" | "resend" | "ghl"; inbox?: string }>;
   /** Before a first email: why the address cannot receive mail (no mail server for its domain), or null. */
-  checkAddress?: (email: string) => Promise<string | null>;
+  checkAddress?: (email: string) => Promise<{ hold?: string; status?: string } | null>;
 }
 
 function errMessage(err: unknown): string {
@@ -213,10 +213,11 @@ export function makeExecute(ports: ExecutorPorts): (item: DueTouch, mode: SendMo
 
     // A first email only goes to an address whose domain can receive mail; a bounce costs every inbox reputation.
     if (item.touch === 1 && channel === "Email" && prospect.email && ports.checkAddress) {
-      const why = await ports.checkAddress(prospect.email).catch(() => null);
-      if (why) {
-        await ports.saveState(prospect.id, { ...state, state: "paused", pause_reason: `touch 1: ${why}` });
-        return { status: "skipped", reason: why };
+      const check = await ports.checkAddress(prospect.email).catch(() => null);
+      if (check?.status) state = { ...state, email_check: check.status };
+      if (check?.hold) {
+        await ports.saveState(prospect.id, { ...state, state: "paused", pause_reason: `touch 1: ${check.hold}` });
+        return { status: "skipped", reason: check.hold };
       }
     }
 

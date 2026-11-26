@@ -53,6 +53,8 @@ export interface AuditSummary {
 /** Sequence state persisted in prospects.signals.outreach */
 export interface OutreachState {
   state: SequenceState;
+  /** The mailbox check's answer before touch 1 (verify.ts), e.g. "safe", "catch_all", "not_checked". */
+  email_check?: string;
   ghl_contact_id?: string;
   enrolled_at: string;
   /** Next touch number to send (1-5). 6 means complete. */
