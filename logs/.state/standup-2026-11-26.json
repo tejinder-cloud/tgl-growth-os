@@ -2,5 +2,15 @@
   "date": "2026-11-26",
   "posted": false,
   "standupTs": "1795609801.038059",
-  "channel": "C0ASF13879Q"
+  "channel": "C0ASF13879Q",
+  "compiledAt": "2026-11-26T12:20:20.068Z",
+  "digestText": "Good evening. Brief for Thu 26 Nov.\n*Outreach:* 5 emails sent today, 0 replies. 26 businesses are in a sequence, 4 paused. Daily limit tomorrow: 5.\n*Money:* 2 audit requests, 0 calls booked, 0 proposals, 0 retainers, ₹0 invoiced. Today's spend was ₹47.75.\n*Needs you:*\nNothing else needs you.\nThat is the Daily Standup Digest for 2026-11-26, compiled at 17:50 IST.",
+  "synthesis": {
+    "model": "claude-sonnet-5-5",
+    "inputTokens": 4749,
+    "outputTokens": 482,
+    "totalCostUsd": 0.0215,
+    "costLine": "Standup compilation: 4749 input, 482 output (claude-sonnet-5-5) · Cost: $0.0215 USD"
+  },
+  "source": "cron"
 }
