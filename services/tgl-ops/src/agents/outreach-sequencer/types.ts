@@ -30,6 +30,8 @@ export interface TouchRecord {
   via?: "gmail" | "resend" | "ghl";
   /** The subject-line variant sent ("A" or "B"), when the template has two. */
   variant?: "A" | "B";
+  /** The Gmail inbox that sent it, in the inbox pool (gmail/pool.ts). */
+  inbox?: string;
 }
 
 export interface AuditSummary {

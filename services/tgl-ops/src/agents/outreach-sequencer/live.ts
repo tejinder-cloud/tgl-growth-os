@@ -27,6 +27,8 @@ import { getSupabase } from "../prospect-researcher/db.js";
 import { makeExecute, type ExecutorPorts, type ProspectView } from "./execute.js";
 import { createResendSender, emailConfigIssues, fetchReceivedEmail, loadEmailConfig, type EmailSender } from "./email.js";
 import { gmailFrom, liveGmailSender } from "../gmail/live.js";
+import { createGmailSender } from "../gmail/gmail.js";
+import { createPoolSender, fromFor, healthByInbox, inboxTokenProvider, lastInbox, loadInboxes, addressProblem, pauseInbox, poolCapacity, rampFrom, sentTodayByInbox, shouldPause } from "../gmail/pool.js";
 import { createGhlClient, loadGhlConfig, type GhlClient } from "./ghl.js";
 import { cleanBusinessName } from "./names.js";
 import type { InboundDeps } from "./inbound.js";
@@ -353,9 +355,23 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
 
   let senderCache: EmailSender | undefined = opts.emailSender;
   const emailSender = (): EmailSender => {
-    if (!senderCache) senderCache = emailCfg.via === "gmail" ? liveGmailSender(env, opts.fetchImpl || fetch) : createResendSender(emailCfg, opts.fetchImpl || fetch);
+    if (!senderCache) senderCache = emailCfg.via === "gmail" || emailCfg.via === "pool" ? liveGmailSender(env, opts.fetchImpl || fetch) : createResendSender(emailCfg, opts.fetchImpl || fetch);
     return senderCache;
   };
+
+  // The Gmail inbox pool (26 Nov 2026): rotation, warm-up limits, same inbox for a business's follow-ups.
+  const pool = emailCfg.via === "pool";
+  const poolSender = pool
+    ? createPoolSender({
+        inboxes: () => loadInboxes(),
+        sentToday: async () => sentTodayByInbox(await store.loadSequenced(), istDateKey(now())),
+        today: () => istDateKey(now()),
+        previousFor: (id) => lastInbox(rows.get(id)),
+        ramp: rampFrom(env),
+        sendVia: (inbox, input) =>
+          createGmailSender({ from: fromFor(inbox, env), publicUrl: emailCfg.publicUrl, unsubscribeSecret: emailCfg.unsubscribeSecret }, inboxTokenProvider(inbox, env, opts.fetchImpl || fetch), opts.fetchImpl || fetch).send(input),
+      })
+    : undefined;
 
   let ghlCache: GhlClient | undefined = opts.ghl;
   const ghl = (): GhlClient => {
@@ -377,6 +393,8 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
   const executorPorts: ExecutorPorts = {
     now,
     senderName,
+    // Real mail-server lookup only on the real network; tests that pass their own fetch never touch DNS.
+    ...(ownEmail && !opts.emailSender && !opts.fetchImpl ? { checkAddress: (email: string) => addressProblem(email) } : {}),
     whatsappEnabled: waOn,
     render: makeTemplateRenderer(templates, { bookingLink }),
     // The file templates quote the prospect's own audit from touch 1, so the audit is built first.
@@ -428,6 +446,18 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
     async sendMessage(msg) {
       if (ownEmail && msg.channel === "Email") {
         if (!msg.toEmail) throw new Error("prospect has no work email");
+        if (poolSender && !opts.emailSender) {
+          const sent = await poolSender.send({
+            prospectId: msg.prospectId,
+            to: msg.toEmail,
+            subject: msg.message.subject || "",
+            text: msg.message.text,
+            html: msg.message.html,
+            attachmentUrl: msg.attachmentUrl,
+            attachmentFilename: `${msg.company.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "your"}-ai-visibility-report.pdf`,
+          });
+          return { messageId: sent.messageId, via: "gmail" as const, inbox: sent.inbox };
+        }
         const sent = await emailSender().send({
           prospectId: msg.prospectId,
           to: msg.toEmail,
@@ -489,6 +519,23 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
     },
     execute: makeExecute(executorPorts),
     alert,
+    ...(pool
+      ? {
+          // The pool's warm-up limits replace OUTREACH_DAILY_SEND_CAP; an inbox whose bounces climb pauses first.
+          capFor: async (at: Date) => {
+            const list = await store.loadSequenced();
+            const health = healthByInbox(list, at);
+            for (const i of await loadInboxes()) {
+              if (i.status === "active" && health[i.email] && shouldPause(health[i.email])) {
+                const why = `${health[i.email].bounced} bounces in ${health[i.email].sent} sends over 7 days`;
+                await pauseInbox(i.email, why);
+                await alert(`*Sending inbox paused: ${i.email}* ${why}. Its businesses wait; ask Claude to check the addresses before resuming it.`).catch(() => {});
+              }
+            }
+            return poolCapacity(await loadInboxes(), istDateKey(at), rampFrom(env));
+          },
+        }
+      : {}),
   };
 
   function preflight(): string[] {
@@ -560,7 +607,7 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
     // changes a prospect's status.
     if (live && isSendWindow(at)) {
       try {
-        const enrolled = await enrolNewProspects(store, at, dailyCap(env, at));
+        const enrolled = await enrolNewProspects(store, at, tickPorts.capFor ? await tickPorts.capFor(at) : dailyCap(env, at));
         for (const p of enrolled) {
           const { safely } = await import("../pipeline/live.js");
           await safely("in outreach", (pl) => pl.outreachStarted({ company: cleanBusinessName(p.company), name: p.decision_maker?.name, email: p.decision_maker?.email, city: p.city }, p.id));

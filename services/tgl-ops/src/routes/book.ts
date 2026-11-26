@@ -5,8 +5,10 @@
 // POST /book                 books a slot; "ok": true only after Google Calendar confirmed the event
 // GET  /book/connect         one-time Google sign-in for the bookings calendar (only BOOKING_CALENDAR_EMAIL is accepted)
 // GET  /book/oauth/callback  Google's return from that sign-in
+// GET  /book/inbox/connect   Google sign-in for an extra cold-email inbox (only addresses in OUTREACH_INBOXES)
+// GET  /book/inbox/callback  Google's return from that sign-in
 import { Router, type Request, type Response } from "express";
-import { authUrl, configIssues, exchangeCode, loadGoogleBookingConfig, makeState, verifyState } from "../agents/booking/google.js";
+import { INBOX_CALLBACK_PATH, INBOX_SCOPES, authUrl, configIssues, exchangeCode, loadGoogleBookingConfig, makeState, verifyState } from "../agents/booking/google.js";
 import { bookingService, bookingStore } from "../agents/booking/live.js";
 import { BOOKING_ASSETS, BOOKING_PAGE, bookingAssetPath } from "../agents/booking/page.js";
 
@@ -84,6 +86,41 @@ bookRouter.get("/connect", (_req: Request, res: Response) => {
     return;
   }
   res.redirect(302, authUrl(cfg, makeState(cfg.clientSecret)));
+});
+
+// Extra Gmail inboxes for cold email (26 Nov 2026). Only addresses listed in OUTREACH_INBOXES are accepted, so a
+// stranger who opens this link cannot add an inbox. Email scopes only; the calendar stays on the bookings account.
+function allowedInboxes(env: NodeJS.ProcessEnv = process.env): string[] {
+  return (env.OUTREACH_INBOXES || "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
+}
+
+bookRouter.get("/inbox/connect", (req: Request, res: Response) => {
+  const cfg = loadGoogleBookingConfig();
+  const issues = configIssues(cfg);
+  if (issues.length > 0) return void res.status(503).type("html").send(shell("Not ready", `<h1>Not ready to connect</h1><p>${issues.join(". ")}.</p>`));
+  if (allowedInboxes().length === 0) return void res.status(503).type("html").send(shell("Not ready", "<h1>Not ready to connect</h1><p>No sending inboxes are listed yet (OUTREACH_INBOXES in Railway).</p>"));
+  const hint = String(req.query.email || "").trim().toLowerCase();
+  res.redirect(302, authUrl(cfg, makeState(cfg.clientSecret), { redirectPath: INBOX_CALLBACK_PATH, scopes: INBOX_SCOPES, loginHint: allowedInboxes().includes(hint) ? hint : "" }));
+});
+
+bookRouter.get("/inbox/callback", async (req: Request, res: Response) => {
+  const cfg = loadGoogleBookingConfig();
+  const fail = (msg: string, code = 400) => res.status(code).type("html").send(shell("Not connected", `<h1>Not connected</h1><p>${msg}</p><p><a href="/book/inbox/connect">Try again</a></p>`));
+  if (configIssues(cfg).length > 0) return void fail("The service is missing its Google settings.", 503);
+  if (req.query.error) return void fail("Google sign-in was cancelled or refused.");
+  if (!verifyState(String(req.query.state || ""), cfg.clientSecret)) return void fail("This sign-in link has expired. Start again.");
+  try {
+    const got = await exchangeCode(cfg, String(req.query.code || ""), fetch, INBOX_CALLBACK_PATH);
+    if (!allowedInboxes().includes(got.email)) return void fail(`Signed in as ${got.email || "an unknown account"}, which is not one of the listed sending inboxes.`, 403);
+    if (!got.scopes.includes("https://www.googleapis.com/auth/gmail.send") || !got.scopes.includes("https://www.googleapis.com/auth/gmail.readonly")) return void fail("Email sending and reading were not allowed. Sign in again and tick both email boxes.", 403);
+    if (!got.refreshToken) return void fail("Google did not return a lasting sign-in. Remove The Growth Lab at myaccount.google.com/permissions and try again.", 502);
+    const { saveInbox } = await import("../agents/gmail/pool.js");
+    await saveInbox(got.email, got.refreshToken, new Date(Date.now() + 330 * 60_000).toISOString().slice(0, 10));
+    res.status(200).type("html").send(shell("Connected", `<h1>Connected</h1><p>${got.email} is now a sending inbox. It starts at 5 emails a day and rises each week.</p>`));
+  } catch (err) {
+    console.error("[Book] inbox connect failed:", (err as Error).message);
+    fail("Google sign-in could not be completed. Try again.", 502);
+  }
 });
 
 bookRouter.get("/oauth/callback", async (req: Request, res: Response) => {

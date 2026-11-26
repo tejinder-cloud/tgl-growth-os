@@ -58,6 +58,8 @@ export interface TickPorts {
   execute: (item: DueTouch, mode: SendMode) => Promise<ExecuteResult>;
   /** Post a plain-text line to #alerts. */
   alert: (text: string) => Promise<unknown>;
+  /** Today's limit when it comes from somewhere other than the settings (the Gmail inbox pool). */
+  capFor?: (now: Date) => Promise<number>;
 }
 
 export interface TickOutcome {
@@ -136,7 +138,7 @@ function holdAlert(item: DueTouch, attempts: number, reason?: string): string {
 export async function runTick(ports: TickPorts): Promise<TickSummary> {
   const now = ports.now();
   const mode: SendMode = isLive(ports.env) ? "live" : "dry_run";
-  const cap = dailyCap(ports.env, now);
+  const cap = ports.capFor ? await ports.capFor(now) : dailyCap(ports.env, now);
   const base = { mode, cap, sentToday: 0, due: 0, deferredByCap: 0, outcomes: [] as TickOutcome[] };
 
   if (!isSendWindow(now)) return { ...base, ran: false, reason: "outside_window" };
