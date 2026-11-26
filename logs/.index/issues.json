@@ -1,11 +1,11 @@
 {
   "13": {
     "channel": "C073SJJ22P9",
-    "ts": "1795577413.806019",
+    "ts": "1795663813.621519",
     "agent": "chief-of-staff",
     "door": "core",
     "title": "Plan Status Card — Day 13",
-    "updatedAt": "2026-11-25T03:30:14.003Z",
+    "updatedAt": "2026-11-26T03:30:13.843Z",
     "cardType": "plan",
     "linkedIssueNumber": 13,
     "threadTimestamps": [
@@ -22,7 +22,8 @@
       "1795145410.305529",
       "1795231810.182699",
       "1795318211.396719",
-      "1795577413.806019"
+      "1795577413.806019",
+      "1795663813.621519"
     ]
   },
   "14": {
@@ -665,5 +666,16 @@
     "door": "core",
     "title": "Plan Status Card — Day 13",
     "updatedAt": "2026-11-25T03:30:14.003Z"
+  },
+  "thread:1795663813.621519": {
+    "channel": "C073SJJ22P9",
+    "ts": "1795663813.621519",
+    "issueNumber": 13,
+    "linkedIssueNumber": 13,
+    "cardType": "plan",
+    "agent": "chief-of-staff",
+    "door": "core",
+    "title": "Plan Status Card — Day 13",
+    "updatedAt": "2026-11-26T03:30:13.843Z"
   }
 }
