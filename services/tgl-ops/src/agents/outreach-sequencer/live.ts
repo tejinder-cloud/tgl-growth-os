@@ -28,6 +28,7 @@ import { makeExecute, type ExecutorPorts, type ProspectView } from "./execute.js
 import { createResendSender, emailConfigIssues, fetchReceivedEmail, loadEmailConfig, type EmailSender } from "./email.js";
 import { gmailFrom, liveGmailSender } from "../gmail/live.js";
 import { createGmailSender } from "../gmail/gmail.js";
+import { checkMailbox } from "./verify.js";
 import { createPoolSender, fromFor, healthByInbox, inboxTokenProvider, lastInbox, loadInboxes, addressProblem, pauseInbox, poolCapacity, rampFrom, sentTodayByInbox, shouldPause } from "../gmail/pool.js";
 import { createGhlClient, loadGhlConfig, type GhlClient } from "./ghl.js";
 import { cleanBusinessName } from "./names.js";
@@ -395,7 +396,18 @@ export function createOutreachRuntime(opts: RuntimeOptions = {}): OutreachRuntim
     now,
     senderName,
     // Real mail-server lookup only on the real network; tests that pass their own fetch never touch DNS.
-    ...(ownEmail && !opts.emailSender && !opts.fetchImpl ? { checkAddress: (email: string) => addressProblem(email) } : {}),
+    ...(ownEmail && !opts.emailSender && !opts.fetchImpl
+      ? {
+          // Domain first (free, instant), then the mailbox itself (Reoon, 26 Nov 2026).
+          checkAddress: async (email: string) => {
+            const domain = await addressProblem(email);
+            if (domain) return { hold: domain, status: "no_mail_server" };
+            const box = await checkMailbox(email, env);
+            if (box.note) console.warn(`[Outreach] mailbox check for ${email}: ${box.note}`);
+            return { hold: box.hold, status: box.status };
+          },
+        }
+      : {}),
     whatsappEnabled: waOn,
     render: makeTemplateRenderer(templates, { bookingLink }),
     // The file templates quote the prospect's own audit from touch 1, so the audit is built first.
