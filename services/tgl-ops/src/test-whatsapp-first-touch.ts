@@ -35,12 +35,13 @@ async function main() {
   assert.ok(plan.ok);
   if (plan.ok) {
     assert.equal(plan.touch.to, "919876543210");
-    assert.deepEqual(plan.touch.values, ["25 Nov", "15", "hospitals", "Chandigarh Tricity", "Shivalik Hospital", "none of the answers", "Fortis Mohali was named in 10."]);
-    assert.equal(plan.touch.text, "Hello, this is Tejinder Singh from The Growth Lab. On 25 Nov we asked ChatGPT, Gemini and Perplexity 15 questions people ask when looking for hospitals in Chandigarh Tricity. Shivalik Hospital was named in none of the answers. Fortis Mohali was named in 10. Would you like the one-page report? Reply YES and I will send it here.");
+    assert.deepEqual(plan.touch.values, ["25 Nov", "hospitals", "Chandigarh Tricity", "15", "Shivalik Hospital", "none of them", "Fortis Mohali was named in 10."]);
+    assert.equal(plan.touch.text, "Hello, this is Tejinder Singh from The Growth Lab. On 25 Nov we asked ChatGPT, Gemini and Perplexity the questions people ask when looking for hospitals in Chandigarh Tricity, 15 answers in all. Shivalik Hospital was named in none of them. Fortis Mohali was named in 10. Would you like the one-page report? Reply YES and I will send it here.");
+    assert.ok(!/\d+ questions/.test(plan.touch.text), "15 is answers (5 questions x 3 assistants), never questions");
     assert.equal(fillTemplate(plan.touch.values), plan.touch.text);
   }
   const some = planFirstTouch(biz("b", { category: "ivf_fertility", signals: { preaudit: { ...CHECK, mentions: 3, weakest_competitor: undefined, competitor_mentions: {} } } }), NOW);
-  assert.ok(some.ok && some.touch.text.includes("IVF centres") && some.touch.text.includes("named in 3 of the answers. No other business was named often enough to compare."));
+  assert.ok(some.ok && some.touch.text.includes("IVF centres") && some.touch.text.includes("named in 3 of them. No other business was named often enough to compare."));
 
   // Who does not get one, and why (in plain words).
   const reason = (p: WaCandidate) => { const r = planFirstTouch(p, NOW); return r.ok ? "" : r.reason; };
@@ -77,20 +78,22 @@ async function main() {
 
   const noNumber = await runWhatsAppFirstTouch(ports({ WHATSAPP_OUTREACH_MODE: "live" }));
   assert.equal(noNumber.stopped, "WHATSAPP_PHONE_NUMBER_ID is not set");
-  const pending = await runWhatsAppFirstTouch(ports({ WHATSAPP_OUTREACH_MODE: "live", WHATSAPP_PHONE_NUMBER_ID: "123" }, "PENDING"));
+  const noSecret = await runWhatsAppFirstTouch(ports({ WHATSAPP_OUTREACH_MODE: "live", WHATSAPP_PHONE_NUMBER_ID: "123" }));
+  assert.equal(noSecret.stopped, "WHATSAPP_APP_SECRET is not set, so replies could not be received");
+  const pending = await runWhatsAppFirstTouch(ports({ WHATSAPP_OUTREACH_MODE: "live", WHATSAPP_PHONE_NUMBER_ID: "123", WHATSAPP_APP_SECRET: "s" }, "PENDING"));
   assert.equal(pending.stopped, "the template tgl_ai_visibility_first_touch is pending at Meta, not approved");
-  const missing = await runWhatsAppFirstTouch(ports({ WHATSAPP_OUTREACH_MODE: "live", WHATSAPP_PHONE_NUMBER_ID: "123" }, null));
+  const missing = await runWhatsAppFirstTouch(ports({ WHATSAPP_OUTREACH_MODE: "live", WHATSAPP_PHONE_NUMBER_ID: "123", WHATSAPP_APP_SECRET: "s" }, null));
   assert.match(missing.stopped || "", /not found at Meta/);
   assert.equal(sent.length, 0, "no send until the template is approved");
 
-  const live = await runWhatsAppFirstTouch(ports({ WHATSAPP_OUTREACH_MODE: "live", WHATSAPP_PHONE_NUMBER_ID: "123", WHATSAPP_PER_DAY: "1" }));
+  const live = await runWhatsAppFirstTouch(ports({ WHATSAPP_OUTREACH_MODE: "live", WHATSAPP_PHONE_NUMBER_ID: "123", WHATSAPP_APP_SECRET: "s", WHATSAPP_PER_DAY: "1" }));
   assert.deepEqual(live.sent.map((t) => t.id), ["b"], "the daily limit holds");
   assert.deepEqual(marked.map((m) => [m.id, m.messageId]), [["b", "wamid.1"]]);
   assert.deepEqual(recorded, ["b"]);
   assert.equal(sent[0].to, "919876543210");
 
   sent.length = 0; marked.length = 0;
-  const failing = await runWhatsAppFirstTouch(ports({ WHATSAPP_OUTREACH_MODE: "live", WHATSAPP_PHONE_NUMBER_ID: "123" }, "APPROVED", "first"));
+  const failing = await runWhatsAppFirstTouch(ports({ WHATSAPP_OUTREACH_MODE: "live", WHATSAPP_PHONE_NUMBER_ID: "123", WHATSAPP_APP_SECRET: "s" }, "APPROVED", "first"));
   assert.deepEqual(failing.failed, [{ company: "Shivalik Hospital", error: "Recipient phone number not in allowed list" }]);
   assert.deepEqual(marked.map((m) => m.id), ["a"], "a failed send is not marked; the next one still goes");
 
@@ -98,7 +101,7 @@ async function main() {
   const v = buildLiveView({ now: NOW, prospects: [biz("a") as any, biz("c", { decision_maker: { phone: "0172 2700 123" } }) as any], deals: [], agents: [], spend: null, capToday: 5 });
   assert.equal(v.whatsappReady, 1);
   const html = renderOutreachMain(v);
-  assert.ok(html.includes("WhatsApp message ready") && html.includes("Shivalik Hospital was named in none of the answers."));
+  assert.ok(html.includes("WhatsApp message ready") && html.includes("Shivalik Hospital was named in none of them."));
   assert.ok(html.includes("The number is not a mobile, so it has no WhatsApp"));
   assert.ok(html.includes("<b>1</b> message is ready") && html.includes("Nothing is sent yet."));
   assert.ok(!EMOJI.test(html));

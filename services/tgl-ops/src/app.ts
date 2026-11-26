@@ -1,4 +1,5 @@
 import express, { type Request, type Response, type NextFunction } from "express";
+import { whatsappWebhookRouter } from "./routes/whatsapp-webhook.js";
 import querystring from "node:querystring";
 import { config } from "./config.js";
 import { verifySlackSignature, type SlackVerifiedRequest } from "./lib/slack-verify.js";
@@ -160,6 +161,9 @@ export function createApp(signingSecret?: string) {
 
   // 13b. Booking page: /book, free slots, booking, and the one-time Google sign-in for the bookings calendar.
   app.use("/book", bookRouter);
+
+  // WhatsApp webhook: messages and delivery statuses from Meta, signed with the app secret (build day 14).
+  app.use("/whatsapp/webhook", whatsappWebhookRouter);
   // 13c. Private sales pipeline board (Google sign-in; PIPELINE_ALLOWED_EMAILS only).
   app.use("/pipeline", pipelineRouter);
 
