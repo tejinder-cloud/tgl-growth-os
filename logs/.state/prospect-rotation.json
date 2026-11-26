@@ -1,13 +1,13 @@
 {
   "version": 2,
   "currentCityIndex": 1,
-  "currentCategoryIndex": 4,
-  "completedRunsCount": 20,
-  "lastRunAt": "2026-11-26T04:01:55.879Z",
-  "tierStep": 4,
+  "currentCategoryIndex": 5,
+  "completedRunsCount": 21,
+  "lastRunAt": "2026-11-26T04:02:28.372Z",
+  "tierStep": 0,
   "cityIndexByTier": {
     "1": 2,
     "2": 2,
-    "3": 0
+    "3": 1
   }
 }
