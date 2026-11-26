@@ -3,12 +3,12 @@
 // No cold calls (Architect, 24 Nov): WhatsApp is how these businesses are reached. The first message must be an
 // approved Meta template; its words below are the draft for tgl_ai_visibility_first_touch (submitted on day 18).
 // Every value in it comes from the business's own advance AI check (preaudit.ts): the date, the number of
-// questions, how often the business was named, and a rival named in the same check with its count. A check that did not ask
+// answers, how often the business was named, and a rival named in the same check with its count. A check that did not ask
 // all three assistants is not quoted, because the message names them.
 //
 // Dry run is the default: the Outreach page shows each business's exact message or why it would be skipped, and
-// nothing is sent. Sending happens only when WHATSAPP_OUTREACH_MODE=live, the sending number is set, and Meta
-// reports the template as APPROVED. Then a few a day, never twice to one business, never after an opt-out.
+// nothing is sent. Sending happens only when WHATSAPP_OUTREACH_MODE=live, the sending number and the webhook's app
+// secret are set, and Meta reports the template as APPROVED. Then a few a day, never twice to one business, never after an opt-out.
 import { cleanBusinessName } from "./names.js";
 import { categoryLabel } from "./sequence.js";
 import type { AuditSummary } from "./types.js";
@@ -21,8 +21,8 @@ export const TEMPLATE = {
   category: "MARKETING" as const,
   language: TEMPLATE_LANGUAGE,
   body:
-    "Hello, this is Tejinder Singh from The Growth Lab. On {{1}} we asked ChatGPT, Gemini and Perplexity {{2}} questions people ask when looking for {{3}} in {{4}}. {{5}} was named in {{6}}. {{7}} Would you like the one-page report? Reply YES and I will send it here.",
-  examples: ["25 Nov", "15", "hospitals", "Chandigarh Tricity", "Shivalik Hospital", "none of the answers", "Fortis Mohali was named in 10."],
+    "Hello, this is Tejinder Singh from The Growth Lab. On {{1}} we asked ChatGPT, Gemini and Perplexity the questions people ask when looking for {{2}} in {{3}}, {{4}} answers in all. {{5}} was named in {{6}}. {{7}} Would you like the one-page report? Reply YES and I will send it here.",
+  examples: ["25 Nov", "hospitals", "Chandigarh Tricity", "15", "Shivalik Hospital", "none of them", "Fortis Mohali was named in 10."],
   footer: "Reply STOP to stop these messages",
   quickReplies: ["Yes, send it", "Not now"],
 };
@@ -97,13 +97,14 @@ export function planFirstTouch(p: WaCandidate, now: Date): Plan {
   if (!p.city || !p.category) return no("City or business type missing");
   const rival = a.weakest_competitor && typeof a.competitor_mentions?.[a.weakest_competitor] === "number" ? a.weakest_competitor : "";
   const rivalLine = rival ? `${rival} was named in ${a.competitor_mentions![rival]}.` : "No other business was named often enough to compare.";
+  // total_queries counts answers (5 questions to each of the 3 assistants), so the message says answers, not questions.
   const values = [
     dayMonth(a.audited_at),
-    String(a.total_queries),
     plural(categoryLabel(p.category)),
     p.city,
+    String(a.total_queries),
     company,
-    a.mentions === 0 ? "none of the answers" : `${a.mentions} of the answers`,
+    a.mentions === 0 ? "none of them" : `${a.mentions} of them`,
     rivalLine,
   ];
   // WhatsApp rejects values with line breaks, tabs or runs of spaces; a value that has one is cleaned, not sent raw.
@@ -168,6 +169,8 @@ export async function runWhatsAppFirstTouch(ports: WaPorts): Promise<WaRun> {
     return run;
   }
   if (!(ports.env.WHATSAPP_PHONE_NUMBER_ID || "").trim()) return { ...run, stopped: "WHATSAPP_PHONE_NUMBER_ID is not set" };
+  // Replies must be able to reach us before anyone is messaged (whatsapp-replies.ts, build day 14).
+  if (!(ports.env.WHATSAPP_APP_SECRET || "").trim()) return { ...run, stopped: "WHATSAPP_APP_SECRET is not set, so replies could not be received" };
   const status = await ports.templateStatus().catch(() => null);
   if (status !== "APPROVED") return { ...run, stopped: `the template ${TEMPLATE_NAME} is ${status ? status.toLowerCase() : "not found"} at Meta, not approved` };
   for (const t of today) {

@@ -202,3 +202,30 @@ export async function sendTemplate(ctx: WaContext, phoneNumberId: string, to: st
   const r = await call(ctx, `/${phoneNumberId}/messages`, { method: "POST", body });
   return { messageId: String(r.messages?.[0]?.id || ""), waId: r.contacts?.[0]?.wa_id };
 }
+
+/** A plain text message. Allowed only within 24 hours of the person's last message to us. */
+export async function sendText(ctx: WaContext, phoneNumberId: string, to: string, text: string): Promise<{ messageId: string }> {
+  const r = await call(ctx, `/${phoneNumberId}/messages`, { method: "POST", body: { messaging_product: "whatsapp", to, type: "text", text: { body: text, preview_url: true } } });
+  return { messageId: String(r.messages?.[0]?.id || "") };
+}
+
+/** Uploads a file to WhatsApp's media store and returns its media id. */
+export async function uploadMedia(ctx: WaContext, phoneNumberId: string, file: Buffer, mime: string, filename: string): Promise<string> {
+  const form = new FormData();
+  form.append("messaging_product", "whatsapp");
+  form.append("type", mime);
+  form.append("file", new Blob([new Uint8Array(file)], { type: mime }), filename);
+  const res = await ctx.fetchImpl(`${ctx.graph}/${phoneNumberId}/media`, { method: "POST", headers: { Authorization: `Bearer ${ctx.token}` }, body: form });
+  const body: any = await res.json().catch(() => ({}));
+  if (!res.ok || body?.error || !body?.id) {
+    const e = body?.error || {};
+    throw new MetaError(e.error_user_msg || e.message || `Meta answered ${res.status}`, res.status, e.code);
+  }
+  return String(body.id);
+}
+
+/** A document message from an uploaded media id. Allowed only within 24 hours of the person's last message. */
+export async function sendDocument(ctx: WaContext, phoneNumberId: string, to: string, mediaId: string, filename: string, caption: string): Promise<{ messageId: string }> {
+  const r = await call(ctx, `/${phoneNumberId}/messages`, { method: "POST", body: { messaging_product: "whatsapp", to, type: "document", document: { id: mediaId, filename, caption } } });
+  return { messageId: String(r.messages?.[0]?.id || "") };
+}
