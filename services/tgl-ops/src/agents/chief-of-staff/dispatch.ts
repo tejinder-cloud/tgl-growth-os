@@ -4,6 +4,9 @@ import { createIssue, octokit } from "../../lib/github-client.js";
 import { postCard } from "../../lib/post.js";
 import { getTodayDateString } from "../../lib/standup.js";
 import { buildPlainCardText } from "./plain-card-data.js";
+import { formatShortDate } from "./plain-card.js";
+import { BUILD_PLAN } from "../pipeline/build-plan.js";
+import { summarize } from "../pipeline/build-view.js";
 import {
   loadPlanEntries,
   getCurrentPlanDay,
@@ -378,15 +381,15 @@ export async function execute0900PlanDispatch(options?: {
       planEntries: allEntries,
     });
 
+    // The day count comes from the build plan in work blocks (27 Nov 2026), not the 23 Oct plan's calendar days.
+    const build = buildLine(new Date());
     const cardRes = await postCard({
       channel: architectChannel,
       agent: "chief-of-staff",
       door: "core",
-      title: `Plan Status Card — Day ${currentDay}`,
-      summary: summaryText,
+      title: `Plan Status Card — ${build.title}`,
+      summary: `${summaryText}\n${build.line}`,
       actions: ["discuss"],
-      issue: currentDay,
-      linkedIssue: currentDay,
       extraMeta: {
         planDay: currentDay,
       },
@@ -420,4 +423,17 @@ export async function execute0900PlanDispatch(options?: {
     carriedForwardEntries,
     architectHourCardTs: architectCardTs,
   };
+}
+
+
+/** The build plan's progress for the morning card, in work blocks, with a link to the build page. */
+export function buildLine(now: Date, env: NodeJS.ProcessEnv = process.env): { title: string; line: string } {
+  const s = summarize(BUILD_PLAN, now);
+  const title = `Build ${s.daysDone} of ${s.totalDays} work blocks done`;
+  const next = s.next[0];
+  const railway = (env.RAILWAY_PUBLIC_DOMAIN || "").trim();
+  const base = ((env.OUTREACH_PUBLIC_URL || "").trim() || (railway ? `https://${railway}` : "")).replace(/\/+$/, "");
+  const link = base ? ` <${base}/pipeline/build|Open the build page>` : "";
+  const nextText = next ? ` Next: ${next.title}${next.date ? ` (planned ${formatShortDate(next.date)})` : ""}.` : "";
+  return { title, line: `*Build:* ${s.daysDone} of ${s.totalDays} work blocks done.${nextText}${link}` };
 }
