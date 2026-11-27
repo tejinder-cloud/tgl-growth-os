@@ -231,17 +231,31 @@ export interface ProspectAuditCountRow {
  * refined is one request, and it is "sent" when any of its audits was sent. Rows whose business name starts
  * with "test" are the Architect's own trial runs and are left out.
  */
-export function countRevenueProgress(rows: ProspectAuditCountRow[]): RevenueProgress {
+export function countRevenueProgress(rows: ProspectAuditCountRow[], prospectDomains?: Set<string>): RevenueProgress {
   const requested = new Set<string>();
   const sent = new Set<string>();
   for (const r of rows) {
     const name = (r.business_name || "").trim();
     if (!name || /^test\b/i.test(name)) continue;
+    // Only businesses on our outreach list count (27 Nov 2026): the Architect's own runs on clients and former
+    // clients (Navkiran, ESM Overseas) are not a prospect asking for an audit.
+    if (prospectDomains && !prospectDomains.has(hostOf(r.domain || ""))) continue;
     const key = (r.domain || name).trim().toLowerCase();
     requested.add(key);
     if (r.status === "sent") sent.add(key);
   }
   return { auditsRequested: requested.size, auditsSent: sent.size };
+}
+
+/** "https://www.Clinic.in/about" -> "clinic.in". Empty when there is no host. */
+export function hostOf(raw: string): string {
+  const s = String(raw || "").trim().toLowerCase();
+  if (!s) return "";
+  try {
+    return new URL(/^https?:\/\//.test(s) ? s : `https://${s}`).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
 }
 
 /** Reads the prospect-audit record since the target was set. Null when the database is not configured or the read fails. */
@@ -259,7 +273,13 @@ export async function readRevenueProgress(): Promise<RevenueProgress | null> {
       console.warn("[Plain Card] prospect_audits not read:", error.message);
       return null;
     }
-    return countRevenueProgress((data || []) as ProspectAuditCountRow[]);
+    const list = await sb.from("prospects").select("website").eq("tenant_id", "tgl").is("deleted_at", null).limit(5000);
+    if (list.error) {
+      console.warn("[Plain Card] prospects not read:", list.error.message);
+      return null;
+    }
+    const domains = new Set(((list.data || []) as { website: string | null }[]).map((p) => hostOf(p.website || "")).filter(Boolean));
+    return countRevenueProgress((data || []) as ProspectAuditCountRow[], domains);
   } catch (err: any) {
     console.warn("[Plain Card] prospect_audits not read:", err?.message || err);
     return null;
