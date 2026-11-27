@@ -28,3 +28,32 @@
 - **Next:** Next pair in rotation: Hyderabad · cosmetic_dental.
 
 
+### Run — 09:32 IST (Hyderabad · cosmetic_dental)
+- **Scheduled Pair:** Hyderabad × cosmetic_dental
+- **Rubric:** v2 (qualified at 65 or above, benched from 50)
+- **Qualified Accounts:** 12 / 20
+- **Benched This Run (saved with status bench):** 2 (2 verified in the prospects table)
+- **Benched Re-score (v2, before discovery):** 0 eligible · 0 promoted · 0 still benched · 0 rejected · 0 not probed
+- **Dim 4 Probes (gemini):** 15 completed · 0 failed · 0 skipped at daily cap · 0 skipped, engine unavailable · probe spend $0.4745 USD
+- **Validator Funnel:**
+  - Raw Candidates (Places API): 69 (from 4 searches; 62 needed no separate details call)
+  - Live DNS Passed: 63 (Failed: 5)
+  - Playbook C Disqualified (Enterprise Chains): 1
+  - Place Details Enriched: 7 (Failed: 0)
+  - Email Verified via Hunter: 0
+  - Published Business Email (own website): 43
+  - Places Phone Verified (Owner-Run <50 staff only): 4
+  - Contact Unverified / Dropped: 16
+  - Fit Score >= 65: 12 (Sub-cutoff: 25, of which benched: 2, Not probed: 0)
+  - Write Gate Validated: 12 (Rejected: 0)
+- **Places API Daily Quota:** 14 / 95 calls
+- **Estimated Run Cost:** $0.0369 USD
+- **Review Card:** Not posted (Slack dispatch unavailable or skipped)
+
+#### Standup Contribution (18:00 IST):
+- **Did:** Sourced and qualified 12 accounts for Door AEO in Hyderabad (cosmetic_dental) with avg fit score 77.1 (Shortfall of 8 accounts: 69 candidates discovered via Places, 63 DNS alive, 1 disqualified by Playbook C, 7 Place Details enriched, 0 email verified via Hunter, 4 owner phones, 12 scored >= 65, 2 benched); Places API quota: 14/95 calls; Dim 4 probes: 15 ($0.4745).
+- **Blocked:** None.
+- **Need from the Architect:** Architect review on the daily approval card in #revenue.
+- **Next:** Next pair in rotation: Lucknow · ivf_fertility.
+
+
