@@ -1,0 +1,1453 @@
+{
+  "brand": {
+    "name": "Dr. Shikha Sardana, HSG under anesthesia/ Ex PGI Chandigarh",
+    "primaryDomain": "drshikhasardana.in",
+    "domains": [
+      "drshikhasardana.in"
+    ],
+    "variants": [
+      "Dr. Shikha Sardana, HSG under anesthesia/ Ex PGI Chandigarh",
+      "drshikhasardana"
+    ],
+    "setupStatus": "prospect_unverified"
+  },
+  "auditedAt": "2026-11-27T05:42:21.560Z",
+  "promptsCount": 5,
+  "enginesCount": 3,
+  "totalQueries": 15,
+  "summary": {
+    "totalMentions": 0,
+    "visibilityScorePercent": 0,
+    "mentionsByEngine": {
+      "chatgpt": 0,
+      "gemini": 0,
+      "perplexity": 0
+    },
+    "competitorMentions": {
+      "PGIMER": 7,
+      "Indira IVF": 11,
+      "Nova IVF": 4,
+      "Jindal IVF & Sant Memorial Nursing Home": 2,
+      "Reviva IVF": 3,
+      "Fortis Bloom IVF Centre": 4,
+      "Cloudnine Fertility & IVF": 1,
+      "Apollo Fertility": 3,
+      "PGIMER ART Centre": 1,
+      "Birla Fertility & IVF": 4,
+      "Evaa Fertility in Manimajra": 1,
+      "Motherhood Fertility & IVF": 2,
+      "Bedi IVF & Infertility Hospital": 1,
+      "Max Super Speciality Hospital – Fertility & IVF": 1,
+      "The Touch Clinic": 1,
+      "Gulmohar IVF & Fertility Centre": 1,
+      "Healing Advanced IVF & Fertility Centre": 1,
+      "Milann Fertility Centre": 1,
+      "Reviva Infertility Clinic": 1,
+      "Alchemist / Ojas Hospital": 1,
+      "Bedi IVF & Hospital": 1
+    },
+    "citationDomains": {
+      "registry.artsurrogacy.gov.in": 3,
+      "youtube.com": 3,
+      "medium.com": 2,
+      "ivfchandigarh.com": 4,
+      "qurovo.com": 1,
+      "tribuneindia.com": 2,
+      "ivfbedi.com": 5,
+      "fortishealthcare.com": 2,
+      "bloomivfmumbai.com": 2,
+      "justdial.com": 5,
+      "bloomivfmohali.com": 2,
+      "apollofertility.com": 6,
+      "indiraivf.com": 10,
+      "mirofertility.com": 12,
+      "evaafertility.in": 4,
+      "cloudninefertility.com": 7,
+      "healingzohealthcare.com": 1,
+      "novaivffertility.com": 2,
+      "ivfmohali.com": 1,
+      "healthfinder.in": 6,
+      "maxhealthcare.in": 1,
+      "thetouchclinic.com": 1,
+      "threebestrated.in": 2,
+      "simranivfwellness.com": 2,
+      "drjasneetkaur.com": 1,
+      "ovu.com": 1,
+      "mouthshut.com": 1,
+      "revivaivf.com": 3,
+      "fertilitynetwork.in": 2,
+      "drsabiamangat.in": 2,
+      "fertilityclinicfinder.com": 2,
+      "gulmoharivf.com": 1,
+      "birlafertility.com": 2,
+      "surrogacy.net.in": 1,
+      "whatsthecost.in": 2,
+      "drnaliniguptaivf.com": 1,
+      "healinghospital.co.in": 1,
+      "worldfertilityservices.com": 1,
+      "parentvibes.in": 1,
+      "aurawomen.in": 2,
+      "neelamhospital.com": 1,
+      "alchemisthospitals.com": 1,
+      "selectivf.com": 1
+    },
+    "totalCostUsd": 0.3827,
+    "totalCostInr": 35.47
+  },
+  "nextSteps": {
+    "weakestEngine": "ChatGPT",
+    "weakestEngineMentions": 0,
+    "zeroMentionEngines": [
+      "ChatGPT",
+      "Gemini",
+      "Perplexity"
+    ],
+    "queriesLost": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "weakestQueries": [
+      1,
+      2
+    ],
+    "winningCompetitor": "Indira IVF",
+    "winningCompetitorCount": 11,
+    "topCitationGap": "mirofertility.com",
+    "formattedText": "Dr. Shikha Sardana, HSG under anesthesia/ Ex PGI Chandigarh was named in 0 of 15 answers (0%). ChatGPT, Gemini and Perplexity did not name Dr. Shikha Sardana, HSG under anesthesia/ Ex PGI Chandigarh in any of the 5 questions. Indira IVF was named most often instead, in 11 of 15 answers. The questions where Dr. Shikha Sardana, HSG under anesthesia/ Ex PGI Chandigarh did worst: \"Best IVF centre in Chandigarh Tricity\" (0 of 3 assistants named Dr. Shikha Sardana, HSG under anesthesia/ Ex PGI Chandigarh); \"Top IVF centre near me in Chandigarh Tricity\" (0 of 3 assistants named Dr. Shikha Sardana, HSG under anesthesia/ Ex PGI Chandigarh)."
+  },
+  "matrix": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best IVF centre in Chandigarh Tricity",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There’s no single objectively “best” IVF centre for everyone. Birla Fertility & IVF Center in Sector 8C is a reasonable first c..."
+      }
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top IVF centre near me in Chandigarh Tricity",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "If you’re in Chandigarh Tricity , a reasonable first shortlist is Birla Fertility & IVF (Sector 8) , Infertility Clinic & IVF C..."
+      }
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which IVF centre in Chandigarh Tricity has the best reviews and results",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t enough comparable, independently verified evidence to name one centre as having the best IVF results . Reviews meas..."
+      }
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a IVF centre cost in Chandigarh Tricity and which one is worth it",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "In the Chandigarh Tricity, budget roughly ₹1.4–2.2 lakh for a typical IVF cycle , but keep ₹2–3 lakh or more available if medic..."
+      }
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which IVF centre in Chandigarh Tricity should I trust",
+      "journeyPhase": "decision",
+      "chatgpt": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "gemini": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "perplexity": {
+        "badge": "—",
+        "position": null,
+        "mentioned": false
+      },
+      "excerpt": {
+        "engine": "perplexity",
+        "badge": "—",
+        "text": "There isn’t enough independent evidence to name one IVF centre as the most trustworthy. A sensible shortlist to visit in the Tr..."
+      }
+    }
+  ],
+  "rawAnswers": [
+    {
+      "promptIndex": 1,
+      "prompt": "Best IVF centre in Chandigarh Tricity",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t a reliable public ranking that proves one IVF centre in Chandigarh Tricity has the best outcomes. **If I were making a shortlist, I’d start with:**\n\n- **PGIMER, Chandigarh** — a government ART Level 2 clinic, listed on the national registry. Worth considering if you want a public-hospital option; ask about current appointment availability and total costs. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n- **Indira IVF, Sector 9C, Chandigarh** — listed as an ART Level 2 clinic; its Chandigarh centre has QAI accreditation for ART through **February 2, 2028**. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n- **Nova IVF, Sector 34A, Chandigarh** — also listed as an ART Level 2 clinic in the national registry. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n\n**My practical suggestion:** book consultations at PGIMER and one private centre, then compare the doctor’s proposed plan and the full written cost—not just the advertised package. Ask each centre for its **live-birth rate for patients in your age and diagnosis group**, how it calculates that rate, whether embryos are handled in its own lab, and what medicines, freezing and storage cost extra. A high review score or headline “success rate” alone can’t tell you which clinic is best for your case.\n\nIf you share your age, diagnosis (if known), and whether you prefer public or private care, I can help narrow the shortlist.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "PGIMER",
+          "Indira IVF",
+          "Nova IVF"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "registry.artsurrogacy.gov.in",
+          "url": "https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai",
+          "channelType": "reference",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021796
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best IVF centre in Chandigarh Tricity",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Chandigarh Tricity (Chandigarh, Mohali, and Panchkula) has become a prominent medical hub in North India for reproductive medicine, offering top-tier laboratories, experienced embryologists, and high clinical standards. \n\nThe most reputable and highly regarded IVF centres across the Tricity vary by category:\n\n---\n\n### 1. Pioneer & Standalone Fertility Centres\n* **Jindal IVF & Sant Memorial Nursing Home (Sector 20-D, Chandigarh & Sector 11, Panchkula)**\n  * **Key Specialist:** Dr. Umesh N. Jindal (Pioneer in IVF in North India with 30+ years of experience).\n  * **Highlights:** One of the oldest and most trusted fertility centres in the region. Known for strict ethical practices, high transparency, individualized protocols, and dealing with complex or previously failed IVF cases.\n* **Bedi IVF Hospital (Sector 33-A, Chandigarh)**\n  * **Key Specialist:** Dr. G.K. Bedi.\n  * **Highlights:** Established maternal and fertility care hospital in Chandigarh with over two decades of operation. Houses a dedicated embryology lab and comprehensive neonatal/paediatric support.\n* **Reviva IVF (Sector 9-C, Chandigarh)**\n  * **Key Specialist:** Dr. Sandeep Cheema Sohi.\n  * **Highlights:** A popular boutique IVF clinic known for high patient success rates, advanced lab technology, and personalized doctor-led care.\n\n---\n\n### 2. Multispecialty Hospital–Backed IVF Units\n* **Fortis Bloom IVF Centre (Fortis Hospital, Phase 8, Mohali)**\n  * **Key Specialists:** Part of the Bloom IVF network (Dr. Hrishikesh Pai / Dr. Nandita Palshetkar); local team led by senior consultants like Dr. Pooja Mehta.\n  * **Highlights:** Supported by Fortis Hospital's multi-specialty tertiary care setup (critical for high-risk pregnancies or medical comorbidities). Offers advanced techniques such as IMSI, laser-assisted hatching, and pre-implantation genetic screening (PGS/PGD).\n* **Cloudnine Fertility & IVF (Industrial Area Phase 2, Chandigarh & Panchkula)**\n  * **Highlights:** Part of the nationally recognized Cloudnine mother-and-child hospital chain. Excellent modern infrastructure, strict quality control protocols in embryo culture labs, and integrated prenatal care.\n* **Apollo Fertility (Sector 8-C, Chandigarh)**\n  * **Highlights:** Backed by the Apollo healthcare network. Known for clear protocols, standardized lab quality, and multidisciplinary andrology/gynaecology support.\n\n---\n\n### 3. High-Volume & Cost-Effective Specialized Chains\n* **Indira IVF (Industrial Area Phase 2, Chandigarh & Mohali)**\n  * **Highlights:** One of India’s largest fertility chains. Known for high-volume treatment cycles, closed working chambers, modern incubation technology, and structured, affordable financial packages.\n\n---\n\n### 4. Government / Academic Benchmark\n* **PGIMER ART Centre (Sector 12, Chandigarh)**\n  * **Highlights:** The Postgraduate Institute of Medical Education & Research (PGI) provides government-subsidized, highly ethical, evidence-based fertility care. \n  * **Consideration:** While the medical competence and ethics are world-class, waiting times are significantly longer compared to private clinics.\n\n---\n\n### Key Factors When Choosing the Right Clinic for You:\n1. **Embryology Lab Standards:** The quality of the air filtration (HEPA filters/cleanrooms) and incubation equipment is just as critical as the doctor’s experience.\n2. **Dedicated In-House Embryologist:** Ensure the clinic has an experienced, full-time embryologist rather than relying solely on visiting technicians.\n3. **Doctor vs. Technician Involvement:** Inquire whether your primary doctor will handle ultrasound folliculometry, egg pickup, and embryo transfer personally.\n4. **Transparent Pricing:** Check whether the quoted package includes stimulation injections, freezing/vitrification charges, blastocyst culture, and medication, or if those are billed separately.\n5. **Initial Consultation:** It is often best to schedule an initial consultation with 2 of these centres (e.g., Jindal IVF or Fortis Bloom) to compare how transparently they explain your specific fertility prognosis before committing to a treatment cycle.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Jindal IVF & Sant Memorial Nursing Home",
+          "Reviva IVF",
+          "Fortis Bloom IVF Centre",
+          "Cloudnine Fertility & IVF",
+          "Apollo Fertility",
+          "Indira IVF",
+          "PGIMER ART Centre"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "youtube.com",
+          "url": null,
+          "channelType": "video",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "medium.com",
+          "url": null,
+          "channelType": "social",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ivfchandigarh.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "qurovo.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "tribuneindia.com",
+          "url": null,
+          "channelType": "news",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ivfbedi.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fortishealthcare.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bloomivfmumbai.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bloomivfmohali.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "apollofertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bloomivfmohali.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indiraivf.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mirofertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.061828
+    },
+    {
+      "promptIndex": 1,
+      "prompt": "Best IVF centre in Chandigarh Tricity",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There’s no single objectively “best” IVF centre for everyone. **Birla Fertility & IVF Center in Sector 8C is a reasonable first clinic to shortlist**: a local comparison lists it at 5.0 from 448 Google reviews, while also ranking Infertility Clinic & IVF Center in Sector 34A and Cloudnine in Industrial Area Phase II highly[1].\n\nAlso consider **Jindal IVF** if you value a long-established clinic, or **Evaa Fertility in Manimajra** for its published 4.9 rating and 500+ reviews[2][3]. Ratings and clinic claims don’t establish which centre will give you the best medical outcome.\n\nBefore choosing, meet the treating fertility specialist and ask for:\n- Success rates for patients of your age and diagnosis—not a single headline figure.\n- The embryology lab’s setup and who oversees it.\n- A written, itemised estimate, including medicines and possible additional cycles.\n- The recommended treatment plan, risks, and alternatives.\n\nA local directory’s ratings are a useful starting point, not a medical endorsement[1].",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Birla Fertility & IVF",
+          "Evaa Fertility in Manimajra"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "indiraivf.com",
+          "url": "https://www.indiraivf.com/punjab/best-ivf-center-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "evaafertility.in",
+          "url": "https://evaafertility.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mirofertility.com",
+          "url": "https://www.mirofertility.com/blog/best-ivf-clinic-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cloudninefertility.com",
+          "url": "https://www.cloudninefertility.com/city/fertility-ivf-hospitals-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ivfbedi.com",
+          "url": "https://ivfbedi.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "healingzohealthcare.com",
+          "url": "https://healingzohealthcare.com/chandigarh,chandigarh/find-a-hospital-near-me/jindal-ivf-and-sant-memorial-nursing-home",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ivfchandigarh.com",
+          "url": "https://www.ivfchandigarh.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "novaivffertility.com",
+          "url": "https://www.novaivffertility.com/ivf-centre/chandigarh/fertility-clinic-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ivfmohali.com",
+          "url": "https://ivfmohali.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "healthfinder.in",
+          "url": "https://healthfinder.in/chandigarh/ivf-centres/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00157
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top IVF centre near me in Chandigarh Tricity",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "If you’re in **Chandigarh Tricity**, these are reasonable places to compare—not a definitive “best” ranking:\n\n- **Nova IVF, Sector 34A, Chandigarh** — listed in India’s National ART & Surrogacy Registry. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n- **Indira IVF, Sector 9C, Chandigarh** — also listed in the registry. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n- **Jindal IVF, Sector 20D, Chandigarh** — listed in the registry as well. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n- **Motherhood Fertility & IVF, Sector 62, Mohali** — another nearby option; a local listing reports a high Google rating, but reviews aren’t a measure of treatment success. ([healthfinder.in](https://healthfinder.in/hospital/motherhood-fertility-and-ivf-center-mohali/?utm_source=openai))\n\nBefore choosing, ask each centre for the **doctor who’ll manage your case, the full itemized cost, and age-specific live-birth rates** (not just pregnancy rates). Confirm its ART registration directly, too; registration isn’t an endorsement of outcomes.\n\nTell me your area—**Chandigarh sector, Mohali, Panchkula, or Zirakpur**—and I can narrow this to the closest options.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Nova IVF",
+          "Indira IVF",
+          "Motherhood Fertility & IVF"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "registry.artsurrogacy.gov.in",
+          "url": "https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai",
+          "channelType": "reference",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "healthfinder.in",
+          "url": "https://healthfinder.in/hospital/motherhood-fertility-and-ivf-center-mohali/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021739
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top IVF centre near me in Chandigarh Tricity",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "The Chandigarh Tricity (Chandigarh, Mohali, and Panchkula) is home to several top-rated fertility centres, ranging from veteran standalone clinics to large multi-specialty hospital setups. \n\nThe top-rated and most reputable IVF centres across the Tricity include:\n\n---\n\n### **1. Chandigarh**\n\n* **Jindal IVF and Sant Memorial Nursing Home (Sector 20-D)**\n  * **Lead Doctor:** Dr. Umesh N. Jindal\n  * **Highlights:** One of the oldest and most trusted fertility centres in North India, operating for over 30 years. Known for high ethical standards, personalized clinical care, and exceptional expertise in difficult/recurrent failure cases. They also recently opened a consultation branch in Panchkula.\n* **Bedi IVF & Infertility Hospital (Sector 33-A)**\n  * **Lead Doctor:** Dr. G.K. Bedi\n  * **Highlights:** A pioneering centre in the region with an advanced in-house IVF and embryology lab. Offers comprehensive care ranging from fertility workups to delivery and neonatal support.\n* **Cloudnine Fertility / Hospital (Industrial Area, Phase 2)**\n  * **Highlights:** A specialized mother-and-child tertiary care hospital with advanced reproductive technology (ICSI, blastocyst transfer, egg freezing). Well-regarded for clean infrastructure and end-to-end maternity backup.\n* **Indira IVF (Sector 34-A)**\n  * **Highlights:** Part of India’s largest fertility chain. Known for high-volume cycles, standardized technology, and relatively affordable, tiered package pricing.\n* **PGIMER Chandigarh (Sector 12 – Public/Subsidized)**\n  * **Highlights:** Best option for couples seeking highly academic, evidence-based, and subsidized IVF treatments. Expect longer waitlists, but it provides top-tier medical expertise.\n\n---\n\n### **2. Mohali**\n\n* **Fortis Bloom IVF Centre (Fortis Hospital, Sector 62)**\n  * **Lead Specialist:** Dr. Pooja Mehta\n  * **Highlights:** Backed by Fortis Healthcare and the nationally recognized Bloom IVF group. Ideal if you prefer a large multi-specialty hospital environment with full emergency and ICU backup. Equipped for advanced procedures like IMSI and laser-assisted hatching.\n* **Max Super Speciality Hospital – Fertility & IVF (Phase 6)**\n  * **Highlights:** Comprehensive tertiary hospital setting with strong multidisciplinary teams for managing high-risk pregnancies, endometriosis, and complex male factor infertility.\n* **The Touch Clinic (Sector 82, Mohali)**\n  * **Lead Doctor:** Dr. Vineet Saggar / Dr. Seema Sharma\n  * **Highlights:** Known for personalized counseling, laparoscopy, and customized fertility protocols.\n\n---\n\n### **3. Panchkula**\n\n* **Cloudnine Fertility (Sector 5, Panchkula)**\n  * **Highlights:** Provides seamless access to top fertility specialists and embryology services without having to commute deep into Chandigarh or Mohali.\n* **Gulmohar IVF & Fertility Centre (Sector 7, Panchkula)**\n  * **Highlights:** A popular community choice in Panchkula for individualized attention, IUI, and IVF treatments.\n\n---\n\n### **Checklist When Making Your Decision**\n1. **Who is the Embryologist?** Ask whether the embryologist is full-time on-site or a visiting consultant (in-house embryologists generally allow better monitoring of embryo development).\n2. **Transparent Success Metrics:** Ask for the clinic's **live birth rate (take-home baby rate)** rather than just positive pregnancy test (beta-hCG) rates.\n3. **Hidden Costs:** Ensure the quoted price includes stimulation injections, egg retrieval, freezing (cryopreservation), and subsequent frozen embryo transfers (FET), as medication and freezing often double the base quote.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Bedi IVF & Infertility Hospital",
+          "Indira IVF",
+          "PGIMER",
+          "Fortis Bloom IVF Centre",
+          "Max Super Speciality Hospital – Fertility & IVF",
+          "The Touch Clinic",
+          "Gulmohar IVF & Fertility Centre"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "mirofertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "youtube.com",
+          "url": null,
+          "channelType": "video",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "medium.com",
+          "url": null,
+          "channelType": "social",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ivfchandigarh.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "tribuneindia.com",
+          "url": null,
+          "channelType": "news",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ivfbedi.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cloudninefertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cloudninefertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indiraivf.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mirofertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fortishealthcare.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bloomivfmohali.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bloomivfmumbai.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "bloomivfmohali.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "maxhealthcare.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "thetouchclinic.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.063267
+    },
+    {
+      "promptIndex": 2,
+      "prompt": "Top IVF centre near me in Chandigarh Tricity",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "If you’re in **Chandigarh Tricity**, a reasonable first shortlist is **Birla Fertility & IVF (Sector 8)**, **Infertility Clinic & IVF Center (Sector 34)**, and **Cloudnine (Industrial Area Phase II)**. A local comparison lists these among Chandigarh’s highest-rated clinics by rating and review count; ratings are a starting point, not a measure of your personal chance of success.[3]\n\nOther options include **Indira IVF (Sector 9C)** and **Evaa Fertility (Manimajra)**.[5][1] If you share your sector or whether you’re in Chandigarh, Mohali, or Panchkula, the closest options can be narrowed down.\n\nBefore booking, compare the treating doctor’s credentials, current ART registration, what the quoted IVF cycle includes, and the clinic’s **age- and diagnosis-specific live-birth rates**. Ask for an itemized estimate and written details of likely add-on costs.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Birla Fertility & IVF",
+          "Indira IVF"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "evaafertility.in",
+          "url": "https://evaafertility.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cloudninefertility.com",
+          "url": "https://www.cloudninefertility.com/city/fertility-ivf-hospitals-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "healthfinder.in",
+          "url": "https://healthfinder.in/chandigarh/ivf-centres/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": "https://www.justdial.com/Chandigarh/IVF-Centres/nct-10278216",
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indiraivf.com",
+          "url": "https://www.indiraivf.com/punjab/best-ivf-center-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "novaivffertility.com",
+          "url": "https://www.novaivffertility.com/ivf-centre/chandigarh/fertility-clinic-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mirofertility.com",
+          "url": "https://www.mirofertility.com/blog/best-ivf-clinic-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ivfbedi.com",
+          "url": "https://www.ivfbedi.com/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "threebestrated.in",
+          "url": "https://threebestrated.in/fertility-clinics-in-chandigarh-ch",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "simranivfwellness.com",
+          "url": "https://simranivfwellness.com/best-ivf-centre-near-chandigarh-why-couples-prefer-simran-ivf/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00182
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which IVF centre in Chandigarh Tricity has the best reviews and results",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t enough reliable public data to name one Tricity clinic as having the **best IVF results**. Online reviews can help shortlist centres, but they don’t establish live-birth success rates.\n\n**For reviews, these look worth comparing:**\n- **Motherhood Fertility & IVF, Mohali:** listed at **4.9/5 with about 640 reviews**. ([healthfinder.in](https://healthfinder.in/hospital/motherhood-fertility-and-ivf-center-mohali/?utm_source=openai))\n- **Nova IVF, Chandigarh:** listed at **4.9/5 with roughly 580 reviews**. ([mirofertility.com](https://www.mirofertility.com/clinics/chandigarh/top-rated?utm_source=openai))\n- **Birla Fertility & IVF, Chandigarh:** listed at **5.0/5 with 448 reviews** in one Chandigarh comparison. ([healthfinder.in](https://healthfinder.in/chandigarh/ivf-centres/?utm_source=openai))\n- **Reviva IVF, Chandigarh:** listed at **4.9/5 with roughly 530 reviews**. ([mirofertility.com](https://www.mirofertility.com/clinics/chandigarh/top-rated?utm_source=openai))\n\n**My practical take:** book consultations with two or three of these rather than choosing on the star rating alone. Review counts and ratings vary between directories and change over time; they reflect patient experience, not verified treatment outcomes. ([healthfinder.in](https://healthfinder.in/chandigarh/ivf-centres/?utm_source=openai))\n\nAt each consultation, ask for the clinic’s **live-birth rate per started cycle**, broken down by your age and whether you’d use your own eggs—not just its pregnancy rate or a headline “success rate.” Also ask what’s included in the quoted cost and who will personally manage your cycle. IVF outcomes depend strongly on individual circumstances, so the most useful comparison is an age- and diagnosis-matched figure.\n\nIf you share your age range, diagnosis (if known), and whether you prefer Chandigarh, Mohali, or Panchkula, I can help narrow the shortlist.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Motherhood Fertility & IVF",
+          "Nova IVF",
+          "Birla Fertility & IVF",
+          "Reviva IVF"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "healthfinder.in",
+          "url": "https://healthfinder.in/hospital/motherhood-fertility-and-ivf-center-mohali/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mirofertility.com",
+          "url": "https://www.mirofertility.com/clinics/chandigarh/top-rated?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "healthfinder.in",
+          "url": "https://healthfinder.in/chandigarh/ivf-centres/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021836
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which IVF centre in Chandigarh Tricity has the best reviews and results",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "When evaluating the \"best\" IVF centre in Chandigarh Tricity (Chandigarh, Mohali, and Panchkula), success rates depend heavily on individual factors (maternal age, ovarian reserve, sperm quality, and underlying causes). However, based on **clinical reputation, embryology lab standards, verified patient reviews, and doctor experience**, several centres consistently rank at the top:\n\n---\n\n### 1. Fortis Bloom IVF Centre (Sector 62, Mohali)\n* **Reputation & Lab:** Part of the Bloom IVF network housed within Fortis Super Speciality Hospital. It offers one of the best cleanroom and advanced embryology labs in the region (with technologies like IMSI, laser-assisted hatching, and pre-implantation genetic screening).\n* **Strengths:** Backed by tertiary hospital care, making it an ideal choice for patients with complex medical conditions (thyroid issues, diabetes, severe endometriosis, or previous recurrent miscarriages).\n* **Reviews:** Consistently praised for professionalism, transparent counseling, and the clinical expertise of its specialists.\n\n---\n\n### 2. Jindal IVF & Sant Memorial Nursing Home (Sector 20, Chandigarh)\n* **Reputation & Lab:** Founded by Dr. Umesh Jindal, this is North India’s pioneer IVF centre and one of the oldest private fertility setups in the region. \n* **Strengths:** Extremely experienced medical team known for managing difficult and recurrent IVF failure cases. The clinic has a strong reputation for ethical, transparent medical advice rather than aggressive commercial selling.\n* **Reviews:** Hundreds of long-standing positive reviews highlighting compassionate nursing care and personalized attention.\n\n---\n\n### 3. Cloudnine Fertility (Chandigarh Phase II / Panchkula)\n* **Reputation & Lab:** Cloudnine is a premier national chain specializing in maternal and fertility care. Both their Chandigarh and Panchkula centres feature advanced ART labs.\n* **Strengths:** Seamless continuum of care from conception through pregnancy and delivery under one roof. They have standardized protocols and clear pricing packages.\n* **Reviews:** High customer ratings regarding hospital hygiene, empathetic embryology staff, and structured follow-ups.\n\n---\n\n### 4. Reviva Fertility & IVF Clinic (Sector 9, Chandigarh)\n* **Reputation & Lab:** Led by Dr. Sandeep Cheema Lyall, Reviva is a boutique, highly focused fertility centre.\n* **Strengths:** Ideal for couples who want a single dedicated doctor directly handling every step of their cycle—from stimulation monitoring to egg retrieval and transfer—rather than rotating hospital staff.\n* **Reviews:** Well-rated for direct doctor accessibility, empathy, and cost transparency.\n\n---\n\n### 5. Milann Fertility Center (Sector 46, Chandigarh)\n* **Reputation & Lab:** Backed by the legacy of Padma Shri Dr. Kamini Rao’s fertility network. \n* **Strengths:** Strong focus on male infertility, blastocyst transfer culture, and fertility preservation.\n* **Reviews:** Highly rated for its supportive nursing and counseling teams and structured treatment milestones.\n\n---\n\n### 6. Indira IVF (Sector 9, Chandigarh)\n* **Reputation & Lab:** High-volume national fertility chain with an active presence in Chandigarh.\n* **Strengths:** Known for affordable packages and high cycle volume. Often suited for couples looking for straightforward first-line IVF at a relatively lower initial cost.\n* **Reviews:** Very high volume of positive pregnancy reviews. However, like many large chains, some patients note longer waiting times and a more institutionalized environment.\n\n---\n\n### Comparison Summary to Guide Your Choice\n\n| Clinic Type | Top Choice in Tricity | Best Suited For |\n| :--- | :--- | :--- |\n| **Tertiary Multi-Specialty Hospital** | **Fortis Bloom IVF (Mohali)** | High-risk maternal health, older age, advanced genetic testing. |\n| **Established Clinical Legacy** | **Jindal IVF (Sec 20, Chd)** | Failed previous cycles elsewhere, complex cases, preference for experienced pioneers. |\n| **Modern Maternity & Fertility Chain** | **Cloudnine (Chd / Panchkula)** | Couples wanting smooth care from IVF through delivery in a boutique maternity hospital. |\n| **Dedicated Doctor-Led Boutique** | **Reviva Fertility (Sec 9, Chd)** | Patients wanting one dedicated specialist without hospital bureaucracy. |\n| **High-Volume / Budget-Conscious** | **Indira IVF (Sec 9, Chd)** | Standard first-cycle IVF with structured financial packages. |\n\n---\n\n### Recommended Next Steps Before Deciding:\n1. **Ask for their \"Live Birth Rate per Embryo Transfer\"**: Do not rely only on self-reported clinical pregnancy rates (a positive urine test); ask specifically for take-home baby rates for your age group.\n2. **Book 2 Initial Consultations**: Visit at least two centres (e.g., one hospital-backed like Fortis Bloom and one specialized standalone clinic like Jindal IVF) to assess how thoroughly the doctor reviews your tests and explains the stimulation protocol.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Fortis Bloom IVF Centre",
+          "Jindal IVF & Sant Memorial Nursing Home",
+          "Indira IVF"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "apollofertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drjasneetkaur.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ovu.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ivfchandigarh.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mouthshut.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ivfchandigarh.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mirofertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cloudninefertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cloudninefertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "revivaivf.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "revivaivf.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fertilitynetwork.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indiraivf.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drsabiamangat.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fertilityclinicfinder.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.065688
+    },
+    {
+      "promptIndex": 3,
+      "prompt": "Which IVF centre in Chandigarh Tricity has the best reviews and results",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t enough comparable, independently verified evidence to name one centre as having the **best IVF results**. Reviews measure patient experience, not the chance of a live birth—and clinic success claims aren’t directly comparable.\n\nFor **review volume and ratings**, Birla Fertility & IVF looks like a strong shortlist option: it reports 5.0 stars from 451 reviews; Cloudnine reports 4.9 from 299, while a local comparison lists Indira IVF at 4.8 from 759 reviews.[9][2][10] Ratings can vary across platforms and change over time.\n\nBefore choosing, ask each clinic for its **live-birth rate per cycle started** for your age group and diagnosis, ideally for the last 12 months, and confirm what the figure includes. Also compare the treating doctor, embryology lab, total itemised cost, and current ART Act registration; age and medical history strongly affect individual outcomes.[6]",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Birla Fertility & IVF",
+          "Indira IVF"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "evaafertility.in",
+          "url": "https://evaafertility.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cloudninefertility.com",
+          "url": "https://www.cloudninefertility.com/centre/fertility-ivf-hospitals-in-industrial-area-phase-ii",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indiraivf.com",
+          "url": "https://www.indiraivf.com/punjab/best-ivf-center-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mirofertility.com",
+          "url": "https://www.mirofertility.com/clinics/chandigarh/nova-ivf-fertility-center-2",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cloudninefertility.com",
+          "url": "https://www.cloudninefertility.com/city/fertility-ivf-hospitals-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mirofertility.com",
+          "url": "https://www.mirofertility.com/blog/best-ivf-clinic-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "gulmoharivf.com",
+          "url": "https://gulmoharivf.com/ivf-center-in-zirakpur/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "apollofertility.com",
+          "url": "https://www.apollofertility.com/blog/ivf/top-ivf-clinics-in-chandigarh-with-highest-success-rate",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "birlafertility.com",
+          "url": "https://birlafertility.com/chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "healthfinder.in",
+          "url": "https://healthfinder.in/chandigarh/ivf-centres/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00171
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a IVF centre cost in Chandigarh Tricity and which one is worth it",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "If you mean **the cost of IVF treatment**, not opening an IVF centre: in Chandigarh Tricity, budget roughly **₹1.5–₹3.3 lakh for one fresh IVF cycle**. A more realistic total can be **₹2.5–₹4.5 lakh** if you also need medicines, embryo freezing or a later frozen-embryo transfer (FET). Published prices vary because some quotes are for the basic procedure only, while others include medicines or ICSI. Treat these as estimates, not clinic quotes. ([mirofertility.com](https://www.mirofertility.com/blog/ivf-cost-in-chandigarh-2026?utm_source=openai))\n\n**Which centre is worth considering?** I wouldn’t name a single “best” based on online ratings or advertised success rates. For initial consultations, you could compare **Nova IVF in Sector 34, Milann in Sector 46, and Bedi IVF in Sector 33**—all appear in a published Chandigarh list of registered clinics. Verify the centre’s current registration and get a written quote directly before deciding. ([surrogacy.net.in](https://www.surrogacy.net.in/surrogacy-cost/chandigarh?utm_source=openai))\n\nAt each consultation, ask for an itemised estimate covering **medicines, scans, egg retrieval and anaesthesia, ICSI if needed, embryo culture, freezing/storage, and FET**. Also ask how they report success: ideally, request **live-birth rates for patients of your age and situation**, not just a headline pregnancy rate. Clinic-reported success figures may not be independently audited, so compare them cautiously. ([whatsthecost.in](https://whatsthecost.in/ivf-cost-in-chandigarh/?utm_source=openai))\n\n**Practical rule:** the centre that’s “worth it” is the one that explains your likely plan and total costs clearly, has a team you can reach throughout monitoring, and doesn’t pressure you into add-ons. A low advertised package may exclude medicines or later transfers.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "Nova IVF"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "mirofertility.com",
+          "url": "https://www.mirofertility.com/blog/ivf-cost-in-chandigarh-2026?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "surrogacy.net.in",
+          "url": "https://www.surrogacy.net.in/surrogacy-cost/chandigarh?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "whatsthecost.in",
+          "url": "https://whatsthecost.in/ivf-cost-in-chandigarh/?utm_source=openai",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021881
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a IVF centre cost in Chandigarh Tricity and which one is worth it",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "### 1. Cost of IVF in Chandigarh Tricity\n\nThe realistic out-of-pocket cost for a standard IVF cycle in the Tricity (Chandigarh, Mohali, Panchkula) typically ranges between **₹1.3 Lakh and ₹2.5 Lakh per cycle**. \n\nClinics often advertise packages starting around ₹80,000–₹1,00,000, but these base quotes rarely cover hormonal injections and necessary diagnostic tests. \n\n| Component | Estimated Cost (INR) | Notes |\n| :--- | :--- | :--- |\n| **Initial Consult & Pre-IVF Workup** | ₹10,000 – ₹25,000 | Hormonal profiles, AMH, semen analysis, infectious disease screens. |\n| **Basic IVF / ICSI Procedure** | ₹80,000 – ₹1,30,000 | Egg retrieval, lab fertilization, and fresh embryo transfer. |\n| **Stimulation Injections & Medications** | ₹40,000 – ₹80,000 | Depends on ovarian reserve and drug dosage. |\n| **Embryo Freezing (Cryopreservation)** | ₹25,000 – ₹45,000 | First year storage included; renewal fee thereafter. |\n| **Frozen Embryo Transfer (FET)** *(if required)* | ₹30,000 – ₹55,000 | If fresh transfer is avoided to let ovaries recover. |\n| **Specialized Add-ons (PGT, TESA, Donor)** | ₹30,000 – ₹1,50,000+ | Genetic testing, surgical sperm retrieval, or donor services. |\n\n---\n\n### 2. Which IVF Centres Are Worth It?\n\nThe \"best\" centre depends on budget, the complexity of the case, and whether personalized attention is preferred over an institutional setting:\n\n#### A. Pioneer & Legacy Clinic (High Experience & Transparency)\n* **Jindal IVF and Sant Memorial Hospital (Sector 20, Chandigarh)**\n  * **Why it’s worth it:** Founded by Dr. Umesh Jindal, it is one of the oldest and most trusted fertility centres in North India.\n  * **Best for:** Couples looking for veteran clinical judgment and ethical medical guidance without aggressive commercial upselling.\n\n#### B. Subsidized & Research-Grade Care (Most Affordable)\n* **PGIMER (Postgraduate Institute of Medical Education and Research, Chandigarh)**\n  * **Why it’s worth it:** Government-run, highly ethical, and follows evidence-based protocols. The overall cost is significantly lower (often ₹70,000 – ₹1.1 Lakh total, primarily for consumables/injections).\n  * **Best for:** Budget-conscious couples who do not mind hospital queues, appointment wait times, and government administrative processes.\n\n#### C. Hospital-Backed Units (For Medical Complications & Safety)\n* **Fortis Bloom IVF Centre (Phase 8, Mohali)**\n  * **Why it’s worth it:** Backed by the multi-specialty Fortis Hospital. If maternal age, diabetes, cardiac issues, or high-risk obstetrics are a concern, an in-house intensive care setup provides strong safety margins.\n  * **Best for:** Medically complex cases, older couples, or those with recurrent miscarriages.\n\n#### D. Specialized Standalone & Boutique Centres (Personalized Attention)\n* **Healing Advanced IVF & Fertility Centre (Sector 34, Chandigarh)**\n  * **Why it’s worth it:** Highly rated in the Tricity for patient care and communication under Dr. Japleen Kaur. Less transactional than large corporate chains.\n  * **Milann Fertility Centre (Sector 46, Chandigarh)**\n  * **Why it’s worth it:** Well-established national reputation, rigorous laboratory protocols, and skilled embryology teams.\n* **Reviva Infertility Clinic (Sector 9, Chandigarh)**\n  * **Why it’s worth it:** Known for experienced clinicians (Dr. Sandeep Cheema) and individualized treatment plans.\n\n#### E. Value-for-Money Chains (Budget-Oriented & Standardized)\n* **Indira IVF (Sector 9, Chandigarh / Kharar / Panchkula)**\n  * **Why it’s worth it:** High cycle volume, competitive pricing packages, and flexible EMI financing.\n  * **Consideration:** Can feel crowded and more standardized/process-driven; you may not always see the same doctor at every visit.\n\n---\n\n### 3. Checklist to Decide Where to Go\n\nBefore paying any non-refundable deposits, ask the clinic:\n1. **\"What is *not* included in this package?\"** Make sure they specify if stimulation injections, embryo freezing, blastocyst culture, and post-transfer medications are extra.\n2. **Who is the embryologist?** The success of an IVF lab depends as heavily on the chief embryologist as it does on the gynecologist.\n3. **Beware of \"100% Guarantee\" claims:** Natural biological variation means no ethical IVF specialist can guarantee a 100% take-home-baby rate in a single cycle. Run from clinics that promise this.\n4. **Consult 2 Centres First:** Book an initial consultation with both an institutional clinic (like Jindal or Fortis) and a boutique clinic (like Healing or Milann) to compare their treatment approach and transparency before committing.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "PGIMER",
+          "Fortis Bloom IVF Centre",
+          "Healing Advanced IVF & Fertility Centre",
+          "Milann Fertility Centre",
+          "Reviva Infertility Clinic",
+          "Indira IVF"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "fertilitynetwork.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mirofertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indiraivf.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drnaliniguptaivf.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "youtube.com",
+          "url": null,
+          "channelType": "video",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "healinghospital.co.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "revivaivf.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "justdial.com",
+          "url": null,
+          "channelType": "directory",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.037193
+    },
+    {
+      "promptIndex": 4,
+      "prompt": "How much does a IVF centre cost in Chandigarh Tricity and which one is worth it",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "In the Chandigarh Tricity, budget roughly **₹1.4–2.2 lakh for a typical IVF cycle**, but keep **₹2–3 lakh or more** available if medicines, ICSI, embryo freezing or other add-ons are needed. Published estimates vary widely because clinics include different items in their “package”; one current local estimate puts a typical cycle at ₹1.36–2.15 lakh, while clinic listings span about ₹90,000–2.33 lakh.[3][5]\n\n**Which one is worth it?** There isn’t enough independent, comparable outcome data to name a reliable “best.” I’d shortlist two or three nearby centres—such as **PGIMER** if affordability is the priority and you can manage possible waits, and private options such as **Nova, Indira, Apollo, Birla or Reviva**—then choose based on the treating specialist, lab capability, transparent pricing and your diagnosis. A local cost comparison reports subsidised PGIMER care but also longer waits; private-centre prices and package inclusions differ substantially.[4][6][7][10]\n\nBefore paying, ask each centre for a **written, itemised quote** covering tests, injections, monitoring, egg retrieval, lab/ICSI, transfer, freezing and storage, plus the cost of a frozen transfer or another cycle. Ask for its success rates **for your age and diagnosis**, and clarify whether figures mean pregnancy or live birth; don’t rely on broad advertised percentages. Convenience matters too, since IVF involves repeated monitoring visits.[3][6]",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "PGIMER"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "mirofertility.com",
+          "url": "https://www.mirofertility.com/blog/best-ivf-clinic-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "worldfertilityservices.com",
+          "url": "https://worldfertilityservices.com/blog/best-ivf-centre-in-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "mirofertility.com",
+          "url": "https://www.mirofertility.com/clinics/chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "whatsthecost.in",
+          "url": "https://whatsthecost.in/ivf-cost-in-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "parentvibes.in",
+          "url": "https://parentvibes.in/ivf-costs/chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "apollofertility.com",
+          "url": "https://www.apollofertility.com/blog/ivf/top-ivf-clinics-in-chandigarh-with-highest-success-rate",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indiraivf.com",
+          "url": "https://www.indiraivf.com/punjab/best-ivf-center-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "aurawomen.in",
+          "url": "https://aurawomen.in/blog/top-8-best-ivf-centres-in-chandigarh-with-high-success-rates-2021/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "neelamhospital.com",
+          "url": "https://neelamhospital.com/ivf-center-in-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "birlafertility.com",
+          "url": "https://birlafertility.com/treatment/ivf-in-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00189
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which IVF centre in Chandigarh Tricity should I trust",
+      "engine": "chatgpt",
+      "model": "gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t enough reliable public information to name one “best” IVF centre or guarantee outcomes. **I’d start with two consultations, then choose based on the doctor, lab, transparent success figures and cost—not online ratings.**\n\nA sensible Tricity shortlist to compare:\n\n- **PGIMER, Chandigarh** — listed in India’s National ART & Surrogacy Registry. Ask whether its IVF service is currently accepting patients and what the wait time is. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n- **Indira IVF, Sector 9, Chandigarh** — registry-listed; it also has a Quality and Accreditation Institute certificate for its ART centre shown as valid through **February 2, 2028**. Accreditation is a useful check, not a promise of success. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n- **Jindal IVF, Sector 20-D, Chandigarh; Cloudnine Fertility, Industrial Area Phase 2; and Fortis Bloom IVF, Mohali** — all appear in the national registry listing. ([registry.artsurrogacy.gov.in](https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai))\n\nBefore committing, ask each centre:\n\n1. **What is your live-birth rate for patients my age using their own eggs?** Ask for the denominator—ideally per treatment started—not just “pregnancy rate.”\n2. Who will manage your case, and where is the **embryology lab**?\n3. What is the complete likely cost, including medicines, freezing, storage and possible extra procedures?\n4. Which tests or add-ons are actually recommended for *your* case, and why?\n\n**My practical suggestion:** book one consultation at PGIMER and one at a private centre from the list, then compare their written plans and quotes. Registry listing confirms registration, not that a clinic is superior or right for you. If you share your age, diagnosis, whether you’ve had IVF before, and whether Chandigarh or Mohali is more convenient, I can help narrow the shortlist.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "PGIMER",
+          "Indira IVF"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "registry.artsurrogacy.gov.in",
+          "url": "https://registry.artsurrogacy.gov.in/clinic/list?type=register-clinic&utm_source=openai",
+          "channelType": "reference",
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.021791
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which IVF centre in Chandigarh Tricity should I trust",
+      "engine": "gemini",
+      "model": "gemini-3.8-flash",
+      "badge": "—",
+      "text": "Trust in fertility care hinges on three factors: **clinical ethics** (not pushing unnecessary treatments), **lab quality/embryology standards**, and **doctor involvement**. \n\nIn the Chandigarh Tricity (Chandigarh, Mohali, Panchkula), clinics generally fall into a few distinct tiers depending on your priorities (cost, personalization, or emergency hospital backup):\n\n---\n\n### 1. The Most Ethical & Subsidized Option\n* **PGIMER Chandigarh (Department of Obstetrics & Gynaecology)**\n  * **Why Trust It:** Being a premier government research institute, there is **zero commercial interest**. Treatment plans are strictly evidence-based and cost-effective.\n  * **Consider If:** You are on a budget and prioritize strict medical ethics over luxury.\n  * **Drawback:** Long waiting periods, bureaucratic administrative processes, and multiple visits.\n\n---\n\n### 2. Multi-Specialty Hospital Setups (Best for Complex / High-Risk Cases)\nIf you have underlying conditions (advanced age, severe endometriosis, recurring miscarriages, or thyroid/cardiac issues), an IVF unit inside a full hospital provides safety:\n* **Fortis Bloom IVF (Fortis Hospital, Mohali):**\n  * One of the most established fertility chains in India integrated into a tertiary-care hospital. Highly trusted for cleanroom embryology labs and cross-departmental critical care.\n* **Max Super Speciality Hospital (Mohali):**\n  * Known for advanced reproductive medicine, excellent high-risk pregnancy care, and stringent clinical oversight.\n* **Alchemist / Ojas Hospital (Panchkula):**\n  * Houses dedicated fertility and reproductive medicine units (led by reproductive specialists like Dr. Garima Gupta) backed by full hospital infrastructure.\n\n---\n\n### 3. Dedicated Maternity & Boutique Fertility Centers\nThese clinics offer more personalized, one-on-one attention without feeling like a crowded corporate hospital:\n* **Cloudnine Hospital (Chandigarh & Panchkula):**\n  * Highly regarded for patient-centric care, modern infrastructure, transparent clinical protocols, and a pleasant overall patient journey.\n* **Bedi IVF & Hospital (Sector 33, Chandigarh):**\n  * One of the longest-running maternity and fertility centers in the region (over 20+ years of local presence), known for experienced clinicians and established protocols.\n* **Independent Specialists / Boutique Clinics (e.g., Reviva IVF, Jindal IVF, Dr. Sabia Mangat):**\n  * These clinics are built around individual senior specialists. Patients often trust them because the same primary doctor usually handles scans, egg retrieval, and embryo transfer, rather than rotating resident doctors.\n\n---\n\n### 4. High-Volume Specialized Chains\n* **Indira IVF / Apollo Fertility (Chandigarh & Mohali branches):**\n  * **Why Consider:** High cycle volume, standardized automated lab protocols, and packaged/transparent pricing.\n  * **Drawback:** Can feel somewhat like an assembly line; consultations may be brief, and you might interact more with assistants than the primary specialist.\n\n---\n\n### Red Flags & How to Verify \"Trust\" Before Committing\n\nBefore paying for a cycle at any clinic in Tricity, verify these four points during your initial consultation:\n\n1. **Beware of \"Guaranteed\" Success:** Any clinic promising an \"80–90% guaranteed package\" or \"100% money-back baby guarantee\" should not be trusted. A realistic, ethical clinic will clearly state that typical first-cycle clinical success rates average **40% to 60%** depending on age and medical history.\n2. **In-House Embryologist:** Ask who performs the embryo culture. High-trust centers have a **full-time, permanent embryologist** on staff, rather than a visiting consultant who batches patients together once a month.\n3. **ART Act Registration:** Ensure the clinic is registered under the **Assisted Reproductive Technology (Regulation) Act**, which regulates legal and clinical standards in India.\n4. **Transparent Cost Sheet:** Ask for an all-inclusive breakdown. A quote might say ₹1.2–1.5 Lakh, but you should confirm whether it includes injections/stimulation medications, blastocyst culture, ICSI, and embryo freezing/storage charges for subsequent cycles.\n\n### Recommendation\n* **If you want standard-setting medical care and hospital safety:** Book a first consultation at **Fortis Bloom IVF (Mohali)** or **Cloudnine (Chandigarh/Panchkula)**.\n* **If budget is tight and you can handle long queues:** Consult at **PGIMER**.\n* **If you prefer personal attention from a dedicated specialist:** Consult at a doctor-led clinic such as **Bedi Hospital** or **Reviva IVF**.",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "PGIMER",
+          "Alchemist / Ojas Hospital",
+          "Bedi IVF & Hospital",
+          "Reviva IVF",
+          "Indira IVF",
+          "Apollo Fertility"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "mirofertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "drsabiamangat.in",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "alchemisthospitals.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cloudninefertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cloudninefertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "ivfbedi.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "fertilityclinicfinder.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indiraivf.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "apollofertility.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "revivaivf.com",
+          "url": null,
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.036986
+    },
+    {
+      "promptIndex": 5,
+      "prompt": "Which IVF centre in Chandigarh Tricity should I trust",
+      "engine": "perplexity",
+      "model": "openai/gpt-6-luna",
+      "badge": "—",
+      "text": "There isn’t enough independent evidence to name one IVF centre as *the* most trustworthy. A sensible shortlist to visit in the Tricity is **PGIMER** for its public programme, and established hospital-linked or specialist clinics such as **Cloudnine, Apollo Fertility, Evaa, Reviva, or Indira IVF**—but treat rankings and “highest success rate” claims cautiously, especially when they come from clinic marketing.[1][3][5][6][9][10]\n\nBefore choosing, consult two or three centres and ask each:\n\n- Is the clinic’s ART registration current for its location?\n- What is its **live-birth rate per cycle started** for patients of your age and diagnosis—not just pregnancy rate?\n- Who will manage your care, and who is the named embryologist?\n- What is the full written cost, including medicines, freezing, and any additional procedures?\n- Why are the proposed tests or add-ons medically indicated in your case?\n\nThe 2026 clinic-selection guidance specifically recommends checking ART registration, lab credentials, age-specific live-birth outcomes, and itemised pricing.[1] Online ratings can help with logistics and patient experience, but they don’t establish clinical success.[3][5]",
+      "analysis": {
+        "mentioned": false,
+        "position": null,
+        "competitorsMentioned": [
+          "PGIMER",
+          "Apollo Fertility",
+          "Indira IVF"
+        ]
+      },
+      "citations": [
+        {
+          "domain": "mirofertility.com",
+          "url": "https://www.mirofertility.com/blog/best-ivf-clinic-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "simranivfwellness.com",
+          "url": "https://simranivfwellness.com/best-ivf-centre-near-chandigarh-why-couples-prefer-simran-ivf/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "threebestrated.in",
+          "url": "https://threebestrated.in/fertility-clinics-in-chandigarh-ch",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "evaafertility.in",
+          "url": "https://evaafertility.in/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "healthfinder.in",
+          "url": "https://healthfinder.in/chandigarh/ivf-centres/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "apollofertility.com",
+          "url": "https://www.apollofertility.com/blog/ivf/top-ivf-clinics-in-chandigarh-with-highest-success-rate",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "selectivf.com",
+          "url": "https://selectivf.com/best-ivf-centres-in-chandigarh/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "aurawomen.in",
+          "url": "https://aurawomen.in/blog/top-8-best-ivf-centres-in-chandigarh-with-high-success-rates-2021/",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "cloudninefertility.com",
+          "url": "https://www.cloudninefertility.com/city/fertility-ivf-hospitals-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        },
+        {
+          "domain": "indiraivf.com",
+          "url": "https://www.indiraivf.com/punjab/best-ivf-center-in-chandigarh",
+          "channelType": null,
+          "brandMentioned": null,
+          "competitorsMentioned": []
+        }
+      ],
+      "costUsd": 0.00173
+    }
+  ]
+}
