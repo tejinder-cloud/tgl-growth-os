@@ -435,6 +435,19 @@
     ],
     "updatedAt": "2026-11-20T10:49:29.414Z"
   },
+  "240": {
+    "channel": "C073SJJ22P9",
+    "ts": "1795750215.460649",
+    "agent": "chief-of-staff",
+    "door": "core",
+    "title": "Plan Status Card — Day 13",
+    "cardType": "plan",
+    "linkedIssueNumber": 240,
+    "threadTimestamps": [
+      "1795750215.460649"
+    ],
+    "updatedAt": "2026-11-27T07:59:03.263Z"
+  },
   "thread:1794308956.168819": {
     "channel": "#doors-aeo",
     "ts": "1794308956.168819",
@@ -682,12 +695,12 @@
   "thread:1795750215.460649": {
     "channel": "C073SJJ22P9",
     "ts": "1795750215.460649",
-    "issueNumber": 13,
-    "linkedIssueNumber": 13,
+    "issueNumber": 240,
+    "linkedIssueNumber": 240,
     "cardType": "plan",
     "agent": "chief-of-staff",
     "door": "core",
     "title": "Plan Status Card — Day 13",
-    "updatedAt": "2026-11-27T03:30:15.754Z"
+    "updatedAt": "2026-11-27T07:59:03.263Z"
   }
 }
