@@ -1,7 +1,7 @@
 {
   "date": "2026-11-28",
-  "posted": false,
-  "standupTs": "1795782600.894529",
+  "posted": true,
+  "standupTs": "1795869000.751129",
   "channel": "C0ASF13879Q",
   "compiledAt": "2026-11-28T12:20:19.744Z",
   "digestText": "Good evening. Brief for Sat 28 Nov.\n*Outreach:* 5 emails sent today, 0 replies. 36 businesses are in a sequence, 4 paused. Daily limit tomorrow: 5.\n*Money:* 0 audit requests, 0 calls booked, 0 proposals, 0 retainers, ₹0 invoiced. Today's spend was ₹345.\n*Needs you:*\n1. @prospect-researcher is at 84% of its daily cost cap; decide whether to raise it before it stops → today's remaining runs finish without a stop.\n2. @outreach-sequencer has stopped at 147% of its daily cost cap; raise the cap in config/agents.yaml or let it resume tomorrow → its paused work restarts.\nThat is the Daily Standup Digest for 2026-11-28, compiled at 17:50 IST.",
@@ -12,5 +12,7 @@
     "totalCostUsd": 0.025,
     "costLine": "Standup compilation: 4958 input, 672 output (claude-sonnet-5-5) · Cost: $0.0250 USD"
   },
-  "source": "cron"
+  "source": "cron",
+  "postedAt": "2026-11-28T12:30:00.956Z",
+  "threadPromptTs": "1795869000.884629"
 }
