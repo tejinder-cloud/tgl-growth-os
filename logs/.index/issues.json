@@ -1,11 +1,11 @@
 {
   "13": {
     "channel": "C073SJJ22P9",
-    "ts": "1795750215.460649",
+    "ts": "1795836613.675349",
     "agent": "chief-of-staff",
     "door": "core",
-    "title": "Plan Status Card — Day 13",
-    "updatedAt": "2026-11-27T03:30:15.754Z",
+    "title": "Plan Status Card — Build 14 of 22 work blocks done",
+    "updatedAt": "2026-11-28T03:30:13.919Z",
     "cardType": "plan",
     "linkedIssueNumber": 13,
     "threadTimestamps": [
@@ -24,7 +24,8 @@
       "1795318211.396719",
       "1795577413.806019",
       "1795663813.621519",
-      "1795750215.460649"
+      "1795750215.460649",
+      "1795836613.675349"
     ]
   },
   "14": {
@@ -702,5 +703,16 @@
     "door": "core",
     "title": "Plan Status Card — Day 13",
     "updatedAt": "2026-11-27T07:59:03.263Z"
+  },
+  "thread:1795836613.675349": {
+    "channel": "C073SJJ22P9",
+    "ts": "1795836613.675349",
+    "issueNumber": 13,
+    "linkedIssueNumber": 13,
+    "cardType": "plan",
+    "agent": "chief-of-staff",
+    "door": "core",
+    "title": "Plan Status Card — Build 14 of 22 work blocks done",
+    "updatedAt": "2026-11-28T03:30:13.919Z"
   }
 }
